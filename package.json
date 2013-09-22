@@ -23,6 +23,7 @@
     "colors" : "*",
     "iced-test" : "*",
     "triplesec" : "*",
-    "openpgp" : "*"
+    "openpgp" : "*",
+    "iced-coffee-script" : "*"
   }
 }
