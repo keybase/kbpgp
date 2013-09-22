@@ -1,0 +1,28 @@
+{
+  "name":         "keybase-publickey",
+  "description":  "Pubkey operations for PGP implementation",
+  "keywords":     ["crypto"],
+  "author":       "Maxwell Krohn",
+  "version":      "0.0.1",
+  "licenses":     [{
+    "type":       "MIT",
+    "url":        ""
+  }],
+  "main" :        "./lib/index.js",
+  "directories"  : {
+    "lib" : "lib"
+  },
+  "homepage":     "http://github.com/keybase/publickey",
+  "bugs":         "https://github.com/keybase/publickey/issues",
+  "repository":   {
+    "type": "git",
+    "url": "git://github.com/keybase/publickey.git"
+  },
+  "devDependencies" : {
+    "browserify" : "*",
+    "colors" : "*",
+    "iced-test" : "*",
+    "triplesec" : "*",
+    "openpgp" : "*"
+  }
+}
