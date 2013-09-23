@@ -293,28 +293,28 @@ ms_random_zn = (rf, n) ->
 # @param {number} iter Get 1 - 2^{-iter} satisfaction
 # @return {Boolean} T/F depending on whether it passes or not
 #
-rabin_miller = (n, iter) ->
+miller_rabin = (n, iter) ->
   return false if n.compareTo(BigInteger.ZERO) <= 0
-  if n.compareTo(npv(7) <= 0)
+  if n.compareTo(nbv(7) <= 0)
     iv = n.intValue()
     return iv in [2,3,5,7]
   return false if not n.testBit(0)
 
   n1 = n.subtract(BigInteger.ONE)
-  s = n1.getLowestBitSet()
+  s = n1.getLowestSetBit()
   r = n1.shiftRight(s)
 
   msrf = new MS_RandomFountain()
 
   for i in [0...iter]
-    a = ms_random_zn n
+    a = ms_random_zn msrf, n
     y = a.modPow(r,n)
     if y.compareTo(BigInteger.ONE) isnt 0
       for j in [(s-1)..0] when y.compareTo(n1) isnt 0
         return false if j is 0
         y = y.square().mod(n)
         return false if y.compareTo(BigInteger.ONE) is 0
-        
+
   return true
 
 #=================================================================
@@ -415,4 +415,5 @@ exports.prime_search = (start, range, sieve, iters=32) ->
 exports.fermat2_test = fermat2_test
 exports.nbs = nbs
 exports.small_primes = small_primes
+exports.miller_rabin = miller_rabin
 
