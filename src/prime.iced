@@ -14,6 +14,12 @@ native_rng = prng.native_rng
 
 #=================================================================
 
+class Timer
+  constructor : () -> @start = Date.now()
+  stop : -> (Date.now() - @start)
+
+#=================================================================
+
 small_primes = [
   3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
   71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139,
@@ -235,7 +241,8 @@ nbs = (s, base = 10) ->
 # @param {BigInteger} p 
 # @param {number} d
 # @return {number} p%d
-quickmod = (p, d) -> p.modInt(d)
+quickmod = (p, d) -> 
+  p.modInt(d)
 
 #--------------
 
@@ -246,6 +253,7 @@ quickmod = (p, d) -> p.modInt(d)
 # @return {Boolean} true if the check succeeds and false otherwise.
 #
 fermat2_test = (n) ->
+  tmr = new Timer()
   t = nbv(1)
   bl = n.bitLength()
   bl--
@@ -261,6 +269,7 @@ fermat2_test = (n) ->
   if t.compareTo(n) > 0
     t = t.mod(n)
   ret = (t.compareTo(nbv(2)) is 0)
+  console.log "ran in #{tmr.stop()}"
   ret
 
 #--------------
@@ -336,10 +345,19 @@ class PrimeFinder
   #-----------------------
 
   calcmods : () ->
-    @p += @inc
+    @p = @p.add nbv @inc
     @maxinc -= @inc unless @maxinc is -1
     @inc = 0
     @mods = ( quickmod(@p, sp) for sp in small_primes)
+
+  #-----------------------
+
+  decrement_mods_find_divisor : () ->
+    for sp,i in small_primes
+      while (@mods[i] + @inc >= sp)
+        @mods[i] -= sp
+        return true if @mods[i] + @inc is 0
+    return false
 
   #-----------------------
 
@@ -353,10 +371,8 @@ class PrimeFinder
   # @return {BigInteger} the next weak prime
   #
   next_weak : () ->
-
-    next_try = true
-    while next_try
-      next_try = false
+    try_again = true
+    while try_again
 
       step = @sieve[@sievepos]
       @sievepos = (@sievepos + step) % @sieve.length
@@ -365,14 +381,9 @@ class PrimeFinder
         @tmp = nbv(0)
         return @tmp
       @calcmods() if @inc < 0
+      try_again = @decrement_mods_find_divisor()
 
-      for sp,i in small_primes
-        while (@mods[i] + inc > sp) and not next_try
-          @mods[i] -= sp
-          next_try = true if (@mods[i] + inc) is 0
-        break if next_try
-
-    @tmp = @p.add nbv inc
+    @tmp = @p.add nbv @inc
     @tmp
 
   #-----------------------
@@ -396,15 +407,15 @@ class PrimeFinder
 # Use the sieve for primality testing, which in the case of regular odd
 # primes is [1,2], and for strong primes is more interesting...
 #
-exports.prime_search = (start, range, sieve, iters=32) ->
+prime_search = (start, range, sieve, iters=32) ->
   pf = new PrimeFinder start, sieve
   pf.setmax range
   pvec = (pp while ((pp = pf.next_weak()).compareTo(BigInteger.ZERO) > 0))
 
   while pvec.length
-    i = ms_random_word() % pvec.length()
+    i = ms_random_word() % pvec.length
     p = pvec[i]
-    return p if fermat2_test(p) and probab_prime(p, iters)
+    return p if (ft = fermat2_test(p)) and miller_rabin(p, iters)
     l = pvec.length - 1
     pvec[i] = pvec.pop()
 
@@ -412,8 +423,54 @@ exports.prime_search = (start, range, sieve, iters=32) ->
 
 #=================================================================
 
+#-----------------------
+
+class StrongRandomFountain 
+  constructor : ->
+    @buf = null
+  recharge : (cb) ->
+    await prng.generate Math.floor(7000/8), defer tmp
+    @buf = tmp.to_buffer()
+    cb()
+  nextBytes : (v) ->
+    throw new Error "need a recharge!" unless @buf?
+    for i in [0...v.length]
+      v[i] = @buf[i]
+    @buf = null
+
+#-----------------------
+
+
+#
+# Find a random prime that is nbits long, with certainty
+# 1 - 2^{-iter}
+#
+# @param {number} nbits The number of bits in the prime
+# @param {number} iters The number of time to run Miller-Rabin
+# @param {callback} Callback with the {BigInteger} result
+#
+random_prime = (nbits, iters, cb) ->
+  srf = new StrongRandomFountain()
+  sieve = [1,2]
+  go = true
+  i = 0
+  while go 
+    await srf.recharge defer()
+    p = new BigInteger nbits, srf
+    p = prime_search p, 4 * sieve.length * nbits, sieve, iters
+    go = (p.compareTo(BigInteger.ZERO) is 0)
+    console.log "iter #{i++} -> #{go}"
+  cb p
+
+#=================================================================
+
 exports.fermat2_test = fermat2_test
 exports.nbs = nbs
 exports.small_primes = small_primes
 exports.miller_rabin = miller_rabin
+exports.random_prime = random_prime
+
+await random_prime 3072, 32, defer p
+console.log p.toString()
+process.exit -1
 
