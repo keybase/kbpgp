@@ -1,4 +1,4 @@
-{nbv,nbi,BigInteger} = require('openpgp').bigint
+{Montgomery,nbv,nbi,BigInteger} = require('openpgp').bigint
 {prng} = require 'triplesec'
 native_rng = prng.native_rng
 
@@ -352,6 +352,10 @@ class PrimeFinder
 
   #-----------------------
 
+  getp : () -> @p
+
+  #-----------------------
+
   setmax : (i) -> 
     throw new Error "can only setmax() once" unless @maxinc is -1
     @maxinc = i
@@ -434,6 +438,25 @@ prime_search = (start, range, sieve, iters=32) ->
     pvec[i] = pvec.pop()
 
   return nbv(0)
+
+#=================================================================
+
+safe_prime_sieve = [   11, 10,  9,  8,  7,  6,  5,  4,  3,  2,
+  1, 12, 11, 10,  9,  8,  7,  6,  5,  4,
+  3,  2,  1,  6,  5,  4,  3,  2,  1, 12 ]
+
+safe_prime_search = (start, iters = 32) ->
+  pf = new PrimeFinder start, safe_prime_sieve
+  n = 0
+  inc = 0
+  init = () ->
+    n = pf.getp().shiftLeft(1)
+    n.setBit(0)
+    @mods = ( quickmod(@p, sp) for sp in small_primes)
+    inc = 0
+  loop
+    init()
+
 
 #=================================================================
 

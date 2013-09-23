@@ -391,20 +391,20 @@ srpprime_search (const bigint &start, u_int iter)
       u_int inc = pf.getinc () << 1;
 
       for (int i = 0; i < prime_finder::nprimes; i++)
-	if (mods[i] + inc >= small_primes[i]) {
-	  mods[i] = (mods[i] + inc) % small_primes[i] - inc;
-	  if (!(mods[i] + inc))
-	    goto nextq;
-	}
+      	if (mods[i] + inc >= small_primes[i]) {
+	        mods[i] = (mods[i] + inc) % small_primes[i] - inc;
+	        if (!(mods[i] + inc))
+	          goto nextq;
+	      }
 
       if (!fermat2_test (q, &t1, &t2))
-	continue;
+	      continue;
       n = q << 1;
       n.setbit (0, 1);
       /* Note by the logic of srpprime_test, we don't need to check
        * n.probab_prime (iter). */
       if (fermat2_test (n, &t1, &t2) && q.probab_prime (iter))
-	return n;
+	      return n;
     }
 
     pf.calcmods ();
