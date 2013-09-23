@@ -265,8 +265,25 @@ fermat2_test = (n) ->
 
 #--------------
 
-random_word = () ->
-  native_rng(4).readUInt32BE 0
+# Medium-strength random values for things like M-R
+# witnesses.
+ms_random_word = () ->   native_rng(4).readUInt32BE 0
+
+# Medium-strength fountain of random values
+class MS_RandomFountain
+  constructor : ->
+  nextBytes : (v) ->
+    b = native_rng v.length
+    v[i] = c for c,i in b
+
+#--------------
+
+# @param {MS_RandomFountain} rf A RandomFountain
+# @param {BigInteger} n the modulus
+ms_random_zn = (rf, n) ->
+  loop
+    i = new BigInteger n.bitLength(), rf
+    return i if i.compareTo(BigInteger.ONE) > 0 and i.compareTo(n) < 0
 
 #--------------
 
@@ -284,7 +301,21 @@ rabin_miller = (n, iter) ->
   return false if not n.testBit(0)
 
   n1 = n.subtract(BigInteger.ONE)
+  s = n1.getLowestBitSet()
+  r = n1.shiftRight(s)
 
+  msrf = new MS_RandomFountain()
+
+  for i in [0...iter]
+    a = ms_random_zn n
+    y = a.modPow(r,n)
+    if y.compareTo(BigInteger.ONE) isnt 0
+      for j in [(s-1)..0] when y.compareTo(n1) isnt 0
+        return false if j is 0
+        y = y.square().mod(n)
+        return false if y.compareTo(BigInteger.ONE) is 0
+        
+  return true
 
 #=================================================================
 
@@ -371,7 +402,7 @@ exports.prime_search = (start, range, sieve, iters=32) ->
   pvec = (pp while ((pp = pf.next_weak()).compareTo(BigInteger.ZERO) > 0))
 
   while pvec.length
-    i = random_word() % pvec.length()
+    i = ms_random_word() % pvec.length()
     p = pvec[i]
     return p if fermat2_test(p) and probab_prime(p, iters)
     l = pvec.length - 1
