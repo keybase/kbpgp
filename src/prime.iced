@@ -17,6 +17,18 @@ native_rng = prng.native_rng
 class Timer
   constructor : () -> @start = Date.now()
   stop : -> (Date.now() - @start)
+class Avg
+  constructor : () ->
+    @tot = 0
+    @n = 0
+  start : () ->
+    @_t = Date.now()
+  stop : () -> 
+    s = (Date.now() - @_t)
+    console.log "ran in #{s}"
+    @tot += s
+    @n++
+  avg : -> @tot/@n
 
 #=================================================================
 
@@ -252,24 +264,26 @@ quickmod = (p, d) ->
 # @param {BigInteger} n
 # @return {Boolean} true if the check succeeds and false otherwise.
 #
+fta = new Avg()
 fermat2_test = (n) ->
-  tmr = new Timer()
+  fta.start()
   t = nbv(1)
   bl = n.bitLength()
   bl--
   for i in [bl..0]
-    t = t.square()
+    t = t.modPowInt(2,n)
+    #t = t.square()
 
     # .t in jsbn is equivalent to _mp_size in GNU bigint.  _mp_size
     # is the "number of limbs" in the bigint
-    if t.t > n.t
-      t = t.mod(n)
+    #if t.t > n.t
+    #  t = t.mod(n)
     if n.testBit(i)
       t = t.shiftLeft(1)
   if t.compareTo(n) > 0
     t = t.mod(n)
   ret = (t.compareTo(nbv(2)) is 0)
-  console.log "ran in #{tmr.stop()}"
+  fta.stop()
   ret
 
 #--------------
@@ -457,7 +471,7 @@ random_prime = (nbits, iters, cb) ->
   while go 
     await srf.recharge defer()
     p = new BigInteger nbits, srf
-    p = prime_search p, 4 * sieve.length * nbits, sieve, iters
+    p = prime_search p, 2 * sieve.length * nbits, sieve, iters
     go = (p.compareTo(BigInteger.ZERO) is 0)
     console.log "iter #{i++} -> #{go}"
   cb p
@@ -470,7 +484,8 @@ exports.small_primes = small_primes
 exports.miller_rabin = miller_rabin
 exports.random_prime = random_prime
 
-await random_prime 3072, 32, defer p
+await random_prime 4096, 30, defer p
 console.log p.toString()
+console.log "avg -> #{fta.avg()}"
 process.exit -1
 
