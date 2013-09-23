@@ -24,6 +24,8 @@
     "iced-test" : "*",
     "triplesec" : "*",
     "openpgp" : "*",
-    "iced-coffee-script" : "*"
+    "iced-coffee-script" : "*",
+    "optimist" : "*",
+    "deep-equal" : "*"
   }
 }
