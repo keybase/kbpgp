@@ -24,3 +24,11 @@ exports.test_larger_primes = (T,cb) ->
   for p in P
     T.assert fermat2_test(nbs(p)), "Prime #{p}"
   cb()
+
+exports.test_larger_composites = (T,cb) ->
+  P = numbers.primes
+  for p,i in P[0...(P.length-1)]
+    c = nbs(p).multiply nbs(P[i+1])
+    T.assert not(fermat2_test(c)), "Composite #{c.toString()}"
+  cb()
+
