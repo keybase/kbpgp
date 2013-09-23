@@ -1,5 +1,16 @@
 {nbv,nbi,BigInteger} = require('openpgp').bigint
 {prng} = require 'triplesec'
+native_rng = prng.native_rng
+
+#=================================================================
+
+#
+# Code for generating Random Primes, ported from SFS:
+#  
+#  https://github.com/okws/sfslite/blob/master/crypt/random_prime.C
+# 
+#  Originally:  Copyright (C) 1998 David Mazieres (dm@uun.org)
+#
 
 #=================================================================
 
@@ -252,13 +263,125 @@ fermat2_test = (n) ->
   ret = (t.compareTo(nbv(2)) is 0)
   ret
 
+#--------------
+
+random_word = () ->
+  native_rng(4).readUInt32BE 0
+
+#--------------
+
+# Miller-Rabin primality test, with medium-strength RNGs
+#
+# @param {BigInteger} n The number to test
+# @param {number} iter Get 1 - 2^{-iter} satisfaction
+# @return {Boolean} T/F depending on whether it passes or not
+#
+rabin_miller = (n, iter) ->
+  return false if n.compareTo(BigInteger.ZERO) <= 0
+  if n.compareTo(npv(7) <= 0)
+    iv = n.intValue()
+    return iv in [2,3,5,7]
+  return false if not n.testBit(0)
+
+  n1 = n.subtract(BigInteger.ONE)
+
+
+#=================================================================
+
+class PrimeFinder
+
+  constructor : (@p, @sieve) ->
+    @inc = 0
+    @maxinc = -1
+    @sievepos = quickmod @p, @sieve.length
+    @calcmods()
+
+  #-----------------------
+
+  setmax : (i) -> 
+    throw new Error "can only setmax() once" unless @maxinc is -1
+    @maxinc = i
+
+  #-----------------------
+
+  calcmods : () ->
+    @p += @inc
+    @maxinc -= @inc unless @maxinc is -1
+    @inc = 0
+    @mods = ( quickmod(@p, sp) for sp in small_primes)
+
+  #-----------------------
+
+  #
+  # Return the next weak prime > @p.  Basically runs a sieve to see
+  # if any of the small primes divide the next candidate, and keeps 
+  # advancing until we find one that seems prime w/r/t to the small primes.
+  #
+  # This is crazy-optimized, but let's leave it for now...
+  #
+  # @return {BigInteger} the next weak prime
+  #
+  next_weak : () ->
+
+    next_try = true
+    while next_try
+      next_try = false
+
+      step = @sieve[@sievepos]
+      @sievepos = (@sievepos + step) % @sieve.length
+      @inc += step
+      if @inc > @maxinc or @maxinc < 0
+        @tmp = nbv(0)
+        return @tmp
+      @calcmods() if @inc < 0
+
+      for sp,i in small_primes
+        while (@mods[i] + inc > sp) and not next_try
+          @mods[i] -= sp
+          next_try = true if (@mods[i] + inc) is 0
+        break if next_try
+
+    @tmp = @p.add nbv inc
+    @tmp
+
+  #-----------------------
+
+  next_fermat : () ->
+    loop
+      @next_weak()
+      return @tmp if not(@tmp) or fermat2_test(@tmp)
+
+  #-----------------------
+
+  next_strong : (iter = 32) ->
+    loop
+      @next_weak()
+      return @tmp if not(@tmp) or (fermat2_test(@tmp) and probab_prime(@tmp, iter))
+
+#=================================================================
+
+# Find a prime starting at the given start, and going up to start+range.
+# 
+# Use the sieve for primality testing, which in the case of regular odd
+# primes is [1,2], and for strong primes is more interesting...
+#
+exports.prime_search = (start, range, sieve, iters=32) ->
+  pf = new PrimeFinder start, sieve
+  pf.setmax range
+  pvec = (pp while ((pp = pf.next_weak()).compareTo(BigInteger.ZERO) > 0))
+
+  while pvec.length
+    i = random_word() % pvec.length()
+    p = pvec[i]
+    return p if fermat2_test(p) and probab_prime(p, iters)
+    l = pvec.length - 1
+    pvec[i] = pvec.pop()
+
+  return nbv(0)
+
 #=================================================================
 
 exports.fermat2_test = fermat2_test
 exports.nbs = nbs
 exports.small_primes = small_primes
 
-for p in small_primes
-  r = fermat2_test nbv p
-  if not r
-    console.log "#{p} -> #{r}"

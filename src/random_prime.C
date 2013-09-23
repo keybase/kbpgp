@@ -474,17 +474,17 @@ prime_test (const bigint &n, u_int iter)
       a._mp_d[nlimbs-1] &= mask;
     } while (a >= n - 1 || a <= 1);
     y = powm (a, r, n);
-    if (y != 1)
+    if (y != 1) {
       for (u_int j = s - 1; y != n1; j--) {
-	if (!j)
-	  return false;
-	mpz_square (&a, &y);
-	mpz_mod (&y, &a, &n);
-	if (y == 1)
-	  return false;
+      	if (!j)
+	       return false;
+	      mpz_square (&a, &y);
+	      mpz_mod (&y, &a, &n);
+      	if (y == 1)
+	        return false;
       }
+    }
   }
-
   return true;
 }
 
