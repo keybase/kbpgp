@@ -293,7 +293,7 @@ random_prime = ({nbits, iters, progress_hook, e}, cb) ->
     p = p.setBit(0).setBit(nbits-1)
     if not e? or p.subtract(BigInteger.ONE).gcd(e).compareTo(BigInteger.ONE) is 0
       progress_hook? { what : "guess", p }
-      p = prime_search { start : p, range : nbits/4, sieve, progress_hook, iters }
+      p = prime_search { start : p, range : nbits, sieve, progress_hook, iters }
       go = (p.compareTo(BigInteger.ZERO) is 0)
   progress_hook? { what : "found", p }
   cb p
@@ -307,12 +307,4 @@ exports.miller_rabin = miller_rabin
 exports.random_prime = random_prime
 
 #=================================================================
-
-progress_hook = (obj) ->
-  s = obj.p.toString()
-  interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
-  console.log "+ #{obj.what} #{interval} #{s[0...3]}....#{s[(s.length-6)...]}"
-await random_prime { nbits : 1024, iters : 10, progress_hook, e : nbv((1 << 16) + 1) }, defer p
-console.log p.toString()
-process.exit -1
 
