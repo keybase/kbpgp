@@ -228,7 +228,8 @@ class PrimeFinder
 # Use the sieve for primality testing, which in the case of regular odd
 # primes is [1,2], and for strong primes is more interesting...
 #
-prime_search = (start, range, sieve, progress_hook, iters=20) ->
+prime_search = ({start, range, sieve, progress_hook, iters}) ->
+  iters or= 20
   pf = new PrimeFinder start, sieve
   pf.setmax range
   pvec = (pp while ((pp = pf.next_weak()).compareTo(BigInteger.ZERO) > 0))
@@ -269,7 +270,6 @@ class StrongRandomFountain
 
 #-----------------------
 
-
 #
 # Find a random prime that is nbits long, with certainty
 # 1 - 2^{-iter}
@@ -278,8 +278,11 @@ class StrongRandomFountain
 # @param {number} iters The number of time to run Miller-Rabin
 # @param {callback} Callback with the {BigInteger} result
 # @param {function} progress_hook A hook to call to update progress
+# @param {BigInteger} e The generated prime must p must have gcd(p-1,e) = 1
+#   if specified. If not, this check isn't performed. This is useful for RSA.
+#   It saves a tiny bit of work, but not much if e = 2^16+1 as usual.
 #
-random_prime = (nbits, iters, cb, progress_hook) ->
+random_prime = ({nbits, iters, progress_hook, e}, cb) ->
   srf = new StrongRandomFountain()
   sieve = [1,2]
   go = true
@@ -288,9 +291,10 @@ random_prime = (nbits, iters, cb, progress_hook) ->
     await srf.recharge defer()
     p = new BigInteger nbits, srf
     p = p.setBit(0).setBit(nbits-1)
-    progress_hook? { what : "guess", p }
-    p = prime_search p, nbits/4, sieve, progress_hook, iters
-    go = (p.compareTo(BigInteger.ZERO) is 0)
+    if not e? or p.subtract(BigInteger.ONE).gcd(e).compareTo(BigInteger.ONE) is 0
+      progress_hook? { what : "guess", p }
+      p = prime_search { start : p, range : nbits/4, sieve, progress_hook, iters }
+      go = (p.compareTo(BigInteger.ZERO) is 0)
   progress_hook? { what : "found", p }
   cb p
 
@@ -308,7 +312,7 @@ progress_hook = (obj) ->
   s = obj.p.toString()
   interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
   console.log "+ #{obj.what} #{interval} #{s[0...3]}....#{s[(s.length-6)...]}"
-await random_prime 3072, 10, defer(p), progress_hook
+await random_prime { nbits : 1024, iters : 10, progress_hook, e : nbv((1 << 16) + 1) }, defer p
 console.log p.toString()
 process.exit -1
 
