@@ -32,7 +32,7 @@ class Avg
 
 #=================================================================
 
-{small_primes} = require './primes'
+{small_primes} = require './const'
 # small_primes = small_primes[0...100]
 
 #=================================================================
