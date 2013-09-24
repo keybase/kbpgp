@@ -32,8 +32,7 @@ generate_raw_key = ({nbits, progress_hook}, cb)  ->
 
 #=================================================================
 
-generate_key = ({nbits, progress_hook, userid, passphrase}, cb) ->
-  console.log packet
+generate_key = ({nbits, progress_hook, userid}, cb) ->
   userIdString = (new packet.UserID()).write_packet(userid);
   await generate_raw_key { nbits, progress_hook }, defer key
   privKeyString = key.privateKey.string
@@ -52,8 +51,6 @@ generate_key = ({nbits, progress_hook, userid, passphrase}, cb) ->
 
     publicKeyString = privKey.privateKeyPacket.publicKey.data
     userid_buffer = new Buffer userid, 'utf8'
-    console.log publicKeyString
-    console.log publicKeyString.length
 
     bufs = [
       new Buffer [ 0x99 ],
@@ -67,10 +64,16 @@ generate_key = ({nbits, progress_hook, userid, passphrase}, cb) ->
     signature = (new packet.Signature()).write_message_signature(C.subpacket_types.issuer, hashData, privKey)
     payload = (which) -> which + userIdString + signature.openpgp
 
+    # We're not using this feature for now.... 
+    # privateKeyArmored = encoding.armor C.message_types.private_key, payload(privKeyString)
+
     ret = 
-      privateKey : privKey
-      privateKeyArmored : encoding.armor C.message_types.private_key, payload(privKeyString)
       publicKeyArmored : encoding.armor C.message_types.public_key, payload(key.publicKey.string)
+      privateKeyObject :
+        signature : new Buffer signature.openpgp, 'binary'
+        userid : userid
+        privateKey : new Buffer privKeyString, 'binary'
+
   cb err, ret
 
 #=================================================================
