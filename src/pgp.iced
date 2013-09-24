@@ -20,7 +20,7 @@ C = require('./const').openpgp
 # @param {function} progress_hook Called back to update the U/I what's going on.
 # @param {callback} cb Callback with a raw keypair.
 #
-generate_raw_key = ({nbits, progress_hook}, cb)  ->
+generate_raw_keypair = ({nbits, progress_hook}, cb)  ->
   nbits or= 4096
   timePacket = make_time_packet()
   await generate_rsa_keypair { nbits, iters : 10, progress_hook }, defer key
@@ -32,7 +32,22 @@ generate_raw_key = ({nbits, progress_hook}, cb)  ->
 
 #=================================================================
 
-generate_key = ({nbits, progress_hook, userid}, cb) ->
+#
+# Generate a new raw keypair, and then perform some higher-level
+# finessing, like generating a self-signature for this key, and armoring
+# the public-key pair for export to the user.
+#
+# @param {number} nbits The number of bits in the keypair, taken to be 4096 by default.
+# @param {function} progress_hook A standard progress hook to pass into the key
+#   generation algorithm.
+# @param {string} userid The userid that's going to be written into the key.
+# @param {callback} cb Call with an `(err,res)` pair when we are done. res
+#   will have to subobjects: `publicKeyArmored` and `privateKeyObject`.
+#   The `privateKeyObject` has three fields: a `signature` of type {Buffer},
+#   a `userid` of type {String}, and a `privateKey` of type {Buffer}.  This
+#   last field should be TripleSec'ed before being written anywhere.
+#
+generate_keypair = ({nbits, progress_hook, userid}, cb) ->
   userIdString = (new packet.UserID()).write_packet(userid);
   await generate_raw_key { nbits, progress_hook }, defer key
   privKeyString = key.privateKey.string
@@ -78,15 +93,24 @@ generate_key = ({nbits, progress_hook, userid}, cb) ->
 
 #=================================================================
 
-progress_hook = (obj) ->
-  if obj.p?
-    s = obj.p.toString()
-    s = "#{s[0...3]}....#{s[(s.length-6)...]}"
-  else
-    s = ""
-  interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
-  console.log "+ #{obj.what} #{interval} #{s}"
-openpgp.init()
-await generate_key { nbits : 2048, progress_hook, userid : "Max Krohn <max@keybase.io>"}, defer err, key
-console.log key
-process.exit 0
+test = () ->
+  progress_hook = (obj) ->
+    if obj.p?
+      s = obj.p.toString()
+      s = "#{s[0...3]}....#{s[(s.length-6)...]}"
+    else
+      s = ""
+    interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
+    console.log "+ #{obj.what} #{interval} #{s}"
+  openpgp.init()
+  await generate_key { nbits : 2048, progress_hook, userid : "Max Krohn <max@keybase.io>"}, defer err, key
+  console.log key
+  process.exit 0
+
+#=================================================================
+
+exports.generate_keypair = generate_keypair
+exports.generate_raw_keypair = generate_raw_keypair
+
+#=================================================================
+
