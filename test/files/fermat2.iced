@@ -1,5 +1,5 @@
 
-{small_primes,nbs,fermat2_test} = require '../../src/prime'
+{small_primes,nbs,fermat2_test} = require '../../src/primegen'
 {nbv} = require('openpgp').bigint
 numbers = require '../data/numbers'
 

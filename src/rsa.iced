@@ -1,5 +1,5 @@
 
-{random_prime,nbs} = require './prime'
+{random_prime,nbs} = require './primegen'
 {RSA} = require('openpgp').ciphers.asymmetric
 {Montgomery,nbv,nbi,BigInteger} = require('openpgp').bigint
 
@@ -64,19 +64,26 @@ generate_rsa_keypair = ({nbits, iters, e, progress_hook}, cb) ->
 
 exports.generate_rsa_keypair = generate_rsa_keypair
 
-progress_hook = (obj) ->
-  if obj.p?
-    s = obj.p.toString()
-    s = "#{s[0...3]}....#{s[(s.length-6)...]}"
-  else
-    s = ""
-  interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
-  # console.log "+ #{obj.what} #{interval} #{s}"
+#=======================================================================
 
-avg = new Avg()
-for i in [0...10]
-  avg.start()
-  await generate_rsa_keypair { nbits : 2048, progress_hook, iters: 10 }, defer key
-  avg.stop()
-console.log "stats: #{avg.avg()}"
-process.exit(1)
+bench = () ->
+  progress_hook = (obj) ->
+    if obj.p?
+      s = obj.p.toString()
+      s = "#{s[0...3]}....#{s[(s.length-6)...]}"
+    else
+      s = ""
+    interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
+    # console.log "+ #{obj.what} #{interval} #{s}"
+
+  avg = new Avg()
+  for i in [0...10]
+    avg.start()
+    await generate_rsa_keypair { nbits : 3072, progress_hook, iters: 10 }, defer key
+    avg.stop()
+  console.log "stats: #{avg.avg()}"
+  process.exit(1)
+
+bench()
+
+#=======================================================================

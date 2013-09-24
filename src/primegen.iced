@@ -1,6 +1,7 @@
 {Montgomery,nbv,nbi,BigInteger} = require('openpgp').bigint
 {prng} = require 'triplesec'
 native_rng = prng.native_rng
+{small_primes} = require './primes'
 
 #=================================================================
 
@@ -29,11 +30,6 @@ class Avg
     @tot += s
     @n++
   avg : -> @tot/@n
-
-#=================================================================
-
-{small_primes} = require './const'
-# small_primes = small_primes[0...100]
 
 #=================================================================
 
