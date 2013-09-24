@@ -1,5 +1,5 @@
 
-{nbs,miller_rabin} = require '../../src/primegen'
+{nbs,miller_rabin} = require '../../lib/primegen'
 numbers = require '../data/numbers'
 
 exports.test_primes = (T,cb) ->

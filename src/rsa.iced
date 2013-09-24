@@ -82,8 +82,5 @@ bench = () ->
     await generate_rsa_keypair { nbits : 3072, progress_hook, iters: 10 }, defer key
     avg.stop()
   console.log "stats: #{avg.avg()}"
-  process.exit(1)
-
-bench()
 
 #=======================================================================
