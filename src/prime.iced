@@ -234,7 +234,8 @@ small_primes = [
   17713, 17729, 17737, 17747, 17749, 17761, 17783, 17789, 17791,
   17807, 17827, 17837, 17839, 17851, 17863, 17881 ]
 
-num_primes = small_primes.length 
+{small_primes} = require './primes'
+# small_primes = small_primes[0...100]
 
 #=================================================================
 
@@ -316,7 +317,7 @@ ms_random_zn = (rf, n) ->
 # Miller-Rabin primality test, with medium-strength RNGs
 #
 # @param {BigInteger} n The number to test
-# @param {number} iter Get 1 - 2^{-iter} satisfaction
+# @param {number} iter Get 1 - 4^{-iter} satisfaction
 # @return {Boolean} T/F depending on whether it passes or not
 #
 miller_rabin = (n, iter) ->
@@ -441,25 +442,6 @@ prime_search = (start, range, sieve, iters=32) ->
 
 #=================================================================
 
-safe_prime_sieve = [   11, 10,  9,  8,  7,  6,  5,  4,  3,  2,
-  1, 12, 11, 10,  9,  8,  7,  6,  5,  4,
-  3,  2,  1,  6,  5,  4,  3,  2,  1, 12 ]
-
-safe_prime_search = (start, iters = 32) ->
-  pf = new PrimeFinder start, safe_prime_sieve
-  n = 0
-  inc = 0
-  init = () ->
-    n = pf.getp().shiftLeft(1)
-    n.setBit(0)
-    @mods = ( quickmod(@p, sp) for sp in small_primes)
-    inc = 0
-  loop
-    init()
-
-
-#=================================================================
-
 #-----------------------
 
 class StrongRandomFountain 
@@ -468,6 +450,8 @@ class StrongRandomFountain
   recharge : (cb) ->
     await prng.generate Math.floor(7000/8), defer tmp
     @buf = tmp.to_buffer()
+    console.log "Generate ->"
+    console.log @buf
     cb()
   nextBytes : (v) ->
     throw new Error "need a recharge!" unless @buf?
@@ -494,7 +478,8 @@ random_prime = (nbits, iters, cb) ->
   while go 
     await srf.recharge defer()
     p = new BigInteger nbits, srf
-    p = prime_search p, nbits/4, sieve, iters
+    console.log "Starting from #{p.toString()}"
+    p = prime_search p, nbits/2, sieve, iters
     go = (p.compareTo(BigInteger.ZERO) is 0)
     console.log "iter #{i++} -> #{go}"
   cb p
@@ -507,7 +492,7 @@ exports.small_primes = small_primes
 exports.miller_rabin = miller_rabin
 exports.random_prime = random_prime
 
-await random_prime 4096, 20, defer p
+await random_prime 4096, 10, defer p
 console.log p.toString()
 console.log "avg -> #{fta.avg()}"
 process.exit -1
