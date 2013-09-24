@@ -267,13 +267,15 @@ quickmod = (p, d) ->
 fta = new Avg()
 fermat2_test = (n) ->
   fta.start()
+  #y = nbv(2).modPow(n.subtract(nbv(1)),n)
+  #ret = (y.compareTo(BigInteger.ONE) is 0)
+  #console.log(y.toString())
   t = nbv(1)
   bl = n.bitLength()
   bl--
   for i in [bl..0]
     t = t.modPowInt(2,n)
     #t = t.square()
-
     # .t in jsbn is equivalent to _mp_size in GNU bigint.  _mp_size
     # is the "number of limbs" in the bigint
     #if t.t > n.t
@@ -282,6 +284,7 @@ fermat2_test = (n) ->
       t = t.shiftLeft(1)
   if t.compareTo(n) > 0
     t = t.mod(n)
+  #console.log t.toString()
   ret = (t.compareTo(nbv(2)) is 0)
   fta.stop()
   ret
@@ -374,7 +377,7 @@ class PrimeFinder
     for sp,i in small_primes
       while (@mods[i] + @inc >= sp)
         @mods[i] -= sp
-        return true if @mods[i] + @inc is 0
+        return true if (@mods[i] + @inc) is 0
     return false
 
   #-----------------------
@@ -389,20 +392,17 @@ class PrimeFinder
   # @return {BigInteger} the next weak prime
   #
   next_weak : () ->
-    try_again = true
-    while try_again
-
+    loop
       step = @sieve[@sievepos]
       @sievepos = (@sievepos + step) % @sieve.length
       @inc += step
-      if @inc > @maxinc or @maxinc < 0
+      if @inc > @maxinc and @maxinc > 0
         @tmp = nbv(0)
         return @tmp
       @calcmods() if @inc < 0
-      try_again = @decrement_mods_find_divisor()
-
-    @tmp = @p.add nbv @inc
-    @tmp
+      unless @decrement_mods_find_divisor()
+        @tmp = @p.add nbv @inc
+        return @tmp
 
   #-----------------------
 
@@ -434,8 +434,8 @@ prime_search = (start, range, sieve, iters=32) ->
     i = ms_random_word() % pvec.length
     p = pvec[i]
     return p if (ft = fermat2_test(p)) and miller_rabin(p, iters)
-    l = pvec.length - 1
-    pvec[i] = pvec.pop()
+    tmp = pvec.pop()
+    pvec[i] = tmp if pvec.length
 
   return nbv(0)
 
@@ -494,7 +494,7 @@ random_prime = (nbits, iters, cb) ->
   while go 
     await srf.recharge defer()
     p = new BigInteger nbits, srf
-    p = prime_search p, 2 * sieve.length * nbits, sieve, iters
+    p = prime_search p, nbits/4, sieve, iters
     go = (p.compareTo(BigInteger.ZERO) is 0)
     console.log "iter #{i++} -> #{go}"
   cb p
@@ -507,7 +507,7 @@ exports.small_primes = small_primes
 exports.miller_rabin = miller_rabin
 exports.random_prime = random_prime
 
-await random_prime 4096, 30, defer p
+await random_prime 4096, 20, defer p
 console.log p.toString()
 console.log "avg -> #{fta.avg()}"
 process.exit -1
