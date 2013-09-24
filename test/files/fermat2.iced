@@ -4,12 +4,12 @@
 numbers = require '../data/numbers'
 
 exports.test_small_primes = (T, cb) ->
-  for p in small_primes
+  for p in small_primes[4...]
     T.assert fermat2_test(nbv(p)), "Prime #{p}"
   cb()
 
 exports.test_small_composites = (T,cb) ->
-  for p in small_primes
+  for p in small_primes[4...]
     T.assert not(fermat2_test(nbv(p).add(nbv(3)))), "Composite #{p} + 3"
   cb()
 
