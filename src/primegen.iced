@@ -2,6 +2,8 @@
 {prng} = require 'triplesec'
 native_rng = prng.native_rng
 {small_primes} = require './primes'
+{make_esc} = require 'iced-error'
+{ASP} = require './util'
 
 #=================================================================
 
@@ -107,39 +109,59 @@ random_zn = (rf, n) ->
     i = new BigInteger n.bitLength(), rf
     return i if i.compareTo(BigInteger.ONE) > 0 and i.compareTo(n) < 0
 
+#==================================================
+
+_MR_inner = ({mrf, s, r, p, p1}) ->
+  a = random_zn mrf, p
+  y = a.modPow(r,p)
+  if y.compareTo(BigInteger.ONE) isnt 0
+    for j in [(s-1)..0] when y.compareTo(p1) isnt 0
+      return false if j is 0
+      y = y.square().mod(p)
+      return false if y.compareTo(BigInteger.ONE) is 0
+  return true
+
+#--------------
+
+_MR_small_check = ({p}) ->
+  if p.compareTo(BigInteger.ZERO) <= 0 then false
+  else if p.compareTo(nbv(7) <= 0) then (p.intValue() in [2,3,5,7])
+  else if not p.testBit(0) then false
+  else true
+
 #--------------
 
 # Miller-Rabin primality test, with medium-strength RNGs
 #
 # @param {BigInteger} n The number to test
 # @param {number} iter Get 1 - 4^{-iter} satisfaction
-# @return {Boolean} T/F depending on whether it passes or not
+# @param {ASP} asp An ASync Package
+# @param {callback} cb The callback to call when done, with (err,bool)
 #
-miller_rabin = (n, iter, progress_hook) ->
-  return false if n.compareTo(BigInteger.ZERO) <= 0
-  if n.compareTo(nbv(7) <= 0)
-    iv = n.intValue()
-    return iv in [2,3,5,7]
-  return false if not n.testBit(0)
+miller_rabin = ({p, iter, asp}, cb) ->
+  asp or= new ASP({})
+  iter or= 10
+  esc = make_esc "miller_rabin"
 
-  n1 = n.subtract(BigInteger.ONE)
-  s = n1.getLowestSetBit()
-  r = n1.shiftRight(s)
+  ret = _MR_small_check { p } 
 
-  mrf = new MediumRandomFountain()
+  if ret
+    p1 = p.subtract(BigInteger.ONE)
+    s = p1.getLowestSetBit()
+    r = p1.shiftRight(s)
 
-  for i in [0...iter]
-    progress_hook? { what : "mr", i, total : iter, p : n }
-    a = random_zn mrf, n
-    y = a.modPow(r,n)
-    if y.compareTo(BigInteger.ONE) isnt 0
-      for j in [(s-1)..0] when y.compareTo(n1) isnt 0
-        return false if j is 0
-        y = y.square().mod(n)
-        return false if y.compareTo(BigInteger.ONE) is 0
+    mrf = new MediumRandomFountain()
 
-  progress_hook? { what : "mr", i : iter, total : iter, p : n }
-  return true
+    ret = true
+    for i in [0...iter]
+      await asp.progress { what : "mr", i, total : iter, p }, esc defer()
+      unless _MR_inner { mrf, s, r, p, p1 }
+        ret = false
+        break
+
+    await asp.progress { what : "mr", i : iter, total : iter, p }, esc defer()
+
+  cb null, ret
 
 #=================================================================
 
@@ -224,28 +246,31 @@ class PrimeFinder
 # Use the sieve for primality testing, which in the case of regular odd
 # primes is [1,2], and for strong primes is more interesting...
 #
-prime_search = ({start, range, sieve, progress_hook, iters}) ->
+prime_search = ({start, range, sieve, asp, iters}, cb) ->
   iters or= 20
   pf = new PrimeFinder start, sieve
   pf.setmax range
   pvec = (pp while ((pp = pf.next_weak()).compareTo(BigInteger.ZERO) > 0))
+  esc = make_esc "prime_search"
 
-  while pvec.length
+  ret = null
+  while pvec.length and not ret?
     i = ms_random_word() % pvec.length
     p = pvec[i]
 
-    progress_hook? { what : "fermat", p }
+    await asp.progress { what : "fermat", p }, esc defer()
     if not fermat2_test(p) then # noop
-    else if miller_rabin(p, iters, progress_hook)
-      progress_hook? { what : "passed_mr", p }
-      return p
-    else
-      progress_hook? { what : "failed_mr", p }
+    else 
+      await miller_rabin { p, iters, asp }, esc defer is_prime
+      await asp.progress { what : "passed_mr", p }, esc defer()
+      if is_prime then ret = p
+      else asp.progress { what : "failed_mr", p }
 
     tmp = pvec.pop()
     pvec[i] = tmp if i < pvec.length
 
-  return nbv(0)
+  ret = nbv(0) if not ret?
+  cb null, ret
 
 #=================================================================
 
@@ -278,21 +303,25 @@ class StrongRandomFountain
 #   if specified. If not, this check isn't performed. This is useful for RSA.
 #   It saves a tiny bit of work, but not much if e = 2^16+1 as usual.
 #
-random_prime = ({nbits, iters, progress_hook, e}, cb) ->
+random_prime = ({nbits, iters, asp, e}, cb) ->
   srf = new StrongRandomFountain()
   sieve = [1,2]
   go = true
-  i = 0
+  esc = make_esc "random_prime"
+  range = nbits
+  p = null
+
   while go 
     await srf.recharge defer()
     p = new BigInteger nbits, srf
     p = p.setBit(0).setBit(nbits-1)
     if not e? or p.subtract(BigInteger.ONE).gcd(e).compareTo(BigInteger.ONE) is 0
-      progress_hook? { what : "guess", p }
-      p = prime_search { start : p, range : nbits, sieve, progress_hook, iters }
-      go = (p.compareTo(BigInteger.ZERO) is 0)
-  progress_hook? { what : "found", p }
-  cb p
+      await asp.progress { what : "guess", p }, esc defer()
+      await prime_search { start : p, range, sieve, asp, iters }, esc defer p
+      go = not p? or (p.compareTo(BigInteger.ZERO) is 0)
+
+  await asp.progress { what : "found", p }, esc defer()
+  cb null, p
 
 #=================================================================
 

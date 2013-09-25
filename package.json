@@ -27,6 +27,7 @@
     "iced-coffee-script" : "*",
     "optimist" : "*",
     "deep-equal" : "*",
-    "icsify" : "*"
+    "icsify" : "*",
+    "iced-error" : ">=0.0.6"
   }
 }

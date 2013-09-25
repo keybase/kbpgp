@@ -2,6 +2,8 @@
 {random_prime,nbs} = require './primegen'
 {RSA} = require('openpgp').ciphers.asymmetric
 {Montgomery,nbv,nbi,BigInteger} = require('openpgp').bigint
+{ASP} = require './util'
+{make_esc} = require 'iced-error'
 
 #=================================================================
 
@@ -20,22 +22,24 @@ class Avg
 
 #=======================================================================
 
-generate_rsa_keypair = ({nbits, iters, e, progress_hook}, cb) ->
+generate_rsa_keypair = ({nbits, iters, e, asp}, cb) ->
   e or= ((1 << 16) + 1)
   e_orig = e
   nbits or= 1024
   iters or= 10
+  asp or= new ASP({})
   e = nbv e_orig
-
-  sub_hook = (section) -> (obj) ->
-    obj.section = section
-    progress_hook? obj
+  esc = make_esc "generate_rsa_keypair"
 
   go = true
   while go
     nbits >>= 1 # since we have 2 primes...
-    await random_prime { progress_hook : sub_hook("p"), e, nbits, iters }, defer p
-    await random_prime { progress_hook : sub_hook("q"), e, nbits, iters }, defer q
+
+    await random_prime { asp : asp.section('p'), e, nbits, iters }, esc defer p
+    await asp.progress { what : "found" , p }, esc defer()
+    await random_prime { asp : asp.section('q'), e, nbits, iters }, esc defer q
+    await asp.progress { what : "found" , q }, esc defer()
+
     [p,q] = [q,p] if p.compareTo(q) <= 0
 
     q1 = q.subtract BigInteger.ONE
@@ -58,7 +62,7 @@ generate_rsa_keypair = ({nbits, iters, e, progress_hook}, cb) ->
   key.e = e_orig
   key.ee = e
 
-  cb key
+  cb null, key
 
 #=======================================================================
 

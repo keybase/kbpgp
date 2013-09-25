@@ -1,3 +1,6 @@
+{Canceler} = require 'iced-error'
+
+#=========================================================
 
 #
 # Equivalent to this monstrosity you might see in OpenPgpJS:
@@ -27,3 +30,35 @@ exports.uint_to_buffer = (nbits, i) ->
     else
       throw new Error "Bit types not found: #{nbit}"
   ret
+
+#=========================================================
+
+# ASync Package -- a collection of stuff that's
+# often passed along an async chain to monitor progress,
+# to insert delay slots, and also to cancel
+#
+exports.ASP = class ASP
+
+  constructor : ({progress_hook, delay, canceler}) ->
+    @_delay         = delay         or 2 # 2msec delay by default
+    @_canceler      = canceler      or (new Canceler())
+    @_progress_hook = progress_hook or ((obj) -> )
+    @_section       = null
+
+  section : (s) -> 
+    @_section = s
+    @
+
+  progress : (o, cb) -> 
+    o.section = @_section if @_section
+    @_progress_hook o
+    if cb?
+      await @delay defer err
+      cb err
+
+  delay : (cb) -> 
+    await setTimeout defer(), @delay
+    cb @_canceler.err()
+
+#=========================================================
+
