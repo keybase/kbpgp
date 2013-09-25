@@ -131,7 +131,7 @@ _MR_small_check = ({p}) ->
 miller_rabin = ({p, iter, asp}, cb) ->
   asp or= new ASP({})
   iter or= 10
-  esc = make_esc "miller_rabin"
+  esc = make_esc cb, "miller_rabin"
 
   ret = _MR_small_check { p } 
 
@@ -241,7 +241,7 @@ prime_search = ({start, range, sieve, asp, iters}, cb) ->
   pf = new PrimeFinder start, sieve
   pf.setmax range
   pvec = (pp while ((pp = pf.next_weak()).compareTo(BigInteger.ZERO) > 0))
-  esc = make_esc "prime_search"
+  esc = make_esc cb, "prime_search"
 
   ret = null
   while pvec.length and not ret?
@@ -297,7 +297,7 @@ random_prime = ({nbits, iters, asp, e}, cb) ->
   srf = new StrongRandomFountain()
   sieve = [1,2]
   go = true
-  esc = make_esc "random_prime"
+  esc = make_esc cb, "random_prime"
   range = nbits
   p = null
 

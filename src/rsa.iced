@@ -29,7 +29,7 @@ generate_rsa_keypair = ({nbits, iters, e, asp}, cb) ->
   iters or= 10
   asp or= new ASP({})
   e = nbv e_orig
-  esc = make_esc "generate_rsa_keypair"
+  esc = make_esc cb, "generate_rsa_keypair"
 
   go = true
   while go

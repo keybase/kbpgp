@@ -23,7 +23,7 @@ C = require('./const').openpgp
 #
 generate_raw_keypair = ({nbits, asp}, cb)  ->
   nbits or= 4096
-  esc = make_esc "generate_raw_keypair"
+  esc = make_esc cb, "generate_raw_keypair"
   timePacket = make_time_packet()
   await generate_rsa_keypair { nbits, iters : 10, asp }, esc defer key
   type = C.public_key_algorithms.RSA
@@ -60,7 +60,7 @@ generate_keypair = ({nbits, userid, progress_hook, delay}, cb) ->
 #   generation algorithm.
 _generate_keypair = ({nbits, asp, userid}, cb) ->
   userIdString = (new packet.UserID()).write_packet(userid);
-  esc = make_esc "generate_keypair"
+  esc = make_esc cb, "generate_keypair"
 
   await generate_raw_keypair { nbits, asp }, esc defer key
   privKeyString = key.privateKey.string
