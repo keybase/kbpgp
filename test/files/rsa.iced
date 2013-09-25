@@ -5,6 +5,7 @@
 rf = new MediumRandomFountain()
 
 run_test = (T,nbits,n,cb) ->
+  await setTimeout defer(), 10
   await generate_rsa_keypair { nbits }, defer key 
   await setTimeout defer(), 10
   T.waypoint "generated #{nbits} bit key!"
@@ -12,13 +13,14 @@ run_test = (T,nbits,n,cb) ->
     x = random_zn rf, key.n
     y = x.modPow key.ee, key.n
     z = y.modPow key.d, key.n
+    T.waypoint "did encrypt/decrypt ##{i}"
     await setTimeout defer(), 10
     cmp = x.compareTo z
     T.equal cmp, 0, "Encrypt #{x.toString()}"
   cb()
 
 exports.run_test_512 = (T, cb) ->
-  await run_test T, 512, 20, defer()
+  await run_test T, 512, 10, defer()
   cb()
 
 exports.run_test_1024 = (T, cb) ->
@@ -31,4 +33,8 @@ exports.run_test_2048 = (T, cb) ->
 
 exports.run_test_3072 = (T, cb) ->
   await run_test T, 3072, 3, defer()
+  cb()
+
+exports.run_test_4096 = (T, cb) ->
+  await run_test T, 4096, 2, defer()
   cb()
