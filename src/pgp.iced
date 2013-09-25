@@ -106,7 +106,6 @@ test = () ->
   await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>"}, defer err, key
   console.log key
   process.exit 0
-test()
 
 #=================================================================
 
