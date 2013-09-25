@@ -60,5 +60,7 @@ exports.ASP = class ASP
     await setTimeout defer(), @delay
     cb @_canceler.err()
 
+  canceler : () -> @_canceler
+
 #=========================================================
 

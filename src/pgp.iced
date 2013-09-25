@@ -52,7 +52,7 @@ generate_raw_keypair = ({nbits, asp}, cb)  ->
 generate_keypair = ({nbits, userid, progress_hook, delay}, cb) ->
   asp = new ASP { progress_hook, delay }
   _generate_keypair { nbits, userid, asp }, cb
-  return asp.canceler
+  return asp.canceler()
 
 #--------
 
