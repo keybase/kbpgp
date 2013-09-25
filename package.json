@@ -26,6 +26,7 @@
     "openpgp" : "keybase/openpgpjs#keybase",
     "iced-coffee-script" : "*",
     "optimist" : "*",
-    "deep-equal" : "*"
+    "deep-equal" : "*",
+    "icsify" : "*"
   }
 }

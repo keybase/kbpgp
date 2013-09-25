@@ -1,6 +1,6 @@
 
 {nbs,miller_rabin} = require '../../lib/primegen'
-numbers = require '../data/numbers'
+numbers = require '../data/numbers.iced'
 
 exports.test_primes = (T,cb) ->
   for p in numbers.primes
