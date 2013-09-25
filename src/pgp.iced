@@ -2,8 +2,9 @@
 {generate_rsa_keypair} = require './rsa'
 triplesec = require 'triplesec'
 {util,openpgp,packet,msg,encoding} = require 'openpgp'
-{uint_to_buffer,make_time_packet} = require './util'
+{ASP,uint_to_buffer,make_time_packet} = require './util'
 C = require('./const').openpgp
+{make_esc} = require 'iced-error'
 
 #=================================================================
 
@@ -17,18 +18,19 @@ C = require('./const').openpgp
 # A replacement for OpenPGP's openpgp_crypto_generateKeyPair
 #
 # @param {number} nbits The number of bits in the key (default is 4096)
-# @param {function} progress_hook Called back to update the U/I what's going on.
+# @param {ASP} asp A standard AsyncPackage to pass into the key generation algo
 # @param {callback} cb Callback with a raw keypair.
 #
-generate_raw_keypair = ({nbits, progress_hook}, cb)  ->
+generate_raw_keypair = ({nbits, asp}, cb)  ->
   nbits or= 4096
+  esc = make_esc "generate_raw_keypair"
   timePacket = make_time_packet()
-  await generate_rsa_keypair { nbits, iters : 10, progress_hook }, defer key
+  await generate_rsa_keypair { nbits, iters : 10, asp }, esc defer key
   type = C.public_key_algorithms.RSA
   pub = (new packet.KeyMaterial()).write_public_key type, key, timePacket
   priv = (new packet.KeyMaterial()).write_private_key type, key, null, null, null, timePacket
   ret = { privateKey : priv, publicKey : pub }
-  cb ret
+  cb null, ret
 
 #=================================================================
 
@@ -38,18 +40,29 @@ generate_raw_keypair = ({nbits, progress_hook}, cb)  ->
 # the public-key pair for export to the user.
 #
 # @param {number} nbits The number of bits in the keypair, taken to be 4096 by default.
-# @param {function} progress_hook A standard progress hook to pass into the key
-#   generation algorithm.
 # @param {string} userid The userid that's going to be written into the key.
+# @param {number} delay The number of msec to wait between each iter of the inner loop
 # @param {callback} cb Call with an `(err,res)` pair when we are done. res
 #   will have to subobjects: `publicKeyArmored` and `privateKeyObject`.
 #   The `privateKeyObject` has three fields: a `signature` of type {Buffer},
 #   a `userid` of type {String}, and a `privateKey` of type {Buffer}.  This
 #   last field should be TripleSec'ed before being written anywhere.
-#
-generate_keypair = ({nbits, progress_hook, userid}, cb) ->
+# @return {Canceler} A canceler object you can call cancel() on if you want
+#   to give up on this.
+generate_keypair = ({nbits, userid, progress_hook, delay}, cb) ->
+  asp = new ASP { progress_hook, delay }
+  _generate_keypair { nbits, userid, asp }, cb
+  return asp.canceler
+
+#--------
+
+# @param {ASP} asp standard ASyncPackage to pass into the key
+#   generation algorithm.
+_generate_keypair = ({nbits, asp, userid}, cb) ->
   userIdString = (new packet.UserID()).write_packet(userid);
-  await generate_raw_keypair { nbits, progress_hook }, defer key
+  esc = make_esc "generate_keypair"
+
+  await generate_raw_keypair { nbits, asp }, esc defer key
   privKeyString = key.privateKey.string
 
   # The '3' is the offset to start reading from.  Please excuse this mess.
@@ -90,6 +103,9 @@ generate_keypair = ({nbits, progress_hook, userid}, cb) ->
         privateKey : new Buffer privKeyString, 'binary'
 
   cb err, ret
+
+#---------------------------------
+
 
 #=================================================================
 
