@@ -1,7 +1,7 @@
 {
-  "name":         "keybase-publickey",
-  "description":  "Pubkey operations for PGP implementation",
-  "keywords":     ["crypto"],
+  "name":         "kbpgp",
+  "description":  "Keybase's PGP Implementation",
+  "keywords":     ["crypto", "pgp", "keybase" ],
   "author":       "Maxwell Krohn",
   "version":      "0.0.1",
   "licenses":     [{
@@ -12,11 +12,11 @@
   "directories"  : {
     "lib" : "lib"
   },
-  "homepage":     "http://github.com/keybase/publickey",
-  "bugs":         "https://github.com/keybase/publickey/issues",
+  "homepage":     "http://github.com/keybase/kbpgp",
+  "bugs":         "https://github.com/keybase/kbpgp/issues",
   "repository":   {
     "type": "git",
-    "url": "git://github.com/keybase/publickey.git"
+    "url": "git://github.com/keybase/kbpgp.git"
   },
   "devDependencies" : {
     "browserify" : "*",
