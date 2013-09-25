@@ -49,7 +49,7 @@ generate_raw_keypair = ({nbits, progress_hook}, cb)  ->
 #
 generate_keypair = ({nbits, progress_hook, userid}, cb) ->
   userIdString = (new packet.UserID()).write_packet(userid);
-  await generate_raw_key { nbits, progress_hook }, defer key
+  await generate_raw_keypair { nbits, progress_hook }, defer key
   privKeyString = key.privateKey.string
 
   # The '3' is the offset to start reading from.  Please excuse this mess.
@@ -68,10 +68,10 @@ generate_keypair = ({nbits, progress_hook, userid}, cb) ->
     userid_buffer = new Buffer userid, 'utf8'
 
     bufs = [
-      new Buffer [ 0x99 ],
+      new Buffer([ 0x99 ]),
       uint_to_buffer(16, publicKeyString.length),
       new Buffer(publicKeyString, 'binary'),
-      new Buffer [ 0xb4 ],
+      new Buffer([ 0xb4 ]),
       uint_to_buffer(32, userid_buffer.length),
       userid_buffer
     ]
@@ -103,9 +103,10 @@ test = () ->
     interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
     console.log "+ #{obj.what} #{interval} #{s}"
   openpgp.init()
-  await generate_key { nbits : 2048, progress_hook, userid : "Max Krohn <max@keybase.io>"}, defer err, key
+  await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>"}, defer err, key
   console.log key
   process.exit 0
+test()
 
 #=================================================================
 

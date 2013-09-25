@@ -13,15 +13,17 @@ exports.make_time_packet = (d) ->
   b.toString 'binary'
 
 exports.uint_to_buffer = (nbits, i) ->
+  ret = null
   switch nbits
     when 16
-      b = new Buffer 2
-      b.writeUInt16BE i, 0
+      ret = new Buffer 2
+      ret.writeUInt16BE i, 0
     when 32
-      b = new Buffer 4
-      b.writeUInt32BE i, 0
+      ret = new Buffer 4
+      ret.writeUInt32BE i, 0
     when 8
-      b = new Buffer 1
-      b.writeUInt8 i, 0
+      ret = new Buffer 1
+      ret.writeUInt8 i, 0
     else
       throw new Error "Bit types not found: #{nbit}"
+  ret
