@@ -23,7 +23,7 @@
     "colors" : "*",
     "iced-test" : "*",
     "triplesec" : "*",
-    "openpgp" : "*",
+    "openpgp" : "keybase/openpgpjs#keybase",
     "iced-coffee-script" : "*",
     "optimist" : "*",
     "deep-equal" : "*"

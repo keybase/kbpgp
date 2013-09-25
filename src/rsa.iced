@@ -74,13 +74,16 @@ bench = () ->
     else
       s = ""
     interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
-    # console.log "+ #{obj.what} #{interval} #{s}"
+    #console.log "+ #{obj.what} #{interval} #{s}"
 
   avg = new Avg()
   for i in [0...10]
     avg.start()
-    await generate_rsa_keypair { nbits : 3072, progress_hook, iters: 10 }, defer key
+    await generate_rsa_keypair { nbits : 4096, progress_hook, iters: 10 }, defer key
     avg.stop()
   console.log "stats: #{avg.avg()}"
+  process.exit 0
+
+bench()
 
 #=======================================================================

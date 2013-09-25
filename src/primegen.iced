@@ -89,10 +89,10 @@ fermat2_test = (n) ->
 
 # Medium-strength random values for things like M-R
 # witnesses.
-ms_random_word = () ->   native_rng(4).readUInt32BE 0
+ms_random_word = () -> native_rng(4).readUInt32BE 0
 
 # Medium-strength fountain of random values
-class MS_RandomFountain
+class MediumRandomFountain
   constructor : ->
   nextBytes : (v) ->
     b = native_rng v.length
@@ -102,7 +102,7 @@ class MS_RandomFountain
 
 # @param {MS_RandomFountain} rf A RandomFountain
 # @param {BigInteger} n the modulus
-ms_random_zn = (rf, n) ->
+random_zn = (rf, n) ->
   loop
     i = new BigInteger n.bitLength(), rf
     return i if i.compareTo(BigInteger.ONE) > 0 and i.compareTo(n) < 0
@@ -126,11 +126,11 @@ miller_rabin = (n, iter, progress_hook) ->
   s = n1.getLowestSetBit()
   r = n1.shiftRight(s)
 
-  msrf = new MS_RandomFountain()
+  mrf = new MediumRandomFountain()
 
   for i in [0...iter]
     progress_hook? { what : "mr", i, total : iter, p : n }
-    a = ms_random_zn msrf, n
+    a = random_zn mrf, n
     y = a.modPow(r,n)
     if y.compareTo(BigInteger.ONE) isnt 0
       for j in [(s-1)..0] when y.compareTo(n1) isnt 0
@@ -301,6 +301,9 @@ exports.nbs = nbs
 exports.small_primes = small_primes
 exports.miller_rabin = miller_rabin
 exports.random_prime = random_prime
+exports.random_zn = random_zn
+exports.MediumRandomFountain = MediumRandomFountain
+exports.StrongRandomFountain = StrongRandomFountain
 
 #=================================================================
 
