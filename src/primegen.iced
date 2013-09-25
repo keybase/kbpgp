@@ -4,6 +4,7 @@ native_rng = prng.native_rng
 {small_primes} = require './primes'
 {make_esc} = require 'iced-error'
 {ASP} = require './util'
+{nbs} = require './bn'
 
 #=================================================================
 
@@ -33,17 +34,6 @@ class Avg
     @n++
   avg : -> @tot/@n
 
-#=================================================================
-
-# Generate a BigInt from a string s, and a base.
-# @param {String} s the BigInt
-# @param {number} base the base that the string is in
-# @return {BigInteger} the result
-nbs = (s, base = 10) ->
-  r = nbi()
-  r.fromString s, base
-  r
-  
 #=================================================================
 
 # Compute (p % d)

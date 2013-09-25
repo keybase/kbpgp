@@ -19,7 +19,8 @@ $(BUILD_STAMP): \
 	lib/primes.js \
 	lib/random.js \
 	lib/rsa.js \
-	lib/util.js 
+	lib/util.js \
+	lib/bn.js
 	date > $@
 
 build: $(BUILD_STAMP) 

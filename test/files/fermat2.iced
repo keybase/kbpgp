@@ -1,6 +1,7 @@
 
-{small_primes,nbs,fermat2_test} = require '../../lib/primegen'
+{small_primes,fermat2_test} = require '../../lib/primegen'
 {nbv} = require('openpgp').bigint
+{nbs} = require '../../lib/bn'
 numbers = require '../data/numbers.iced'
 
 exports.test_small_primes = (T, cb) ->

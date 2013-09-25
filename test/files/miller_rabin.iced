@@ -1,6 +1,7 @@
 
-{nbs,miller_rabin} = require '../../lib/primegen'
+{miller_rabin} = require '../../lib/primegen'
 numbers = require '../data/numbers.iced'
+{nbs} = require '../../lib/bn'
 
 run_mr = (p, desired, what, T, cb) ->
   await miller_rabin { p, iter : 32 }, defer err, is_prime
