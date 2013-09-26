@@ -20,7 +20,8 @@ $(BUILD_STAMP): \
 	lib/random.js \
 	lib/rsa.js \
 	lib/util.js \
-	lib/bn.js
+	lib/bn.js \
+	lib/cfb.js
 	date > $@
 
 build: $(BUILD_STAMP) 

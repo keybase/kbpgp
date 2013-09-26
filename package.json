@@ -22,7 +22,7 @@
     "browserify" : "*",
     "colors" : "*",
     "iced-test" : "*",
-    "triplesec" : "*",
+    "triplesec" : "keybase/triplesec",
     "openpgp" : "keybase/openpgpjs#keybase",
     "iced-coffee-script" : "*",
     "optimist" : "*",
