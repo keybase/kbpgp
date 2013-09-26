@@ -4,16 +4,34 @@
 {ASP} = require './util'
 {make_esc} = require 'iced-error'
 C = require('./const').openpgp
+bn = require './bn'
 
 #=======================================================================
 
 class Priv
   constructor : ({@p,@q,@d,@dmp1,@dmq1,@u,@pub}) ->
+
   decrypt : (c) -> c.modPow @d, @pub.n
+
+  serialize : () ->
+    Buffer.concat [
+      @pub.d.to_mpi_buffer()
+      @pub.p.to_mpi_buffer()
+      @pub.q.to_mpi_buffer()
+      @pub.u.to_mpi_buffer()
+    ]
+
+#=======================================================================
 
 class Pub
   constructor : ({@n,@e}) ->
   encrypt : (p) -> p.modPow @e, @n
+
+  serialize : () -> 
+    Buffer.concat [
+      @pub.n.to_mpi_buffer()
+      @pub.e.to_mpi_buffer() 
+    ]
 
 #=======================================================================
 
@@ -23,6 +41,7 @@ class Pair
   type : Pair.type
 
   constructor : ({@priv, @pub}) ->
+    @priv.parent = @pub.parent = @
 
   #----------------
 

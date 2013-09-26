@@ -155,9 +155,9 @@ class S2K
   #
   produce_key : (passphrase, numBytes) ->
     switch @type
-      when 0 then @hash passphrase
-      when 1 then @hash Buffer.concat [ @salt, passphrase ]
-      when 3
+      when C.s2k.plain then @hash passphrase
+      when C.s2k.salt  then @hash Buffer.concat [ @salt, passphrase ]
+      when C.s2k.salt_iter
         seed = Buffer.concat [ @salt, passphrase ]
         n    = Math.ceil (@count / seed.length)
         isp  = Buffer.concat( seed for i in [0...n])[0...@count]

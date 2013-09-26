@@ -18,3 +18,7 @@ exports.openpgp =
   message_types :
     public_key : 4
     private_key : 5
+  s2k :
+    plain : 0
+    salt : 1
+    salt_iter : 3
