@@ -21,7 +21,8 @@ $(BUILD_STAMP): \
 	lib/rsa.js \
 	lib/util.js \
 	lib/bn.js \
-	lib/cfb.js
+	lib/cfb.js \
+	lib/s2k.js
 	date > $@
 
 build: $(BUILD_STAMP) 

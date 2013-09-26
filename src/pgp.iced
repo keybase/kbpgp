@@ -1,5 +1,5 @@
 
-{generate_rsa_keypair} = require './rsa'
+{RSA} = require './rsa'
 triplesec = require 'triplesec'
 {util,openpgp,packet,msg,encoding} = require 'openpgp'
 {ASP,uint_to_buffer,make_time_packet} = require './util'
@@ -25,10 +25,11 @@ generate_raw_keypair = ({nbits, asp}, cb)  ->
   nbits or= 4096
   esc = make_esc cb, "generate_raw_keypair"
   timePacket = make_time_packet()
-  await generate_rsa_keypair { nbits, iters : 10, asp }, esc defer key
-  type = C.public_key_algorithms.RSA
-  pub = (new packet.KeyMaterial()).write_public_key type, key, timePacket
-  priv = (new packet.KeyMaterial()).write_private_key type, key, null, null, null, timePacket
+  await RSA.generate { nbits, iters : 10, asp }, esc defer key
+  type = key.type # C.public_key_algorithms.RSA
+  okey = key.to_openpgp()
+  pub = (new packet.KeyMaterial()).write_public_key type, okey, timePacket
+  priv = (new packet.KeyMaterial()).write_private_key type, okey, null, null, null, timePacket
   ret = { privateKey : priv, publicKey : pub }
   cb null, ret
 

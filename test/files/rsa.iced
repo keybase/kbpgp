@@ -1,20 +1,20 @@
 
-{generate_rsa_keypair} = require '../../lib/rsa'
+{RSA} = require '../../lib/rsa'
 {MediumRandomFountain,random_zn} = require '../../lib/primegen'
 
 rf = new MediumRandomFountain()
 
 run_test = (T,nbits,n,cb) ->
   await setTimeout defer(), 10
-  await generate_rsa_keypair { nbits }, defer err, key 
+  await RSA.generate { nbits }, defer err, key 
   T.assert not(err?), "Generating keypair worked"
   await setTimeout defer(), 10
   T.waypoint "generated #{nbits} bit key!"
   for i in [0...n]
-    x = random_zn rf, key.n
-    y = x.modPow key.ee, key.n
+    x = random_zn rf, key.pub.n
+    y = key.encrypt x
     await setTimeout defer(), 2
-    z = y.modPow key.d, key.n
+    z = key.decrypt y
     T.waypoint "did encrypt/decrypt ##{i}"
     await setTimeout defer(), 10
     cmp = x.compareTo z
