@@ -24,12 +24,45 @@
 ##  symmetrically encrypted messages.
 ##
 
+#======================================================================
+
+triplesec = require 'triplesec'
+C = require './const'
+
+{WordArray} = triplesec
+{SHA1,SHA224,SHA256,SHA512} = triplesec.hash
+
+#======================================================================
+
 class S2K
+
+  #----------------------
 
   _count : (c, bias) -> (16 + (c & 15)) << ((c >> 4) + bias)
 
+  #----------------------
+  
   constructor : () ->
+    @hash_class = SHA256
 
+  #----------------------
+
+  set_hash_algorithm : (which) ->
+    @hash_class = switch which
+      when C.SHA1 then SHA1
+      when C.SHA224 then SHA224
+      when C.SHA256 then SHA256
+      when C.SHA512 then SHA512
+      else 
+        console.warn "No such hash: #{which}; defaulting to SHA-256"
+        SHA256
+
+  #----------------------
+
+  hash : (input) -> (new @hash_class).finalize(WordArray.from_buffer(input)).to_buffer()
+
+  #----------------------
+  
   # 
   # Parsing function for a string-to-key specifier (RFC 4880 3.7).
   # @param {Buffer} input Payload of string-to-key specifier
@@ -44,13 +77,13 @@ class S2K
     switch @type  
       when 0 # Simple S2K
         #Octet 1: hash algorithm
-        @hashAlgorithm = input.readUInt8 mypos++
+        @set_hash_algorithm(input.readUInt8(mypos++))
         @s2kLength = 1
         match = true
 
       when 1 # Salted S2K
         # Octet 1: hash algorithm
-        @hashAlgorithm = input.readUInt8 mypos++
+        @set_hash_algorithm(input.readUInt8(mypos++))
 
         # Octets 2-9: 8-octet salt value
         @saltValue = input[mypos...(mypos+8)]
@@ -60,7 +93,7 @@ class S2K
 
       when 3 # Iterated and Salted S2K
         # Octet 1: hash algorithm
-        @hashAlgorithm = input.readUInt8 mypos++
+        @set_hash_algorithm(input.readUInt8(mypos++))
 
         # Octets 2-9: 8-octet salt value
         @saltValue = input[mypos...(mypos+8)]
@@ -77,14 +110,14 @@ class S2K
 
       when 101
         if input[(mypos+1)...(mypos+4)] is "GNU"
-          @hashAlgorithm = input.readUInt8 mypos++
+          @set_hash_algorithm(input.readUInt8(mypos++))
           mypos += 3  # GNU
           gnuExtType = 1000 + input.readUInt8 mypos++
+          match = true
           if gnuExtType == 1001
             @type = gnuExtType
             @s2kLength = 5
             # GnuPG extension mode 1001 -- don't write secret key at all
-          match = true
           else
             console.warn "unknown s2k gnu protection mode! #{gnuExtType}"
 
@@ -94,47 +127,54 @@ class S2K
     else
       @
   
+  #----------------------
   
   # 
   # writes an s2k hash based on the inputs.  Only allows type 3, which
-  # is iterated/salted.
+  # is iterated/salted. Also default to SHA256.
   #
   # @return {Buffer} Produced key of hashAlgorithm hash length
   # 
   write : (passphrase, salt, c) ->
     @type = type = 3 
-    @saltValue = salt
+    @salt = salt
     @count = @_count c, 6
-    @hashAlgorithm = hash
+    @set_hash_algorithm C.SHA256
     @s2kLength = 10
     @produce_key passphrase
 
-  /**
-   * Produces a key using the specified passphrase and the defined 
-   * hashAlgorithm 
-   * @param {String} passphrase Passphrase containing user input
-   * @return {String} Produced key with a length corresponding to 
-   * hashAlgorithm hash length
-   */
-  function produce_key(passphrase, numBytes) {
-    passphrase = util.encode_utf8(passphrase);
-    if (this.type == 0) {
-      return openpgp_crypto_hashData(this.hashAlgorithm,passphrase);
-    } else if (this.type == 1) {
-      return openpgp_crypto_hashData(this.hashAlgorithm,this.saltValue+passphrase);
-    } else if (this.type == 3) {
-      var isp = [];
-      isp[0] = this.saltValue+passphrase;
-      while (isp.length*(this.saltValue+passphrase).length < this.count)
-        isp.push(this.saltValue+passphrase);
-      isp = isp.join('');     
-      if (isp.length > this.count)
-        isp = isp.substr(0, this.count);
-      if(numBytes && (numBytes == 24 || numBytes == 32)){ //This if accounts for RFC 4880 3.7.1.1 -- If hash size is greater than block size, use leftmost bits.  If blocksize larger than hash size, we need to rehash isp and prepend with 0.
-          var key = openpgp_crypto_hashData(this.hashAlgorithm,isp);
-          return key + openpgp_crypto_hashData(this.hashAlgorithm,String.fromCharCode(0)+isp);
-      }
-      return openpgp_crypto_hashData(this.hashAlgorithm,isp);
-    } else return null;
-  }
+  #----------------------
   
+  #
+  # Produces a key using the specified passphrase and the defined 
+  # hashAlgorithm 
+  # @param {Buffer} passphrase Passphrase containing user input -- this is
+  #   the UTF-8 encoded version of the input passphrase.
+  # @return {Buffer} Produced key with a length corresponding to 
+  # hashAlgorithm hash length
+  #
+  produce_key : (passphrase, numBytes) ->
+    switch @type
+      when 0 then @hash passphrase
+      when 1 then @hash Buffer.concat [ @salt, passphrase ]
+      when 3
+        seed = Buffer.concat [ @salt, passphrase ]
+        n    = Math.ceil (@count / seed.length)
+        isp  = Buffer.concat( seed for i in [0...n])[0...@count]
+        
+        # This if accounts for RFC 4880 3.7.1.1 -- If hash size is greater than block size, 
+        # use leftmost bits.  If blocksize larger than hash size, we need to rehash isp and prepend with 0.
+        if numBytes? and numBytes in [24,34]
+          key = @hash isp
+          Buffer.concat [ key, @hash(Buffer.concat([(new Buffer [0]), isp ]))]
+        else
+          @hash isp
+      else null
+
+#======================================================================
+
+s2k = new S2K()
+console.log s2k.write(new Buffer("shit on me XXyy"), new Buffer([0...16]), 2048)
+
+#======================================================================
+
