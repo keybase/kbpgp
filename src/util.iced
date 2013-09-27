@@ -72,3 +72,19 @@ exports.calc_checksum = calc_checksum = (text) ->
 
 #=========================================================
 
+exports.encode_length = encode_length = (l) ->
+  ret = null
+  if l < 192
+    ret = new Buffer 1
+    ret.writeUInt8 l, 0
+  else if l >= 192 and l < 8384
+    ret = new Buffer 2
+    ret.writeUInt16BE( ((l - 192) + (192 << 8 )), 0)
+  else
+    ret = new Buffer 5
+    ret.writeUInt8 0xff, 0
+    ret.writeUInt32BE l, 1
+  ret
+
+#=========================================================
+

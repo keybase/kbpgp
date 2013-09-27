@@ -1,17 +1,19 @@
 
-C = require './const'
+C = require '../const'
 triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{calc_checksum} = require './util'
-{encrypt} = require './cfb'
+{calc_checksum} = require '../util'
+{encrypt} = require '../cfb'
+{Packet} = require './base'
 
 #=================================================================================
 
-class KeyMaterial
+class KeyMaterial extends Packet
 
   constructor : (@key) ->
+    super()
 
   #--------------------------
 
@@ -42,25 +44,44 @@ class KeyMaterial
   #--------------------------
 
   _write_private_clear : (bufs, priv) ->
-    bufs.push new Buffer [0] 
-    bufs.push priv
-    bufs.push uint_to_buffer(calc_checksum(priv), 16)
+    bufs.push [ 
+      new Buffer([0]),
+      priv,
+      uint_to_buffer(calc_checksum(priv), 16)
+    ]
+
+  #--------------------------
+
+  _write_public : (bufs, timepacket) ->
+    pub = @key.pub.serialize()
+    bufs.push [
+      new Buffer([ 4 ]),          # I'm not sure what this is for
+      timepacket,
+      new Buffer([ @key.type ]),
+      pub
+    ] 
 
   #--------------------------
   
   write_private : ({password, timepacket}) ->
-    priv = @key.priv.serialize()
-    pub  = @key.pub.serialize()
-    bufs = [
-      new Buffer [ @key.type ]
-      timepacket
-      pub
-    ]
+    bufs = []
+    @_write_public bufs, timepacket
 
-    if password? then @_write_private_enc bufs, priv, password
+    priv = @key.priv.serialize()
+
+    if password? then @_write_private_enc   bufs, priv, password
     else              @_write_private_clear bufs, priv
 
-    Buffer.concat bufs
+    body = Buffer.concat bufs
+    @frame_packet C.packet_tags.secret_key, body
+
+  #--------------------------
+
+  write_public : ({timepacket}) ->
+    bufs = []
+    @_write_public bufs, timepacket
+    body = Buffer.concat bufs
+    @frame_packet C.packet_tags.public_key, body
 
   #--------------------------
   

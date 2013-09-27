@@ -22,3 +22,6 @@ exports.openpgp =
     plain : 0
     salt : 1
     salt_iter : 3
+  packet_tags :
+    secret_key : 5
+    public_key : 6
