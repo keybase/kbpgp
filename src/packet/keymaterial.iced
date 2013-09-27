@@ -4,10 +4,10 @@ triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{buf_hash} = require './util'
+{calc_checksum} = require './util'
 {encrypt} = require './cfb'
 
-#========= ========= ========= ========= ========= ========= ========= ========= ========= =========
+#=================================================================================
 
 class KeyMaterial
 
@@ -15,7 +15,7 @@ class KeyMaterial
 
   #--------------------------
 
-  _write_private_enc : (bufs, password) ->
+  _write_private_enc : (bufs, priv, password) ->
     bufs.push new Buffer [ 
       254,                                  # Indicates s2k with SHA1 checksum
       C.symmetric_key_algorithms.AES256,    # Sym algo used to encrypt
@@ -40,6 +40,13 @@ class KeyMaterial
     bufs.push ct
 
   #--------------------------
+
+  _write_private_clear : (bufs, priv) ->
+    bufs.push new Buffer [0] 
+    bufs.push priv
+    bufs.push uint_to_buffer(calc_checksum(priv), 16)
+
+  #--------------------------
   
   write_private : ({password, timepacket}) ->
     priv = @key.priv.serialize()
@@ -50,9 +57,12 @@ class KeyMaterial
       pub
     ]
 
-    if password? then @_write_private_enc bufs, password
-    else              @_write_private_clear bufs
+    if password? then @_write_private_enc bufs, priv, password
+    else              @_write_private_clear bufs, priv
 
     Buffer.concat bufs
 
   #--------------------------
+  
+#=================================================================================
+

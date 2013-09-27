@@ -64,3 +64,11 @@ exports.ASP = class ASP
 
 #=========================================================
 
+exports.calc_checksum = calc_checksum = (text) ->
+  ret = 0
+  for i in [0...text.length]
+    ret = (ret + text.readUInt8(i)) % 65536
+  ret
+
+#=========================================================
+
