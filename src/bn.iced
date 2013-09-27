@@ -14,6 +14,10 @@ nbs = (s, base = 10) ->
 
 #================================================================
 
+mpi_byte_length = (bn) -> bn.toByteArray().length
+
+#================================================================
+
 #
 # @param {BitInteger} bn An input big integer
 # @return {Buffer} A buffer-representation of the multi-precision integer
@@ -33,6 +37,7 @@ exports.nbs = nbs
 
 # Monkey-patch the BigInteger prototyp, for convenience...
 BigInteger.prototype.to_mpi_buffer = () -> toMPI @
+BigInteger.prototype.mpi_byte_length = () -> mpi_byte_length @
 
 #================================================================
 

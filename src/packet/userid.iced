@@ -10,20 +10,22 @@ triplesec = require 'triplesec'
 
 #=================================================================================
 
-class KeyMaterial extends Packet
+class UserID extends Packet
 
-  constructor : (@userid) ->
+  # @param {String} userid The string reprensentation of the UserID
+  constructor : (userid) ->
     super()
+    @userid = new Buffer userid, 'utf8'
 
   #--------------------------
 
   write : () ->
-    body = new Buffer @userid, 'utf8' 
-    @_write_public bufs, timepacket
-    body = Buffer.concat bufs
-    @frame_packet C.packet_tags.userid, body
+    @frame_packet C.packet_tags.userid, @userid
 
   #--------------------------
   
 #=================================================================================
 
+exports.UserID = UserID
+
+#=================================================================================

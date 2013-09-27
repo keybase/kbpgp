@@ -4,7 +4,7 @@ triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{calc_checksum} = require '../util'
+{uint_to_buffer,calc_checksum} = require '../util'
 {encrypt} = require '../cfb'
 {Packet} = require './base'
 
@@ -12,7 +12,7 @@ triplesec = require 'triplesec'
 
 class KeyMaterial extends Packet
 
-  constructor : (@key) ->
+  constructor : (@key, {@timepacket}) ->
     super()
 
   #--------------------------
@@ -55,7 +55,7 @@ class KeyMaterial extends Packet
   _write_public : (bufs, timepacket) ->
     pub = @key.pub.serialize()
     bufs.push [
-      new Buffer([ 4 ]),          # I'm not sure what this is for
+      new Buffer([ C.version.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
       timepacket,
       new Buffer([ @key.type ]),
       pub
@@ -63,24 +63,47 @@ class KeyMaterial extends Packet
 
   #--------------------------
   
-  write_private : ({password, timepacket}) ->
+  private_body : ({password, timepacket}) ->
     bufs = []
+    timepacket or= @timepacket
     @_write_public bufs, timepacket
-
     priv = @key.priv.serialize()
-
     if password? then @_write_private_enc   bufs, priv, password
     else              @_write_private_clear bufs, priv
-
-    body = Buffer.concat bufs
-    @frame_packet C.packet_tags.secret_key, body
+    Buffer.concat bufs
 
   #--------------------------
 
-  write_public : ({timepacket}) ->
+  private_framed : ( {password, timepacket}) ->
+    body = @private_body { password, timepacket }
+    @frame_packet C.packet_tags.public_key, body
+
+  #--------------------------
+
+  public_body : ({timepacket}) ->
+    timepacket or= @timepacket
     bufs = []
     @_write_public bufs, timepacket
-    body = Buffer.concat bufs
+    Buffer.concat bufs
+
+  #--------------------------
+
+  get_fingerprint : () ->
+    data = public_body()
+    (new SHA1).bufhash Buffer.concat [
+      new Buffer([ C.signatures.key ]),
+      uint_to_buffer(16, data.length),
+      data
+    ]
+
+  #--------------------------
+
+  get_key_id : () -> @get_fingerprint()[12...20]
+
+  #--------------------------
+  
+  public_framed : ( { timepacket }) ->
+    body = @public_body { timepacket }
     @frame_packet C.packet_tags.public_key, body
 
   #--------------------------

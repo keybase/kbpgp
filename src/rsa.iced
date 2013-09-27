@@ -5,6 +5,8 @@
 {make_esc} = require 'iced-error'
 C = require('./const').openpgp
 bn = require './bn'
+{SHA512} = require './hash'
+{emsa_pkcs1_encode} = require './encode'
 
 #=======================================================================
 
@@ -12,8 +14,9 @@ class Priv
   constructor : ({@p,@q,@d,@dmp1,@dmq1,@u,@pub}) ->
 
   decrypt : (c) -> c.modPow @d, @pub.n
+  sign    : (m) -> m.modPow @d, @pub.n
 
-  serialize : () ->
+  serialize : () -> {
     Buffer.concat [
       @pub.d.to_mpi_buffer()
       @pub.p.to_mpi_buffer()
@@ -77,10 +80,21 @@ class Pair
 
   #----------------
 
+  sign : (m) -> @priv.sign m
+
+  #----------------
+
+  pad_and_sign : (data, {hash}) ->
+    hash or= SHA512
+    m = emsa_pkcs1_encode data, @pub.n.mpi_byte_length(), {hash}
+    @sign(m).to_mpi_buffer()
+
+  #----------------
+
   @generate : ({nbits, iters, e, asp}, cb) ->
     e or= ((1 << 16) + 1)
     e_orig = e
-    nbits or= 1024
+    nbits or= 4096
     iters or= 10
     asp or= new ASP({})
     e = nbv e_orig

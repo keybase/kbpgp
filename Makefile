@@ -22,7 +22,8 @@ $(BUILD_STAMP): \
 	lib/util.js \
 	lib/bn.js \
 	lib/cfb.js \
-	lib/s2k.js
+	lib/s2k.js \
+	lib/hash.js
 	date > $@
 
 build: $(BUILD_STAMP) 

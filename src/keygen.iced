@@ -5,28 +5,12 @@ triplesec = require 'triplesec'
 {ASP,uint_to_buffer,make_time_packet} = require './util'
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
+{UserID} = require './packet/userid'
+{KeyMaterial} = require './packet/keymaterial'
 
 #=================================================================
 
 class KeyFactory
-
-  # 
-  # Generate a new raw keypair.  I only generate RSA keys, so you don't
-  # have an option.  If passphrase is provided, then we'll be triple-secing
-  # the output private key.  If not, then we'll return it in the clear.
-  # At this point will are not using OpenPGP's decryption, but we can
-  # in the future.
-  #
-  # A replacement for OpenPGP's openpgp_crypto_generateKeyPair
-  #
-  # @param {number} nbits The number of bits in the key (default is 4096)
-  # @param {ASP} asp A standard AsyncPackage to pass into the key generation algo
-  # @param {callback} cb Callback with a raw keypair.
-  #
-  _generate_rsa_keypair : ({nbits, asp}, cb)  ->
-    nbits or= 4096
-    await RSA.generate { nbits, iters : 10, asp }, defer err, key
-    cb err, key
 
   #=================================================================
 
@@ -52,17 +36,43 @@ class KeyFactory
 
   #--------
 
+  self_sign_key : (key, uidb, cb) ->
+    pk = key.public_body()
+
+    # RFC 4480 5.2.4 Computing Signatures Over a Key
+    payload = Buffer.concat [
+      new Buffer([ C.signatures.key ] ),
+      uint_to_buffer(16, pk.length),
+      pk,
+      new Buffer([ C.signatures.userid ]),
+      uint_to_buffer(32, uidb.length),
+      uidb
+    ]
+
+    spkt = new Signature key
+    await spkt.write C.sig_subpacket.issuer, payload, defer err, sig
+    cb err, sig
+
+  #--------
+
   # @param {ASP} asp standard ASyncPackage to pass into the key
   #   generation algorithm.
   _generate_keypair : ({nbits, asp, userid}, cb) ->
-    userIdString = (new packet.UserID()).write_packet(userid);
+    uid = new UserID userid
+    uidb = uid.userid
+    uidp = uid.write()
+
     esc = make_esc cb, "KeyFactor::_generate_keypair"
 
-    await @_generate_rsa_keypair { nbits, asp }, esc defer key
-    privKeyString = key.privateKey.string
+    await RSA.generate { nbits, asp }, esc defer key
 
-    # The '3' is the offset to start reading from.  Please excuse this mess.
-    privKeyPacket = (new packet.KeyMaterial()).read_priv_key(privKeyString,3,privKeyString.length)
+    # When this case was generated
+    timepacket = make_time_packet()
+
+    key_packet = new KeyMaterial key, { timepacket }
+    await @self_sign_key key_packet, uidb, esc defer sig
+
+    output = new Output key
 
     if not privKeyPacket.decryptSecretMPIs()
       err = new Error 'failed to read unencrypted secret key data'
@@ -76,14 +86,7 @@ class KeyFactory
       publicKeyString = privKey.privateKeyPacket.publicKey.data
       userid_buffer = new Buffer userid, 'utf8'
 
-      bufs = [
-        new Buffer([ 0x99 ]),
-        uint_to_buffer(16, publicKeyString.length),
-        new Buffer(publicKeyString, 'binary'),
-        new Buffer([ 0xb4 ]),
-        uint_to_buffer(32, userid_buffer.length),
-        userid_buffer
-      ]
+
       hashData = Buffer.concat(bufs).toString('binary')
       signature = (new packet.Signature()).write_message_signature(C.subpacket_types.issuer, hashData, privKey)
       payload = (which) -> which + userIdString + signature.openpgp

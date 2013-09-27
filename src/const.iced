@@ -13,7 +13,8 @@ exports.openpgp =
     SHA384 : 9
     SHA512 : 10
     SHA224 : 11
-  subpacket_types :
+  sig_subpacket:
+    creation_time : 2
     issuer : 16
   message_types :
     public_key : 4
@@ -23,9 +24,16 @@ exports.openpgp =
     salt : 1
     salt_iter : 3
   packet_tags :
+    signature : 2
     secret_key : 5
     public_key : 6
     userid : 13
+  versions :
+    keymaterial : V4 : 4
+    signature : V4 : 4
+  signatures :
+    key : 0x99
+    userid : 0xb4
 
 exports.kb =
   key_encryption:

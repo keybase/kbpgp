@@ -13,7 +13,7 @@ exports.make_time_packet = (d) ->
   d or= Math.floor(Date.now()/1000)
   b = new Buffer 4
   b.writeUInt32BE d, 0
-  b.toString 'binary'
+  b
 
 exports.uint_to_buffer = (nbits, i) ->
   ret = null
