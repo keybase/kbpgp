@@ -18,6 +18,9 @@
     "type": "git",
     "url": "git://github.com/keybase/kbpgp.git"
   },
+  "dependencies" : {
+    "purepack" : "*"
+  },
   "devDependencies" : {
     "browserify" : "*",
     "colors" : "*",

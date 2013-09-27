@@ -28,4 +28,5 @@ exports.openpgp =
 
 exports.kb =
   key_encryption:
+    none : 0
     triplesec_v1 :  1

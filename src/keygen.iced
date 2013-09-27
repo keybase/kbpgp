@@ -56,7 +56,7 @@ class KeyFactory
   #   generation algorithm.
   _generate_keypair : ({nbits, asp, userid}, cb) ->
     userIdString = (new packet.UserID()).write_packet(userid);
-    esc = make_esc cb, "generate_keypair"
+    esc = make_esc cb, "KeyFactor::_generate_keypair"
 
     await @_generate_rsa_keypair { nbits, asp }, esc defer key
     privKeyString = key.privateKey.string
