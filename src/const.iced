@@ -25,3 +25,7 @@ exports.openpgp =
   packet_tags :
     secret_key : 5
     public_key : 6
+
+exports.kb =
+  key_encryption:
+    triplesec_v1 :  1
