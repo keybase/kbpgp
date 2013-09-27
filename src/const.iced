@@ -25,6 +25,7 @@ exports.openpgp =
   packet_tags :
     secret_key : 5
     public_key : 6
+    userid : 13
 
 exports.kb =
   key_encryption:
