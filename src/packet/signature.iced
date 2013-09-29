@@ -8,7 +8,11 @@ C = require('../const').openpgp
 
 class Signature extends Packet
 
+  #---------------------
+
   constructor : (@key, @hash = SHA512) ->
+
+  #---------------------
 
   subpacket : (type, buf) ->
     Buffer.concat [
@@ -16,6 +20,8 @@ class Signature extends Packet
       encode_length(buf.length+1),
       buf
     ]
+
+  #---------------------
 
   # See write_message_signature in packet.signature.js
   write : (sigtype, data, cb) ->
@@ -35,6 +41,14 @@ class Signature extends Packet
 
     payload = Buffer.concat [ data, result, trailer ]
     hash = @hash payload
-    @key.pad_and_sign payload, { @hash }
-    result2 = new Buffer [0,0, hash.readUInt8(0), hash.readUInt8(1) ]
+    sig = @key.pad_and_sign payload, { @hash }
+    result2 = Buffer.concat [
+      new Buffer([0,0, hash.readUInt8(0), hash.readUInt8(1) ]),
+      sig
+    ]
+    results = Buffer.concat [ result, result2 ]
+    ret = @frame_packet(C.packet_tags.signature, results)
+    cb null, ret
+
+#===========================================================
 

@@ -36,8 +36,9 @@ class KeyFactory
 
   #--------
 
-  self_sign_key : (key, uidb, cb) ->
-    pk = key.public_body()
+  self_sign_key : (key_packet, uidb, cb) ->
+    pk = key_packet.public_body()
+    key = key_packet.key
 
     # RFC 4480 5.2.4 Computing Signatures Over a Key
     payload = Buffer.concat [
@@ -55,9 +56,27 @@ class KeyFactory
 
   #--------
 
+  _output_openpgp : ( {key_packet, uid, sig }) ->
+
+    pa = Buffer.concat [
+      key_packet.public_framed(),
+      uid.write(),
+      sig
+    ]
+    sa = Buffer.concat [
+      key_packet.private_framed({ passphrase }),
+      uid.write(),
+      sig
+    ]
+
+  #--------
+
+  #
+  # Follows generate_key_pair from src/openpgp.js
+  #
   # @param {ASP} asp standard ASyncPackage to pass into the key
   #   generation algorithm.
-  _generate_keypair : ({nbits, asp, userid}, cb) ->
+  _generate_keypair : ({nbits, asp, userid, passphrase}, cb) ->
     uid = new UserID userid
     uidb = uid.userid
     uidp = uid.write()
@@ -72,7 +91,9 @@ class KeyFactory
     key_packet = new KeyMaterial key, { timepacket }
     await @self_sign_key key_packet, uidb, esc defer sig
 
-    output = new Output key
+    openpgp = @_output_openpgp { key_packet, uid, sig }
+
+
 
     if not privKeyPacket.decryptSecretMPIs()
       err = new Error 'failed to read unencrypted secret key data'
