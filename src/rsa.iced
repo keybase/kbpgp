@@ -6,7 +6,7 @@
 C = require('./const').openpgp
 bn = require './bn'
 {SHA512} = require './hash'
-{emsa_pkcs1_encode} = require './encode'
+{emsa_pkcs1_encode} = require './encode/pad'
 
 #=======================================================================
 
