@@ -39,3 +39,7 @@ exports.kb =
   key_encryption:
     none : 0
     triplesec_v1 :  1
+
+exports.header =
+  version : "Keybase OpenPGP JS 0.0.1"
+  comment : "https://keybase.io"

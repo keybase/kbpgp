@@ -88,3 +88,24 @@ exports.encode_length = encode_length = (l) ->
 
 #=========================================================
 
+exports.bufeq_fast = (x,y) ->
+  return false unless x.length is y.length
+  for i in [0...x.length]
+    return false unless x.readUInt8(i) is y.readUInt8(i)
+  return true
+
+#-----
+
+exports.bufeq_secure = (x,y) ->
+  ret = true
+  if x.length isnt y.length
+    ret = false
+  else
+    check = 0
+    for i in [0...x.length]
+      check += (x.readUInt8(i) ^ y.readUInt8(i))
+    ret = (check is 0)
+  ret
+
+#=========================================================
+
