@@ -24,3 +24,4 @@ bencode = (type, obj) ->
 #=================================================================================
 
 exports.bencode = bencode
+exports.pack = pack

@@ -1,10 +1,9 @@
 K = require('../const').kb
 triplesec = require 'triplesec'
-{SHA1,SHA256} = triplesec.hash
-{AES} = triplesec.ciphers
+{SHA512} = require '../hash'
 {native_rng} = triplesec.prng
 {Packet} = require './base'
-{bencode} = require './encode'
+{pack,bencode} = require './encode'
 
 #=================================================================================
 
@@ -54,7 +53,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _encode_keys : ({progress_hook}, sig) ->
+  _encode_keys : ({progress_hook}, sig, cb) ->
     await @_write_private { progress_hook }, defer err, priv
     pub = @_write_public()
     ret = null
@@ -78,7 +77,7 @@ class KeyMaterial extends Packet
       padding : K.padding.EMSA_PCKS1_v1_5
     body =  { @userid, key : @_write_public() }
 
-    payload = { body, header }
+    payload = pack { body, header }
     sig = @key.pad_and_sign payload, { hash }
     cb null, { header, sig }
 
@@ -88,7 +87,7 @@ class KeyMaterial extends Packet
     ret = err = null
     await @_self_sign_key {progress_hook}, defer err, sig
     unless err?
-      await @_encode_keys { progress_hook }, defer err, ret
+      await @_encode_keys { progress_hook }, sig, defer err, ret
     cb err, ret
 
   #--------------------------

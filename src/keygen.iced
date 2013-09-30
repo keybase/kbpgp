@@ -54,7 +54,6 @@ _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
   k = new kbkm.KeyMaterial { key, timestamp, userid, passphrase }
   ret = {}
   await o.export_keys {}, esc defer ret.openpgp
-  console.log ret
   await k.export_keys {}, esc defer ret.keybase
   cb null, ret
 
