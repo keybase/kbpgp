@@ -44,7 +44,7 @@ encode = (type, data) ->
   switch type
     when mt.public_key, mt.private_key
       t = if type is mt.public_key then "PUBLIC" else "PRIVATE"
-      f = frame "#{t} KEY"
+      f = frame "#{t} KEY BLOCK"
       f.begin.concat(header(), line(), b64e(data), formatCheckSum(data), f.end)
 
 #=========================================================================
