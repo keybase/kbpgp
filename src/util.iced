@@ -62,6 +62,8 @@ exports.ASP = class ASP
 
   canceler : () -> @_canceler
 
+  progress_hook : () -> @_progress_hook
+
 #=========================================================
 
 exports.calc_checksum = calc_checksum = (text) ->

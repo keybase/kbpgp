@@ -22,6 +22,7 @@ kbkm = require './kbpacket/keymaterial'
 # @param {number} nbits The number of bits in the keypair, taken to be 4096 by default.
 # @param {string} userid The userid that's going to be written into the key.
 # @param {number} delay The number of msec to wait between each iter of the inner loop
+# @param {string} passphrase The passphrase to encrypt everything with
 # @param {callback} cb Call with an `(err,res)` pair when we are done. res
 #   will have to subobjects: `publicKeyArmored` and `privateKeyObject`.
 #   The `privateKeyObject` has three fields: a `signature` of type {Buffer},
@@ -29,9 +30,9 @@ kbkm = require './kbpacket/keymaterial'
 #   last field should be TripleSec'ed before being written anywhere.
 # @return {Canceler} A canceler object you can call cancel() on if you want
 #   to give up on this.
-generate_keypair = ({nbits, userid, progress_hook, delay}, cb) ->
+generate_keypair = ({nbits, userid, progress_hook, delay, passphrase}, cb) ->
   asp = new ASP { progress_hook, delay }
-  _generate_keypair { nbits, userid, asp }, cb
+  _generate_keypair { nbits, userid, asp, passphrase }, cb
   return asp.canceler()
 
 #--------
@@ -43,6 +44,7 @@ generate_keypair = ({nbits, userid, progress_hook, delay}, cb) ->
 #   generation algorithm.
 _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
 
+  passphrase = if passphrase? then (new Buffer passphrase, 'utf8') else null
   esc = make_esc cb, "KeyFactor::_generate_keypair"
   await RSA.generate { nbits, asp }, esc defer key
 
@@ -54,7 +56,7 @@ _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
   k = new kbkm.KeyMaterial { key, timestamp, userid, passphrase }
   ret = {}
   await o.export_keys {}, esc defer ret.openpgp
-  await k.export_keys {}, esc defer ret.keybase
+  await k.export_keys { progress_hook: asp.progress_hook() }, esc defer ret.keybase
   cb null, ret
 
 #---------------------------------
@@ -71,11 +73,11 @@ test = () ->
       s = ""
     interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
     console.log "+ #{obj.what} #{interval} #{s}"
-  await generate_keypair { nbits : 512, userid : 'shitty', progress_hook }, defer err, res
+  await generate_keypair { nbits : 512, userid : 'shitty', progress_hook, passphrase : "xxx333" }, defer err, res
   console.log res
   process.exit 0
   openpgp.init()
-  await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>"}, defer err, key
+  await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>", passphrase : "ejjejjee"}, defer err, key
   console.log key
 test()
 

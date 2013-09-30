@@ -27,10 +27,8 @@
 #======================================================================
 
 triplesec = require 'triplesec'
-C = require './const'
-
-{WordArray} = triplesec
-{SHA1,SHA224,SHA256,SHA512} = triplesec.hash
+C = require('./const').openpgp
+{alloc,SHA256} = require './hash'
 
 #======================================================================
 
@@ -43,23 +41,14 @@ class S2K
   #----------------------
   
   constructor : () ->
-    @hash_class = SHA256
+    @hash = SHA256
 
   #----------------------
 
   set_hash_algorithm : (which) ->
-    @hash_class = switch which
-      when C.SHA1 then SHA1
-      when C.SHA224 then SHA224
-      when C.SHA256 then SHA256
-      when C.SHA512 then SHA512
-      else 
-        console.warn "No such hash: #{which}; defaulting to SHA-256"
-        SHA256
-
-  #----------------------
-
-  hash : (input) -> (new @hash_class).finalize(WordArray.from_buffer(input)).to_buffer()
+    unless (@hash = alloc which)?
+      console.warn "No such hash: #{which}; defaulting to SHA-256"
+      @hash = SHA256
 
   #----------------------
   
@@ -86,7 +75,7 @@ class S2K
         @set_hash_algorithm(input.readUInt8(mypos++))
 
         # Octets 2-9: 8-octet salt value
-        @saltValue = input[mypos...(mypos+8)]
+        @salt = input[mypos...(mypos+8)]
         mypos += 8
         @s2kLength = 9
         match = true
@@ -96,7 +85,7 @@ class S2K
         @set_hash_algorithm(input.readUInt8(mypos++))
 
         # Octets 2-9: 8-octet salt value
-        @saltValue = input[mypos...(mypos+8)]
+        @salt = input[mypos...(mypos+8)]
         mypos += 8
         @s2kLength = 9
 
@@ -139,7 +128,6 @@ class S2K
     @type = type = 3 
     @salt = salt
     @count = @_count c, 6
-    @set_hash_algorithm C.SHA256
     @s2kLength = 10
     @produce_key passphrase
 
@@ -173,8 +161,7 @@ class S2K
 
 #======================================================================
 
-s2k = new S2K()
-console.log s2k.write(new Buffer("shit on me XXyy"), new Buffer([0...16]), 2048)
+exports.S2K = S2K 
 
 #======================================================================
 

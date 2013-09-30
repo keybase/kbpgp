@@ -10,6 +10,7 @@ triplesec = require 'triplesec'
 {UserID} = require './userid'
 {Signature} = require './signature'
 {encode} = require '../encode/armor'
+{S2K} = require '../s2k'
 
 #=================================================================================
 
