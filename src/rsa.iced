@@ -18,10 +18,10 @@ class Priv
 
   serialize : () -> 
     Buffer.concat [
-      @pub.d.to_mpi_buffer()
-      @pub.p.to_mpi_buffer()
-      @pub.q.to_mpi_buffer()
-      @pub.u.to_mpi_buffer()
+      @d.to_mpi_buffer()
+      @p.to_mpi_buffer()
+      @q.to_mpi_buffer()
+      @u.to_mpi_buffer()
     ]
 
 #=======================================================================
@@ -32,8 +32,8 @@ class Pub
 
   serialize : () -> 
     Buffer.concat [
-      @pub.n.to_mpi_buffer()
-      @pub.e.to_mpi_buffer() 
+      @n.to_mpi_buffer()
+      @e.to_mpi_buffer() 
     ]
 
 #=======================================================================

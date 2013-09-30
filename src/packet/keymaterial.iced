@@ -58,7 +58,7 @@ class KeyMaterial extends Packet
   _write_public : (bufs) ->
     pub = @key.pub.serialize()
     bufs.push [
-      new Buffer([ C.version.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
+      new Buffer([ C.versions.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
       @timepacket,
       new Buffer([ @key.type ]),
       pub

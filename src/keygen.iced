@@ -83,7 +83,7 @@ test = () ->
 #=================================================================
 
 exports.generate_keypair = generate_keypair
-await generate_keypair { nbits : 1024 , userid : 'shitty' }, defer err, res
+await generate_keypair { nbits : 512, userid : 'shitty' }, defer err, res
 console.log res
 
 #=================================================================
