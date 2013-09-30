@@ -152,5 +152,3 @@ exports.encode = encode
 
 #=========================================================================
 
-console.log encode 4, new Buffer "fofodsfo ajsdfo iadsjf oasdijf asodifj osiadfj 3"
-

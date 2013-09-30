@@ -27,7 +27,7 @@ exports.emsa_pcks1_encode = emsa_pcks1_encode = (data, len, opts = {}) ->
   headers = hash_headers[hash.algname]
   n = len - headers.length - 3 - hash.output_length
 
-  chars = [ 0x00, 0x01 ].concat(0xff for i in [0...n]).concat [0x00].concat headers
+  chars = [ 0x00, 0x02 ].concat(0xff for i in [0...n]).concat [0x00].concat headers
   buf = Buffer.concat [ new Buffer(chars), hash(data) ]
 
   # We have to convert to a Uint8 array since the JSBN library internally

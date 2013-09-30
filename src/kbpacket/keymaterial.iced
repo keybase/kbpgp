@@ -1,23 +1,23 @@
-C = require('../const').openpgp
 K = require('../const').kb
 triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{calc_checksum} = require '../util'
-{encrypt} = require '../cfb'
 {Packet} = require './base'
+{UserID} = require './userid'
+{bencode} = require './encode'
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : (@key) ->
+  constructor : (@key, { @now, @uid, @passphrase } ) ->
     super()
 
   #--------------------------
 
   _write_public : (timestamp) ->
+    timestamp or= @timestamp
     pub = @key.pub.serialize()
     return { type : @key.type, pub, timestamp }
 
@@ -25,14 +25,24 @@ class KeyMaterial extends Packet
 
   write_public : (timestamp) ->
     body = @_write_public timestamp
-    @frame_packet C.packet_tags.public_key, body
+    @frame_packet K.packet_tags.public_key, body
 
   #--------------------------
 
-  write_private : ({password,timestamp,progress_hook}, cb) ->
+  write_private : ({ passphrase, timestamp, progress_hook}, cb) ->
+    await @_write_private { passphrase, timestamp, progress_hook}, defer err, ret 
+    if ret? then ret = @frame_packet K.packet_tags.public_key, ret
+    cb err, ret
+
+  #--------------------------
+
+  _write_private : ({passhrase,timestamp,progress_hook}, cb) ->
+    timestamp or= @now
+    passphrase or= @passphrase
     ret = @_write_public timestamp
     priv = @key.priv.serialize()
-    if password?
+
+    if passphrase?
       await triplesec.encrypt { key : password, data : priv, progress_hook }, defer err, epriv
       if err? then ret = null
       else
@@ -44,10 +54,53 @@ class KeyMaterial extends Packet
         data : priv
         encryption : K.key_encryption.none
 
-    if ret? then ret = @frame_packet C.packet_tags.public_key, ret
     cb err, ret
 
   #--------------------------
+
+  _encode_keys : ({progress_hook}, sig) ->
+    uid = new UserID @uid
+    await @_write_private { progress_hook }, defer err, priv
+    pub = @_write_public()
+    ret = null
+    {private_key, public_key} = K.message_types
+    # XXX always binary-encode for now (see Issue #7)
+    unless err?
+      ret = 
+        private : bencode(private_key, { sig, uid, key : priv }),
+        public  : bencode(public_key,  { sig, uid, key : pub })
+    }
+    cb err, ret
+
+  #--------------------------
+
+  _self_sign_key : ( { progress_hook}, cb) ->
+    hash = SHA512
+    header = 
+      type : K.signatures.self_sign_key
+      version : K.versions.V1
+      hash : SHA512.type
+      padding : K.padding.EMSA_PCKS1_v1_5
+    body = 
+      uid : @uid
+      key : @_write_public()
+
+    payload = { body, header }
+    sig = @key.pad_and_sign payload, { hash }
+    cb null, { header, sig }
+
+  #--------------------------
+
+  export_keys : ({armor, progress_hook}, cb) ->
+    @timestamp = @now
+    ret = err = null
+    await @_self_sign_key {progress_hook}, defer err, sig
+    unless err?
+      await @_encode_keys { progress_hook }, defer err, ret
+    cb err, ret
+
+  #--------------------------
+
   
 #=================================================================================
 

@@ -1,5 +1,5 @@
 
-exports.openpgp = 
+exports.openpgp = openpgp =
   public_key_algorithms :
     RSA : 1
   symmetric_key_algorithms :
@@ -38,7 +38,16 @@ exports.openpgp =
 exports.kb =
   key_encryption:
     none : 0
-    triplesec_v1 :  1
+    triplesec_v1 : 1
+  packet_tags : openpgp.packet_tags
+  message_types : openpgp.message_types
+  versions :
+    V1 : 1
+  signatures :
+    self_sign_key : 1
+  padding :
+    EMSA_PCKS1_v1_5 : 3
+    RSASSA_PSS : 4
 
 exports.header =
   version : "Keybase OpenPGP JS 0.0.1"

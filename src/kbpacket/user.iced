@@ -1,5 +1,4 @@
-
-C = require('../const').openpgp
+K = require('../const').kb
 triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
@@ -12,20 +11,14 @@ triplesec = require 'triplesec'
 
 class UserID extends Packet
 
-  # @param {String} userid The string reprensentation of the UserID
-  constructor : (userid) ->
+  constructor : (@uid) ->
     super()
-    @userid_utf8 = new Buffer userid, 'utf8'
 
   #--------------------------
 
   write : () ->
-    @frame_packet C.packet_tags.userid, @userid_utf8
-
-  #--------------------------
-  
+    body = { userid : @uid }
+    @frame_packet K.packet_tags.userid, body
+    
 #=================================================================================
 
-exports.UserID = UserID
-
-#=================================================================================

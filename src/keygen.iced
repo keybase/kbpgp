@@ -6,7 +6,9 @@ triplesec = require 'triplesec'
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {UserID} = require './packet/userid'
-{KeyMaterial} = require './packet/keymaterial'
+openpgpkm = require './packet/keymaterial'
+kbkm = require './kbpacket/keymaterial'
+{encode} = require './encode/armor'
 
 #=================================================================
 
@@ -36,44 +38,6 @@ class KeyFactory
 
   #--------
 
-  self_sign_key : (key_packet, uidb, cb) ->
-    pk = key_packet.public_body()
-    key = key_packet.key
-
-    # RFC 4480 5.2.4 Computing Signatures Over a Key
-    payload = Buffer.concat [
-      new Buffer([ C.signatures.key ] ),
-      uint_to_buffer(16, pk.length),
-      pk,
-      new Buffer([ C.signatures.userid ]),
-      uint_to_buffer(32, uidb.length),
-      uidb
-    ]
-
-    spkt = new Signature key
-    await spkt.write C.sig_subpacket.issuer, payload, defer err, sig
-    cb err, sig
-
-  #--------
-
-  _output_openpgp : ( {key_packet, uid, sig }) ->
-    uidp = uid.write()
-    pa = Buffer.concat [
-      key_packet.public_framed(),
-      uidp,
-      sig
-    ]
-    sa = Buffer.concat [
-      key_packet.private_framed({ passphrase }),
-      uidp,
-      sig
-    ]
-    ret =
-      public  :  
-      private :
-
-  #--------
-
   #
   # Follows generate_key_pair from src/openpgp.js
   #
@@ -88,12 +52,24 @@ class KeyFactory
     await RSA.generate { nbits, asp }, esc defer key
 
     # When this case was generated
-    timepacket = make_time_packet()
+    now = Date.now()
 
-    key_packet = new KeyMaterial key, { timepacket }
+    # Generate a KeyMaterial chain for OpenPGP-style
+    o = new openpgpkm.KeyMaterial key, { now, uid, passphrase }
+    k = new kbkm.KeyMaterial key, { now, uid, passphrase }
+    ret = {}
+    await 
+      o.export_keys esc defer ret.openpgp
+      k.export_keys esc defer ret.keybase
+    cb null, ret
+
+  #--------
+
+
     await @self_sign_key key_packet, uidb, esc defer sig
 
     openpgp = @_output_openpgp { key_packet, uid, sig }
+    kb = @_output_keybase { key_packet, uid, sig }
 
 
 

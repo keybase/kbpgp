@@ -7,12 +7,15 @@ triplesec = require 'triplesec'
 {uint_to_buffer,calc_checksum} = require '../util'
 {encrypt} = require '../cfb'
 {Packet} = require './base'
+{UserID} = require './userid'
+{Signature} = require './signature'
+{make_time_packet} = 
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : (@key, {@timepacket}) ->
+  constructor : (@key, {@now, @uid, @passphrase}) ->
     super()
 
   #--------------------------
@@ -66,6 +69,7 @@ class KeyMaterial extends Packet
   private_body : ({passphrase, timepacket}) ->
     bufs = []
     timepacket or= @timepacket
+    passphrase or= @passphrase
     @_write_public bufs, timepacket
     priv = @key.priv.serialize()
     if password? then @_write_private_enc   bufs, priv, passphrase
@@ -106,6 +110,46 @@ class KeyMaterial extends Packet
     body = @public_body { timepacket }
     @frame_packet C.packet_tags.public_key, body
 
+  #--------------------------
+
+  _self_sign_key : (cb) ->
+    pk = @public_body()
+    uid8 = @uidp.userid_utf8
+
+    # RFC 4480 5.2.4 Computing Signatures Over a Key
+    payload = Buffer.concat [
+      new Buffer([ C.signatures.key ] ),
+      uint_to_buffer(16, pk.length),
+      pk,
+      new Buffer([ C.signatures.userid ]),
+      uint_to_buffer(32, uid8.length),
+      uid8
+    ]
+
+    spkt = new Signature @key
+    await spkt.write C.sig_subpacket.issuer, payload, defer err, sig
+    cb err, sig
+
+  #--------------------------
+
+  export_keys : ({armor}, cb) ->
+    err = ret = null
+    @uidp = new UserID @uid
+    @timepacket = make_time_packet @now
+    await @_self_sign_key defer err, sig
+    ret = @_encode_keys { sig, armor } unless err?
+    cb err, ret
+
+  #--------
+
+  _encode_keys : ({ sig, armor }) ->
+    uidp = @uidp.write()
+    {private_key, public_key} = C.message_types
+    # XXX always armor for now ... in the future maybe allow binary output.. See Issue #6
+    return {
+      public  : encode(public_key , Buffer.concat([ @public_framed() , uidp, sig ]))
+      private : encode(private_key, Buffer.concat([ @private_framed(), uidp, sig ]))
+    }
   #--------------------------
   
 #=================================================================================
