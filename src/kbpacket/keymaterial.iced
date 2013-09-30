@@ -4,14 +4,13 @@ triplesec = require 'triplesec'
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
 {Packet} = require './base'
-{UserID} = require './userid'
 {bencode} = require './encode'
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @uid, @passphrase } ) ->
+  constructor : ({@key, @timestamp, @userid, @passphrase } ) ->
     super()
 
   #--------------------------
@@ -56,7 +55,6 @@ class KeyMaterial extends Packet
   #--------------------------
 
   _encode_keys : ({progress_hook}, sig) ->
-    uid = new UserID @uid
     await @_write_private { progress_hook }, defer err, priv
     pub = @_write_public()
     ret = null
@@ -64,8 +62,8 @@ class KeyMaterial extends Packet
     # XXX always binary-encode for now (see Issue #7)
     unless err?
       ret = 
-        private : bencode(private_key, { sig, uid, key : priv }),
-        public  : bencode(public_key,  { sig, uid, key : pub })
+        private : bencode(private_key, { sig, @userid, key : priv }),
+        public  : bencode(public_key,  { sig, @userid, key : pub })
     cb err, ret
 
   #--------------------------
@@ -78,9 +76,7 @@ class KeyMaterial extends Packet
       version : K.versions.V1
       hash : SHA512.type
       padding : K.padding.EMSA_PCKS1_v1_5
-    body = 
-      uid : @uid
-      key : @_write_public()
+    body =  { @userid, key : @_write_public() }
 
     payload = { body, header }
     sig = @key.pad_and_sign payload, { hash }

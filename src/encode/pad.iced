@@ -21,9 +21,8 @@ hash_headers =
 #      XXXX - question, should this be rounded up or down!??!?!
 # @returns {Buffer} Hashcode with pkcs1padding as string
 #
-exports.emsa_pcks1_encode = emsa_pcks1_encode = (data, len, opts = {}) ->
+exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (data, len, opts = {}) ->
   hash = opts.hash or SHA512
-  console.log hash.algname
   headers = hash_headers[hash.algname]
   n = len - headers.length - 3 - hash.output_length
 

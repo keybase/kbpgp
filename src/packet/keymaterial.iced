@@ -9,13 +9,15 @@ triplesec = require 'triplesec'
 {Packet} = require './base'
 {UserID} = require './userid'
 {Signature} = require './signature'
+{encode} = require '../encode/armor'
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @uid, @passphrase}) ->
+  constructor : ({@key, @timestamp, @userid, @passphrase}) ->
     @timepacket = make_time_packet @timestamp
+    @uidp = new UserID @userid
     super()
 
   #--------------------------
@@ -47,22 +49,22 @@ class KeyMaterial extends Packet
   #--------------------------
 
   _write_private_clear : (bufs, priv) ->
-    bufs.push [ 
+    bufs.push(
       new Buffer([0]),
       priv,
-      uint_to_buffer(calc_checksum(priv), 16)
-    ]
+      uint_to_buffer(16, calc_checksum(priv))
+    )
 
   #--------------------------
 
   _write_public : (bufs) ->
     pub = @key.pub.serialize()
-    bufs.push [
+    bufs.push(
       new Buffer([ C.versions.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
       @timepacket,
       new Buffer([ @key.type ]),
       pub
-    ] 
+    )
 
   #--------------------------
   
@@ -90,7 +92,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   get_fingerprint : () ->
-    data = public_body()
+    data = @public_body()
     (new SHA1).bufhash Buffer.concat [
       new Buffer([ C.signatures.key ]),
       uint_to_buffer(16, data.length),
@@ -114,7 +116,7 @@ class KeyMaterial extends Packet
     uid8 = @uidp.userid_utf8
 
     # RFC 4480 5.2.4 Computing Signatures Over a Key
-    payload = Buffer.concat [
+    x = [
       new Buffer([ C.signatures.key ] ),
       uint_to_buffer(16, pk.length),
       pk,
@@ -122,8 +124,9 @@ class KeyMaterial extends Packet
       uint_to_buffer(32, uid8.length),
       uid8
     ]
+    payload = Buffer.concat x
 
-    spkt = new Signature @key
+    spkt = new Signature @
     await spkt.write C.sig_subpacket.issuer, payload, defer err, sig
     cb err, sig
 
@@ -131,7 +134,6 @@ class KeyMaterial extends Packet
 
   export_keys : ({armor}, cb) ->
     err = ret = null
-    @uidp = new UserID @uid
     await @_self_sign_key defer err, sig
     ret = @_encode_keys { sig, armor } unless err?
     cb err, ret

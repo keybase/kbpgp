@@ -10,7 +10,8 @@ class Signature extends Packet
 
   #---------------------
 
-  constructor : (@key, @hash = SHA512) ->
+  constructor : (@keymaterial, @hash = SHA512) ->
+    @key = @keymaterial.key
 
   #---------------------
 
@@ -26,7 +27,7 @@ class Signature extends Packet
   # See write_message_signature in packet.signature.js
   write : (sigtype, data, cb) ->
     dsp = @subpacket(C.sig_subpacket.creation_time, make_time_packet())
-    isp = @subpacket(C.sig_subpacket.issuer, key.get_key_id())
+    isp = @subpacket(C.sig_subpacket.issuer, @keymaterial.get_key_id())
     result = Buffer.concat [ 
       new Buffer([ C.versions.signature.V4, sigtype, @key.type ]),
       uint_to_buffer(16, (dsp.length + isp.length)),
@@ -52,3 +53,4 @@ class Signature extends Packet
 
 #===========================================================
 
+exports.Signature = Signature

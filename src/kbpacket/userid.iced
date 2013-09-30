@@ -16,9 +16,12 @@ class UserID extends Packet
 
   #--------------------------
 
+  to_json : () -> { userid : @uid }
+
+  #--------------------------
+
   write : () ->
-    body = { userid : @uid }
-    @frame_packet K.packet_tags.userid, body
+    @frame_packet K.packet_tags.userid, @to_json()
     
 #=================================================================================
 

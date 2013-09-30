@@ -42,23 +42,20 @@ generate_keypair = ({nbits, userid, progress_hook, delay}, cb) ->
 # @param {ASP} asp standard ASyncPackage to pass into the key
 #   generation algorithm.
 _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
-  uid = new UserID userid
-  uidb = uid.userid
 
   esc = make_esc cb, "KeyFactor::_generate_keypair"
-
   await RSA.generate { nbits, asp }, esc defer key
 
   # When this case was generated
   timestamp = unix_time()
 
   # Generate a KeyMaterial chain for OpenPGP-style
-  o = new openpgpkm.KeyMaterial { key, timestamp, uid, passphrase }
-  k = new kbkm.KeyMaterial { key, timestamp, uid, passphrase }
+  o = new openpgpkm.KeyMaterial { key, timestamp, userid, passphrase }
+  k = new kbkm.KeyMaterial { key, timestamp, userid, passphrase }
   ret = {}
-  await 
-    o.export_keys {}, esc defer ret.openpgp
-    k.export_keys {}, esc defer ret.keybase
+  await o.export_keys {}, esc defer ret.openpgp
+  console.log ret
+  await k.export_keys {}, esc defer ret.keybase
   cb null, ret
 
 #---------------------------------
@@ -75,16 +72,17 @@ test = () ->
       s = ""
     interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
     console.log "+ #{obj.what} #{interval} #{s}"
+  await generate_keypair { nbits : 512, userid : 'shitty', progress_hook }, defer err, res
+  console.log res
+  process.exit 0
   openpgp.init()
   await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>"}, defer err, key
   console.log key
-  process.exit 0
+test()
 
 #=================================================================
 
 exports.generate_keypair = generate_keypair
-await generate_keypair { nbits : 512, userid : 'shitty' }, defer err, res
-console.log res
 
 #=================================================================
 
