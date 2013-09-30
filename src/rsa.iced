@@ -16,7 +16,7 @@ class Priv
   decrypt : (c) -> c.modPow @d, @pub.n
   sign    : (m) -> m.modPow @d, @pub.n
 
-  serialize : () -> {
+  serialize : () -> 
     Buffer.concat [
       @pub.d.to_mpi_buffer()
       @pub.p.to_mpi_buffer()

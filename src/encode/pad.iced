@@ -1,7 +1,7 @@
 
-{SHA512} = require './hash'
-C = require('./const').openpgp
-{nbs} = require './bn'
+{SHA512} = require '../hash'
+C = require('../const').openpgp
+{nbs} = require '../bn'
 
 #====================================================================
 

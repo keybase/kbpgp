@@ -11,39 +11,36 @@ triplesec = require 'triplesec'
 
 class KeyMaterial extends Packet
 
-  constructor : (@key, { @now, @uid, @passphrase } ) ->
+  constructor : ({@key, @timestamp, @uid, @passphrase } ) ->
     super()
 
   #--------------------------
 
-  _write_public : (timestamp) ->
-    timestamp or= @timestamp
+  _write_public : () ->
     pub = @key.pub.serialize()
-    return { type : @key.type, pub, timestamp }
+    return { type : @key.type, pub, @timestamp }
 
   #--------------------------
 
-  write_public : (timestamp) ->
-    body = @_write_public timestamp
+  write_public : () ->
+    body = @_write_public()
     @frame_packet K.packet_tags.public_key, body
 
   #--------------------------
 
-  write_private : ({ passphrase, timestamp, progress_hook}, cb) ->
-    await @_write_private { passphrase, timestamp, progress_hook}, defer err, ret 
+  write_private : ({progress_hook}, cb) ->
+    await @_write_private { progress_hook }, defer err, ret 
     if ret? then ret = @frame_packet K.packet_tags.public_key, ret
     cb err, ret
 
   #--------------------------
 
-  _write_private : ({passhrase,timestamp,progress_hook}, cb) ->
-    timestamp or= @now
-    passphrase or= @passphrase
-    ret = @_write_public timestamp
+  _write_private : ({progress_hook}, cb) ->
+    ret = @_write_public()
     priv = @key.priv.serialize()
 
-    if passphrase?
-      await triplesec.encrypt { key : password, data : priv, progress_hook }, defer err, epriv
+    if @passphrase?
+      await triplesec.encrypt { key : @passphrase, data : priv, progress_hook }, defer err, epriv
       if err? then ret = null
       else
         ret.priv = 
@@ -69,12 +66,12 @@ class KeyMaterial extends Packet
       ret = 
         private : bencode(private_key, { sig, uid, key : priv }),
         public  : bencode(public_key,  { sig, uid, key : pub })
-    }
     cb err, ret
 
   #--------------------------
 
-  _self_sign_key : ( { progress_hook}, cb) ->
+  _self_sign_key : ( { progress_hook }, cb) ->
+    # XXX factor this all out.  See Issue #8
     hash = SHA512
     header = 
       type : K.signatures.self_sign_key
@@ -92,7 +89,6 @@ class KeyMaterial extends Packet
   #--------------------------
 
   export_keys : ({armor, progress_hook}, cb) ->
-    @timestamp = @now
     ret = err = null
     await @_self_sign_key {progress_hook}, defer err, sig
     unless err?
@@ -104,3 +100,4 @@ class KeyMaterial extends Packet
   
 #=================================================================================
 
+exports.KeyMaterial = KeyMaterial

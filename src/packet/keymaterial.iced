@@ -4,38 +4,38 @@ triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{uint_to_buffer,calc_checksum} = require '../util'
+{make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
 {encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
 {Signature} = require './signature'
-{make_time_packet} = 
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : (@key, {@now, @uid, @passphrase}) ->
+  constructor : ({@key, @timestamp, @uid, @passphrase}) ->
+    @timepacket = make_time_packet @timestamp
     super()
 
   #--------------------------
 
-  _write_private_enc : (bufs, priv, passphrase) ->
+  _write_private_enc : (bufs, priv) ->
     bufs.push new Buffer [ 
-      254,                                   # Indicates s2k with SHA1 checksum
-      C.symmetric_key_algorithms.AES256,     # Sym algo used to encrypt
-      C.s2k.salt_iter,                       # s2k salt+iterative
-      C.hash_algorithms.SHA256               # s2k hash algo
+      254,                                    # Indicates s2k with SHA1 checksum
+      C.symmetric_key_algorithms.AES256,      # Sym algo used to encrypt
+      C.s2k.salt_iter,                        # s2k salt+iterative
+      C.hash_algorithms.SHA256                # s2k hash algo
     ]
-    sha1hash = (new SHA1).bufhash priv       # checksum of the cleartext MPIs
-    salt = native_rng 8                      # 8 bytes of salt
+    sha1hash = (new SHA1).bufhash priv        # checksum of the cleartext MPIs
+    salt = native_rng 8                       # 8 bytes of salt
     bufs.push salt 
     c = 96
-    bufs.push new Buffer [ c ]               # ??? translates to a count of 65336 ???
-    k = (new S2K).write passphrase, salt, c  # expanded encryption key (via s2k)
-    ivlen = AES.blockSize                    # ivsize = msgsize
-    iv = native_rng ivlen                    # Consider a truly random number in the future
-    bufs.push iv                             # push the IV on before the ciphertext
+    bufs.push new Buffer [ c ]                # ??? translates to a count of 65336 ???
+    k = (new S2K).write @passphrase, salt, c  # expanded encryption key (via s2k)
+    ivlen = AES.blockSize                     # ivsize = msgsize
+    iv = native_rng ivlen                     # Consider a truly random number in the future
+    bufs.push iv                              # push the IV on before the ciphertext
 
     # horrible --- 'MAC' then encrypt :(
     plaintext = Buffer.concat [ priv, sha1hash ]   
@@ -55,39 +55,36 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _write_public : (bufs, timepacket) ->
+  _write_public : (bufs) ->
     pub = @key.pub.serialize()
     bufs.push [
       new Buffer([ C.version.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
-      timepacket,
+      @timepacket,
       new Buffer([ @key.type ]),
       pub
     ] 
 
   #--------------------------
   
-  private_body : ({passphrase, timepacket}) ->
+  private_body : () ->
     bufs = []
-    timepacket or= @timepacket
-    passphrase or= @passphrase
-    @_write_public bufs, timepacket
+    @_write_public bufs
     priv = @key.priv.serialize()
-    if password? then @_write_private_enc   bufs, priv, passphrase
-    else              @_write_private_clear bufs, priv
+    if @passphrase? then @_write_private_enc   bufs, priv
+    else                 @_write_private_clear bufs, priv
     Buffer.concat bufs
 
   #--------------------------
 
-  private_framed : ( {passphrase, timepacket}) ->
-    body = @private_body { passphrase, timepacket }
+  private_framed : () ->
+    body = @private_body()
     @frame_packet C.packet_tags.public_key, body
 
   #--------------------------
 
-  public_body : ({timepacket}) ->
-    timepacket or= @timepacket
+  public_body : () ->
     bufs = []
-    @_write_public bufs, timepacket
+    @_write_public bufs
     Buffer.concat bufs
 
   #--------------------------
@@ -106,8 +103,8 @@ class KeyMaterial extends Packet
 
   #--------------------------
   
-  public_framed : ( { timepacket }) ->
-    body = @public_body { timepacket }
+  public_framed : () ->
+    body = @public_body()
     @frame_packet C.packet_tags.public_key, body
 
   #--------------------------
@@ -135,7 +132,6 @@ class KeyMaterial extends Packet
   export_keys : ({armor}, cb) ->
     err = ret = null
     @uidp = new UserID @uid
-    @timepacket = make_time_packet @now
     await @_self_sign_key defer err, sig
     ret = @_encode_keys { sig, armor } unless err?
     cb err, ret
@@ -154,3 +150,4 @@ class KeyMaterial extends Packet
   
 #=================================================================================
 
+exports.KeyMaterial = KeyMaterial
