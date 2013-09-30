@@ -81,7 +81,7 @@ class KeyMaterial extends Packet
 
   private_framed : () ->
     body = @private_body()
-    @frame_packet C.packet_tags.public_key, body
+    @frame_packet C.packet_tags.secret_key, body
 
   #--------------------------
 

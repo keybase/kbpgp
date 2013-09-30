@@ -17,8 +17,8 @@ class Signature extends Packet
 
   subpacket : (type, buf) ->
     Buffer.concat [
-      new Buffer([type]),
       encode_length(buf.length+1),
+      new Buffer([type]),
       buf
     ]
 
@@ -29,7 +29,7 @@ class Signature extends Packet
     dsp = @subpacket(C.sig_subpacket.creation_time, make_time_packet())
     isp = @subpacket(C.sig_subpacket.issuer, @keymaterial.get_key_id())
     result = Buffer.concat [ 
-      new Buffer([ C.versions.signature.V4, sigtype, @key.type ]),
+      new Buffer([ C.versions.signature.V4, sigtype, @key.type, @hash.type ]),
       uint_to_buffer(16, (dsp.length + isp.length)),
       dsp,
       isp

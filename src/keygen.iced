@@ -72,7 +72,7 @@ test = () ->
     else
       s = ""
     interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
-    console.log "+ #{obj.what} #{interval} #{s}"
+    console.warn "+ #{obj.what} #{interval} #{s}"
   await generate_keypair { nbits : 2048, userid : 'shitty', progress_hook, passphrase : "xxx333" }, defer err, res
   console.log res.openpgp.private
   process.exit 0

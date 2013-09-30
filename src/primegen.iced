@@ -304,7 +304,7 @@ random_prime = ({nbits, iters, asp, e}, cb) ->
   while go 
     await srf.recharge defer()
     p = new BigInteger nbits, srf
-    p = p.setBit(0).setBit(nbits-1)
+    p = p.setBit(0).setBit(nbits-1).setBit(nbits-2)
     if not e? or p.subtract(BigInteger.ONE).gcd(e).compareTo(BigInteger.ONE) is 0
       await asp.progress { what : "guess", p }, esc defer()
       await prime_search { start : p, range, sieve, asp, iters }, esc defer p
