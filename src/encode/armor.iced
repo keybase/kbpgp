@@ -11,7 +11,7 @@ strip = (x) ->
 
 #=========================================================================
 
-line = (x = "") -> "#{x}\r\n"
+line = (x = "") -> "#{x}\n"
 
 frame = (t) ->
   dash = ("-" for i in [0...5]).join('')
@@ -27,7 +27,7 @@ b64e = (d) ->
   parts = for i in [0...raw.length] by 60
     end = Math.min(i+60,raw.length)
     raw[i...end]
-  parts.join("\n")
+  line parts.join("\n")
 
 #=========================================================================
 
@@ -40,10 +40,12 @@ header = () ->
 #=========================================================================
 
 encode = (type, data) ->
+  mt = C.openpgp.message_types
   switch type
-    when C.openpgp.message_types.public_key
-      f = frame "PUBLIC_KEY"
-      f.begin.concat(header(), line(), b64e(data), line(), f.end)
+    when mt.public_key, mt.private_key
+      t = if type is mt.public_key then "PUBLIC" else "PRIVATE"
+      f = frame "#{t} KEY"
+      f.begin.concat(header(), line(), b64e(data), formatCheckSum(data), f.end)
 
 #=========================================================================
 
@@ -52,10 +54,13 @@ encode = (type, data) ->
 # @param {Buffer} data Data to create a CRC-24 checksum for
 # @return {Buffer} Base64 encoded checksum
 #
-getCheckSum : (data) ->
+getCheckSum = (data) ->
   c = createcrc24 data
   buf = uint_to_buffer 32, c
-  b[1...4].toString 'base64'
+  buf[1...4].toString 'base64'
+
+formatCheckSum = (data) ->
+  line("=" + getCheckSum(data))
 
 
 # Calculates the checksum over the given data and compares it with the 
@@ -64,7 +69,7 @@ getCheckSum : (data) ->
 # @param {String} checksum Base64 encoded checksum
 # @return {Boolean} True if the given checksum is correct; otherwise false
 #
-verifyCheckSum : (data, checksum) ->
+verifyCheckSum = (data, checksum) ->
   bufeq_fast getCheckSum(data), checksum
 
 #
@@ -143,4 +148,9 @@ createcrc24 = (input) ->
 
 #=========================================================================
 
-console.log encode 4, new Buffer "shit dog xx yy zz jhh ee jj eff"
+exports.encode = encode 
+
+#=========================================================================
+
+console.log encode 4, new Buffer "fofodsfo ajsdfo iadsjf oasdijf asodifj osiadfj 3"
+

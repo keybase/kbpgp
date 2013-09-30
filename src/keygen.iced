@@ -57,17 +57,20 @@ class KeyFactory
   #--------
 
   _output_openpgp : ( {key_packet, uid, sig }) ->
-
+    uidp = uid.write()
     pa = Buffer.concat [
       key_packet.public_framed(),
-      uid.write(),
+      uidp,
       sig
     ]
     sa = Buffer.concat [
       key_packet.private_framed({ passphrase }),
-      uid.write(),
+      uidp,
       sig
     ]
+    ret =
+      public  :  
+      private :
 
   #--------
 
@@ -79,7 +82,6 @@ class KeyFactory
   _generate_keypair : ({nbits, asp, userid, passphrase}, cb) ->
     uid = new UserID userid
     uidb = uid.userid
-    uidp = uid.write()
 
     esc = make_esc cb, "KeyFactor::_generate_keypair"
 
