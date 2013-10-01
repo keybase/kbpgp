@@ -9,7 +9,7 @@ default: build
 all: build
 
 lib/%.js: src/%.iced
-	$(ICED) -I browserify -c -o lib $<
+	$(ICED) -I browserify -c -o `dirname $@` $<
 
 $(BUILD_STAMP): \
 	lib/const.js \
@@ -23,7 +23,8 @@ $(BUILD_STAMP): \
 	lib/bn.js \
 	lib/cfb.js \
 	lib/s2k.js \
-	lib/hash.js
+	lib/hash.js \
+	lib/encode/pad.js
 	date > $@
 
 build: $(BUILD_STAMP) 

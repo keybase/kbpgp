@@ -29,7 +29,8 @@ encrypt = ({block_cipher_class, key, cipher, plaintext, iv}) ->
     pos += block_size
     c = e
     e.to_buffer()
-  Buffer.concat list
+  out = Buffer.concat list
+  out[0...(plaintext.length)]
 
 #=======================================================================
 

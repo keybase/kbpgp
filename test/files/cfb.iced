@@ -13,11 +13,14 @@ exports.nist_sp800_38a__f_3_17 = (T,cb) ->
              "df10132415e54b92a13ed0a8267ae2f9",
              "75a385741ab9cef82031623d55b1e471"
   ]
-  plaintext = Buffer.concat(new Buffer(p, 'hex') for p in pt_raw)
-  ciphertext = Buffer.concat(new Buffer(c, 'hex') for c in ct_raw)
+  test = (T, pt, ct) ->
+    plaintext = Buffer.concat(new Buffer(p, 'hex') for p in pt)
+    ciphertext = Buffer.concat(new Buffer(c, 'hex') for c in ct)
 
-  ct_ours = encrypt {key, plaintext, iv}
-  T.equal ct_ours.toString(), ciphertext.toString(), "encryption produced expected result"
-  pt2 = decrypt { key, ciphertext, iv }
-  T.equal pt2.toString(), plaintext.toString(), "decryption produced expected result"
+    ct_ours = encrypt {key, plaintext, iv}
+    T.equal ct_ours.toString(), ciphertext.toString(), "encryption produced expected result"
+    pt2 = decrypt { key, ciphertext, iv }
+    T.equal pt2.toString(), plaintext.toString(), "decryption produced expected result"
+  test T, pt_raw, ct_raw
   cb()
+
