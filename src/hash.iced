@@ -9,7 +9,7 @@ make_hasher = (klass, name, type) ->
     f = (x) -> (new klass).bufhash x
     f.type = type
     f.algname = name
-    f.output_length = klass.blockSize
+    f.output_length = klass.output_size
     f
   else null
 

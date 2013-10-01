@@ -22,15 +22,20 @@ hash_headers =
 # @returns {Buffer} Hashcode with pkcs1padding as string
 #
 exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (data, len, opts = {}) ->
-  hash = opts.hash or SHA512
+  hash = opts.hash or SHA512  
   headers = hash_headers[hash.algname]
   n = len - headers.length - 3 - hash.output_length
 
-  chars = [ 0x00, 0x02 ].concat(0xff for i in [0...n]).concat [0x00].concat headers
-  buf = Buffer.concat [ new Buffer(chars), hash(data) ]
+  buf = Buffer.concat [ 
+    new Buffer([ 0x00, 0x01 ]),
+    new Buffer(0xff for i in [0...n]),
+    new Buffer([0x00]),
+    new Buffer(headers),
+    hash(data) ]
 
   # We have to convert to a Uint8 array since the JSBN library internally
   # uses A[.] rather than A.readUint8(.)...
   nbs(new Uint8Array(buf), 256)
 
 #====================================================================
+
