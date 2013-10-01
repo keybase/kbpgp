@@ -13,14 +13,22 @@ exports.nist_sp800_38a__f_3_17 = (T,cb) ->
              "df10132415e54b92a13ed0a8267ae2f9",
              "75a385741ab9cef82031623d55b1e471"
   ]
-  test = (T, pt, ct) ->
+
+  test = (T, n, pt, ct) ->
     plaintext = Buffer.concat(new Buffer(p, 'hex') for p in pt)
+    len = plaintext.length - n
+    plaintext = plaintext[0...len]
     ciphertext = Buffer.concat(new Buffer(c, 'hex') for c in ct)
+    ciphertext = ciphertext[0...len]
 
     ct_ours = encrypt {key, plaintext, iv}
-    T.equal ct_ours.toString(), ciphertext.toString(), "encryption produced expected result"
+    T.equal ct_ours.toString(), ciphertext.toString(), "encryption produced expected result (trunc=#{n})"
     pt2 = decrypt { key, ciphertext, iv }
-    T.equal pt2.toString(), plaintext.toString(), "decryption produced expected result"
-  test T, pt_raw, ct_raw
+    T.equal pt2.toString(), plaintext.toString(), "decryption produced expected result (trunc=#{n})"
+
+  # test all various truncations....
+  for i in [0...16] 
+    test T, i, pt_raw, ct_raw
+
   cb()
 

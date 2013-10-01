@@ -57,7 +57,8 @@ decrypt = ({block_cipher_class, key, cipher, ciphertext, iv}) ->
     d.xor b, {}
     pos += block_size
     d.to_buffer()
-  Buffer.concat list
+  out = Buffer.concat list
+  out[out...(ciphertext.length)]
 
 #=======================================================================
 
