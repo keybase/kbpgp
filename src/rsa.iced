@@ -119,11 +119,11 @@ class Pair
   #----------------
 
   verify_unpad_and_check_hash : (sig, data, hash) ->
-    v = @verify(sig)
-    [err, hd1 ] = emsa_pkcs1_decode v, hash_alg
+    v = @verify sig
+    [err, hd1] = emsa_pkcs1_decode v, hash_alg
     unless err?
       hd2 = hash data
-      err = new Error "hash mismatch" unless bufeq_slow hd, hd2
+      err = new Error "hash mismatch" unless bufeq_slow hd1, hd2
     err
 
   #----------------

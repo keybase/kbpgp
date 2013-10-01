@@ -6,6 +6,7 @@ triplesec = require 'triplesec'
 {pack,bencode} = require './encode'
 {make_esc} = require 'iced-error'
 rsa = require '../rsa'
+{sign,verify} = require '../sign'
 
 #=================================================================================
 
@@ -73,7 +74,7 @@ class KeyMaterial extends Packet
     hash = SHA512 unless hash?
     type = K.signatures.self_sign_key
     body = @_self_sign_body()
-    await sign.sign { @key, type, body, hash, progress_hook }, defer err, res
+    await sign { @key, type, body, hash, progress_hook }, defer err, res
     cb err, res
 
   #--------------------------
@@ -120,18 +121,25 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  verify_self_sig : (cb) ->
+  verify_self_sig : ({progress_hook}, cb) ->
     body = @_self_sign_body()
-
+    type = K.signature.self_sign_key
+    await verify { @key, @sig, body, type, progress_hook }, defer err()
+    cb err
 
   #--------------------------
 
-  open : ({progress_hook}, cb) ->
+  unlock_private_key : ({passphrase, progress_hook}, cb) ->
+    # XXXX write me next!
+
+  #--------------------------
+
+  open : ({passphrase, progress_hook}, cb) ->
     esc = make_error cb, "KeyMaterial::esc"
     err = null
     await @alloc_public_key {progress_hook}, esc defer()
     await @verify_self_sig {progress_hook}, esc defer()
-    await @unlock_private_key {progress_hook}, esc defer()
+    await @unlock_private_key {passphrase, progress_hook}, esc defer()
     cb err
   
   #--------------------------
