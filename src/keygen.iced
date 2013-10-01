@@ -75,10 +75,13 @@ test = () ->
     console.warn "+ #{obj.what} #{interval} #{s}"
   await generate_keypair { nbits : 4096, userid : 'Rerl', progress_hook, passphrase : "asdfqwer" }, defer err, res
   console.log res.openpgp.private
+  console.log res.openpgp.public
+  console.log res.keybase.private.toString 'hex'
   process.exit 0
   openpgp.init()
   await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>", passphrase : "ejjejjee"}, defer err, key
   console.log key
+test()
 
 #=================================================================
 

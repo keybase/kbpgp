@@ -45,7 +45,7 @@ class KeyMaterial extends Packet
           data : epriv
           encryption : K.key_encryption.triplesec_v1
     else
-      ret.prev = 
+      ret.priv = 
         data : priv
         encryption : K.key_encryption.none
 
