@@ -69,6 +69,7 @@ class KeyMaterial extends Packet
 
   _self_sign_key : ( { progress_hook }, cb) ->
     # XXX factor this all out.  See Issue #8
+    # XXX change to RSA-PSS.  See Issue #4
     hash = SHA512
     header = 
       type : K.signatures.self_sign_key

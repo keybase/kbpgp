@@ -41,7 +41,7 @@ generate_keypair = ({nbits, userid, progress_hook, delay, passphrase}, cb) ->
 # Follows generate_key_pair from src/openpgp.js
 #
 # @param {ASP} asp standard ASyncPackage to pass into the key
-#   generation algorithm.
+#   generation algorithm.G
 _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
 
   passphrase = if passphrase? then (new Buffer passphrase, 'utf8') else null
@@ -73,13 +73,12 @@ test = () ->
       s = ""
     interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
     console.warn "+ #{obj.what} #{interval} #{s}"
-  await generate_keypair { nbits : 2048, userid : 'shitty', progress_hook, passphrase : "xxx333" }, defer err, res
+  await generate_keypair { nbits : 4096, userid : 'Rerl', progress_hook, passphrase : "asdfqwer" }, defer err, res
   console.log res.openpgp.private
   process.exit 0
   openpgp.init()
   await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>", passphrase : "ejjejjee"}, defer err, key
   console.log key
-test()
 
 #=================================================================
 

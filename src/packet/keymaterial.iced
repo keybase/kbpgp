@@ -40,18 +40,11 @@ class KeyMaterial extends Packet
     iv = native_rng ivlen                     # Consider a truly random number in the future
     bufs.push iv                              # push the IV on before the ciphertext
 
-    console.warn "Salt -> #{salt.toString 'hex'}"
-
     # horrible --- 'MAC' then encrypt :(
     plaintext = Buffer.concat [ priv, sha1hash ]   
 
     # Encrypt with CFB/mode + AES.  Use the expanded key from s2k
     ct = encrypt { block_cipher_class : AES, key : k, plaintext, iv } 
-
-    console.warn "key -> #{k.toString 'hex'}"
-    console.warn "plaintext -> #{plaintext.toString 'hex'}"
-    console.warn "iv -> #{iv.toString 'hex'}"
-    console.warn "ct -> #{ct.toString 'hex'}"
 
     bufs.push ct
 
@@ -84,7 +77,6 @@ class KeyMaterial extends Packet
     if @passphrase? then @_write_private_enc   bufs, priv
     else                 @_write_private_clear bufs, priv
     ret = Buffer.concat bufs
-    console.warn "private body -> #{ret.toString 'hex'}"
     ret
 
   #--------------------------

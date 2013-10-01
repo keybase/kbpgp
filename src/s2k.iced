@@ -149,23 +149,15 @@ class S2K
         seed = Buffer.concat [ @salt, passphrase ]
         n    = Math.ceil (@count / seed.length)
         isp  = Buffer.concat( seed for i in [0...n])[0...@count]
-        console.warn "hash input -> "
-        console.warn isp.toString 'hex'
-        console.warn "len -> #{isp.length}"
-        console.warn "pw -> #{passphrase.toString 'utf8'} ; salt -> #{@salt.toString 'hex'}"
         
         # This if accounts for RFC 4880 3.7.1.1 -- If hash size is greater than block size, 
         # use leftmost bits.  If blocksize larger than hash size, we need to rehash isp and prepend with 0.
         if numBytes? and numBytes in [24,32]
           key = @hash isp
           Buffer.concat [ key, @hash(Buffer.concat([(new Buffer [0]), isp ]))]
-          console.warn "in numBytes 24,32; nb = #{numBytes}"
         else
-          console.warn "free and clean"
           @hash isp
       else null
-    console.warn "returned key -> "
-    console.warn ret.toString 'hex'
     ret
 
 #======================================================================
