@@ -11,6 +11,11 @@ class Packet
   constructor : () ->
   frame_packet : (tag, body) -> pack { tag, body }, 'buffer', { byte_arrays : true }
    
+  #----------------------
+
+  @alloc : (tag, body) ->
+
+
 #==================================================================================================
 
 exports.Packet = Packet

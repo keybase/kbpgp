@@ -7,8 +7,10 @@ purepack = require 'purepack'
 
 null_hash = new Buffer(0)
 
-pack = (x) -> purepack.pack x, 'buffer', { sort_keys : true, byte_arrays : true }
+pack   = (x) -> purepack.pack   x, 'buffer', { sort_keys : true, byte_arrays : true }
 unpack = (x) -> purepack.unpack x, 'buffer'
+
+#=================================================================================
 
 bencode = (type, obj) ->
   hasher = SHA256
