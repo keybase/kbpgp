@@ -41,6 +41,7 @@ exports.kb =
     triplesec_v1 : 1
   packet_tags : openpgp.packet_tags
   message_types : openpgp.message_types
+  public_key_algorithms : public_key_algorithms
   versions :
     V1 : 1
   signatures :

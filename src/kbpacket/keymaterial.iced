@@ -4,12 +4,14 @@ triplesec = require 'triplesec'
 {native_rng} = triplesec.prng
 {Packet} = require './base'
 {pack,bencode} = require './encode'
+{make_esc} = require 'iced-error'
+rsa = require '../rsa'
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase } ) ->
+  constructor : ({@key, @timestamp, @userid, @passphrase, @sig, @rawkey} ) ->
     super()
 
   #--------------------------
@@ -67,20 +69,16 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _self_sign_key : ( { progress_hook }, cb) ->
-    # XXX factor this all out.  See Issue #8
-    # XXX change to RSA-PSS.  See Issue #4
-    hash = SHA512
-    header = 
-      type : K.signatures.self_sign_key
-      version : K.versions.V1
-      hash : SHA512.type
-      padding : K.padding.EMSA_PCKS1_v1_5
-    body =  { @userid, key : @_write_public() }
+  _self_sign_key : ( {hash, progress_hook }, cb) ->
+    hash = SHA512 unless hash?
+    type = K.signatures.self_sign_key
+    body = @_self_sign_body()
+    await sign.sign { @key, type, body, hash, progress_hook }, defer err, res
+    cb err, res
 
-    payload = pack { body, header }
-    sig = @key.pad_and_sign payload, { hash }
-    cb null, { header, sig }
+  #--------------------------
+
+  _self_sign_body : () -> { @userid, key : @_write_public() }
 
   #--------------------------
 
@@ -93,7 +91,51 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  @alloc : (secret_tag, o) ->
+    ret = null
+    try
+      ret = new KeyMaterial { 
+        userid : o.userid, 
+        timestamp : o.key.timestamp, 
+        rawkey:
+          type : o.key.type
+          pub : o.key.pub,
+          priv : o.key.priv 
+        sig : o.sig  
+      }
+      throw new Error "didn't a private key" if secret_tag and not ret.rawkey.priv?
+    catch e
+      err = e 
+    [err, ret]
+
+  #--------------------------
+
+  alloc_public_key : ({progress_hook}, cb) ->
+    switch @rawkey.type
+      when K.public_key_algorithms.RSA
+        [ err, @key ] = rsa.Pair.alloc { pub : rawkey.pub }
+      else
+        err = new Error "unknown key type: #{@rawkey.type}"
+    cb err
+
+  #--------------------------
+
+  verify_self_sig : (cb) ->
+    body = @_self_sign_body()
+
+
+  #--------------------------
+
+  open : ({progress_hook}, cb) ->
+    esc = make_error cb, "KeyMaterial::esc"
+    err = null
+    await @alloc_public_key {progress_hook}, esc defer()
+    await @verify_self_sig {progress_hook}, esc defer()
+    await @unlock_private_key {progress_hook}, esc defer()
+    cb err
   
+  #--------------------------
+
 #=================================================================================
 
 exports.KeyMaterial = KeyMaterial

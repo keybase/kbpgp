@@ -2,6 +2,7 @@
 {SHA512} = require '../hash'
 C = require('../const').openpgp
 {nbs} = require '../bn'
+{bufeq_slow} = require '../util'
 
 #====================================================================
 
@@ -21,7 +22,7 @@ hash_headers =
 #      XXXX - question, should this be rounded up or down!??!?!
 # @returns {Buffer} Hashcode with pkcs1padding as string
 #
-exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (data, len, opts = {}) ->
+exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (hashed_data, len, opts = {}) ->
   hash = opts.hash or SHA512  
   headers = hash_headers[hash.algname]
   n = len - headers.length - 3 - hash.output_length
@@ -31,11 +32,39 @@ exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (data, len, opts = {}) ->
     new Buffer(0xff for i in [0...n]),
     new Buffer([0x00]),
     new Buffer(headers),
-    hash(data) ]
+    hashed_data ]
 
   # We have to convert to a Uint8 array since the JSBN library internally
   # uses A[.] rather than A.readUint8(.)...
   nbs(new Uint8Array(buf), 256)
+
+#====================================================================
+
+exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hash_alg) ->
+  err = ret = null
+  if v.length < 2
+    err = new Error "signature was way too short: < 2 bytes"
+  else if v.readUint8(0) isnt 0 or v.readUint8(1) isnt 1
+    err = new Error "Didn't get two-byte header 0x00 0x01"
+  else 
+    i = 3
+    (i++ while i < v.length and (v.readUint8(i) is 0xff))
+    if i >= v.length or v.readUint8(i) isnt 0
+      err = new Error "Missed the 0x0 separator"
+    else
+      i++
+      header = hash_headers[hash_alg.algname]
+      if not bufeq_slow(new Buffer(header), v[i...(header.length+i)]
+        err = new Error "missing ASN header for #{hash_alg.algname}"
+      else
+        i += header.length
+        h = v[i...]
+        if h.length isnt hash_alg.output_length
+          err = new Error "trailing garbage in signature"
+        else
+          ret = h
+  [err, ret]
+
 
 #====================================================================
 

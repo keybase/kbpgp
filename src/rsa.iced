@@ -1,7 +1,7 @@
 {random_prime,nbs} = require './primegen'
 {RSA} = require('openpgp').ciphers.asymmetric
 {nbv,nbi,BigInteger} = require('openpgp').bigint
-{ASP} = require './util'
+{bufeq_slow,ASP} = require './util'
 {make_esc} = require 'iced-error'
 C = require('./const').openpgp
 bn = require './bn'
@@ -24,17 +24,34 @@ class Priv
       @u.to_mpi_buffer()
     ]
 
+  @alloc : (raw, pub) ->
+    err = null
+    mpis = []
+    for i in [0...4] when not err?
+      [err, mpis[i], raw] = bn.mpi_from_buffer raw
+    if err then [ err, null ]
+    else 
+      [p,d,q,u] = mpis
+      [ null, new Priv({p,d,q,u,pub})
+
 #=======================================================================
 
 class Pub
   constructor : ({@n,@e}) ->
   encrypt : (p) -> p.modPow @e, @n
+  verify : (s) -> p.modPow @e, @n
 
   serialize : () -> 
     Buffer.concat [
       @n.to_mpi_buffer()
       @e.to_mpi_buffer() 
     ]
+
+  @alloc : (raw) ->
+    [err, n, raw] = bn.mpi_from_buffer raw
+    [err, e, raw] = bn.mpi_from_buffer raw unless err?
+    if err then [ err, null ]
+    else [ null, new Pub({n, e})  ]
 
 #=======================================================================
 
@@ -45,6 +62,14 @@ class Pair
 
   constructor : ({@priv, @pub}) ->
     @priv.parent = @pub.parent = @
+
+  #----------------
+
+  @alloc : ({pub, priv}) ->
+    [err, pub  ] = Pub.alloc  pub
+    [err, priv ] = Priv.alloc priv, pub if not err? and priv?
+    if err? then [ err, null ]
+    else [ null, new Pair { priv, pub }]
 
   #----------------
 
@@ -81,13 +106,25 @@ class Pair
   #----------------
 
   sign : (m) -> @priv.sign m
+  verify : (s) -> @pub.verify s
 
   #----------------
 
   pad_and_sign : (data, {hash}) ->
     hash or= SHA512
-    m = emsa_pkcs1_encode data, @pub.n.mpi_byte_length(), {hash}
+    hashed_data = hash data
+    m = emsa_pkcs1_encode hashed_data, @pub.n.mpi_byte_length(), {hash}
     @sign(m).to_mpi_buffer()
+
+  #----------------
+
+  verify_unpad_and_check_hash : (sig, data, hash) ->
+    v = @verify(sig)
+    [err, hd1 ] = emsa_pkcs1_decode v, hash_alg
+    unless err?
+      hd2 = hash data
+      err = new Error "hash mismatch" unless bufeq_slow hd, hd2
+    err
 
   #----------------
 

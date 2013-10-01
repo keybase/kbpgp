@@ -32,8 +32,28 @@ toMPI = (bn) ->
 
 #================================================================
 
+mpi_from_buffer = (raw) ->
+  err = i = null
+  if raw.length < 2
+    err = new Error "need at least 2 bytes; got #{raw.length}"
+  else
+    hdr = new Buffer raw[0...2]
+    raw = raw[2...]
+    nbits = hdr.readUInt16BE 0
+    nbytes = Math.ceil nbits/8
+    if raw.length < nbytes
+      err = new Error "MPI said #{nbytes} bytes but only got #{raw.length}"
+    else
+      a = new Uint8Array raw[0...nbytes]
+      raw = raw[nbytes...]
+      i = new BigInteger a
+  [err, i, raw]
+
+#================================================================
+
 exports.toMPI = toMPI
 exports.nbs = nbs
+exports.mpi_from_buffer = mpi_from_buffer
 
 # Monkey-patch the BigInteger prototyp, for convenience...
 BigInteger.prototype.to_mpi_buffer = () -> toMPI @
