@@ -14,7 +14,6 @@ lib/%.js: src/%.iced
 $(BUILD_STAMP): \
 	lib/const.js \
 	lib/main.js \
-	lib/pgp.js \
 	lib/primegen.js \
 	lib/primes.js \
 	lib/random.js \
@@ -24,7 +23,17 @@ $(BUILD_STAMP): \
 	lib/cfb.js \
 	lib/s2k.js \
 	lib/hash.js \
-	lib/encode/pad.js
+	lib/encode/pad.js \
+	lib/encode/armor.js \
+	lib/keygen.js \
+	lib/kbpacket/base.js \
+	lib/kbpacket/keymaterial.js \
+	lib/kbpacket/encode.js \
+	lib/packet/base.js \
+	lib/packet/userid.js \
+	lib/packet/keymaterial.js \
+	lib/packet/signature.js \
+	lib/sign.js
 	date > $@
 
 build: $(BUILD_STAMP) 
@@ -44,7 +53,7 @@ $(TEST_STAMP): test/browser/test.js
 test: test-server test-browser
 
 clean:
-	rm -f lib/*.js $(BUILD_STAMP) $(TEST_STAMP) test/browser/test.js
+	rm -f lib/encode/*.js lib/packet/*.js lib/kbpacket/*.js lib/*.js $(BUILD_STAMP) $(TEST_STAMP) test/browser/test.js
 
 setup:
 	npm install -d

@@ -1,4 +1,3 @@
-
 {RSA} = require './rsa'
 triplesec = require 'triplesec'
 {util,openpgp,packet,msg,encoding} = require 'openpgp'
@@ -20,9 +19,9 @@ kbkm = require './kbpacket/keymaterial'
 # the public-key pair for export to the user.
 #
 # @param {number} nbits The number of bits in the keypair, taken to be 4096 by default.
-# @param {string} userid The userid that's going to be written into the key.
+# @param {Buffer} userid The userid that's going to be written into the key.
 # @param {number} delay The number of msec to wait between each iter of the inner loop
-# @param {string} passphrase The passphrase to encrypt everything with
+# @param {Buffer} passphrase The passphrase to encrypt everything with
 # @param {callback} cb Call with an `(err,res)` pair when we are done. res
 #   will have to subobjects: `publicKeyArmored` and `privateKeyObject`.
 #   The `privateKeyObject` has three fields: a `signature` of type {Buffer},
@@ -44,7 +43,6 @@ generate_keypair = ({nbits, userid, progress_hook, delay, passphrase}, cb) ->
 #   generation algorithm.G
 _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
 
-  passphrase = if passphrase? then (new Buffer passphrase, 'utf8') else null
   esc = make_esc cb, "KeyFactor::_generate_keypair"
   await RSA.generate { nbits, asp }, esc defer key
 

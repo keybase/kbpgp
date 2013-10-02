@@ -114,7 +114,7 @@ class KeyMaterial extends Packet
   alloc_public_key : ({progress_hook}, cb) ->
     switch @rawkey.type
       when K.public_key_algorithms.RSA
-        [ err, @key ] = rsa.Pair.alloc { pub : rawkey.pub }
+        [ err, @key ] = rsa.RSA.alloc { pub : @rawkey.pub }
       else
         err = new Error "unknown key type: #{@rawkey.type}"
     cb err
@@ -123,7 +123,7 @@ class KeyMaterial extends Packet
 
   verify_self_sig : ({progress_hook}, cb) ->
     body = @_self_sign_body()
-    type = K.signature.self_sign_key
+    type = K.signatures.self_sign_key
     await verify { @key, @sig, body, type, progress_hook }, defer err
     cb err
 
@@ -145,7 +145,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   open : ({passphrase, progress_hook}, cb) ->
-    esc = make_error cb, "KeyMaterial::esc"
+    esc = make_esc cb, "KeyMaterial::esc"
     err = null
     await @alloc_public_key {progress_hook}, esc defer()
     await @verify_self_sig {progress_hook}, esc defer()

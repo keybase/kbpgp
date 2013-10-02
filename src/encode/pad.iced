@@ -2,7 +2,7 @@
 {SHA512} = require '../hash'
 C = require('../const').openpgp
 {nbs} = require '../bn'
-{bufeq_slow} = require '../util'
+{bufeq_secure} = require '../util'
 
 #====================================================================
 
@@ -42,27 +42,29 @@ exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (hashed_data, len, opts = {}) ->
 
 exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hash_alg) ->
   err = ret = null
+  i = 0
   if v.length < 2
     err = new Error "signature was way too short: < 2 bytes"
-  else if v.readUint8(0) isnt 0 or v.readUint8(1) isnt 1
-    err = new Error "Didn't get two-byte header 0x00 0x01"
   else 
-    i = 3
-    (i++ while i < v.length and (v.readUint8(i) is 0xff))
-    if i >= v.length or v.readUint8(i) isnt 0
-      err = new Error "Missed the 0x0 separator"
-    else
-      i++
-      header = hash_headers[hash_alg.algname]
-      if not bufeq_slow(new Buffer(header), v[i...(header.length+i)])
-        err = new Error "missing ASN header for #{hash_alg.algname}"
+    i++ if v.readUInt8(i) is 0
+    if v.readUInt8(i++) isnt 1
+      err = new Error "Didn't get two-byte header 0x00 0x01"
+    else 
+      (i++ while i < v.length and (v.readUInt8(i) is 0xff))
+      if i >= v.length or v.readUInt8(i) isnt 0
+        err = new Error "Missed the 0x0 separator"
       else
-        i += header.length
-        h = v[i...]
-        if h.length isnt hash_alg.output_length
-          err = new Error "trailing garbage in signature"
+        i++
+        header = hash_headers[hash_alg.algname]
+        if not bufeq_secure(new Buffer(header), v[i...(header.length+i)])
+          err = new Error "missing ASN header for #{hash_alg.algname}"
         else
-          ret = h
+          i += header.length
+          h = v[i...]
+          if h.length isnt hash_alg.output_length
+            err = new Error "trailing garbage in signature"
+          else
+            ret = h
   [err, ret]
 
 

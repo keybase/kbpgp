@@ -1,12 +1,12 @@
 {random_prime,nbs} = require './primegen'
 {RSA} = require('openpgp').ciphers.asymmetric
 {nbv,nbi,BigInteger} = require('openpgp').bigint
-{bufeq_slow,ASP} = require './util'
+{bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 C = require('./const').openpgp
 bn = require './bn'
 {SHA512} = require './hash'
-{emsa_pkcs1_encode} = require './encode/pad'
+{emsa_pkcs1_decode,emsa_pkcs1_encode} = require './encode/pad'
 
 #=======================================================================
 
@@ -42,7 +42,7 @@ class Priv
 class Pub
   constructor : ({@n,@e}) ->
   encrypt : (p) -> p.modPow @e, @n
-  verify : (s) -> p.modPow @e, @n
+  verify :  (s) -> s.modPow @e, @n
 
   serialize : () -> 
     Buffer.concat [
@@ -64,7 +64,8 @@ class Pair
   type : Pair.type
 
   constructor : ({@priv, @pub}) ->
-    @priv.parent = @pub.parent = @
+    @pub.parent = @
+    @priv.parent = @ if @priv?
 
   #----------------
 
@@ -136,11 +137,14 @@ class Pair
   #----------------
 
   verify_unpad_and_check_hash : (sig, data, hash) ->
-    v = @verify sig
-    [err, hd1] = emsa_pkcs1_decode v, hash_alg
+    [err, sig] = bn.mpi_from_buffer sig
     unless err?
-      hd2 = hash data
-      err = new Error "hash mismatch" unless bufeq_slow hd1, hd2
+      v = @verify sig
+      b = new Buffer v.toByteArray()
+      [err, hd1] = emsa_pkcs1_decode b, hash
+      unless err?
+        hd2 = hash data
+        err = new Error "hash mismatch" unless bufeq_secure hd1, hd2
     err
 
   #----------------
@@ -180,6 +184,6 @@ class Pair
 
 #=======================================================================
 
-exports.RSA = Pair
+exports.RSA = exports.Pair = Pair
 
 #=======================================================================

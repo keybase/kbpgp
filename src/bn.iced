@@ -39,14 +39,17 @@ mpi_from_buffer = (raw) ->
   else
     hdr = new Buffer raw[0...2]
     raw = raw[2...]
-    nbits = hdr.readUInt16BE 0
-    nbytes = Math.ceil nbits/8
-    if raw.length < nbytes
-      err = new Error "MPI said #{nbytes} bytes but only got #{raw.length}"
+    n_bits = hdr.readUInt16BE 0
+    n_bytes = Math.ceil n_bits/8
+    if raw.length < n_bytes
+      err = new Error "MPI said #{n_bytes} bytes but only got #{raw.length}"
     else
-      a = new Uint8Array raw[0...nbytes]
-      raw = raw[nbytes...]
-      i = new BigInteger a
+      a = new Uint8Array raw[0...n_bytes]
+      raw = raw[n_bytes...]
+      i = nbi()
+      # the last 'true' is for 'unsigned', our hack to jsbn.js to 
+      # workaround the bugginess of their sign bit manipulation.
+      i.fromString a, 256, true
   [err, i, raw]
 
 #================================================================

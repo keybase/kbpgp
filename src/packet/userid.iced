@@ -12,15 +12,13 @@ triplesec = require 'triplesec'
 
 class UserID extends Packet
 
-  # @param {String} userid The string reprensentation of the UserID
-  constructor : (userid) ->
-    super()
-    @userid_utf8 = new Buffer userid, 'utf8'
+  # @param {Buffer} userid The utf8-buffer withstring reprensentation of the UserID
+  constructor : (@userid) -> super()
 
   #--------------------------
 
-  write : () ->
-    @frame_packet C.packet_tags.userid, @userid_utf8
+  utf8  : () -> @userid
+  write : () -> @frame_packet C.packet_tags.userid, @userid
 
   #--------------------------
   

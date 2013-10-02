@@ -3,6 +3,7 @@ mods =
   cfb : require '../files/cfb.iced'
   fermat2 : require '../files/fermat2.iced'
   miller_rabin : require '../files/miller_rabin.iced'
+  keygen : require '../files/keygen.iced'
   rsa : require '../files/rsa.iced'
 
 {BrowserRunner} = require('iced-test')

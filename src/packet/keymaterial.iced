@@ -116,7 +116,7 @@ class KeyMaterial extends Packet
 
   _self_sign_key : (cb) ->
     pk = @public_body()
-    uid8 = @uidp.userid_utf8
+    uid8 = @uidp.utf8()
 
     # RFC 4480 5.2.4 Computing Signatures Over a Key
     x = [
