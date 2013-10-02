@@ -54,7 +54,7 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hash_alg) ->
     else
       i++
       header = hash_headers[hash_alg.algname]
-      if not bufeq_slow(new Buffer(header), v[i...(header.length+i)]
+      if not bufeq_slow(new Buffer(header), v[i...(header.length+i)])
         err = new Error "missing ASN header for #{hash_alg.algname}"
       else
         i += header.length

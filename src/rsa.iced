@@ -24,6 +24,9 @@ class Priv
       @u.to_mpi_buffer()
     ]
 
+  n : () -> @p.multiply(@q)
+  phi : () -> @p.subtract(BigInteger.ONE).multiply(@q.subtract(BigInteger.ONE))
+
   @alloc : (raw, pub) ->
     err = null
     mpis = []
@@ -32,7 +35,7 @@ class Priv
     if err then [ err, null ]
     else 
       [p,d,q,u] = mpis
-      [ null, new Priv({p,d,q,u,pub})
+      [ null, new Priv({p,d,q,u,pub}) ]
 
 #=======================================================================
 
@@ -70,6 +73,20 @@ class Pair
     [err, priv ] = Priv.alloc priv, pub if not err? and priv?
     if err? then [ err, null ]
     else [ null, new Pair { priv, pub }]
+
+  #----------------
+
+  sanity_check : () ->
+    return new Error "pq != n" unless @priv.n().compareTo(@pub.n) is 0
+    unless @priv.d.multiply(@pub.e).mod(@priv.phi()).compareTo(BigInteger.ONE) is 0
+      return new Error "ed != phi(n)"
+    return null
+
+  #----------------
+
+  read_priv : (raw_priv) ->
+    [err,@priv] = Priv.alloc raw_priv, @pub
+    err
 
   #----------------
 

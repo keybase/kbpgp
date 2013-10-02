@@ -124,13 +124,23 @@ class KeyMaterial extends Packet
   verify_self_sig : ({progress_hook}, cb) ->
     body = @_self_sign_body()
     type = K.signature.self_sign_key
-    await verify { @key, @sig, body, type, progress_hook }, defer err()
+    await verify { @key, @sig, body, type, progress_hook }, defer err
     cb err
 
   #--------------------------
 
   unlock_private_key : ({passphrase, progress_hook}, cb) ->
-    # XXXX write me next!
+    err = null
+    if (k = @rawkey.priv)?
+      switch k.encryption
+        when K.key_encryption.triplesec_v1
+          await triplesec.decrypt { key : passphrase, data: k.data }, defer err, raw
+        when K.key_encryption.none
+          raw = k.data
+        else
+          err = new Error "Unknown key encryption type: #{k.encryption}"
+      err = @key.read_priv raw unless err?
+    cb err
 
   #--------------------------
 

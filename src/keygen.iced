@@ -81,7 +81,6 @@ test = () ->
   openpgp.init()
   await generate_keypair { nbits : 1024, progress_hook, userid : "Max Krohn <max@keybase.io>", passphrase : "ejjejjee"}, defer err, key
   console.log key
-test()
 
 #=================================================================
 
