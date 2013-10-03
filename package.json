@@ -19,12 +19,12 @@
     "url": "git://github.com/keybase/kbpgp.git"
   },
   "dependencies" : {
-    "purepack" : "*"
+    "purepack" : ">=1"
   },
   "devDependencies" : {
     "browserify" : "*",
     "colors" : "*",
-    "iced-test" : "*",
+    "iced-test" : ">=0.0.7",
     "triplesec" : "keybase/triplesec",
     "openpgp" : "keybase/openpgpjs#keybase",
     "iced-coffee-script" : "*",

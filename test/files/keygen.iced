@@ -7,16 +7,19 @@ exports.gen1 = (T,cb) ->
   passphrase = new Buffer 'revolt4life!'
   nbits = 1024
   await generate_keypair { nbits, userid, passphrase }, defer err, res
-  T.assert not(err?), err
+  T.no_error err
   buf = res.keybase.private
   T.waypoint "generated #{nbits} RSA key, and secured w/ passphrase: #{buf.toString('hex')[0...64]}..."
   [err, [tag, body ]] = bdecode buf
-  T.assert not(err?), err
+  T.no_error err
   T.waypoint "packet decoded"
   [err, packet] = Packet.alloc tag, body
-  T.assert not(err?), err
+  T.no_error err
   T.waypoint "packet allocated (tag=#{tag})"
   await packet.open { passphrase }, defer err
-  T.assert not(err?), err
+  T.no_error err
   T.waypoint "packet opened"
+  err = packet.key.sanity_check()
+  T.no_error err
+  T.waypoint "key sanity checked"
   cb()

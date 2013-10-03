@@ -7,8 +7,8 @@ purepack = require 'purepack'
 
 null_hash = new Buffer(0)
 
-pack   = (x) -> purepack.pack   x, 'buffer', { sort_keys : true, byte_arrays : true }
-unpack = (x) -> purepack.unpack x, 'buffer'
+pack   = (x) -> purepack.pack   x, { sort_keys : true }
+unpack = (x) -> purepack.unpack x
 
 #=================================================================================
 
@@ -31,8 +31,7 @@ bdecode = (buf) ->
   ret = null
   err = null
   try
-    [err,oo] = unpack buf
-    throw err if err?
+    oo = unpack buf # throws an error if there's a problem
     throw new Error "missing obj.hash.value" unless (hv = oo?.hash?.value)?
     oo.hash.value = null_hash
     hasher = alloc (t = oo.hash.type)

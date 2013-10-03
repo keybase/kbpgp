@@ -34,7 +34,7 @@ class Priv
       [err, mpis[i], raw] = bn.mpi_from_buffer raw
     if err then [ err, null ]
     else 
-      [p,d,q,u] = mpis
+      [d,p,q,u] = mpis
       [ null, new Priv({p,d,q,u,pub}) ]
 
 #=======================================================================
