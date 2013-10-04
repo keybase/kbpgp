@@ -34,7 +34,7 @@ class SlicerBuffer
     ret
   rest : () -> 
     @start = @i
-  rest_to_buffer : () ->
+  peek_rest_to_buffer : () ->
     @buf[@i...]
   advance : (i) -> @i += i
 

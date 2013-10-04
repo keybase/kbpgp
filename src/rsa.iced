@@ -58,6 +58,7 @@ class Pub
     if err then [ err, null ]
     else [ null, new Pub({n, e}), (orig_len - raw.length) ]
 
+
 #=======================================================================
 
 class Pair
@@ -68,6 +69,19 @@ class Pair
   constructor : ({@priv, @pub}) ->
     @pub.parent = @
     @priv.parent = @ if @priv?
+
+  #----------------
+
+  @parse : (pub_raw) ->
+    [err, key, len ] = Pub.alloc pub_raw
+    key = new Pair { pub : key } if key?
+    [err, key, len]
+
+  #----------------
+
+  add_priv : (priv_raw) ->
+    [err, @priv, len] = Priv.alloc priv_raw
+    [err, len]
 
   #----------------
 
