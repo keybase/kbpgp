@@ -1,6 +1,6 @@
-
-
-mods = [ "./keygen" ]
+mods = [ 
+  require("./keygen") 
+]
 for m in mods
-  for k,v of require(m)
+  for k,v of m
     exports[k] = v
