@@ -7,6 +7,7 @@ triplesec = require 'triplesec'
 {make_esc} = require 'iced-error'
 rsa = require '../rsa'
 {sign,verify} = require '../sign'
+{bufferify} = require '../util'
 
 #=================================================================================
 
@@ -150,7 +151,7 @@ class KeyMaterial extends Packet
   # @param {callback} cb Callback with `null` if it worked, or an {Error} otherwise
   #
   open : ({passphrase, progress_hook}, cb) ->
-    passphrase = new Buffer passphrase, 'utf8'
+    passphrase = bufferify passphrase 
     esc = make_esc cb, "KeyMaterial::esc"
     err = null
     await @alloc_public_key {progress_hook}, esc defer()

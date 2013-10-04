@@ -1,7 +1,7 @@
 {RSA} = require './rsa'
 triplesec = require 'triplesec'
 {util,openpgp,packet,msg,encoding} = require 'openpgp'
-{unix_time,ASP,uint_to_buffer,make_time_packet} = require './util'
+{bufferify,unix_time,ASP,uint_to_buffer,make_time_packet} = require './util'
 C = require('./const').openpgp
 {prng} = triplesec
 {make_esc} = require 'iced-error'
@@ -44,8 +44,8 @@ generate_keypair = ({nbits, userid, progress_hook, delay, passphrase}, cb) ->
 # @param {ASP} asp standard ASyncPackage to pass into the key
 #   generation algorithm.G
 _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
-  userid = new Buffer userid, 'utf8'
-  passphrase = new Buffer passphrase, 'utf8'
+  userid = bufferify userid
+  passphrase = bufferify passphrase
 
   esc = make_esc cb, "KeyFactor::_generate_keypair"
   await RSA.generate { nbits, asp }, esc defer key
