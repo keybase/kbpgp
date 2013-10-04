@@ -1,5 +1,6 @@
 
 mods =  
+  basex : require '../files/basex.iced'
   cfb : require '../files/cfb.iced'
   fermat2 : require '../files/fermat2.iced'
   miller_rabin : require '../files/miller_rabin.iced'

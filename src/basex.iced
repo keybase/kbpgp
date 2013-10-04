@@ -30,20 +30,22 @@ class BaseX
   decode: (str) ->
     num = BigInteger.ZERO
     base = BigInteger.ONE
-    for char, index in str.split(//).reverse()
-      unless (char_index = @lookup[char])?
+    i = 0
+    for c,i in str
+      break unless c is @alphabet[0]
+    start = i
+    pad = new Buffer (0 for i in [0...start])
+    for c,i in str[start...] by -1
+      unless (char_index = @lookup[c])?
         throw new Error('Value passed is not a valid Base58 string.')
       num = num.add base.multiply nbv char_index
       base = base.multiply @basebn
-    new Buffer num.toByteArray()
+    Buffer.concat [pad, new Buffer(num.toByteArray()) ]
 
 #=====================================================================
 
 exports.base58 = base58 = new BaseX '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+exports.base32 = base32 = new BaseX 'abcdefghijkmnpqrstuvwxyz23456789'
 
-buf = new Buffer [1...40]
-console.log buf.toString 'hex'
-enc = base58.encode buf
-console.log enc
-dec = base58.decode enc
-console.log dec.toString 'hex'
+#=====================================================================
+
