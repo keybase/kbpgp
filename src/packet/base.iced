@@ -1,6 +1,7 @@
 
 util = require '../util'
 {SlicerBuffer} = require './buffer'
+C = require('../const').openpgp
 
 #==================================================================================================
 
@@ -22,9 +23,32 @@ class Packet
 
   #----------------------
 
+  set_lengths : (real_packet_len, header_len) ->
+    @real_packet_len = real_packet_len
+    @header_len = header_len
+
+  #----------------------
+
+  set_tag : (t) -> @tag = t
+
+  #----------------------
+
   @parse : (slice) -> 
-    # {tag, header_len, real_packet_len, tag} = (new Parser slice).parse()
-    (new Parser slice).parse()
+    err = null
+    try 
+      {tag, header_len, body, real_packet_len, tag} = (new Parser slice).parse()
+      pt = C.packet_tags
+      packet = switch tag
+        when pt.secret_key
+          require('./packet').KeyMaterial.parse_private_key body
+        else
+          throw new Error "Unknown packet tag: #{tag}"
+      packet.set_tag tag
+      packet.set_lengths real_packet_len, header_len
+    catch e
+      err = e   
+    [err, packet ]
+  
 
    
 #==================================================================================================
@@ -42,7 +66,7 @@ class Parser
   parse : () ->
     @parse_tag_and_len()
     @header_len or= @slice.offset()
-    @body or= @slice.read_buffer @len
+    @body or= new SliceBuffer @slice.read_buffer @len
     @real_packet_len or= @len
     @next or= @slice.rest()
     return { @body, @header_len, @real_packet_len, @tag }
@@ -88,7 +112,7 @@ class Parser
       @len += lastlen
     if segments.length
       segments.push @slice.read_buffer lastlen
-      @body = Buffer.concat segments
+      @body = new SliceBuffer Buffer.concat segments
       @len = @body.length
       @real_packet_len = @slice.offset()
 

@@ -50,7 +50,7 @@ mpi_from_buffer = (raw) ->
       # the last 'true' is for 'unsigned', our hack to jsbn.js to 
       # workaround the bugginess of their sign bit manipulation.
       i.fromString a, 256, true
-  [err, i, raw]
+  [err, i, raw, (n_bytes + 2) ]
 
 #================================================================
 

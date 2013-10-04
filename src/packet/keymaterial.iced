@@ -2,6 +2,7 @@
 C = require('../const').openpgp
 triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
+{RSA} = require '../rsa'
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
 {make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
@@ -11,6 +12,7 @@ triplesec = require 'triplesec'
 {Signature} = require './signature'
 {encode} = require '../encode/armor'
 {S2K} = require '../s2k'
+{symmetric} = require '../symmetric'
 
 #=================================================================================
 
@@ -25,7 +27,7 @@ class KeyMaterial extends Packet
 
   _write_private_enc : (bufs, priv) ->
     bufs.push new Buffer [ 
-      254,                                    # Indicates s2k with SHA1 checksum
+      C.s2k_convention.sha1,                  # Indicates s2k with SHA1 checksum
       C.symmetric_key_algorithms.AES256,      # Sym algo used to encrypt
       C.s2k.salt_iter,                        # s2k salt+iterative
       C.hash_algorithms.SHA256                # s2k hash algo
@@ -151,8 +153,75 @@ class KeyMaterial extends Packet
       public  : encode(public_key , Buffer.concat([ @public_framed() , uidp, sig ]))
       private : encode(private_key, Buffer.concat([ @private_framed(), uidp, sig ]))
     }
+
   #--------------------------
+
+  parse_public_key_v3 : (slice) ->
+
+  #--------------------------
+
+  @parse_public_key : (slice) -> (new Parser slice).parse_public_key()
+
+  #--------------------------
+
+  @parse_private_key : (slice) -> (new Parser slice).parse_private_key()
+    public_key = KeyMaterial.parse_public_key slice
   
+#=================================================================================
+
+class Parser
+
+  constructor : (@slice) ->
+    @pub = null
+
+  parse_public_key_v3 : () ->
+    @creationTime = new Date (@slice.read_uint32() * 1000)
+    @expiration = @slice.read_uint16()
+    @parse_public_key_inner()
+
+  parse_public_key_v4 : () ->
+    @creationTime = new Date (@slice.read_uint32() * 1000)
+    @parse_public_key_inner()
+
+  parse_public_key_inner : () ->
+    @algorithm = @slice.read_uint8()
+    A = C.public_key_algorithms
+    [err, @pub, len ] = switch @algorithm
+      when A.RSA, A.RSA_ENCRYPT_ONLY, A.RSA_SIGN_ONLY then RSA.Pub.alloc @slice.rest()
+      else throw new Error "Can only deal with RSA right now"
+    throw err if err?
+    @slice.advance len
+
+  # 5.5.2 Public-Key Packet Formats
+  parse_public_key : () ->
+    switch (version = @slice.read_uint8())
+      when C.versions.keymaterial.V3 then @parse_public_key_v3()
+      when C.versions.keymaterial.V4 then @parse_public_key_v4()
+      else throw new Error "Unknown public key version: #{version}"
+
+  # 5.5.3.  Secret-Key Packet Formats
+  parse_private_key : () ->
+    @parse_public_key()
+
+    @encrypted_private_key = true
+    sym_enc_alg = null
+
+    if (@s2k_convention = @slice.read_uint8()) is 0 then @encrypted_private_key = false
+    else if @s2k_convention in [ C.s2k_convention_sha1 or C.s2k_convention.checksum ]
+      sym_enc_alg = @slice.read_uint8()
+      @s2k = (new S2K).read @slice
+    else sym_enc_alg = @s2k_convention
+
+    if sym_enc_alg
+      @enc_class = symmetric.get_class sym_enc_alg
+      iv_len = @enc_class.blockSize
+      @iv = @slice.read_buffer iv_len
+
+    if (@s2k_convention isnt 0) and (@s2k.type isnt C.s2k.gnu)
+
+
+
+
 #=================================================================================
 
 exports.KeyMaterial = KeyMaterial

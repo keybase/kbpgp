@@ -54,67 +54,48 @@ class S2K
   
   # 
   # Parsing function for a string-to-key specifier (RFC 4880 3.7).
-  # @param {Buffer} input Payload of string-to-key specifier
-  # @param {Integer} position Position to start reading from the input string
+  # @param {SlicerBuffer} input A slicer-buffer wrapper around the payload
   # @return {openpgp_type_s2k} Object representation
   # 
-  read : (input, position) ->
-    mypos = position
-    @type = input.readUInt8 mypos++
-    match = false
+  read : (slice) ->
+    @type = @slice.read_uint8()
 
     switch @type  
-      when 0 # Simple S2K
+      when C.s2k.plain # Simple S2K
         #Octet 1: hash algorithm
-        @set_hash_algorithm(input.readUInt8(mypos++))
-        @s2kLength = 1
-        match = true
+        @set_hash_algorithm @slice.read_uint8()
 
-      when 1 # Salted S2K
+      when C.s2k.salt # Salted S2K
         # Octet 1: hash algorithm
-        @set_hash_algorithm(input.readUInt8(mypos++))
+        @set_hash_algorithm @slice.read_uint8()
 
         # Octets 2-9: 8-octet salt value
-        @salt = input[mypos...(mypos+8)]
-        mypos += 8
-        @s2kLength = 9
-        match = true
+        @salt = @slice.read_buffer 8
 
-      when 3 # Iterated and Salted S2K
+      when C.s2k.salt_iter # Iterated and Salted S2K
         # Octet 1: hash algorithm
-        @set_hash_algorithm(input.readUInt8(mypos++))
+        @set_hash_algorithm @slice.read_uint8()
 
         # Octets 2-9: 8-octet salt value
-        @salt = input[mypos...(mypos+8)]
-        mypos += 8
-        @s2kLength = 9
+        @salt = @slice.read_buffer 8
 
         # Octet 10: count, a one-octet, coded value
         @EXPBIAS = 6
-        c = input.readUInt8 mypos++
+        c = input.read_uint8()
         @count = @_count c, @EXPBIAS
-        @s2kLength = 10
-        match = true
 
-
-      when 101
-        if input[(mypos+1)...(mypos+4)] is "GNU"
-          @set_hash_algorithm(input.readUInt8(mypos++))
-          mypos += 3  # GNU
-          gnuExtType = 1000 + input.readUInt8 mypos++
+      when C.s2k.gnu
+        if input.read_buffer(3).toString('utf8') is "GNU"
+          @set_hash_algorithm @read_uint8()
+          gnuExtType = 1000 + input.read_uint8()
           match = true
-          if gnuExtType == 1001
-            @type = gnuExtType
-            @s2kLength = 5
-            # GnuPG extension mode 1001 -- don't write secret key at all
-          else
-            console.warn "unknown s2k gnu protection mode! #{gnuExtType}"
-
-    if not match
-      console.warn("unknown s2k type! #{@type}")
-      null
-    else
-      @
+          # GnuPG extension mode 1001 -- don't write secret key at all
+          @type = gnuExtType if gnuExtType == 1001
+          else throw new "unknown s2k gnu protection mode! #{gnuExtType}"
+        else throw new "Malformed GNU-extension"
+      else
+        throw new Error "unknown s2k type! #{@type}"
+    @
   
   #----------------------
   

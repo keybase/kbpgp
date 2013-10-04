@@ -2,6 +2,10 @@
 exports.openpgp = openpgp =
   public_key_algorithms :
     RSA : 1
+    RSA_ENCRYPT_ONLY : 2
+    RSA_SIGN_ONLY : 3
+    ELGAMAL : 16
+    DSA : 17
   symmetric_key_algorithms :
     CAST5 : 3
     AES128 : 7
@@ -23,6 +27,11 @@ exports.openpgp = openpgp =
     plain : 0
     salt : 1
     salt_iter : 3
+    gnu : 101
+  s2k_convention :
+    none : 0
+    checksum : 255
+    sha1 : 254
   packet_tags :
     signature : 2
     secret_key : 5

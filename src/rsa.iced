@@ -28,6 +28,7 @@ class Priv
   phi : () -> @p.subtract(BigInteger.ONE).multiply(@q.subtract(BigInteger.ONE))
 
   @alloc : (raw, pub) ->
+    orig_len = raw.length
     err = null
     mpis = []
     for i in [0...4] when not err?
@@ -35,7 +36,7 @@ class Priv
     if err then [ err, null ]
     else 
       [d,p,q,u] = mpis
-      [ null, new Priv({p,d,q,u,pub}) ]
+      [ null, new Priv({p,d,q,u,pub}) , (orig_len - raw.length) ]
 
 #=======================================================================
 
@@ -51,10 +52,11 @@ class Pub
     ]
 
   @alloc : (raw) ->
+    orig_len = raw.length
     [err, n, raw] = bn.mpi_from_buffer raw
     [err, e, raw] = bn.mpi_from_buffer raw unless err?
     if err then [ err, null ]
-    else [ null, new Pub({n, e})  ]
+    else [ null, new Pub({n, e}), (orig_len - raw.length) ]
 
 #=======================================================================
 
