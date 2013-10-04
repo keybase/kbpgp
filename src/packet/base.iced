@@ -1,5 +1,6 @@
 
 util = require '../util'
+{SlicerBuffer} = require './buffer'
 
 #==================================================================================================
 
@@ -20,10 +21,86 @@ class Packet
     Buffer.concat bufs
 
   #----------------------
+
+  @parse : (slice) -> 
+    # {tag, header_len, real_packet_len, tag} = (new Parser slice).parse()
+    (new Parser slice).parse()
+
    
+#==================================================================================================
+
+class Parser
+
+  constructor : (@slice) ->
+    @body = null
+    @real_packet_len = null
+    @tag = null
+    @len = null
+    @header_len = null
+    @next = null
+
+  parse : () ->
+    @parse_tag_and_len()
+    @header_len or= @slice.offset()
+    @body or= @slice.read_buffer @len
+    @real_packet_len or= @len
+    @next or= @slice.rest()
+    return { @body, @header_len, @real_packet_len, @tag }
+
+  parse_tag_and_len : () ->
+    if @slice.len() < 2 or ((c = @slice.read_uint8()) & 0x80) is 0
+      throw new Error "This doesn't look like a binary PGP packet"
+    if (c & 0x40) is 0 then @parse_tag_and_len_old(c) else @parse_tag_and_len_new(c)
+
+  parse_tag_and_len_old : (c) ->
+    @tag = (c & 0x3f) >> 2
+    @len = switch (c & 0x03)
+      when 0 then @slice.read_uint8()
+      when 1 then @slice.read_uint16()
+      when 2 then @slice.read_uint32()
+      when 3 then @slice.len()
+
+  parse_tag_and_len_new : (c) ->
+    @tag = (c & 0x3f)
+    @parse_tag_len_new()
+
+  parse_tag_len_new : () -> 
+    go = true
+    segments = []
+    @len = 0
+    lastlen = 0
+    while go
+      go = false
+      c = @slice.read_uint8()
+
+      lastlen = if (c < 192) then @slice.read_uint8()
+      else if (c is 255) then @slice.read_uint32()
+      else if (c < 224) 
+        a = (@slice.read_uint8() for i in [0...2])
+        ((a[0] - 192) << 8) + (a[1] + 192)
+      else
+        @header_len or= @slice.offset()
+        packet_length = 1 << (c & 0x1f)
+        segments.push @slice.read_buffer packet_length 
+        go = true
+        packet_length
+
+      @len += lastlen
+    if segments.length
+      segments.push @slice.read_buffer lastlen
+      @body = Buffer.concat segments
+      @len = @body.length
+      @real_packet_len = @slice.offset()
+
 #==================================================================================================
 
 exports.Packet = Packet
 
 #==================================================================================================
+
+fs = require 'fs'
+await fs.readFile '../../x', defer err, res
+console.log res
+slice = new SlicerBuffer res
+console.log Packet.parse slice
 
