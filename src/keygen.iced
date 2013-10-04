@@ -3,11 +3,13 @@ triplesec = require 'triplesec'
 {util,openpgp,packet,msg,encoding} = require 'openpgp'
 {unix_time,ASP,uint_to_buffer,make_time_packet} = require './util'
 C = require('./const').openpgp
+{prng} = triplesec
 {make_esc} = require 'iced-error'
 {UserID} = require './packet/userid'
 openpgpkm = require './packet/keymaterial'
 kbkm = require './kbpacket/keymaterial'
 {encode} = require './encode/armor'
+{base91} = require './basex'
 
 #=================================================================
 
@@ -46,15 +48,20 @@ _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
   esc = make_esc cb, "KeyFactor::_generate_keypair"
   await RSA.generate { nbits, asp }, esc defer key
 
+  # Make a random password for OpenPGP for now
+  await prng.generate 11, defer rd
+  pp_openpgp = new Buffer (base91.encode rd.to_buffer()), 'utf8'
+
   # When this case was generated
   timestamp = unix_time()
 
   # Generate a KeyMaterial chain for OpenPGP-style
-  o = new openpgpkm.KeyMaterial { key, timestamp, userid, passphrase }
+  o = new openpgpkm.KeyMaterial { key, timestamp, userid, passphrase : pp_openpgp  }
   k = new kbkm.KeyMaterial { key, timestamp, userid, passphrase }
   ret = {}
   await o.export_keys {}, esc defer ret.openpgp
   await k.export_keys { progress_hook: asp.progress_hook() }, esc defer ret.keybase
+  ret.openpgp.passphrase = pp_openpgp
   cb null, ret
 
 #---------------------------------
@@ -71,15 +78,17 @@ test = () ->
       s = ""
     interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
     console.warn "+ #{obj.what} #{interval} #{s}"
-  await generate_keypair { nbits : 4096, userid : new Buffer('Rerl'), progress_hook, passphrase : new Buffer("asdfqwer") }, defer err, res
+  await generate_keypair { nbits : 2048, userid : new Buffer('Rerl'), progress_hook, passphrase : new Buffer("asdfqwer") }, defer err, res
+  console.log res
   console.log res.openpgp.private
   console.log res.openpgp.public
   console.log res.keybase.private.toString 'hex'
+  console.log res.openpgp.passphrase.toString 'utf8'
   process.exit 0
   openpgp.init()
   await generate_keypair { nbits : 4096, progress_hook, userid : "Max Krohn <max@keybase.io>", passphrase : "ejjejjee"}, defer err, key
   console.log key
-#test()
+test()
 
 #=================================================================
 
