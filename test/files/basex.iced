@@ -106,7 +106,7 @@ strings = [
 test_base = (T, klass, what) ->
   for padlen in [0...29] by 7
     pad = new Buffer (0 for i in [0...padlen])
-    for s,i in strings # when (i isnt 89)
+    for s,i in strings 
       buf = Buffer.concat [ pad, new Buffer s, 'base64' ]
       s = buf.toString 'base64'
       e = klass.encode buf
