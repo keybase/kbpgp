@@ -144,7 +144,13 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  # Open a keybase secret key packet, with the given passphrase.
+  #
+  # @param {string} passphrase the utf8-string that's the passphrase.
+  # @param {callback} cb Callback with `null` if it worked, or an {Error} otherwise
+  #
   open : ({passphrase, progress_hook}, cb) ->
+    passphrase = new Buffer passphrase, 'utf8'
     esc = make_esc cb, "KeyMaterial::esc"
     err = null
     await @alloc_public_key {progress_hook}, esc defer()

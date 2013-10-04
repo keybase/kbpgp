@@ -21,9 +21,9 @@ kbkm = require './kbpacket/keymaterial'
 # the public-key pair for export to the user.
 #
 # @param {number} nbits The number of bits in the keypair, taken to be 4096 by default.
-# @param {Buffer} userid The userid that's going to be written into the key.
+# @param {string} userid The userid that's going to be written into the key.
 # @param {number} delay The number of msec to wait between each iter of the inner loop
-# @param {Buffer} passphrase The passphrase to encrypt everything with
+# @param {string} passphrase The passphrase to encrypt everything with
 # @param {callback} cb Call with an `(err,res)` pair when we are done. res
 #   will have to subobjects: `publicKeyArmored` and `privateKeyObject`.
 #   The `privateKeyObject` has three fields: a `signature` of type {Buffer},
@@ -44,19 +44,22 @@ generate_keypair = ({nbits, userid, progress_hook, delay, passphrase}, cb) ->
 # @param {ASP} asp standard ASyncPackage to pass into the key
 #   generation algorithm.G
 _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
+  userid = new Buffer userid, 'utf8'
+  passphrase = new Buffer passphrase, 'utf8'
 
   esc = make_esc cb, "KeyFactor::_generate_keypair"
   await RSA.generate { nbits, asp }, esc defer key
 
   # Make a random password for OpenPGP for now
   await prng.generate 11, defer rd
-  pp_openpgp = new Buffer (base91.encode rd.to_buffer()), 'utf8'
+  pp_openpgp = base91.encode rd.to_buffer()
+  pp_openpgp_buf = new Buffer pp_openpgp, 'utf8'
 
   # When this case was generated
   timestamp = unix_time()
 
   # Generate a KeyMaterial chain for OpenPGP-style
-  o = new openpgpkm.KeyMaterial { key, timestamp, userid, passphrase : pp_openpgp  }
+  o = new openpgpkm.KeyMaterial { key, timestamp, userid, passphrase : pp_openpgp_buf  }
   k = new kbkm.KeyMaterial { key, timestamp, userid, passphrase }
   ret = {}
   await o.export_keys {}, esc defer ret.openpgp
@@ -83,7 +86,7 @@ test = () ->
   console.log res.openpgp.private
   console.log res.openpgp.public
   console.log res.keybase.private.toString 'hex'
-  console.log res.openpgp.passphrase.toString 'utf8'
+  console.log res.openpgp.passphrase
   process.exit 0
   openpgp.init()
   await generate_keypair { nbits : 4096, progress_hook, userid : "Max Krohn <max@keybase.io>", passphrase : "ejjejjee"}, defer err, key

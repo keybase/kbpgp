@@ -3,8 +3,8 @@
 {bdecode} = require '../../lib/kbpacket/encode'
 
 exports.gen1 = (T,cb) ->
-  userid = new Buffer 'Rerl'
-  passphrase = new Buffer 'revolt4life!'
+  userid = 'Rerl'
+  passphrase = 'revolt4life!'
   nbits = 1024
   await generate_keypair { nbits, userid, passphrase }, defer err, res
   T.no_error err
