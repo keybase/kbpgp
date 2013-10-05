@@ -18,7 +18,7 @@ RSA = require('../rsa').Pair
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase}) ->
+  constructor : ({@key, @timestamp, @userid, @passphrase, @skm}) ->
     @timepacket = make_time_packet @timestamp
     @uidp = new UserID @userid
     super()
@@ -156,16 +156,17 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  parse_public_key_v3 : (slice) ->
+  @parse_public_key : (slice) -> 
+    p = (new Parser slice)
+    p.parse_public_key()
+    new KeyMaterial { key : p.key }
 
   #--------------------------
 
-  @parse_public_key : (slice) -> (new Parser slice).parse_public_key()
-
-  #--------------------------
-
-  @parse_private_key : (slice) -> (new Parser slice).parse_private_key()
-    public_key = KeyMaterial.parse_public_key slice
+  @parse_private_key : (slice) -> 
+    p = (new Parser slice)
+    p.parse_private_key()
+    new KeyMaterial { key : p.key, skm : p.secret_key_material() }
   
 #=================================================================================
 
@@ -210,7 +211,12 @@ class Parser
       else throw new Error "Unknown public key version: #{version}"
 
   #-------------------
-  
+
+  secret_key_material : () ->
+    { @enc_mpi_data, @iv, @checksum, @s2k, @enc_class, @s2k_convention }
+
+  #-------------------
+
   # 5.5.3.  Secret-Key Packet Formats
   #
   # See read_priv_key in openpgp.packet.keymaterial.js
@@ -218,10 +224,10 @@ class Parser
   parse_private_key : () ->
     @parse_public_key()
 
-    @encrypted_private_key = true
+    encrypted_private_key = true
     sym_enc_alg = null
 
-    if (@s2k_convention = @slice.read_uint8()) is 0 then @encrypted_private_key = false
+    if (@s2k_convention = @slice.read_uint8()) is 0 then encrypted_private_key = false
     else if @s2k_convention in [ C.s2k_convention_sha1 or C.s2k_convention.checksum ]
       sym_enc_alg = @slice.read_uint8()
       @s2k = (new S2K).read @slice
@@ -232,11 +238,9 @@ class Parser
       iv_len = @enc_class.blockSize
       @iv = @slice.read_buffer iv_len
 
-    if @s2k_convention is C.s2k_convention.none
-
-    if (@s2k_convention isnt 0) and (@s2k.type is C.s2k.gnu)
+    if (@s2k_convention isnt C.s2k_convention.none) and (@s2k.type is C.s2k.gnu)
       @enc_mpi_data = null
-    else if @encrypted_private_key
+    else if encrypted_private_key
       @enc_mpi_data = @slice.consume_rest_to_buffer()
     else
       [err,len] = @key.add_priv @slice.peek_rest_to_buffer()
