@@ -51,6 +51,13 @@ class Signature extends Packet
     ret = @frame_packet(C.packet_tags.signature, results)
     cb null, ret
 
+  #-----------------
+  
+  @parse : (slice) ->
+    # XXX todo!
+
+  #-----------------
+  
 #===========================================================
 
 exports.Signature = Signature
