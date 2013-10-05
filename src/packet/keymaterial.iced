@@ -5,8 +5,8 @@ triplesec = require 'triplesec'
 RSA = require('../rsa').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
-{encrypt} = require '../cfb'
+{bufeq_secure,katch,make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
+{decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
 {Signature} = require './signature'
@@ -54,7 +54,7 @@ class KeyMaterial extends Packet
 
   _write_private_clear : (bufs, priv) ->
     bufs.push(
-      new Buffer([0]),
+      new Buffer([C.s2k_convention.none]),
       priv,
       uint_to_buffer(16, calc_checksum(priv))
     )
@@ -157,17 +157,47 @@ class KeyMaterial extends Packet
   #--------------------------
 
   @parse_public_key : (slice) -> 
-    p = (new Parser slice)
-    p.parse_public_key()
-    new KeyMaterial { key : p.key }
+    katch () -> (new Parser slice).parse_public_key()
 
   #--------------------------
 
   @parse_private_key : (slice) -> 
-    p = (new Parser slice)
-    p.parse_private_key()
-    new KeyMaterial { key : p.key, skm : p.secret_key_material() }
+    katch () -> (new Parser slice).parse_private_key()
   
+  #--------------------------
+
+  # Open an OpenPGP key packet using the given passphrase
+  #
+  # @param {string} passphrase the passphrase in uft8
+  # 
+  open : ({passphrase}, cb) ->
+    err = null
+
+    pt = if @skm.s2k_convention isnt C.s2k_convention.none
+      decrypt { 
+        ciphertext : @skm.payload,
+        block_cipher_class : @skm.cipher.klass, 
+        iv : @skm.iv, 
+        key : @skm.s2k.produce_key passphrase, @skm.cipher.key_size }
+    else pt = @skm.payload
+
+    switch @skm.s2k_convention
+      when C.s2k_convention.sha1
+        end = pt.length - 20
+        h1 = pt[end...]
+        pt = pt[0...end]
+        h2 = (new SHA1).bufhash pt
+        err = new Error "hash mismatch" unless bufeq_secure(h1, h2)
+      when C.s2k_convention.checksum, C.s2k_convention.none
+        end = pt.length - 2
+        c1 = pt.readUInt32BE end
+        pt = pt[0...end]
+        c2 = calc_checksum pt
+        err = new Error "checksum mismatch" unless c1 is c2
+
+    err = @pk.read_priv(pt) unless err?
+    cb err
+
 #=================================================================================
 
 class Parser
@@ -175,45 +205,45 @@ class Parser
   #-------------------
   
   constructor : (@slice) ->
-    @pub = null
+    @key = null
 
   #-------------------
 
   parse_public_key_v3 : () ->
     @creationTime = new Date (@slice.read_uint32() * 1000)
     @expiration = @slice.read_uint16()
-    @parse_public_key_inner()
+    @parse_public_key_mpis()
 
   #-------------------
   
   parse_public_key_v4 : () ->
     @creationTime = new Date (@slice.read_uint32() * 1000)
-    @parse_public_key_inner()
+    @parse_public_key_mpis()
 
   #-------------------
   
-  parse_public_key_inner : () ->
+  parse_public_key_mpis: () ->
     @algorithm = @slice.read_uint8()
     A = C.public_key_algorithms
-    [err, @key, len ] = switch @algorithm
+    [err, key, len ] = switch @algorithm
       when A.RSA, A.RSA_ENCRYPT_ONLY, A.RSA_SIGN_ONLY then RSA.parse @slice.peek_rest_to_buffer()
       else throw new Error "Can only deal with RSA right now"
     throw err if err?
     @slice.advance len
+    key
 
   #-------------------
   
   # 5.5.2 Public-Key Packet Formats
-  parse_public_key : () ->
+  _parse_public_key : () ->
     switch (version = @slice.read_uint8())
       when C.versions.keymaterial.V3 then @parse_public_key_v3()
       when C.versions.keymaterial.V4 then @parse_public_key_v4()
       else throw new Error "Unknown public key version: #{version}"
 
-  #-------------------
-
-  secret_key_material : () ->
-    { @enc_mpi_data, @iv, @checksum, @s2k, @enc_class, @s2k_convention }
+  parse_public_key : () ->
+    key = @_parse_public_key()
+    new KeyMaterial { key }
 
   #-------------------
 
@@ -222,31 +252,29 @@ class Parser
   # See read_priv_key in openpgp.packet.keymaterial.js
   #
   parse_private_key : () ->
-    @parse_public_key()
+    skm = {}
+    key = @_parse_public_key()
 
     encrypted_private_key = true
     sym_enc_alg = null
 
-    if (@s2k_convention = @slice.read_uint8()) is 0 then encrypted_private_key = false
-    else if @s2k_convention in [ C.s2k_convention_sha1 or C.s2k_convention.checksum ]
+    if (skm.s2k_convention = @slice.read_uint8()) is C.s2k_convention.none 
+      encrypted_private_key = false
+    else if skm.s2k_convention in [ C.s2k_convention_sha1 or C.s2k_convention.checksum ]
       sym_enc_alg = @slice.read_uint8()
-      @s2k = (new S2K).read @slice
-    else sym_enc_alg = @s2k_convention
+      skm.s2k = (new S2K).read @slice
+    else sym_enc_alg = skm.s2k_convention
 
     if sym_enc_alg
-      @enc_class = symmetric.get_class sym_enc_alg
-      iv_len = @enc_class.blockSize
-      @iv = @slice.read_buffer iv_len
+      skm.cipher = symmetric.get_cipher sym_enc_alg
+      iv_len = skm.cipher_class.blockSize
+      skm.iv = @slice.read_buffer iv_len
 
-    if (@s2k_convention isnt C.s2k_convention.none) and (@s2k.type is C.s2k.gnu)
-      @enc_mpi_data = null
-    else if encrypted_private_key
-      @enc_mpi_data = @slice.consume_rest_to_buffer()
-    else
-      [err,len] = @key.add_priv @slice.peek_rest_to_buffer()
-      throw err if err?
-      @slice.advance len
-      @checskum = @slice.readUInt16()
+    if (skm.s2k_convention isnt C.s2k_convention.none) and (skm.s2k.type is C.s2k.gnu)
+      skm.payload = null
+    else 
+      skm.payload = @slice.consume_rest_to_buffer()
+    new KeyMaterial { key, skm }
 
 #=================================================================================
 

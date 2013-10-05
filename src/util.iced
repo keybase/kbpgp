@@ -118,6 +118,14 @@ exports.bufferify = bufferify = (s) ->
 
 #=========================================================
 
+exports.katch = (fn) ->
+  ret = err = null
+  try ret = fn()
+  catch e then err = e
+  [err, ret]
+
+#=========================================================
+
 exports.unix_time = () -> Math.floor(Date.now()/1000)
 
 #=========================================================
