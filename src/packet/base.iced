@@ -33,27 +33,27 @@ class Packet
 
   #----------------------
 
-  @parse : (slice) -> 
-    err = null
-    try 
-      {tag, header_len, body, real_packet_len, tag} = (new Parser slice).parse()
-      pt = C.packet_tags
-      packet = switch tag
-        when pt.secret_key
-          require('./packet').KeyMaterial.parse_private_key body
-        else
-          throw new Error "Unknown packet tag: #{tag}"
-      packet.set_tag tag
-      packet.set_lengths real_packet_len, header_len
-    catch e
-      err = e   
-    [err, packet ]
-  
+#==================================================================================================
 
+class MessageParser 
+  constructor : (@slice) ->
+  parse : () -> (@parse_packet() while @slice.rem())
+
+  parse_packet : () ->
+    {tag, header_len, body, real_packet_len, tag} = (new HeaderParser slice).parse()
+    pt = C.packet_tags
+    packet = switch tag
+      when pt.secret_key, pt.secret_subkey
+        require('./packet').KeyMaterial.parse_private_key new SlicerBuffer body
+      else
+        throw new Error "Unknown packet tag: #{tag}"
+    packet.set_tag tag
+    packet.set_lengths real_packet_len, header_len
+    packet
    
 #==================================================================================================
 
-class Parser
+class HeaderParser
 
   constructor : (@slice) ->
     @body = null

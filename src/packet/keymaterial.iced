@@ -156,13 +156,11 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  @parse_public_key : (slice) -> 
-    katch () -> (new Parser slice).parse_public_key()
+  @parse_public_key : (slice) -> (new Parser slice).parse_public_key()
 
   #--------------------------
 
-  @parse_private_key : (slice) -> 
-    katch () -> (new Parser slice).parse_private_key()
+  @parse_private_key : (slice) -> (new Parser slice).parse_private_key()
   
   #--------------------------
 
