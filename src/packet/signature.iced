@@ -2,7 +2,8 @@
 {Packet} = require './base'
 C = require('../const').openpgp
 {uint_to_buffer,encode_length,make_time_packet} = require '../util'
-{SHA512} = require '../hash'
+{alloc_or_throw,SHA512} = require '../hash'
+asymmetric = require '../asymmetric'
 
 #===========================================================
 
@@ -53,11 +54,50 @@ class Signature extends Packet
 
   #-----------------
   
-  @parse : (slice) ->
-    # XXX todo!
+  @parse : (slice) -> (new Parser slice).parse()
 
   #-----------------
   
 #===========================================================
 
 exports.Signature = Signature
+
+#===========================================================
+
+class Parser
+
+  constructor : (@slice) ->
+
+  parse_v3 : () ->
+    throw new error "Bad one-octet length" unless @slice.read_uint8() is 5
+    @type = @slice.read_uint8()
+    @time = new Date (@slice.read_uint32() * 1000)
+    @sig_data = @slice.peek_rest_to_buffer()
+    @key_id = @slice.read_buffer 8
+    @public_key_class = asymmetric.get_class @slice.read_uint8()
+    @hash_alg = alloc_or_throw @slice.read_uint8()
+    @signed_hash_value_hash = @slice.read_uint16()
+    @sig = @public_key_class.parse_sig @slice
+
+  parse_v4 : () ->
+    @type = @slice.read_uint8()
+    @public_key_class = asymmetric.get_class @slice.read_uint8()
+    @hash_alg = alloc_or_throw @slice.read_uint8()
+    hashed_subpacket_count = @slice.read_uint16()
+    end = @slice.i + hashed_subpacket_count
+    (@parse_subpacket() while @slice.i < end)
+
+  parse_subpacket : () ->
+    len = @slice.read_v4_length()
+    type = (@slice.read_uint8() & 0x7f)
+
+  parse : () ->
+    version = @slice.read_uint8()
+    switch version
+      when C.versions.signature.V3 then @parse_v3()
+      when C.versions.signature.V4 then @parse_v4()
+
+
+#===========================================================
+
+

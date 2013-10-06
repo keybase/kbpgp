@@ -25,5 +25,10 @@ exports.alloc = alloc = (typ) ->
   ret = make_hasher(klass,name,typ) if klass?
   ret
 
+exports.alloc_or_throw = alloc_or_throw = (typ) ->
+  ret = alloc typ
+  throw new Error "unknonw hash type: #{typ}" unless ret
+  ret
+
 #================================================================
 

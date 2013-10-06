@@ -36,7 +36,16 @@ class SlicerBuffer
     @start = @i
   peek_rest_to_buffer : () ->
     @buf[@i...]
-  advance : (i) -> @i += i
+  advance : (i = 1) -> @i += i
+
+  peek_uint8 : () -> @buf.readUInt8 @i
+
+  read_v4_length : () ->
+    p = @slice.peek_uint8()
+    if p < 192       then @slice.advance(1); p
+    else if p < 224  then @slice.read_uint16() - (192 << 8) + 192
+    else if p < 0xff then @slice.advance(1); (1 << (p & 0x1f))
+    else                  @slice.read_uint32()
 
 #================================================================================================
 

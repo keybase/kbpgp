@@ -40,7 +40,9 @@ exports.openpgp = openpgp =
     userid : 13
   versions :
     keymaterial : V4 : 4
-    signature : V4 : 4
+    signature : 
+      V3 : 3
+      V4 : 4
   signatures :
     key : 0x99
     userid : 0xb4

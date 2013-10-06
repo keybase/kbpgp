@@ -107,6 +107,19 @@ class Pair
 
   #----------------
 
+  # Parse a signature out of a packet
+  #
+  # @param {SlicerBuffer} slice The input slice
+  # @return {BigInteger} the Signature
+  # @throw {Error} an Error if there was an overrun of the packet.
+  parse_sig : (slice) -> 
+    [err, ret, raw, n] = bn.mpi_from_buffer slice.peek_rest_to_buffer()
+    throw err if err?
+    slice.advance(n)
+    ret
+
+  #----------------
+
   encrypt : (p) -> @pub.encrypt p
   decrypt : (c) -> @priv.decrypt c
 
