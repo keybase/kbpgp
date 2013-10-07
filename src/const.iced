@@ -19,7 +19,28 @@ exports.openpgp = openpgp =
     SHA224 : 11
   sig_subpacket:
     creation_time : 2
+    expiration_time : 3
+    exportable_certificate : 4
+    trust_signature : 5
+    regular_expression : 6
+    revocable : 7
+    key_expiration_time : 9
+    preferred_symmetric_algorithms : 11
+    revocation_key : 12
     issuer : 16
+    notation_data : 20
+    preferred_hash_algorithms : 21
+    preferred_compression_algorithms : 22
+    key_server_preferences : 23
+    preferred_key_server : 24
+    primary_user_id : 25
+    policy_uri : 26
+    key_flags : 27
+    signers_user_id : 28
+    reason_for_revocation : 29
+    features : 30
+    signature_target : 31
+    embedded_signature : 32
   message_types :
     public_key : 4
     private_key : 5

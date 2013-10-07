@@ -5,14 +5,20 @@ class SlicerBuffer
 
   constructor : (@buf, @start = 0) ->
     @i = @start
-    @end = null
+    @_end = null
 
-  clamp : (pos) -> @end = pos
+  clamp : (len) -> 
+    ret = @_end
+    @_end = @i + len 
+    ret
+  unclamp : (e) -> 
+    @start = @i
+    @_end = e
 
   len : () -> @buf.length - @start
   rem : () -> @buf.length - @i
   offset : () -> @i - @start
-  check : () -> throw new Error "read off the end of the packet @#{@i}" if @end? and @i > @end
+  check : () -> throw new Error "read off the end of the packet @#{@i}" if @_end? and @i > @_end
   read_uint8 : () -> 
     ret = @buf.readUInt8 @i++
     @check()
@@ -32,11 +38,14 @@ class SlicerBuffer
     @i += l
     @check()
     ret
-  rest : () -> 
-    @start = @i
-  peek_rest_to_buffer : () ->
-    @buf[@i...]
+  end : () -> @_end or @buf.length
+  peek_rest_to_buffer : () -> @buf[@i...@end()]
+  consume_rest_to_buffer : () ->
+    ret = @peek_rest_to_buffer()
+    @i = @end()
+    ret
   advance : (i = 1) -> @i += i
+  peek_to_buffer : (len) -> @buf[@i...(@i + len)]
 
   peek_uint8 : () -> @buf.readUInt8 @i
 

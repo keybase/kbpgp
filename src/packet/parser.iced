@@ -24,7 +24,6 @@ class PacketParser
     @tag = null
     @len = null
     @header_len = null
-    @next = null
 
   #----------------
 
@@ -33,7 +32,7 @@ class PacketParser
     @header_len or= @slice.offset()
     @body or= new SliceBuffer @slice.read_buffer @len
     @real_packet_len or= @len
-    @next or= @slice.rest()
+    @slice.unclamp()
 
   #----------------
 
