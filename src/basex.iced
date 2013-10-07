@@ -1,5 +1,6 @@
 {nbv,nbi,BigInteger} = require('openpgp').bigint
 {nbs} = require './bn'
+{buffer_to_ui8a} = require './util'
 
 #=====================================================================
 
@@ -14,7 +15,7 @@ class BaseX
 
   encode: (buffer) ->
     num = nbi()
-    num.fromString (new Uint8Array buffer), 256, true
+    num.fromString (buffer_to_ui8a buffer), 256, true
     chars = while num.compareTo(BigInteger.ZERO) > 0
       [q,r] = num.divideAndRemainder @basebn
       c = @alphabet[r.intValue()]

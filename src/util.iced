@@ -81,7 +81,7 @@ exports.encode_length = encode_length = (l) ->
     ret.writeUInt8 l, 0
   else if l >= 192 and l < 8384
     ret = new Buffer 2
-    ret.writeUInt16BE( ( (l - 192) + (192 << 8 )), 0)
+    ret.writeUInt16BE( ((l - 192) + (192 << 8 )), 0)
   else
     ret = new Buffer 5
     ret.writeUInt8 0xff, 0
@@ -126,9 +126,16 @@ exports.katch = (fn) ->
 
 #=========================================================
 
-exports.nullthrow = (ret, msg) ->
-  throw new Error msg unless ret
+exports.buffer_to_ui8a = buffer_to_ui8a = (b) ->
+  l = b.length
+  ret = new Uint8Array l
+  for i in [0...l]
+    ret[i] = b.readUint8 i
   ret
+
+#=========================================================
+
+exports.nullthrow = (ret) ->
 
 #=========================================================
 

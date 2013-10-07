@@ -2,7 +2,7 @@
 {SHA512} = require '../hash'
 C = require('../const').openpgp
 {nbs} = require '../bn'
-{bufeq_secure} = require '../util'
+{buffer_to_ui8a,bufeq_secure} = require '../util'
 
 #====================================================================
 
@@ -36,7 +36,7 @@ exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (hashed_data, len, opts = {}) ->
 
   # We have to convert to a Uint8 array since the JSBN library internally
   # uses A[.] rather than A.readUint8(.)...
-  nbs(new Uint8Array(buf), 256)
+  nbs(buffer_to_ui8a(buf), 256)
 
 #====================================================================
 

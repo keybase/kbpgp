@@ -1,5 +1,6 @@
 
 {nbv,nbi,BigInteger,nbits} = require('openpgp').bigint
+{buffer_to_ui8a} = require './util'
 
 #=================================================================
 
@@ -44,7 +45,7 @@ mpi_from_buffer = (raw) ->
     if raw.length < n_bytes
       err = new Error "MPI said #{n_bytes} bytes but only got #{raw.length}"
     else
-      a = new Uint8Array raw[0...n_bytes]
+      a = buffer_to_ui8a raw[0...n_bytes]
       raw = raw[n_bytes...]
       i = nbi()
       # the last 'true' is for 'unsigned', our hack to jsbn.js to 
