@@ -1,4 +1,4 @@
-{CAST5} = require '../../src/cast5'
+{CAST5} = require '../../lib/cast5'
 {WordArray} = require 'triplesec'
 
 exports.rfc_2144_B1 = (T,cb) ->

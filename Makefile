@@ -36,7 +36,10 @@ $(BUILD_STAMP): \
 	lib/packet/parser.js \
 	lib/packet/buffer.js \
 	lib/sign.js \
-	lib/basex.js
+	lib/basex.js \
+	lib/cast5.js \
+	lib/asymmetric.js \
+	lib/symmetric.js
 	date > $@
 
 build: $(BUILD_STAMP) 

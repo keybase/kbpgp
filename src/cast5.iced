@@ -28,54 +28,54 @@ class Global
     scheduleA = new Array(4)
 
     scheduleA[0] = new Array(4)
-    scheduleA[0][0] = new Uint8Array(4, 0, 0xd, 0xf, 0xc, 0xe, 0x8)
-    scheduleA[0][1] = new Uint8Array(5, 2, 16 + 0, 16 + 2, 16 + 1, 16 + 3, 0xa)
-    scheduleA[0][2] = new Uint8Array(6, 3, 16 + 7, 16 + 6, 16 + 5, 16 + 4, 9)
-    scheduleA[0][3] = new Uint8Array(7, 1, 16 + 0xa, 16 + 9, 16 + 0xb, 16 + 8, 0xb)
+    scheduleA[0][0] = new Uint8Array [ 4, 0, 0xd, 0xf, 0xc, 0xe, 0x8 ]
+    scheduleA[0][1] = new Uint8Array [ 5, 2, 16 + 0, 16 + 2, 16 + 1, 16 + 3, 0xa ]
+    scheduleA[0][2] = new Uint8Array [ 6, 3, 16 + 7, 16 + 6, 16 + 5, 16 + 4, 9 ]
+    scheduleA[0][3] = new Uint8Array [ 7, 1, 16 + 0xa, 16 + 9, 16 + 0xb, 16 + 8, 0xb ]
 
     scheduleA[1] = new Array(4)
-    scheduleA[1][0] = new Uint8Array(0, 6, 16 + 5, 16 + 7, 16 + 4, 16 + 6, 16 + 0)
-    scheduleA[1][1] = new Uint8Array(1, 4, 0, 2, 1, 3, 16 + 2)
-    scheduleA[1][2] = new Uint8Array(2, 5, 7, 6, 5, 4, 16 + 1)
-    scheduleA[1][3] = new Uint8Array(3, 7, 0xa, 9, 0xb, 8, 16 + 3)
+    scheduleA[1][0] = new Uint8Array [ 0, 6, 16 + 5, 16 + 7, 16 + 4, 16 + 6, 16 + 0 ]
+    scheduleA[1][1] = new Uint8Array [ 1, 4, 0, 2, 1, 3, 16 + 2 ]
+    scheduleA[1][2] = new Uint8Array [ 2, 5, 7, 6, 5, 4, 16 + 1 ]
+    scheduleA[1][3] = new Uint8Array [ 3, 7, 0xa, 9, 0xb, 8, 16 + 3 ]
 
     scheduleA[2] = new Array(4);
-    scheduleA[2][0] = new Uint8Array(4, 0, 0xd, 0xf, 0xc, 0xe, 8)
-    scheduleA[2][1] = new Uint8Array(5, 2, 16 + 0, 16 + 2, 16 + 1, 16 + 3, 0xa)
-    scheduleA[2][2] = new Uint8Array(6, 3, 16 + 7, 16 + 6, 16 + 5, 16 + 4, 9)
-    scheduleA[2][3] = new Uint8Array(7, 1, 16 + 0xa, 16 + 9, 16 + 0xb, 16 + 8, 0xb)
+    scheduleA[2][0] = new Uint8Array [ 4, 0, 0xd, 0xf, 0xc, 0xe, 8 ]
+    scheduleA[2][1] = new Uint8Array [ 5, 2, 16 + 0, 16 + 2, 16 + 1, 16 + 3, 0xa ]
+    scheduleA[2][2] = new Uint8Array [ 6, 3, 16 + 7, 16 + 6, 16 + 5, 16 + 4, 9 ]
+    scheduleA[2][3] = new Uint8Array [ 7, 1, 16 + 0xa, 16 + 9, 16 + 0xb, 16 + 8, 0xb ]
 
     scheduleA[3] = new Array(4);
-    scheduleA[3][0] = new Uint8Array(0, 6, 16 + 5, 16 + 7, 16 + 4, 16 + 6, 16 + 0)
-    scheduleA[3][1] = new Uint8Array(1, 4, 0, 2, 1, 3, 16 + 2)
-    scheduleA[3][2] = new Uint8Array(2, 5, 7, 6, 5, 4, 16 + 1)
-    scheduleA[3][3] = new Uint8Array(3, 7, 0xa, 9, 0xb, 8, 16 + 3)
+    scheduleA[3][0] = new Uint8Array [ 0, 6, 16 + 5, 16 + 7, 16 + 4, 16 + 6, 16 + 0 ]
+    scheduleA[3][1] = new Uint8Array [ 1, 4, 0, 2, 1, 3, 16 + 2 ]
+    scheduleA[3][2] = new Uint8Array [ 2, 5, 7, 6, 5, 4, 16 + 1 ]
+    scheduleA[3][3] = new Uint8Array [ 3, 7, 0xa, 9, 0xb, 8, 16 + 3 ]
 
     scheduleB = new Array(4);
 
     scheduleB[0] = new Array(4);
-    scheduleB[0][0] = new Uint8Array(16 + 8, 16 + 9, 16 + 7, 16 + 6, 16 + 2)
-    scheduleB[0][1] = new Uint8Array(16 + 0xa, 16 + 0xb, 16 + 5, 16 + 4, 16 + 6)
-    scheduleB[0][2] = new Uint8Array(16 + 0xc, 16 + 0xd, 16 + 3, 16 + 2, 16 + 9)
-    scheduleB[0][3] = new Uint8Array(16 + 0xe, 16 + 0xf, 16 + 1, 16 + 0, 16 + 0xc)
+    scheduleB[0][0] = new Uint8Array [ 16 + 8, 16 + 9, 16 + 7, 16 + 6, 16 + 2 ]
+    scheduleB[0][1] = new Uint8Array [ 16 + 0xa, 16 + 0xb, 16 + 5, 16 + 4, 16 + 6 ]
+    scheduleB[0][2] = new Uint8Array [ 16 + 0xc, 16 + 0xd, 16 + 3, 16 + 2, 16 + 9 ]
+    scheduleB[0][3] = new Uint8Array [ 16 + 0xe, 16 + 0xf, 16 + 1, 16 + 0, 16 + 0xc ]
 
     scheduleB[1] = new Array(4);
-    scheduleB[1][0] = new Uint8Array(3, 2, 0xc, 0xd, 8)
-    scheduleB[1][1] = new Uint8Array(1, 0, 0xe, 0xf, 0xd)
-    scheduleB[1][2] = new Uint8Array(7, 6, 8, 9, 3)
-    scheduleB[1][3] = new Uint8Array(5, 4, 0xa, 0xb, 7)
+    scheduleB[1][0] = new Uint8Array [ 3, 2, 0xc, 0xd, 8 ]
+    scheduleB[1][1] = new Uint8Array [ 1, 0, 0xe, 0xf, 0xd ]
+    scheduleB[1][2] = new Uint8Array [ 7, 6, 8, 9, 3 ]
+    scheduleB[1][3] = new Uint8Array [ 5, 4, 0xa, 0xb, 7 ]
 
     scheduleB[2] = new Array(4);
-    scheduleB[2][0] = new Uint8Array(16 + 3, 16 + 2, 16 + 0xc, 16 + 0xd, 16 + 9)
-    scheduleB[2][1] = new Uint8Array(16 + 1, 16 + 0, 16 + 0xe, 16 + 0xf, 16 + 0xc)
-    scheduleB[2][2] = new Uint8Array(16 + 7, 16 + 6, 16 + 8, 16 + 9, 16 + 2)
-    scheduleB[2][3] = new Uint8Array(16 + 5, 16 + 4, 16 + 0xa, 16 + 0xb, 16 + 6)
+    scheduleB[2][0] = new Uint8Array [ 16 + 3, 16 + 2, 16 + 0xc, 16 + 0xd, 16 + 9 ]
+    scheduleB[2][1] = new Uint8Array [ 16 + 1, 16 + 0, 16 + 0xe, 16 + 0xf, 16 + 0xc ]
+    scheduleB[2][2] = new Uint8Array [ 16 + 7, 16 + 6, 16 + 8, 16 + 9, 16 + 2 ]
+    scheduleB[2][3] = new Uint8Array [ 16 + 5, 16 + 4, 16 + 0xa, 16 + 0xb, 16 + 6 ]
 
     scheduleB[3] = new Array(4);
-    scheduleB[3][0] = new Uint8Array(8, 9, 7, 6, 3)
-    scheduleB[3][1] = new Uint8Array(0xa, 0xb, 5, 4, 7)
-    scheduleB[3][2] = new Uint8Array(0xc, 0xd, 3, 2, 8)
-    scheduleB[3][3] = new Uint8Array(0xe, 0xf, 1, 0, 0xd)
+    scheduleB[3][0] = new Uint8Array [ 8, 9, 7, 6, 3 ]
+    scheduleB[3][1] = new Uint8Array [ 0xa, 0xb, 5, 4, 7 ]
+    scheduleB[3][2] = new Uint8Array [ 0xc, 0xd, 3, 2, 8 ]
+    scheduleB[3][3] = new Uint8Array [ 0xe, 0xf, 1, 0, 0xd ]
 
     @scheduleA = scheduleA
     @scheduleB = scheduleB
@@ -289,7 +289,7 @@ class Global
       0x3b4cbf9f, 0x4a5de3ab, 0xe6051d35, 0xa0e1d855, 0xd36b4cf1, 0xf544edeb, 0xb0e93524, 0xbebb8fbd,
       0xa2d762cf, 0x49c92f54, 0x38b5f331, 0x7128a454, 0x48392905, 0xa65b1db8, 0x851c97bd, 0xd675cf2f ]
 
-    sBox[6] = new Uint8Array [
+    sBox[6] = new Uint32Array [
       0x85e04019, 0x332bf567, 0x662dbfff, 0xcfc65693, 0x2a8d7f6f, 0xab9bc912, 0xde6008a1, 0x2028da1f,
       0x0227bce7, 0x4d642916, 0x18fac300, 0x50f18b82, 0x2cb2cb11, 0xb232e75c, 0x4b3695f2, 0xb28707de,
       0xa05fbcf6, 0xcd4181e9, 0xe150210c, 0xe24ef1bd, 0xb168c381, 0xfde4e789, 0x5c79b0d8, 0x1e8bfd43,
@@ -393,8 +393,6 @@ class CAST5
   #---------------
 
   encrypt : (wa_src, offset = 0) ->
-    console.log wa_src
-    console.log wa_src.to_buffer()
     out = @_encrypt_ui8a buffer_to_ui8a wa_src.to_buffer()
     WordArray.from_buffer new Buffer out
 
@@ -451,7 +449,7 @@ class CAST5
     len = src.length
     dst = new Uint8Array len
 
-    for i in [0...len]
+    for i in [0...len] by 8
 
       l = src[i]<<24 | src[i+1]<<16 | src[i+2]<<8 | src[i+3]
       r = src[i+4]<<24 | src[i+5]<<16 | src[i+6]<<8 | src[i+7]
