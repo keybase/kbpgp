@@ -22,7 +22,7 @@ class UserID extends Packet
 
   #--------------------------
 
-  @parse : (slice) -> new UserId @slice.consume_rest_to_buffer() 
+  @parse : (slice) -> new UserID slice.consume_rest_to_buffer() 
 
   #--------------------------
   

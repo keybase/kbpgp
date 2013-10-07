@@ -72,15 +72,18 @@ class ExpirationTime extends SubPacket
 
 class Preference extends SubPacket
   constructor : (@v) ->
-  @parse : (klass, slice) -> 
-    v = (c for c in @slice.consume_rest_to_buffer())
+  @parse : (slice, klass) -> 
+    v = (c for c in slice.consume_rest_to_buffer())
     new klass v
 
 #------------
 
 class SigCreationTime extends SubPacket
   constructor : (@time) ->
-  @parse : (slice) -> new SigCreationTime new Date (@slice.read_uint32() * 1000)
+  @parse : (slice) -> 
+    ret = new SigCreationTime new Date (slice.read_uint32() * 1000)
+    console.log ret.time
+    ret
 
 #------------
 
@@ -91,13 +94,13 @@ class SigExpirationTime extends ExpirationTime
 
 class Exporatable extends SubPacket
   constructor : (@flag) ->
-  @parse : (slice) -> new Exporatable (@slice.read_uint8() is 1)
+  @parse : (slice) -> new Exporatable (slice.read_uint8() is 1)
 
 #------------
 
 class Trust extends SubPacket
   constructor : (@level, @amount) ->
-  @parse : (slice) -> new Trust @slice.read_uint8(), @slice.read_uint8()
+  @parse : (slice) -> new Trust slice.read_uint8(), slice.read_uint8()
 
 #------------
 
@@ -110,7 +113,7 @@ class RegularExpression extends SubPacket
 
 class Revocable extends SubPacket
   constructor : (@flag) ->
-  @parse : (slice) -> new Revocable (@slice.read_uint8() is 1)
+  @parse : (slice) -> new Revocable (slice.read_uint8() is 1)
 
 #------------
 
@@ -127,27 +130,27 @@ class PreferredSymmetricAlgorithms extends Preference
 class RevocationKey extends SubPacket
   constructor : (@key_class, @alg, @fingerprint) ->
   @parse : (slice) ->
-    kc = @slice.read_uint8()
-    ka = @slice.read_uint8()
-    fp = @slice.read_buffer SHA1.output_size
+    kc = slice.read_uint8()
+    ka = slice.read_uint8()
+    fp = slice.read_buffer SHA1.output_size
     return new RevocationKey kc, ka, fp
 
 #------------
 
 class Issuer extends SubPacket
   constructor : (@id) ->
-  @parse : (slice) -> new Issuer @slice.read_buffer 8
+  @parse : (slice) -> new Issuer slice.read_buffer 8
 
 #------------
 
 class NotationData extends SubPacket
   constructor : (@flags, @name, @value) ->
   @parse : (slice) -> 
-    flags = @slice.read_uint32()
-    nl = @slice.read_uint16()
-    vl = @slice.read_uint16()
-    name = @slice.read_buffer nl
-    value = @slice.read_buffer vl
+    flags = slice.read_uint32()
+    nl = slice.read_uint16()
+    vl = slice.read_uint16()
+    name = slice.read_buffer nl
+    value = slice.read_buffer vl
     new NotationData flags, name, value
 
 #------------
@@ -169,19 +172,19 @@ class KeyServerPreferences extends Preference
 
 class PreferredKeyServer extends SubPacket
   constructor : (@server) ->
-  @parse : (slice) -> new PreferredKeyServer @slice.consume_rest_to_buffer()
+  @parse : (slice) -> new PreferredKeyServer slice.consume_rest_to_buffer()
 
 #------------
 
 class PrimaryUserId extends SubPacket
   constructor : (@flag) ->
-  @parse : (slice) -> new PrimaryUserId (@slice.read_uint8() is 1)
+  @parse : (slice) -> new PrimaryUserId (slice.read_uint8() is 1)
 
 #------------
 
 class PolicyURI extends SubPacket
   constructor : (@flag) ->
-  @parse : (slice) -> new PolicyURI @slice.consume_rest_to_buffer()
+  @parse : (slice) -> new PolicyURI slice.consume_rest_to_buffer()
 
 #------------
 
@@ -192,15 +195,15 @@ class KeyFlags extends Preference
 
 class SignersUserID extends SubPacket
   constructor : (@uid) ->
-  @parse : (slice) -> new SignersUserID @slice.consume_rest_to_buffer()
+  @parse : (slice) -> new SignersUserID slice.consume_rest_to_buffer()
 
 #------------
 
 class ReasonForRevocation extends SubPacket
   constructor : (@flag, @reason) ->
   @parse : (slice) ->
-    flag = @slice.read_uint8()
-    reason = @slice.consume_rest_to_buffer()
+    flag = slice.read_uint8()
+    reason = slice.consume_rest_to_buffer()
     return new ReasonForRevocation flag, reason
 
 #------------
@@ -213,9 +216,9 @@ class Features extends SubPacket
 class SignatureTarget extends SubPacket
   constructor : (@pub_key_alg, @hasher, @hval) ->
   @parse : (slice) ->
-    pka = @slice.read_uint8()
-    hasher = alloc_or_throw @slice.read_uint8()
-    hval = @slice.read_buffer ha.output_length
+    pka = slice.read_uint8()
+    hasher = alloc_or_throw slice.read_uint8()
+    hval = slice.read_buffer ha.output_length
     new SignatureTarget pka, hasher, hval
 
 #------------
@@ -286,8 +289,9 @@ class Parser
       when S.signature_target then SignatureTarget
       when S.embedded_signature then EmbeddedSignature
       else throw new Error "Unknown signature subpacket: #{type}"
-    ret = klass.parse @slice
+    console.log klass
     @slice.unclamp end
+    console.log "subpacket type -> #{type}"
     ret
 
   parse : () ->
@@ -300,3 +304,4 @@ class Parser
 #===========================================================
 
 
+ 

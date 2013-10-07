@@ -51,11 +51,11 @@ class SlicerBuffer
   peek_uint8 : () -> @buf.readUInt8 @i
 
   read_v4_length : () ->
-    p = @slice.peek_uint8()
-    if p < 192       then @slice.advance(1); p
-    else if p < 224  then @slice.read_uint16() - (192 << 8) + 192
-    else if p < 0xff then @slice.advance(1); (1 << (p & 0x1f))
-    else                  @slice.read_uint32()
+    p = @peek_uint8()
+    if p < 192       then @advance(1); p
+    else if p < 224  then @read_uint16() - (192 << 8) + 192
+    else if p < 0xff then @advance(1); (1 << (p & 0x1f))
+    else                  @read_uint32()
 
 #================================================================================================
 

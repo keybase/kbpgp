@@ -4,6 +4,7 @@ util = require '../util'
 C = require('../const').openpgp
 {KeyMaterial} = require './keymaterial'
 {Signature} = require './signature'
+{UserID} = require './userid'
 
 #==================================================================================================
 
@@ -52,7 +53,7 @@ class PacketParser
       when pt.signature                    then Signature.parse sb
       when pt.userid                       then UserID.parse sb
       else throw new Error "Unknown packet tag: #{tag}"
-    packet.set_tag tag
+    packet.set_tag @tag
     packet.set_lengths @real_packet_len, @header_len
     packet
 

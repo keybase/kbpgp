@@ -268,7 +268,7 @@ class Parser
 
     if sym_enc_alg
       skm.cipher = symmetric.get_cipher sym_enc_alg
-      iv_len = skm.cipher_class.blockSize
+      iv_len = skm.cipher.klass.blockSize
       skm.iv = @slice.read_buffer iv_len
 
     if (skm.s2k_convention isnt C.s2k_convention.none) and (skm.s2k.type is C.s2k.gnu)

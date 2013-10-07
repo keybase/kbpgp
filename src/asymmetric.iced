@@ -1,6 +1,6 @@
 
-C = require('./const').public_key_algorithms
-RSA = require './rsa'
+C = require('./const').openpgp.public_key_algorithms
+{RSA} = require './rsa'
 
 exports.get_class = (n) ->
   switch n
