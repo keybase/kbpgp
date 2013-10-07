@@ -130,7 +130,7 @@ exports.buffer_to_ui8a = buffer_to_ui8a = (b) ->
   l = b.length
   ret = new Uint8Array l
   for i in [0...l]
-    ret[i] = b.readUint8 i
+    ret[i] = b.readUInt8 i
   ret
 
 #=========================================================
