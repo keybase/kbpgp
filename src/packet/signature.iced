@@ -66,7 +66,7 @@ class SubPacket
 
 class ExpirationTime extends SubPacket
   constructor : (@time) -> @never_expires = (@time is 0)
-  @parse : (klass, slice) -> new klass @slice.read_uint32()
+  @parse : (slice, klass) -> new klass slice.read_uint32()
 
 #------------
 
@@ -107,7 +107,9 @@ class Trust extends SubPacket
 class RegularExpression extends SubPacket
   constructor : (@re) ->
   @parse : (slice) -> 
-    new RegularExpression slice.consume_rest_to_buffer().toString 'utf8'
+    ret = new RegularExpression slice.consume_rest_to_buffer().toString 'utf8'
+    console.log ret.re
+    ret
 
 #------------
 
@@ -263,7 +265,8 @@ class Parser
     len = @slice.read_v4_length()
     type = (@slice.read_uint8() & 0x7f)
     S = C.sig_subpacket
-    end = @slice.clamp len
+    # (len - 1) since we don't want the packet tag to count toward the len
+    end = @slice.clamp (len - 1)
     klass = switch type
       when S.creation_time then SigCreationTime
       when S.expiration_time then SigExpirationTime
@@ -289,9 +292,9 @@ class Parser
       when S.signature_target then SignatureTarget
       when S.embedded_signature then EmbeddedSignature
       else throw new Error "Unknown signature subpacket: #{type}"
-    console.log klass
+    ret = klass.parse @slice
     @slice.unclamp end
-    console.log "subpacket type -> #{type}"
+    console.log "subpacket type -> #{type} #{len}"
     ret
 
   parse : () ->
