@@ -2,7 +2,7 @@
 util = require '../util'
 {SlicerBuffer} = require './buffer'
 C = require('../const').openpgp
-{KeyMaterial} = require './packet'
+{KeyMaterial} = require './keymaterial'
 {Signature} = require './signature'
 
 #==================================================================================================
@@ -10,7 +10,7 @@ C = require('../const').openpgp
 class MessageParser 
   constructor : (@slice) ->
   parse : () -> (@parse_packet() while @slice.rem())
-  parse_packet : () -> (new PacketParser slice).parse()
+  parse_packet : () -> (new PacketParser @slice).parse()
    
 #==================================================================================================
 
@@ -30,7 +30,7 @@ class PacketParser
   parse_header : () ->
     @parse_tag_and_len()
     @header_len or= @slice.offset()
-    @body or= new SliceBuffer @slice.read_buffer @len
+    @body or= new SlicerBuffer @slice.read_buffer @len
     @real_packet_len or= @len
     @slice.unclamp()
 
@@ -38,17 +38,19 @@ class PacketParser
 
   parse : () ->
     @parse_header()
+    console.log "got tag -> #{@tag}"
     @parse_body()
 
   #----------------
 
   parse_body : () ->
     pt = C.packet_tags
-    sb = new SlicerBuffer @body
+    sb = @body
     packet = switch @tag
       when pt.secret_key, pt.secret_subkey then KeyMaterial.parse_private_key sb
       when pt.public_key                   then KeyMaterial.parse_public_key sb
       when pt.signature                    then Signature.parse sb
+      when pt.userid                       then UserID.parse sb
       else throw new Error "Unknown packet tag: #{tag}"
     packet.set_tag tag
     packet.set_lengths @real_packet_len, @header_len
@@ -103,15 +105,20 @@ class PacketParser
       @len += lastlen
     if segments.length
       segments.push @slice.read_buffer lastlen
-      @body = new SliceBuffer Buffer.concat segments
+      @body = new SlicerBuffer Buffer.concat segments
       @len = @body.length
       @real_packet_len = @slice.offset()
 
 #==================================================================================================
 
 exports.parse = parse = (buf) -> 
-  util.katch () ->
-    (new MessageParser new SliceBuffer buf).parse()
+  (new MessageParser new SlicerBuffer buf).parse()
+
+#==================================================================================================
+
+fs = require 'fs'
+await fs.readFile '../../x', defer err, res
+console.log parse res
 
 #==================================================================================================
 

@@ -4,6 +4,7 @@
 class SlicerBuffer
 
   constructor : (@buf, @start = 0) ->
+    throw new Error 'need a Buffer!' unless Buffer.isBuffer @buf
     @i = @start
     @_end = null
 

@@ -12,7 +12,7 @@ RSA = require('../rsa').Pair
 {Signature} = require './signature'
 {encode} = require '../encode/armor'
 {S2K} = require '../s2k'
-{symmetric} = require '../symmetric'
+symmetric = require '../symmetric'
 
 #=================================================================================
 
@@ -258,10 +258,13 @@ class Parser
 
     if (skm.s2k_convention = @slice.read_uint8()) is C.s2k_convention.none 
       encrypted_private_key = false
-    else if skm.s2k_convention in [ C.s2k_convention_sha1 or C.s2k_convention.checksum ]
-      sym_enc_alg = @slice.read_uint8()
-      skm.s2k = (new S2K).read @slice
-    else sym_enc_alg = skm.s2k_convention
+    else 
+      console.log "Convention -> #{skm.s2k_convention}"
+      if skm.s2k_convention in [ C.s2k_convention.sha1, C.s2k_convention.checksum ]
+        sym_enc_alg = @slice.read_uint8()
+        console.log "Sym_enc_alg: #{sym_enc_alg}"
+        skm.s2k = (new S2K).read @slice
+      else sym_enc_alg = skm.s2k_convention
 
     if sym_enc_alg
       skm.cipher = symmetric.get_cipher sym_enc_alg

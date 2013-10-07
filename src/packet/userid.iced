@@ -21,6 +21,10 @@ class UserID extends Packet
   write : () -> @frame_packet C.packet_tags.userid, @userid
 
   #--------------------------
+
+  @parse : (slice) -> new UserId @slice.consume_rest_to_buffer() 
+
+  #--------------------------
   
 #=================================================================================
 

@@ -58,30 +58,30 @@ class S2K
   # @return {openpgp_type_s2k} Object representation
   # 
   read : (slice) ->
-    @type = @slice.read_uint8()
+    @type = slice.read_uint8()
 
     switch @type  
       when C.s2k.plain # Simple S2K
         #Octet 1: hash algorithm
-        @set_hash_algorithm @slice.read_uint8()
+        @set_hash_algorithm slice.read_uint8()
 
       when C.s2k.salt # Salted S2K
         # Octet 1: hash algorithm
-        @set_hash_algorithm @slice.read_uint8()
+        @set_hash_algorithm slice.read_uint8()
 
         # Octets 2-9: 8-octet salt value
-        @salt = @slice.read_buffer 8
+        @salt = slice.read_buffer 8
 
       when C.s2k.salt_iter # Iterated and Salted S2K
         # Octet 1: hash algorithm
-        @set_hash_algorithm @slice.read_uint8()
+        @set_hash_algorithm slice.read_uint8()
 
         # Octets 2-9: 8-octet salt value
-        @salt = @slice.read_buffer 8
+        @salt = slice.read_buffer 8
 
         # Octet 10: count, a one-octet, coded value
         @EXPBIAS = 6
-        c = input.read_uint8()
+        c = slice.read_uint8()
         @count = @_count c, @EXPBIAS
 
       when C.s2k.gnu

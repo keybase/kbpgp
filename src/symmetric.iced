@@ -1,5 +1,5 @@
 
-C = require('./const').symmetric_key_algorithms
+C = require('./const').openpgp.symmetric_key_algorithms
 triplesec = require 'triplesec'
 {AES} = triplesec.ciphers
 

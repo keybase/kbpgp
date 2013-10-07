@@ -33,6 +33,8 @@ $(BUILD_STAMP): \
 	lib/packet/userid.js \
 	lib/packet/keymaterial.js \
 	lib/packet/signature.js \
+	lib/packet/parser.js \
+	lib/packet/buffer.js \
 	lib/sign.js \
 	lib/basex.js
 	date > $@
