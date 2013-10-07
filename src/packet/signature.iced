@@ -11,8 +11,9 @@ class Signature extends Packet
 
   #---------------------
 
-  constructor : (@keymaterial, @hash = SHA512) ->
-    @key = @keymaterial.key
+  constructor : ({ @key, @hash, @key_id, @sig_data, @public_key_class, 
+                   @signed_hash_value_hash, @subpackets, @time, @sig, @type } ) ->
+    @hash = SHA512 unless @hash?
 
   #---------------------
 
@@ -28,7 +29,7 @@ class Signature extends Packet
   # See write_message_signature in packet.signature.js
   write : (sigtype, data, cb) ->
     dsp = @subpacket(C.sig_subpacket.creation_time, make_time_packet())
-    isp = @subpacket(C.sig_subpacket.issuer, @keymaterial.get_key_id())
+    isp = @subpacket(C.sig_subpacket.issuer, @key_id)
     result = Buffer.concat [ 
       new Buffer([ C.versions.signature.V4, sigtype, @key.type, @hash.type ]),
       uint_to_buffer(16, (dsp.length + isp.length)),
@@ -172,6 +173,11 @@ class KeyServerPreferences extends Preference
 
 #------------
 
+class Features extends Preference
+  @parse : (slice) -> Preference.parse slice, Features
+
+#------------
+
 class PreferredKeyServer extends SubPacket
   constructor : (@server) ->
   @parse : (slice) -> new PreferredKeyServer slice.consume_rest_to_buffer()
@@ -210,11 +216,6 @@ class ReasonForRevocation extends SubPacket
 
 #------------
 
-class Features extends SubPacket
-  @parse : (slice) -> throw new Error "unimplemented!"
-
-#------------
-
 class SignatureTarget extends SubPacket
   constructor : (@pub_key_alg, @hasher, @hval) ->
   @parse : (slice) ->
@@ -241,25 +242,29 @@ class Parser
 
   parse_v3 : () ->
     throw new error "Bad one-octet length" unless @slice.read_uint8() is 5
-    @type = @slice.read_uint8()
-    @time = new Date (@slice.read_uint32() * 1000)
-    @sig_data = @slice.peek_rest_to_buffer()
-    @key_id = @slice.read_buffer 8
-    @public_key_class = asymmetric.get_class @slice.read_uint8()
-    @hash_alg = alloc_or_throw @slice.read_uint8()
-    @signed_hash_value_hash = @slice.read_uint16()
-    @sig = @public_key_class.parse_sig @slice
+    o = {}
+    o.type = @slice.read_uint8()
+    o.time = new Date (@slice.read_uint32() * 1000)
+    o.sig_data = @slice.peek_rest_to_buffer()
+    o.key_id = @slice.read_buffer 8
+    o.public_key_class = asymmetric.get_class @slice.read_uint8()
+    o.hash = alloc_or_throw @slice.read_uint8()
+    o.signed_hash_value_hash = @slice.read_uint16()
+    o.sig = @public_key_class.parse_sig @slice
+    new Signature o
 
   parse_v4 : () ->
-    @type = @slice.read_uint8()
-    @public_key_class = asymmetric.get_class @slice.read_uint8()
-    @hash_alg = alloc_or_throw @slice.read_uint8()
+    o = {}
+    o.type = @slice.read_uint8()
+    o.public_key_class = asymmetric.get_class @slice.read_uint8()
+    o.hash = alloc_or_throw @slice.read_uint8()
     hashed_subpacket_count = @slice.read_uint16()
-    @sig_data = @slice.peek_to_buffer end
+    o.sig_data = @slice.peek_to_buffer end
     end = @slice.i + hashed_subpacket_count
-    @subpackets = (@parse_subpacket() while @slice.i < end)
-    @signed_hash_value_hash = @slice.read_uint16()
-    @sig = @public_key_class.parse_sig @slice
+    o.subpackets = (@parse_subpacket() while @slice.i < end)
+    o.signed_hash_value_hash = @slice.read_uint16()
+    o.sig = o.public_key_class.parse_sig @slice
+    new Signature o
 
   parse_subpacket : () ->
     len = @slice.read_v4_length()

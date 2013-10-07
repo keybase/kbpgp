@@ -120,7 +120,7 @@ class KeyMaterial extends Packet
     pk = @public_body()
     uid8 = @uidp.utf8()
 
-    # RFC 4480 5.2.4 Computing Signatures Over a Key
+    # RFC 4880 5.2.4 Computing Signatures Over a Key
     x = [
       new Buffer([ C.signatures.key ] ),
       uint_to_buffer(16, pk.length),
@@ -131,7 +131,7 @@ class KeyMaterial extends Packet
     ]
     payload = Buffer.concat x
 
-    spkt = new Signature @
+    spkt = new Signature { key : @key, key_id : @get_key_id()}
     await spkt.write C.sig_subpacket.issuer, payload, defer err, sig
     cb err, sig
 
