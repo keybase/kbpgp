@@ -186,6 +186,7 @@ class KeyMaterial extends Packet
       key = @skm.s2k.produce_key passphrase, @skm.cipher.key_size
       console.log @skm.cipher.key_size
       console.log key
+      console.log @skm.payload.toString 'hex'
       decrypt { 
         ciphertext : @skm.payload,
         block_cipher_class : @skm.cipher.klass, 
