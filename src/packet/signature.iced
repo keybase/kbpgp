@@ -35,7 +35,7 @@ class Signature extends Packet
       uint_to_buffer(32, result.length)
     ]
 
-    Buffer.concat [ data, result, trailer ]
+    payload = Buffer.concat [ data, result, trailer ]
     hash = @hash payload
     sig = @key.pad_and_sign payload, { @hash }
     result2 = Buffer.concat [
