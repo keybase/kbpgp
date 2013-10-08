@@ -29,6 +29,8 @@ class Signature extends Packet
       uint_to_buffer(16, flatsp.length),
       flatsp
     ]
+    console.log "prepare payload ->"
+    console.log flatsp.toString('hex')
 
     trailer = Buffer.concat [
       new Buffer([ C.versions.signature.V4, 0xff ]),
@@ -87,7 +89,7 @@ class SubPacket
   to_buffer : () ->
     inner = @_v_to_buffer()
     Buffer.concat [
-      encode_length(inner.length),
+      encode_length(inner.length + 1),
       uint_to_buffer(8, @type),
       inner
     ]
@@ -120,10 +122,10 @@ class CreationTime extends Time
 
 #------------
 
-class SigExpirationTime extends Time
+class ExpirationTime extends Time
   constructor : (t) ->
     super S.expiration_time, t
-  @parse : (slice) -> Time.parse slice, SigExpirationTime
+  @parse : (slice) -> Time.parse slice, ExpirationTime
 
 #------------
 
@@ -281,6 +283,7 @@ class PolicyURI extends SubPacket
 class KeyFlags extends Preference
   constructor : (v) ->
     super S.key_flags, v
+    console.log "key flags -> #{v}"
   @parse : (slice) -> Preference.parse slice, KeyFlags
 
 #------------
@@ -358,6 +361,7 @@ class Parser
     hashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + hashed_subpacket_count
     o.sig_data = @slice.peek_to_buffer hashed_subpacket_count
+    console.log o.sig_data.toString 'hex'
     o.hashed_subpackets = (@parse_subpacket() while @slice.i < end)
     unhashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + unhashed_subpacket_count
