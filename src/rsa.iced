@@ -171,7 +171,6 @@ class Pair
     unless err?
       v = @verify sig
       b = new Buffer v.toByteArray()
-      console.log "verifying @ #{b.toString('hex')}"
       [err, hd1] = emsa_pkcs1_decode b, hasher
       unless err?
         hd2 = hasher data

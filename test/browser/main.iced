@@ -1,5 +1,6 @@
 
 mods =  
+  cast5 : require '../files/cast5.iced'
   basex : require '../files/basex.iced'
   cfb : require '../files/cfb.iced'
   fermat2 : require '../files/fermat2.iced'

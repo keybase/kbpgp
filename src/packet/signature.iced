@@ -29,16 +29,12 @@ class Signature extends Packet
       uint_to_buffer(16, flatsp.length),
       flatsp
     ]
-    console.log "prepare payload ->"
-    console.log flatsp.toString('hex')
-
     trailer = Buffer.concat [
       new Buffer([ C.versions.signature.V4, 0xff ]),
       uint_to_buffer(32, prefix.length)
     ]
 
     payload = Buffer.concat [ data, prefix, trailer ]
-    console.warn payload.toString 'hex'
     hvalue = @hasher payload
 
     return { prefix, payload, hvalue }
@@ -74,9 +70,17 @@ class Signature extends Packet
   #-----------------
 
   verify : (data_packets, cb) ->
-    data = Buffer.concat (dp.to_signature_payload() for dp in data_packets)
-    { payload } = @prepare_payload data
-    err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
+    buffers = (dp.to_signature_payload() for dp in data_packets)
+    err = null
+    T = C.sig_types
+    switch @type
+      when T.issuer, T.personal, T.casual, T.positive then # nooop
+      when T.subkey_binding, T.primary_binding        then buffers.unshift @primary.to_signature_payload()
+      else err = new Error "cannot verify sigtype #{@type}"
+    unless err?
+      data = Buffer.concat buffers
+      { payload } = @prepare_payload data
+      err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
     cb err
 
   #-----------------
@@ -155,7 +159,6 @@ class RegularExpression extends SubPacket
     super S.regular_expression
   @parse : (slice) -> 
     ret = new RegularExpression slice.consume_rest_to_buffer().toString 'utf8'
-    console.log ret.re
     ret
   _v_to_buffer : () -> new Buffer @re, 'utf8'
 
@@ -284,7 +287,6 @@ class PolicyURI extends SubPacket
 class KeyFlags extends Preference
   constructor : (v) ->
     super S.key_flags, v
-    console.log "key flags -> #{v}"
   @parse : (slice) -> Preference.parse slice, KeyFlags
 
 #------------
@@ -362,7 +364,6 @@ class Parser
     hashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + hashed_subpacket_count
     o.sig_data = @slice.peek_to_buffer hashed_subpacket_count
-    console.log o.sig_data.toString 'hex'
     o.hashed_subpackets = (@parse_subpacket() while @slice.i < end)
     unhashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + unhashed_subpacket_count

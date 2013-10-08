@@ -11,11 +11,15 @@ class Processor
   verify_signatures : (cb) ->
     start = 0
     err = null
-    key = null
+    key = primary = null
     for p,i in @packets
-      key = p.key if not key? and p.is_key_material()
+
+      if not primary? and p.is_key_material()
+        primary = p
+        key = p.key
       if p.is_signature()
         p.key = key
+        p.primary = primary
         data_packets = @packets[start...i]
         await p.verify data_packets, defer tmp
         if tmp?
