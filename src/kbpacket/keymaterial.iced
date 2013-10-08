@@ -71,11 +71,11 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _self_sign_key : ( {hash, progress_hook }, cb) ->
-    hash = SHA512 unless hash?
+  _self_sign_key : ( {hasher, progress_hook }, cb) ->
+    hasher = SHA512 unless hasher?
     type = K.signatures.self_sign_key
     body = @_self_sign_body()
-    await sign { @key, type, body, hash, progress_hook }, defer err, res
+    await sign { @key, type, body, hasher, progress_hook }, defer err, res
     cb err, res
 
   #--------------------------

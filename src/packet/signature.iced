@@ -12,20 +12,18 @@ class Signature extends Packet
 
   #---------------------
 
-  constructor : ({ @key, @hash, @key_id, @sig_data, @public_key_class, 
+  constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
                    @signed_hash_value_hash, @subpackets, @time, @sig, @type } ) ->
-    @hash = SHA512 unless @hash?
+    @hasher = SHA512 unless @hasher?
     @subpackets = [] unless @subpackets?
 
   #---------------------
 
-  # See write_message_signature in packet.signature.js
-  write : (data, cb) ->
-
+  prepare_payload : (data) -> 
     flatsp = Buffer.concat( s.to_buffer() for s in @subpackets )
 
     result = Buffer.concat [ 
-      new Buffer([ C.versions.signature.V4, @type, @key.type, @hash.type ]),
+      new Buffer([ C.versions.signature.V4, @type, @key.type, @hasher.type ]),
       uint_to_buffer(16, flatsp.length),
       flatsp
     ]
@@ -36,10 +34,19 @@ class Signature extends Packet
     ]
 
     payload = Buffer.concat [ data, result, trailer ]
-    hash = @hash payload
-    sig = @key.pad_and_sign payload, { @hash }
+    hvalue = @hasher payload
+
+    return { result, trailer, payload, hvalue }
+
+  #---------------------
+
+  # See write_message_signature in packet.signature.js
+  write : (data, cb) ->
+
+    { result, trailer, payload, hvalue } = @prepare_payload data
+    sig = @key.pad_and_sign payload, { @hasher }
     result2 = Buffer.concat [
-      new Buffer([0,0, hash.readUInt8(0), hash.readUInt8(1) ]),
+      new Buffer([0,0, hvalue.readUInt8(0), hvalue.readUInt8(1) ]),
       sig
     ]
     results = Buffer.concat [ result, result2 ]

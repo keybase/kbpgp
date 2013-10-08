@@ -23,9 +23,9 @@ hash_headers =
 # @returns {Buffer} Hashcode with pkcs1padding as string
 #
 exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (hashed_data, len, opts = {}) ->
-  hash = opts.hash or SHA512  
-  headers = hash_headers[hash.algname]
-  n = len - headers.length - 3 - hash.output_length
+  hasher = opts.hasher or SHA512  
+  headers = hash_headers[hasher.algname]
+  n = len - headers.length - 3 - hasher.output_length
 
   buf = Buffer.concat [ 
     new Buffer([ 0x00, 0x01 ]),
@@ -40,7 +40,7 @@ exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (hashed_data, len, opts = {}) ->
 
 #====================================================================
 
-exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hash_alg) ->
+exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hasher) ->
   err = ret = null
   i = 0
   if v.length < 2
@@ -55,13 +55,13 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hash_alg) ->
         err = new Error "Missed the 0x0 separator"
       else
         i++
-        header = hash_headers[hash_alg.algname]
+        header = hash_headers[hasher.algname]
         if not bufeq_secure(new Buffer(header), v[i...(header.length+i)])
-          err = new Error "missing ASN header for #{hash_alg.algname}"
+          err = new Error "missing ASN header for #{hasher.algname}"
         else
           i += header.length
           h = v[i...]
-          if h.length isnt hash_alg.output_length
+          if h.length isnt hasher.output_length
             err = new Error "trailing garbage in signature"
           else
             ret = h

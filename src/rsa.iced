@@ -157,22 +157,22 @@ class Pair
 
   #----------------
 
-  pad_and_sign : (data, {hash}) ->
-    hash or= SHA512
-    hashed_data = hash data
-    m = emsa_pkcs1_encode hashed_data, @pub.n.mpi_byte_length(), {hash}
+  pad_and_sign : (data, {hasher}) ->
+    hasher or= SHA512
+    hashed_data = hasher data
+    m = emsa_pkcs1_encode hashed_data, @pub.n.mpi_byte_length(), {hasher}
     @sign(m).to_mpi_buffer()
 
   #----------------
 
-  verify_unpad_and_check_hash : (sig, data, hash) ->
+  verify_unpad_and_check_hash : (sig, data, hasher) ->
     [err, sig] = bn.mpi_from_buffer sig
     unless err?
       v = @verify sig
       b = new Buffer v.toByteArray()
-      [err, hd1] = emsa_pkcs1_decode b, hash
+      [err, hd1] = emsa_pkcs1_decode b, hasher
       unless err?
-        hd2 = hash data
+        hd2 = hasher data
         err = new Error "hash mismatch" unless bufeq_secure hd1, hd2
     err
 
