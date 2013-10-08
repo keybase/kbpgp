@@ -11,7 +11,7 @@
 
 
 {WordArray} = require 'triplesec'
-{ui32a_to_ui8a} = require './util'
+{ui8a_to_ui32a,ui32a_to_ui8a} = require './util'
 
 ##======================================================================
 
@@ -392,23 +392,17 @@ class CAST5
 
   #---------------
 
-  encrypt : (wa_src) ->
-    out = @_encrypt_ui8a ui32a_to_ui8a wa_src
-    WordArray.from_buffer new Buffer out
-
-  #---------------
-
-  encryptBlock : (wa_src, offset = 0) -> @encrypt wa_src
+  encryptBlock : (words, offset = 0) -> 
+    bytes = ui32a_to_ui8a words
+    res = @_encrypt_ui8a bytes
+    ui8a_to_ui32a res
 
   #---------------
   
-  decrypt : (wa_src) ->
-    out = @_decrypt_ui8a ui32a_to_ui8a wa_src
-    WordArray.from_buffer new Buffer out
-
-  #---------------
-
-  decryptBlock : (wa_src, offset = 0) -> @decrypt wa_src
+  decryptBlock : (words, offset = 0) ->
+    bytes = ui32a_to_ui8a words
+    res = @_decrypt_ui8a bytes
+    ui8a_to_ui32a res
 
   #---------------
   

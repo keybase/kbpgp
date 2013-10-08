@@ -139,10 +139,20 @@ exports.ui32a_to_ui8a = ui32a_to_ui8a = (v) ->
   out = new Uint8Array v.length * 4
   k = 0
   for w in v
-    out[k++] = (v >> 24) & 0xff
-    out[k++] = (v >> 16) & 0xff
-    out[k++] = (v >> 8 ) & 0xff
-    out[k++] = (v      ) & 0xff
+    out[k++] = (w >> 24) & 0xff
+    out[k++] = (w >> 16) & 0xff
+    out[k++] = (w >> 8 ) & 0xff
+    out[k++] = (w      ) & 0xff
+  out
+
+#=========================================================
+
+exports.ui8a_to_ui32a = ui8a_to_ui32a = (v) ->
+  out = new Uint32Array (v.length >> 2)
+  k = 0
+  for b,i in v by 4
+    tmp = (b << 24) + (v[i+1] << 16) + (v[i+2] << 8) + v[i+3]
+    out[k++] = tmp
   out
 
 #=========================================================

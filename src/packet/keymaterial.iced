@@ -195,7 +195,7 @@ class KeyMaterial extends Packet
 
     switch @skm.s2k_convention
       when C.s2k_convention.sha1
-        end = pt.length - 20
+        end = pt.length - SHA1.output_size
         h1 = pt[end...]
         pt = pt[0...end]
         console.log pt.toString 'hex'
