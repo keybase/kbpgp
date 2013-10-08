@@ -1,6 +1,7 @@
 
 {Packet} = require './base'
 C = require('../const').openpgp
+S = C.sig_subpacket
 {uint_to_buffer,encode_length,make_time_packet} = require '../util'
 {alloc_or_throw,SHA512,SHA1} = require '../hash'
 asymmetric = require '../asymmetric'
@@ -14,27 +15,19 @@ class Signature extends Packet
   constructor : ({ @key, @hash, @key_id, @sig_data, @public_key_class, 
                    @signed_hash_value_hash, @subpackets, @time, @sig, @type } ) ->
     @hash = SHA512 unless @hash?
-
-  #---------------------
-
-  subpacket : (type, buf) ->
-    Buffer.concat [
-      encode_length(buf.length+1),
-      new Buffer([type]),
-      buf
-    ]
+    @subpackets = [] unless @subpackets?
 
   #---------------------
 
   # See write_message_signature in packet.signature.js
-  write : (sigtype, data, cb) ->
-    dsp = @subpacket(C.sig_subpacket.creation_time, make_time_packet())
-    isp = @subpacket(C.sig_subpacket.issuer, @key_id)
+  write : (data, cb) ->
+
+    flatsp = Buffer.concat( s.to_buffer() for s in @subpackets )
+
     result = Buffer.concat [ 
-      new Buffer([ C.versions.signature.V4, sigtype, @key.type, @hash.type ]),
-      uint_to_buffer(16, (dsp.length + isp.length)),
-      dsp,
-      isp
+      new Buffer([ C.versions.signature.V4, @type, @key.type, @hash.type ]),
+      uint_to_buffer(16, flatsp.length),
+      flatsp
     ]
 
     trailer = Buffer.concat [
@@ -42,7 +35,7 @@ class Signature extends Packet
       uint_to_buffer(32, result.length)
     ]
 
-    payload = Buffer.concat [ data, result, trailer ]
+    Buffer.concat [ data, result, trailer ]
     hash = @hash payload
     sig = @key.pad_and_sign payload, { @hash }
     result2 = Buffer.concat [
@@ -61,93 +54,132 @@ class Signature extends Packet
  
 #===========================================================
 
-class SubPacket 
+class SubPacket
+  constructor : (@type) ->
+  to_buffer : () ->
+    inner = @_v_to_buffer()
+    Buffer.concat [
+      encode_length(inner.length),
+      uint_to_buffer(8, @type),
+      inner
+    ]
 
 #------------
 
-class ExpirationTime extends SubPacket
-  constructor : (@time) -> @never_expires = (@time is 0)
+class Time extends SubPacket
+  constructor : (type, @time) ->
+    @never_expires = (@time is 0)
+    super type
   @parse : (slice, klass) -> new klass slice.read_uint32()
+  _v_to_buffer : () -> uint_to_buffer 32, @time
 
 #------------
 
 class Preference extends SubPacket
-  constructor : (@v) ->
+  constructor : (type, @v) -> 
+    super type
   @parse : (slice, klass) -> 
     v = (c for c in slice.consume_rest_to_buffer())
     new klass v
+  _v_to_buffer : () -> new Buffer (e for e in @v)
 
 #------------
 
-class SigCreationTime extends SubPacket
-  constructor : (@time) ->
-  @parse : (slice) -> 
-    ret = new SigCreationTime new Date (slice.read_uint32() * 1000)
-    console.log ret.time
-    ret
+class CreationTime extends Time
+  constructor : (t) ->
+    super S.creation_time, t
+  @parse : (slice) -> Time.parse slice, CreationTime
 
 #------------
 
-class SigExpirationTime extends ExpirationTime
-  @parse : (slice) -> ExpirationTime.parse slice, SigExpirationTime
+class SigExpirationTime extends Time
+  constructor : (t) ->
+    super S.expiration_time, t
+  @parse : (slice) -> Time.parse slice, SigExpirationTime
 
 #------------
 
 class Exporatable extends SubPacket
   constructor : (@flag) ->
+    super S.exportable_certificate
   @parse : (slice) -> new Exporatable (slice.read_uint8() is 1)
+  _v_to_buffer : () -> uint_to_buffer 8, @flag
 
 #------------
 
 class Trust extends SubPacket
   constructor : (@level, @amount) ->
+    super S.trust_signature
   @parse : (slice) -> new Trust slice.read_uint8(), slice.read_uint8()
+  _v_to_buffer : () -> 
+    Buffer.concat [
+      uint_to_buffer(8, @level),
+      uint_to_buffer(8, @amount),
+    ]
 
 #------------
 
 class RegularExpression extends SubPacket
   constructor : (@re) ->
+    super S.regular_expression
   @parse : (slice) -> 
     ret = new RegularExpression slice.consume_rest_to_buffer().toString 'utf8'
     console.log ret.re
     ret
+  _v_to_buffer : () -> new Buffer @re, 'utf8'
 
 #------------
 
 class Revocable extends SubPacket
   constructor : (@flag) ->
+    super S.revocable
   @parse : (slice) -> new Revocable (slice.read_uint8() is 1)
+  _v_to_buffer : () -> uint_to_buffer 8, @flag
 
 #------------
 
-class KeyExpirationTime extends ExpirationTime
-  @parse : (slice) -> ExpirationTime.parse slice, KeyExpirationTime
+class KeyExpirationTime extends Time
+  constructor : (t) ->
+    super S.key_expiration_time, t
+  @parse : (slice) -> Time.parse slice, KeyExpirationTime
 
 #------------
 
 class PreferredSymmetricAlgorithms extends Preference
+  constructor : (v) ->
+    super S.preferred_symmetric_algorithms, v
   @parse : (slice) -> Preference.parse slice, PreferredSymmetricAlgorithms
 
 #------------
 
 class RevocationKey extends SubPacket
   constructor : (@key_class, @alg, @fingerprint) ->
+    super S.revocation_key
   @parse : (slice) ->
     kc = slice.read_uint8()
     ka = slice.read_uint8()
     fp = slice.read_buffer SHA1.output_size
     return new RevocationKey kc, ka, fp
+  _v_to_buffer : () ->
+    Buffer.concat [
+      uint_to_buffer(8, @key_class),
+      uint_to_buffer(8, @alg),
+      new Buffer(@fingerprint)
+    ]
 
 #------------
 
 class Issuer extends SubPacket
   constructor : (@id) ->
+    super S.issuer
   @parse : (slice) -> new Issuer slice.read_buffer 8
+  _v_to_buffer : () -> new Buffer @id
 
 #------------
 
 class NotationData extends SubPacket
   constructor : (@flags, @name, @value) ->
+    super S.notation_data
   @parse : (slice) -> 
     flags = slice.read_uint32()
     nl = slice.read_uint16()
@@ -155,79 +187,116 @@ class NotationData extends SubPacket
     name = slice.read_buffer nl
     value = slice.read_buffer vl
     new NotationData flags, name, value
+  _v_to_buffer : () ->
+    Buffer.concat [
+      uint_to_buffer(32, @flags),
+      uint_to_buffer(16, @name.length),
+      uint_to_buffer(16, @value.length),
+      new Buffer(@name),
+      new Buffer(@valeue)
+    ]
 
 #------------
 
 class PreferredHashAlgorithms extends Preference
+  constructor : (v) ->
+    super S.preferred_hash_algorithms, v
   @parse : (slice) -> Preference.parse slice, PreferredHashAlgorithms
 
 #------------
 
 class PreferredCompressionAlgorithms extends Preference
+  constructor : (v) ->
+    super S.preferred_compression_algorithms, v
   @parse : (slice) -> Preference.parse slice, PreferredCompressionAlgorithms
 
 #------------
 
 class KeyServerPreferences extends Preference
+  constructor : (v) ->
+    super S.key_server_preferences, v
   @parse : (slice) -> Preference.parse slice, PreferredKeyServer
 
 #------------
 
 class Features extends Preference
+  constructor : (v) ->
+    super S.features, v
   @parse : (slice) -> Preference.parse slice, Features
 
 #------------
 
 class PreferredKeyServer extends SubPacket
   constructor : (@server) ->
+    super S.preferred_key_server
   @parse : (slice) -> new PreferredKeyServer slice.consume_rest_to_buffer()
+  _v_to_buffer : () -> @server
 
 #------------
 
 class PrimaryUserId extends SubPacket
   constructor : (@flag) ->
+    super S.primary_user_id
   @parse : (slice) -> new PrimaryUserId (slice.read_uint8() is 1)
+  _v_to_buffer : () -> uint_to_buffer(8, @flag)
 
 #------------
 
 class PolicyURI extends SubPacket
   constructor : (@flag) ->
+    super S.policy_uri
   @parse : (slice) -> new PolicyURI slice.consume_rest_to_buffer()
+  _v_to_buffer : () -> @flag
 
 #------------
 
 class KeyFlags extends Preference
+  constructor : (v) ->
+    super S.key_flags, v
   @parse : (slice) -> Preference.parse slice, KeyFlags
 
 #------------
 
 class SignersUserID extends SubPacket
   constructor : (@uid) ->
+    super S.signers_user_id
   @parse : (slice) -> new SignersUserID slice.consume_rest_to_buffer()
+  _v_to_buffer : () -> @uid
 
 #------------
 
 class ReasonForRevocation extends SubPacket
   constructor : (@flag, @reason) ->
+    super S.reason_for_revocation
   @parse : (slice) ->
     flag = slice.read_uint8()
     reason = slice.consume_rest_to_buffer()
     return new ReasonForRevocation flag, reason
+  _v_to_buffer : () ->
+    Buffet.concat [ uint_to_buffer(8, @flag), @reason ]
 
 #------------
 
 class SignatureTarget extends SubPacket
   constructor : (@pub_key_alg, @hasher, @hval) ->
+    super S.signature_target
   @parse : (slice) ->
     pka = slice.read_uint8()
     hasher = alloc_or_throw slice.read_uint8()
-    hval = slice.read_buffer ha.output_length
+    hval = slice.read_buffer hasher.output_length
     new SignatureTarget pka, hasher, hval
+  _v_to_buffer : () ->
+    Buffer.concat [
+      uint_to_buffer(8, @pub_key_alg),
+      uint_to_buffer(8, @hasher.type),
+      @hval
+    ]
 
 #------------
 
 class EmbeddedSignature extends SubPacket
   constructor : (@sig) ->
+    super S.embedded_signature
   @parse : (slice) -> new EmbeddedSignature Signature.parse slice
 
 #===========================================================
@@ -259,8 +328,8 @@ class Parser
     o.public_key_class = asymmetric.get_class @slice.read_uint8()
     o.hash = alloc_or_throw @slice.read_uint8()
     hashed_subpacket_count = @slice.read_uint16()
-    o.sig_data = @slice.peek_to_buffer end
     end = @slice.i + hashed_subpacket_count
+    o.sig_data = @slice.peek_to_buffer end
     o.subpackets = (@parse_subpacket() while @slice.i < end)
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
@@ -269,11 +338,10 @@ class Parser
   parse_subpacket : () ->
     len = @slice.read_v4_length()
     type = (@slice.read_uint8() & 0x7f)
-    S = C.sig_subpacket
     # (len - 1) since we don't want the packet tag to count toward the len
     end = @slice.clamp (len - 1)
     klass = switch type
-      when S.creation_time then SigCreationTime
+      when S.creation_time then CreationTime
       when S.expiration_time then SigExpirationTime
       when S.exportable_certificate then Exportable
       when S.trust_signature then Trust
@@ -311,5 +379,9 @@ class Parser
 
 #===========================================================
 
+exports.CreationTime = CreationTime
+exports.Issuer = Issuer
+
+#===========================================================
 
  

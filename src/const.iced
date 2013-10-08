@@ -41,6 +41,8 @@ exports.openpgp = openpgp =
     features : 30
     signature_target : 31
     embedded_signature : 32
+  sig_types :
+    issuer : 16
   message_types :
     public_key : 4
     private_key : 5

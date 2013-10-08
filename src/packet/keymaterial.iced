@@ -5,11 +5,11 @@ triplesec = require 'triplesec'
 RSA = require('../rsa').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{bufeq_secure,katch,make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
+{unix_time,bufeq_secure,katch,make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
-{Signature} = require './signature'
+{CreationTime,Issuer,Signature} = require './signature'
 {encode} = require '../encode/armor'
 {S2K} = require '../s2k'
 symmetric = require '../symmetric'
@@ -121,7 +121,7 @@ class KeyMaterial extends Packet
     uid8 = @uidp.utf8()
 
     # RFC 4880 5.2.4 Computing Signatures Over a Key
-    x = [
+    payload = Buffer.concat [
       new Buffer([ C.signatures.key ] ),
       uint_to_buffer(16, pk.length),
       pk,
@@ -129,10 +129,16 @@ class KeyMaterial extends Packet
       uint_to_buffer(32, uid8.length),
       uid8
     ]
-    payload = Buffer.concat x
 
-    spkt = new Signature { key : @key, key_id : @get_key_id()}
-    await spkt.write C.sig_subpacket.issuer, payload, defer err, sig
+    sigpkt = new Signature { 
+      type : C.sig_types.issuer,
+      key : @key,
+      subpackets : [
+        new CreationTime(unix_time()),
+        new Issuer(@get_key_id())
+      ]}
+      
+    await sigpkt.write payload, defer err, sig
     cb err, sig
 
   #--------------------------

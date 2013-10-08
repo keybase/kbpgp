@@ -5,6 +5,7 @@ C = require('../const').openpgp
 {KeyMaterial} = require './keymaterial'
 {Signature} = require './signature'
 {UserID} = require './userid'
+{inspect} = require 'util'
 
 #==================================================================================================
 
@@ -119,7 +120,9 @@ exports.parse = parse = (buf) ->
 
 fs = require 'fs'
 await fs.readFile '../../x', defer err, res
-console.log parse res
+console.log err
+out = parse res
+console.log inspect out, { depth : null }
 
 #==================================================================================================
 
