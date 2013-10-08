@@ -19,7 +19,6 @@ symmetric = require '../symmetric'
 class KeyMaterial extends Packet
 
   constructor : ({@key, @timestamp, @userid, @passphrase, @skm}) ->
-    @timepacket = make_time_packet @timestamp
     @uidp = new UserID @userid
     super()
 
@@ -65,7 +64,7 @@ class KeyMaterial extends Packet
     pub = @key.pub.serialize()
     bufs.push(
       new Buffer([ C.versions.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
-      @timepacket,
+      uint_to_buffer(32, @timestamp),
       new Buffer([ @key.type ]),
       pub
     )
@@ -219,14 +218,14 @@ class Parser
   #-------------------
 
   parse_public_key_v3 : () ->
-    @creationTime = new Date (@slice.read_uint32() * 1000)
+    @timestamp = @slice.read_uint32()
     @expiration = @slice.read_uint16()
     @parse_public_key_mpis()
 
   #-------------------
   
   parse_public_key_v4 : () ->
-    @creationTime = new Date (@slice.read_uint32() * 1000)
+    @timestamp = @slice.read_uint32()
     @parse_public_key_mpis()
 
   #-------------------
@@ -252,7 +251,7 @@ class Parser
 
   parse_public_key : () ->
     key = @_parse_public_key()
-    new KeyMaterial { key }
+    new KeyMaterial { key, @timestamp }
 
   #-------------------
 
@@ -284,7 +283,7 @@ class Parser
       skm.payload = null
     else 
       skm.payload = @slice.consume_rest_to_buffer()
-    new KeyMaterial { key, skm }
+    new KeyMaterial { key, skm, @timestamp }
 
 #=================================================================================
 

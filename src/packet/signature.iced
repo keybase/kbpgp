@@ -38,6 +38,7 @@ class Signature extends Packet
     ]
 
     payload = Buffer.concat [ data, prefix, trailer ]
+    console.warn payload.toString 'hex'
     hvalue = @hasher payload
 
     return { prefix, payload, hvalue }
