@@ -40,7 +40,6 @@ class PacketParser
 
   parse : () ->
     @parse_header()
-    console.log "got tag -> #{@tag}"
     @parse_body()
 
   #----------------
@@ -123,6 +122,10 @@ await fs.readFile '../../x', defer err, res
 console.log err
 out = parse res
 console.log inspect out, { depth : null }
+{Processor} = require './processor'
+processor = new Processor out
+await processor.verify_signatures defer err
+console.log err
 
 #==================================================================================================
 

@@ -4,7 +4,7 @@ triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{calc_checksum} = require '../util'
+{uint_to_buffer,calc_checksum} = require '../util'
 {encrypt} = require '../cfb'
 {Packet} = require './base'
 
@@ -24,6 +24,17 @@ class UserID extends Packet
 
   @parse : (slice) -> new UserID slice.consume_rest_to_buffer() 
 
+  #--------------------------
+
+  to_signature_payload : () ->
+
+    # RFC 4880 5.2.4 Computing Signatures Over a Key
+    Buffer.concat [
+      new Buffer([ C.signatures.userid ]),
+      uint_to_buffer(32, @userid.length),
+      @userid
+    ]
+    
   #--------------------------
   
 #=================================================================================

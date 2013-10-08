@@ -41,8 +41,12 @@ exports.openpgp = openpgp =
     features : 30
     signature_target : 31
     embedded_signature : 32
-  sig_types :
-    issuer : 16
+  sig_types :  # See RFC 4880 5.2.1. Signature Types
+    issuer : 0x10
+    persona : 0x11
+    casual : 0x12
+    positive : 0x13
+    subkey_binding : 0x19
   message_types :
     public_key : 4
     private_key : 5

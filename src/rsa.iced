@@ -166,10 +166,12 @@ class Pair
   #----------------
 
   verify_unpad_and_check_hash : (sig, data, hasher) ->
-    [err, sig] = bn.mpi_from_buffer sig
+    err = null
+    [err, sig] = bn.mpi_from_buffer sig if Buffer.isBuffer sig
     unless err?
       v = @verify sig
       b = new Buffer v.toByteArray()
+      console.log "verifying @ #{b.toString('hex')}"
       [err, hd1] = emsa_pkcs1_decode b, hasher
       unless err?
         hd2 = hasher data

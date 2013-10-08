@@ -116,19 +116,20 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _self_sign_key : (cb) ->
+  to_signature_payload : () ->
     pk = @public_body()
-    uid8 = @uidp.utf8()
 
     # RFC 4880 5.2.4 Computing Signatures Over a Key
-    payload = Buffer.concat [
+    Buffer.concat [
       new Buffer([ C.signatures.key ] ),
       uint_to_buffer(16, pk.length),
-      pk,
-      new Buffer([ C.signatures.userid ]),
-      uint_to_buffer(32, uid8.length),
-      uid8
+      pk
     ]
+
+  #--------------------------
+
+  _self_sign_key : (cb) ->
+    payload = Buffer.concat [ @to_signature_payload(), @uidp.to_signature_payload() ]
 
     sigpkt = new Signature { 
       type : C.sig_types.issuer,
@@ -168,6 +169,10 @@ class KeyMaterial extends Packet
 
   @parse_private_key : (slice) -> (new Parser slice).parse_private_key()
   
+  #--------------------------
+
+  is_key_material : () -> true
+
   #--------------------------
 
   # Open an OpenPGP key packet using the given passphrase
@@ -265,10 +270,8 @@ class Parser
     if (skm.s2k_convention = @slice.read_uint8()) is C.s2k_convention.none 
       encrypted_private_key = false
     else 
-      console.log "Convention -> #{skm.s2k_convention}"
       if skm.s2k_convention in [ C.s2k_convention.sha1, C.s2k_convention.checksum ]
         sym_enc_alg = @slice.read_uint8()
-        console.log "Sym_enc_alg: #{sym_enc_alg}"
         skm.s2k = (new S2K).read @slice
       else sym_enc_alg = skm.s2k_convention
 

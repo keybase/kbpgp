@@ -62,11 +62,23 @@ class Signature extends Packet
 
   #-----------------
 
-  verify : (data, cb) ->
-    { payload } = @prepare_payload data
-    err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
+  extract_key : (data_packets) ->
+    for p in data_packets
+      if p.key?
+        @key = p.key
+        break
 
   #-----------------
+
+  verify : (data_packets, cb) ->
+    data = Buffer.concat (dp.to_signature_payload() for dp in data_packets)
+    { payload } = @prepare_payload data
+    err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
+    cb err
+
+  #-----------------
+
+  is_signature : () -> true
  
 #===========================================================
 
@@ -342,7 +354,7 @@ class Parser
     o = {}
     o.type = @slice.read_uint8()
     o.public_key_class = asymmetric.get_class @slice.read_uint8()
-    o.hash = alloc_or_throw @slice.read_uint8()
+    o.hasher = alloc_or_throw @slice.read_uint8()
     hashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + hashed_subpacket_count
     o.sig_data = @slice.peek_to_buffer hashed_subpacket_count
@@ -386,7 +398,6 @@ class Parser
       else throw new Error "Unknown signature subpacket: #{type}"
     ret = klass.parse @slice
     @slice.unclamp end
-    console.log "subpacket type -> #{type} #{len}"
     ret
 
   parse : () ->
