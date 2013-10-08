@@ -135,6 +135,18 @@ exports.buffer_to_ui8a = buffer_to_ui8a = (b) ->
 
 #=========================================================
 
+exports.ui32a_to_ui8a = ui32a_to_ui8a = (v) ->
+  out = new Uint8Array v.length * 4
+  k = 0
+  for w in v
+    out[k++] = (v >> 24) & 0xff
+    out[k++] = (v >> 16) & 0xff
+    out[k++] = (v >> 8 ) & 0xff
+    out[k++] = (v      ) & 0xff
+  out
+
+#=========================================================
+
 exports.nullthrow = (ret) ->
 
 #=========================================================

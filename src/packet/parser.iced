@@ -126,6 +126,8 @@ console.log inspect out, { depth : null }
 processor = new Processor out
 await processor.verify_signatures defer err
 console.log err
+await out[0].open { passphrase : 'asdfqwer' }, defer err
+console.log err
 
 #==================================================================================================
 

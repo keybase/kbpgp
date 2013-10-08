@@ -122,7 +122,7 @@ class S2K
   # @return {Buffer} Produced key with a length corresponding to 
   # hashAlgorithm hash length
   #
-  produce_key : (passphrase, numBytes) ->
+  produce_key : (passphrase, numBytes = 16) ->
     ret = switch @type
       when C.s2k.plain then @hash passphrase
       when C.s2k.salt  then @hash Buffer.concat [ @salt, passphrase ]
@@ -139,7 +139,7 @@ class S2K
         else
           @hash isp
       else null
-    ret
+    ret[0...numBytes]
 
 #======================================================================
 

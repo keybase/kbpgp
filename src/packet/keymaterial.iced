@@ -5,7 +5,7 @@ triplesec = require 'triplesec'
 RSA = require('../rsa').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{unix_time,bufeq_secure,katch,make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
+{bufferify,unix_time,bufeq_secure,katch,make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
@@ -179,14 +179,18 @@ class KeyMaterial extends Packet
   # @param {string} passphrase the passphrase in uft8
   # 
   open : ({passphrase}, cb) ->
+    passphrase = bufferify passphrase
     err = null
 
     pt = if @skm.s2k_convention isnt C.s2k_convention.none
+      key = @skm.s2k.produce_key passphrase, @skm.cipher.key_size
+      console.log @skm.cipher.key_size
+      console.log key
       decrypt { 
         ciphertext : @skm.payload,
         block_cipher_class : @skm.cipher.klass, 
         iv : @skm.iv, 
-        key : @skm.s2k.produce_key passphrase, @skm.cipher.key_size }
+        key : key }
     else pt = @skm.payload
 
     switch @skm.s2k_convention
@@ -203,7 +207,7 @@ class KeyMaterial extends Packet
         c2 = calc_checksum pt
         err = new Error "checksum mismatch" unless c1 is c2
 
-    err = @pk.read_priv(pt) unless err?
+    err = @key.read_priv(pt) unless err?
     cb err
 
 #=================================================================================
