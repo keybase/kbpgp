@@ -402,9 +402,13 @@ class CAST5
 
   #---------------
   
-  decrypt : (wa_src, offset = 0) ->
+  decrypt : (wa_src) ->
     out = @_decrypt_ui8a ui32a_to_ui8a wa_src
     WordArray.from_buffer new Buffer out
+
+  #---------------
+
+  decryptBlock : (wa_src, offset = 0) -> @decrypt wa_src
 
   #---------------
   

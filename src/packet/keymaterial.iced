@@ -198,6 +198,7 @@ class KeyMaterial extends Packet
         end = pt.length - 20
         h1 = pt[end...]
         pt = pt[0...end]
+        console.log pt.toString 'hex'
         h2 = (new SHA1).bufhash pt
         err = new Error "hash mismatch" unless bufeq_secure(h1, h2)
       when C.s2k_convention.checksum, C.s2k_convention.none

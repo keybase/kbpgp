@@ -113,7 +113,7 @@ exports.bufeq_secure = (x,y) ->
 
 exports.bufferify = bufferify = (s) ->
   if Buffer.isBuffer(s) then s
-  else if typeof s is 'string' then new Buffer 'utf8'
+  else if typeof s is 'string' then new Buffer s, 'utf8'
   else throw new Error "Cannot convert to buffer: #{s}"
 
 #=========================================================

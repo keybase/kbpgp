@@ -29,6 +29,7 @@
 triplesec = require 'triplesec'
 C = require('./const').openpgp
 {alloc,SHA256} = require './hash'
+fs = require 'fs'
 
 #======================================================================
 
@@ -127,12 +128,15 @@ class S2K
       when C.s2k.plain then @hash passphrase
       when C.s2k.salt  then @hash Buffer.concat [ @salt, passphrase ]
       when C.s2k.salt_iter
+        console.log @salt
+        console.log passphrase
         seed = Buffer.concat [ @salt, passphrase ]
         n    = Math.ceil (@count / seed.length)
         isp  = Buffer.concat( seed for i in [0...n])[0...@count]
         
         # This if accounts for RFC 4880 3.7.1.1 -- If hash size is greater than block size, 
         # use leftmost bits.  If blocksize larger than hash size, we need to rehash isp and prepend with 0.
+        fs.writeFileSync 'pee', isp
         if numBytes? and numBytes in [24,32]
           key = @hash isp
           Buffer.concat [ key, @hash(Buffer.concat([(new Buffer [0]), isp ]))]
