@@ -13,16 +13,18 @@ class Signature extends Packet
   #---------------------
 
   constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
-                   @signed_hash_value_hash, @subpackets, @time, @sig, @type } ) ->
+                   @signed_hash_value_hash, @hashed_subpackets, @time, @sig, @type,
+                   @unhashed_subpackets } ) ->
     @hasher = SHA512 unless @hasher?
-    @subpackets = [] unless @subpackets?
+    @hashed_subpackets = [] unless @hashed_subpackets?
+    @unhashed_subpackets = [] unless @unhashed_subpackets?
 
   #---------------------
 
   prepare_payload : (data) -> 
-    flatsp = Buffer.concat( s.to_buffer() for s in @subpackets )
+    flatsp = Buffer.concat( s.to_buffer() for s in @hashed_subpackets )
 
-    result = Buffer.concat [ 
+    prefix = Buffer.concat [ 
       new Buffer([ C.versions.signature.V4, @type, @key.type, @hasher.type ]),
       uint_to_buffer(16, flatsp.length),
       flatsp
@@ -30,32 +32,39 @@ class Signature extends Packet
 
     trailer = Buffer.concat [
       new Buffer([ C.versions.signature.V4, 0xff ]),
-      uint_to_buffer(32, result.length)
+      uint_to_buffer(32, prefix.length)
     ]
 
-    payload = Buffer.concat [ data, result, trailer ]
+    payload = Buffer.concat [ data, prefix, trailer ]
     hvalue = @hasher payload
 
-    return { result, trailer, payload, hvalue }
+    return { prefix, payload, hvalue }
 
   #---------------------
 
   # See write_message_signature in packet.signature.js
   write : (data, cb) ->
 
-    { result, trailer, payload, hvalue } = @prepare_payload data
+    { prefix, payload, hvalue } = @prepare_payload data
     sig = @key.pad_and_sign payload, { @hasher }
     result2 = Buffer.concat [
-      new Buffer([0,0, hvalue.readUInt8(0), hvalue.readUInt8(1) ]),
+      uint_to_buffer(16, 0), # 0 unhashed packets, so write a 0!
+      new Buffer([hvalue.readUInt8(0), hvalue.readUInt8(1) ]),
       sig
     ]
-    results = Buffer.concat [ result, result2 ]
+    results = Buffer.concat [ prefix, result2 ]
     ret = @frame_packet(C.packet_tags.signature, results)
     cb null, ret
 
   #-----------------
   
   @parse : (slice) -> (new Parser slice).parse()
+
+  #-----------------
+
+  verify : (data, cb) ->
+    { payload } = @prepare_payload data
+    err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
 
   #-----------------
  
@@ -222,7 +231,7 @@ class PreferredCompressionAlgorithms extends Preference
 class KeyServerPreferences extends Preference
   constructor : (v) ->
     super S.key_server_preferences, v
-  @parse : (slice) -> Preference.parse slice, PreferredKeyServer
+  @parse : (slice) -> Preference.parse slice, KeyServerPreferences
 
 #------------
 
@@ -336,8 +345,11 @@ class Parser
     o.hash = alloc_or_throw @slice.read_uint8()
     hashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + hashed_subpacket_count
-    o.sig_data = @slice.peek_to_buffer end
-    o.subpackets = (@parse_subpacket() while @slice.i < end)
+    o.sig_data = @slice.peek_to_buffer hashed_subpacket_count
+    o.hashed_subpackets = (@parse_subpacket() while @slice.i < end)
+    unhashed_subpacket_count = @slice.read_uint16()
+    end = @slice.i + unhashed_subpacket_count
+    o.unhashed_subpackets = (@parse_subpacket() while @slice.i < end)
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
     new Signature o

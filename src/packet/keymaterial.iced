@@ -133,7 +133,7 @@ class KeyMaterial extends Packet
     sigpkt = new Signature { 
       type : C.sig_types.issuer,
       key : @key,
-      subpackets : [
+      hashed_subpackets : [
         new CreationTime(unix_time()),
         new Issuer(@get_key_id())
       ]}
