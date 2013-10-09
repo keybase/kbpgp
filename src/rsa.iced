@@ -26,6 +26,7 @@ class Priv
 
   n : () -> @p.multiply(@q)
   phi : () -> @p.subtract(BigInteger.ONE).multiply(@q.subtract(BigInteger.ONE))
+  lambda : () -> @phi.divide(@p.subtract(BigInteger.ONE).gcd(@q.subtract(BigInteger.ONE)))
 
   @alloc : (raw, pub) ->
     orig_len = raw.length
@@ -126,9 +127,9 @@ class Pair
 
   #----------------
 
-  @make : ( { p, q, e, phi, p1, q1 } ) ->
+  @make : ( { p, q, e, phi, p1, q1, lambda } ) ->
     n = p.multiply(q)
-    d = e.modInverse phi
+    d = e.modInverse lambda
     dmp1 = d.mod p1
     dmq1 = d.mod q1
     u = p.modInverse q
@@ -204,13 +205,14 @@ class Pair
       q1 = q.subtract BigInteger.ONE
       p1 = p.subtract BigInteger.ONE
       phi = p1.multiply q1
+      lambda = phi.divide(q1.gcd(p1))
       if phi.gcd(e).compareTo(BigInteger.ONE) isnt 0
         progress_hook? { what : "unlucky_phi" }
         go = true
       else
         go = false
 
-    key = Pair.make { p, q, e, phi, p1, q1 }
+    key = Pair.make { p, q, e, phi, p1, q1, lambda }
     cb null, key
 
 #=======================================================================
