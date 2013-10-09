@@ -113,24 +113,7 @@ class PacketParser
 #==================================================================================================
 
 exports.parse = parse = (buf) -> 
-  (new MessageParser new SlicerBuffer buf).parse()
+  util.katch () ->
+    (new MessageParser new SlicerBuffer buf).parse()
 
 #==================================================================================================
-
-fs = require 'fs'
-await fs.readFile '../../x', defer err, res
-console.log err
-out = parse res
-console.log inspect out, { depth : null }
-{Processor} = require './processor'
-processor = new Processor out
-await processor.verify_signatures defer err
-console.log err
-for p in out when p.is_key_material()
-  await p.open { passphrase : 'asdfqwer' }, defer err
-  console.log err
-  err = p.key.sanity_check()
-  console.log err
-
-#==================================================================================================
-
