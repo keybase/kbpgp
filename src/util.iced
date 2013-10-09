@@ -135,8 +135,8 @@ exports.buffer_to_ui8a = buffer_to_ui8a = (b) ->
 
 #=========================================================
 
-exports.ui32a_to_ui8a = ui32a_to_ui8a = (v) ->
-  out = new Uint8Array v.length * 4
+exports.ui32a_to_ui8a = ui32a_to_ui8a = (v, out = null) ->
+  out or= new Uint8Array v.length * 4
   k = 0
   for w in v
     out[k++] = (w >> 24) & 0xff
@@ -147,8 +147,8 @@ exports.ui32a_to_ui8a = ui32a_to_ui8a = (v) ->
 
 #=========================================================
 
-exports.ui8a_to_ui32a = ui8a_to_ui32a = (v) ->
-  out = new Uint32Array (v.length >> 2)
+exports.ui8a_to_ui32a = ui8Ga_to_ui32a = (v, out = null) ->
+  out or= new Uint32Array (v.length >> 2)
   k = 0
   for b,i in v by 4
     tmp = (b << 24) + (v[i+1] << 16) + (v[i+2] << 8) + v[i+3]

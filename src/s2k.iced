@@ -128,8 +128,6 @@ class S2K
       when C.s2k.plain then @hash passphrase
       when C.s2k.salt  then @hash Buffer.concat [ @salt, passphrase ]
       when C.s2k.salt_iter
-        console.log @salt
-        console.log passphrase
         seed = Buffer.concat [ @salt, passphrase ]
         n    = Math.ceil (@count / seed.length)
         isp  = Buffer.concat( seed for i in [0...n])[0...@count]

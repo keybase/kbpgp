@@ -184,9 +184,6 @@ class KeyMaterial extends Packet
 
     pt = if @skm.s2k_convention isnt C.s2k_convention.none
       key = @skm.s2k.produce_key passphrase, @skm.cipher.key_size
-      console.log @skm.cipher.key_size
-      console.log key
-      console.log @skm.payload.toString 'hex'
       decrypt { 
         ciphertext : @skm.payload,
         block_cipher_class : @skm.cipher.klass, 
@@ -199,7 +196,6 @@ class KeyMaterial extends Packet
         end = pt.length - SHA1.output_size
         h1 = pt[end...]
         pt = pt[0...end]
-        console.log pt.toString 'hex'
         h2 = (new SHA1).bufhash pt
         err = new Error "hash mismatch" unless bufeq_secure(h1, h2)
       when C.s2k_convention.checksum, C.s2k_convention.none

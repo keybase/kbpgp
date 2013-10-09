@@ -49,12 +49,9 @@ decrypt = ({block_cipher_class, key, cipher, ciphertext, iv}) ->
   block_size = cipher.blockSize
   iv or= new Buffer (0 for i in [0...block_size])
   b = WordArray.from_buffer iv[0...block_size]
-  console.log block_cipher_class
-  console.log key
-  console.log iv
   pos = 0
   list = while ciphertext.length > pos
-    cipher.decryptBlock b.words, 0
+    cipher.encryptBlock b.words, 0
     d = b
     b = WordArray.from_buffer ciphertext[pos...(pos+block_size)]
     d.xor b, {}

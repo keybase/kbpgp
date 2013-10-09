@@ -395,14 +395,14 @@ class CAST5
   encryptBlock : (words, offset = 0) -> 
     bytes = ui32a_to_ui8a words
     res = @_encrypt_ui8a bytes
-    ui8a_to_ui32a res
+    ui8a_to_ui32a res, words
 
   #---------------
   
   decryptBlock : (words, offset = 0) ->
     bytes = ui32a_to_ui8a words
     res = @_decrypt_ui8a bytes
-    ui8a_to_ui32a res
+    ui8a_to_ui32a res, words
 
   #---------------
   
