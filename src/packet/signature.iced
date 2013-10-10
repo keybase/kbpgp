@@ -70,14 +70,14 @@ class Signature extends Packet
   #-----------------
 
   verify : (data_packets, cb) ->
-    buffers = (dp.to_signature_payload() for dp in data_packets)
     err = null
     T = C.sig_types
-    switch @type
-      when T.issuer, T.personal, T.casual, T.positive then # nooop
-      when T.subkey_binding, T.primary_binding        then buffers.unshift @primary.to_signature_payload()
-      else err = new Error "cannot verify sigtype #{@type}"
+    @data_packets = switch @type
+      when T.issuer, T.personal, T.casual, T.positive then data_packets
+      when T.subkey_binding, T.primary_binding        then [ @primary ].concat data_packets
+      else (err = new Error "cannot verify sigtype #{@type}"); []
     unless err?
+      buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
       err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
