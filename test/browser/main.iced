@@ -1,5 +1,6 @@
 
 mods =  
+  decode_pgp : requore '../files/decode_pgp.iced'
   cast5 : require '../files/cast5.iced'
   basex : require '../files/basex.iced'
   cfb : require '../files/cfb.iced'

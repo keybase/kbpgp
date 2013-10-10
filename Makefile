@@ -35,6 +35,7 @@ $(BUILD_STAMP): \
 	lib/packet/signature.js \
 	lib/packet/parser.js \
 	lib/packet/buffer.js \
+	lib/packet/processor.js \
 	lib/sign.js \
 	lib/basex.js \
 	lib/cast5.js \
