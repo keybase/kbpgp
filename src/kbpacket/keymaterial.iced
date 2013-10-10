@@ -13,7 +13,7 @@ rsa = require '../rsa'
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase, @sig, @rawkey} ) ->
+  constructor : ({@key, @timestamp, @userid, @passphrase, @sig, @rawkey, @primary} ) ->
     super()
 
   #--------------------------

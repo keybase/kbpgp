@@ -226,7 +226,15 @@ class Parser
 
 #=========================================================================
 
+#
+# Decode armor64-ed data, including header framing, checksums, etc.
+#
+# @param {String} data The data to decode. Alternatively, you can provide
+#   a Buffer, and we'll output utf8 string out of it.
+# @return {Array<{Error},{Buffer}>} And error or a buffer if success.
+#
 exports.decode = decode = (data) ->
+  data = data.toString('utf8') if Buffer.isBuffer data
   katch () ->
     (new Parser data).parse()
 

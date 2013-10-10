@@ -49,10 +49,10 @@ class PacketParser
     sb = @body
     packet = switch @tag
       when pt.secret_key, pt.secret_subkey then KeyMaterial.parse_private_key sb
-      when pt.public_key                   then KeyMaterial.parse_public_key sb
+      when pt.public_key, pt.public_subkey then KeyMaterial.parse_public_key sb
       when pt.signature                    then Signature.parse sb
       when pt.userid                       then UserID.parse sb
-      else throw new Error "Unknown packet tag: #{tag}"
+      else throw new Error "Unknown packet tag: #{@tag}"
     packet.set_tag @tag
     packet.set_lengths @real_packet_len, @header_len
     packet
@@ -117,3 +117,4 @@ exports.parse = parse = (buf) ->
     (new MessageParser new SlicerBuffer buf).parse()
 
 #==================================================================================================
+

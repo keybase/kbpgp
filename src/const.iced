@@ -65,6 +65,7 @@ exports.openpgp = openpgp =
     secret_key : 5
     public_key : 6
     secret_subkey : 7
+    public_subkey : 14
     userid : 13
   versions :
     keymaterial : V4 : 4
