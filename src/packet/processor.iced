@@ -5,6 +5,8 @@
 class Processor
 
   constructor : (@packets) ->
+    # We'll throw away signatures that aren't verified.
+    @verifed_signatures = []
 
   #--------------------
 
@@ -12,8 +14,8 @@ class Processor
     start = 0
     err = null
     key = primary = null
-    for p,i in @packets
 
+    for p,i in @packets
       if not primary? and p.is_key_material()
         primary = p
         key = p.key
@@ -25,7 +27,11 @@ class Processor
         if tmp?
           console.log "Error in signature verification: #{tmp.toString()}"
           err = tmp
+          # discard the signature, see the above comment...
+        else
+          @verified_signatures.push p
         start = i + 1
+        
     cb err
 
   #--------------------
