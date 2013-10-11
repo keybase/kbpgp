@@ -6,7 +6,7 @@ class Processor
 
   constructor : (@packets) ->
     # We'll throw away signatures that aren't verified.
-    @verifed_signatures = []
+    @verified_signatures = []
 
   #--------------------
 
@@ -31,7 +31,7 @@ class Processor
         else
           @verified_signatures.push p
         start = i + 1
-        
+
     cb err
 
   #--------------------

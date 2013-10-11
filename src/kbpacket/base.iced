@@ -1,5 +1,5 @@
 util = require '../util'
-{pack} = require 'purepack'
+{pack} = require './encode'
 K = require('../const').kb
 
 #==================================================================================================
@@ -9,7 +9,7 @@ class Packet
   #----------------------
 
   constructor : () ->
-  frame_packet : (tag, body) -> pack { tag, body }, 'buffer', { byte_arrays : true }
+  frame_packet : (tag, body) -> pack { tag, body }
    
   #----------------------
 

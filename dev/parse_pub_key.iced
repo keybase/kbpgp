@@ -16,3 +16,5 @@ console.log packets
 processor = new Processor packets
 await processor.verify_signatures defer err
 throw err if err
+
+stripped_packets = packets[0...2] + packets[3...]

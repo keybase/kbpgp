@@ -86,10 +86,19 @@ exports.kb =
   versions :
     V1 : 1
   signatures :
-    self_sign_key : 1
+    self_sign_key_pgp_username : 1
+    self_sign_key_keybase_username : 2
+    subkey : 3
   padding :
     EMSA_PCKS1_v1_5 : 3
     RSASSA_PSS : 4
+  key_defaults:
+    primary :
+      expire_in : 24*60*60*365*10
+      len: 4096
+    sub :
+      expire_in : 24*60*60*365
+      len : 2048
 
 exports.header =
   version : "Keybase OpenPGP JS 0.0.1"

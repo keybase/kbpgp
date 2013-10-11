@@ -38,7 +38,7 @@ class BaseX
     pad = new Buffer (0 for i in [0...start])
     for c,i in str[start...] by -1
       unless (char_index = @lookup[c])?
-        throw new Error('Value passed is not a valid Base58 string.')
+        throw new Error('Value passed is not a valid BaseX string.')
       num = num.add base.multiply nbv char_index
       base = base.multiply @basebn
     Buffer.concat [pad, new Buffer(num.toByteArray()) ]

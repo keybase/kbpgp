@@ -13,14 +13,14 @@ rsa = require '../rsa'
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase, @sig, @rawkey, @primary} ) ->
+  constructor : ({@key, @timestamp, @expires, @userid, @passphrase, @sig, @rawkey, @primary} ) ->
     super()
 
   #--------------------------
 
   _write_public : () ->
     pub = @key.pub.serialize()
-    return { type : @key.type, pub, @timestamp }
+    return { type : @key.type, pub, @timestamp, @expires, @userid }
 
   #--------------------------
 

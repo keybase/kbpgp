@@ -3,6 +3,7 @@ triplesec = require 'triplesec'
 {util,openpgp,packet,msg,encoding} = require 'openpgp'
 {bufferify,unix_time,ASP,uint_to_buffer,make_time_packet} = require './util'
 C = require('./const').openpgp
+K = require('./const').kb
 {prng} = triplesec
 {make_esc} = require 'iced-error'
 {UserID} = require './packet/userid'
@@ -57,6 +58,7 @@ _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
 
   # When this case was generated
   timestamp = unix_time()
+  expires = timestamp + K.key_defaults.expire_in
 
   # Generate a KeyMaterial chain for OpenPGP-style
   o = new openpgpkm.KeyMaterial { key, timestamp, userid, passphrase : pp_openpgp_buf  }
