@@ -1,6 +1,6 @@
 {generate_keypair} = require '../../lib/keygen'
-{Packet} = require '../../lib/kbpacket/base'
-{bdecode} = require '../../lib/kbpacket/encode'
+{Packet} = require '../../lib/keybase/packet/base'
+{bdecode} = require '../../lib/keybase/encode'
 
 exports.gen1 = (T,cb) ->
   userid = 'Rerl'

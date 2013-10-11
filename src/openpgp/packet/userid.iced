@@ -4,7 +4,7 @@ triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{uint_to_buffer,calc_checksum} = require '../util'
+{uint_to_buffer} = require '../../util'
 {encrypt} = require '../cfb'
 {Packet} = require './base'
 

@@ -25,13 +25,14 @@ $(BUILD_STAMP): \
 	lib/pad.js \
 	lib/keygen.js \
 	lib/hash.js \
-	lib/openpgp/s2k.js \
-	lib/openpgp/cfb.js \
-	lib/openpgp/armor.js \
 	lib/keybase/packet/base.js \
 	lib/keybase/packet/keymaterial.js \
 	lib/keybase/encode.js \
 	lib/keybase/sign.js \
+	lib/openpgp/s2k.js \
+	lib/openpgp/cfb.js \
+	lib/openpgp/armor.js \
+	lib/openpgp/util.js \
 	lib/openpgp/packet/base.js \
 	lib/openpgp/packet/userid.js \
 	lib/openpgp/packet/keymaterial.js \
