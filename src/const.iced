@@ -80,6 +80,9 @@ exports.kb =
   key_encryption:
     none : 0
     triplesec_v1 : 1
+  json_encoding :
+    plain : 0
+    msgpack : 1
   packet_tags : openpgp.packet_tags
   message_types : openpgp.message_types
   public_key_algorithms : openpgp.public_key_algorithms
