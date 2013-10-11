@@ -1,10 +1,11 @@
 
 {Packet} = require './base'
-C = require('../const').openpgp
+C = require('../../const').openpgp
 S = C.sig_subpacket
-{uint_to_buffer,encode_length,make_time_packet} = require '../util'
-{alloc_or_throw,SHA512,SHA1} = require '../hash'
-asymmetric = require '../asymmetric'
+{encode_length,make_time_packet} = require '../../util'
+{uint_to_buffer} = require '../../util'
+{alloc_or_throw,SHA512,SHA1} = require '../../hash'
+asymmetric = require '../../asymmetric'
 
 #===========================================================
 

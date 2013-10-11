@@ -11,7 +11,7 @@
 
 
 {WordArray} = require 'triplesec'
-{ui8a_to_ui32a,ui32a_to_ui8a} = require './util'
+{ui8a_to_ui32a,ui32a_to_ui8a} = require '../util'
 
 ##======================================================================
 

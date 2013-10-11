@@ -1,13 +1,13 @@
-K = require('../const').kb
+K = require('../../const').kb
 triplesec = require 'triplesec'
-{SHA512} = require '../hash'
+{SHA512} = require '../../hash'
 {native_rng} = triplesec.prng
 {Packet} = require './base'
-{pack,bencode} = require './encode'
+{pack,bencode} = require '../encode'
 {make_esc} = require 'iced-error'
-rsa = require '../rsa'
+rsa = require '../../rsa'
 {sign,verify} = require '../sign'
-{bufferify} = require '../util'
+{bufferify} = require '../../util'
 
 #=================================================================================
 

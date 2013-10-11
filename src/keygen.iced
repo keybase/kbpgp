@@ -6,10 +6,10 @@ C = require('./const').openpgp
 K = require('./const').kb
 {prng} = triplesec
 {make_esc} = require 'iced-error'
-{UserID} = require './packet/userid'
-openpgpkm = require './packet/keymaterial'
-kbkm = require './kbpacket/keymaterial'
-{encode} = require './encode/armor'
+{UserID} = require './openpgp/packet/userid'
+openpgpkm = require './openpgp/packet/keymaterial'
+kbkm = require './keybase/packet/keymaterial'
+{encode} = require './openpgp/armor'
 {base91} = require './basex'
 
 #=================================================================

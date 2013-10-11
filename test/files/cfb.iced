@@ -1,5 +1,5 @@
 
-{encrypt,decrypt} = require '../../lib/cfb'
+{encrypt,decrypt} = require '../../lib/openpgp/cfb'
 
 exports.nist_sp800_38a__f_3_17 = (T,cb) ->
   key = new Buffer "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4", 'hex'

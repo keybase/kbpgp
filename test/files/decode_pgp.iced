@@ -1,7 +1,7 @@
 
-{Processor} = require '../../lib/packet/processor'
-{parse} = require '../../lib/packet/parser'
-armor = require '../../lib/encode/armor'
+{Processor} = require '../../lib/openpgp/processor'
+{parse} = require '../../lib/openpgp/parser'
+armor = require '../../lib/openpgp/armor'
 C = require '../../lib/const'
 
 #============================================================================

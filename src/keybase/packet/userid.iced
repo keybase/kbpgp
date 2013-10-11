@@ -1,10 +1,4 @@
-K = require('../const').kb
-triplesec = require 'triplesec'
-{SHA1,SHA256} = triplesec.hash
-{AES} = triplesec.ciphers
-{native_rng} = triplesec.prng
-{calc_checksum} = require '../util'
-{encrypt} = require '../cfb'
+K = require('../../const').kb
 {Packet} = require './base'
 
 #=================================================================================

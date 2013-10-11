@@ -1,6 +1,6 @@
-{SHA512,alloc} = require './hash'
-K = require('./const').kb
-{pack} = require './kbpacket/encode'
+{SHA512,alloc} = require '../hash'
+K = require('../const').kb
+{pack} = require './encode'
 
 #==============
 

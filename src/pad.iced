@@ -1,8 +1,8 @@
 
-{SHA512} = require '../hash'
-C = require('../const').openpgp
-{nbs} = require '../bn'
-{buffer_to_ui8a,bufeq_secure} = require '../util'
+{SHA512} = require './hash'
+C = require('./const').openpgp
+{nbs} = require './bn'
+{buffer_to_ui8a,bufeq_secure} = require './util'
 
 #====================================================================
 

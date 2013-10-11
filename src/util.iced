@@ -2,19 +2,6 @@
 
 #=========================================================
 
-#
-# Equivalent to this monstrosity you might see in OpenPgpJS:
-#
-#  var d = new Date();
-#  d = d.getTime()/1000;
-#  var timePacket = String.fromCharCode(Math.floor(d/0x1000000%0x100)) + String.fromCharCode(Math.floor(d/0x10000%0x100)) + String.fromCharCode(Math.floor(d/0x100%0x100)) + String.fromCharCode(Math.floor(d%0x100));
-#
-exports.make_time_packet = (d) ->
-  d or= Math.floor(Date.now()/1000)
-  b = new Buffer 4
-  b.writeUInt32BE d, 0
-  b
-
 exports.uint_to_buffer = (nbits, i) ->
   ret = null
   switch nbits
@@ -63,30 +50,6 @@ exports.ASP = class ASP
   canceler : () -> @_canceler
 
   progress_hook : () -> @_progress_hook
-
-#=========================================================
-
-exports.calc_checksum = calc_checksum = (text) ->
-  ret = 0
-  for i in [0...text.length]
-    ret = (ret + text.readUInt8(i)) % 65536
-  ret
-
-#=========================================================
-
-exports.encode_length = encode_length = (l) ->
-  ret = null
-  if l < 192
-    ret = new Buffer 1
-    ret.writeUInt8 l, 0
-  else if l >= 192 and l < 8384
-    ret = new Buffer 2
-    ret.writeUInt16BE( ((l - 192) + (192 << 8 )), 0)
-  else
-    ret = new Buffer 5
-    ret.writeUInt8 0xff, 0
-    ret.writeUInt32BE l, 1
-  ret
 
 #=========================================================
 
@@ -154,10 +117,6 @@ exports.ui8a_to_ui32a = ui8Ga_to_ui32a = (v, out = null) ->
     tmp = (b << 24) + (v[i+1] << 16) + (v[i+2] << 8) + v[i+3]
     out[k++] = tmp
   out
-
-#=========================================================
-
-exports.nullthrow = (ret) ->
 
 #=========================================================
 

@@ -27,8 +27,8 @@
 #======================================================================
 
 triplesec = require 'triplesec'
-C = require('./const').openpgp
-{alloc,SHA256} = require './hash'
+C = require('../const').openpgp
+{alloc,SHA256} = require '../hash'
 fs = require 'fs'
 
 #======================================================================

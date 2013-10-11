@@ -2,7 +2,7 @@
 C = require('./const').openpgp.symmetric_key_algorithms
 triplesec = require 'triplesec'
 {AES} = triplesec.ciphers
-{CAST5} = require './cast5'
+{CAST5} = require './openpgp/cast5'
 
 exports.get_cipher = (n) ->
   switch n

@@ -1,18 +1,19 @@
 
-C = require('../const').openpgp
+C = require('../../const').openpgp
 triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
-RSA = require('../rsa').Pair
+RSA = require('../../rsa').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{bufferify,unix_time,bufeq_secure,katch,make_time_packet,uint_to_buffer,calc_checksum} = require '../util'
+{calc_checksum} = require '../util'
+{bufferify,unix_time,bufeq_secure,katch,make_time_packet,uint_to_buffer} = require '../../util'
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
 {CreationTime,Issuer,Signature} = require './signature'
-{encode} = require '../encode/armor'
+{encode} = require '../armor'
 {S2K} = require '../s2k'
-symmetric = require '../symmetric'
+symmetric = require '../../symmetric'
 
 #=================================================================================
 

@@ -16,31 +16,30 @@ $(BUILD_STAMP): \
 	lib/main.js \
 	lib/primegen.js \
 	lib/primes.js \
-	lib/random.js \
 	lib/rsa.js \
 	lib/util.js \
 	lib/bn.js \
-	lib/cfb.js \
-	lib/s2k.js \
-	lib/hash.js \
-	lib/encode/pad.js \
-	lib/encode/armor.js \
-	lib/keygen.js \
-	lib/kbpacket/base.js \
-	lib/kbpacket/keymaterial.js \
-	lib/kbpacket/encode.js \
-	lib/packet/base.js \
-	lib/packet/userid.js \
-	lib/packet/keymaterial.js \
-	lib/packet/signature.js \
-	lib/packet/parser.js \
-	lib/packet/buffer.js \
-	lib/packet/processor.js \
-	lib/sign.js \
-	lib/basex.js \
-	lib/cast5.js \
 	lib/asymmetric.js \
-	lib/symmetric.js
+	lib/basex.js \
+	lib/symmetric.js \
+	lib/pad.js \
+	lib/keygen.js \
+	lib/hash.js \
+	lib/openpgp/s2k.js \
+	lib/openpgp/cfb.js \
+	lib/openpgp/armor.js \
+	lib/keybase/packet/base.js \
+	lib/keybase/packet/keymaterial.js \
+	lib/keybase/encode.js \
+	lib/keybase/sign.js \
+	lib/openpgp/packet/base.js \
+	lib/openpgp/packet/userid.js \
+	lib/openpgp/packet/keymaterial.js \
+	lib/openpgp/packet/signature.js \
+	lib/openpgp/parser.js \
+	lib/openpgp/buffer.js \
+	lib/openpgp/processor.js \
+	lib/openpgp/cast5.js 
 	date > $@
 
 build: $(BUILD_STAMP) 
@@ -60,7 +59,7 @@ $(TEST_STAMP): test/browser/test.js
 test: test-server test-browser
 
 clean:
-	rm -f lib/encode/*.js lib/packet/*.js lib/kbpacket/*.js lib/*.js $(BUILD_STAMP) $(TEST_STAMP) test/browser/test.js
+	rm -rf lib/* $(BUILD_STAMP) $(TEST_STAMP) test/browser/test.js
 
 setup:
 	npm install -d

@@ -1,6 +1,6 @@
-util = require '../util'
-{pack} = require './encode'
-K = require('../const').kb
+util = require '../../util'
+{pack} = require '../encode'
+K = require('../../const').kb
 
 #==================================================================================================
 

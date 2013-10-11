@@ -1,6 +1,6 @@
-{CAST5} = require '../../lib/cast5'
+{CAST5} = require '../../lib/openpgp/cast5'
 {WordArray} = require 'triplesec'
-{encrypt,decrypt} = require '../../lib/cfb'
+{encrypt,decrypt} = require '../../lib/openpgp/cfb'
 
 buf_to_words = (b) -> (WordArray.from_buffer b).words
 words_to_buf = (w) -> (new WordArray w).to_buffer()

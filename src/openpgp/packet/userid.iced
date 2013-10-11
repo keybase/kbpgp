@@ -1,5 +1,5 @@
 
-C = require('../const').openpgp
+C = require('../../const').openpgp
 triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers

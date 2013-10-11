@@ -2,9 +2,9 @@
 util = require '../util'
 {SlicerBuffer} = require './buffer'
 C = require('../const').openpgp
-{KeyMaterial} = require './keymaterial'
-{Signature} = require './signature'
-{UserID} = require './userid'
+{KeyMaterial} = require './packet/keymaterial'
+{Signature} = require './packet/signature'
+{UserID} = require './packet/userid'
 {inspect} = require 'util'
 
 #==================================================================================================
