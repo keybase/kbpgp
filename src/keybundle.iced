@@ -33,7 +33,7 @@ class Bundle
   constructor : ({@primary, @subkeys, @userids}) ->
 
   @generate : ({asp, nsubs, userids }, cb) ->
-    esc = make_esc cb, "Ring::generate"
+    esc = make_esc cb, "Bundle::generate"
     asp.section "primary"
     await RSA.generate { asp, nbits: K.key_defaults.primary.nbits }, esc defer primary
     subkeys = []
@@ -41,8 +41,18 @@ class Bundle
       asp.section "subkey #{i+1}"
       await RSA.generate { asp, nbits: K.key_defaults.sub.nbits }, esc defer key
       subkeys.push new Subkey { key, desc : "subkey #{i}" }
-    ring = new Ring { primary, subkeys, userids }
+    ring = new Bundle { primary, subkeys, userids }
     cb null, ring
+
+  sign_pgp : ({asp}, cb) ->
+
+  sign_keybase : ({asp}, cb) ->
+
+  sign : ({asp}, cb) ->
+    esc = make_esc cb, "Bundle::generate"
+    await @sign_pgp { asp }, esc defer()
+    await @sign_keybase { asp }, esc defer()
+    cb null
 
 
   to_openpgp_packet : ( { tsec, passphrase } ) ->
