@@ -124,3 +124,34 @@ exports.unix_time = () -> Math.floor(Date.now()/1000)
 
 #=========================================================
 
+json_stringify_sorted = (o, sort_fn) ->
+
+  # ---------------------------------------------------------
+  # this function should only be called on an object which
+  # has been pulled from a JSON parse; There is no error checking
+  # and no other JS objects (functions, etc.) in there
+  # ---------------------------------------------------------
+  json_safe = (os) ->
+    if Array.isArray os
+      s = "[" + (json_safe(v) for v in os).join(',') + "]"
+    else if (typeof os) is "object"
+      if not os
+        s = JSON.stringify os
+      else
+        keys = (k for k of os)
+        keys.sort(sort_fn)
+        s = "{" + (JSON.stringify(k) + ":" + json_safe(os[k]) for k in keys).join(',') + "}"
+    else
+      s = JSON.stringify os
+    return s
+  # end json_safe function
+  # ----------------------
+
+  str = JSON.stringify o
+  if str is undefined
+    return str
+  else
+    o2 = JSON.parse str
+    return json_safe o2
+
+#=========================================================
