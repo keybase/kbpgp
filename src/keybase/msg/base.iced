@@ -9,6 +9,7 @@ class Base
   #-------------
 
   constructor : ( {@type, @packets} ) ->
+    @packets or= []
 
   #-------------
   
@@ -17,11 +18,6 @@ class Base
   #-------------
   
   @unbox : (raw) ->
-    ret = null
-    [err, res] = unbox raw
-    err = new Error "cannot unbox message" if not err? and (res.genre isnt K.genres.message)
-    ret = new Message { type : res.type, packets : res.obj } unless err?
-    [err, ret]
 
 #=================================================================================
 
