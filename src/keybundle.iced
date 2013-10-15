@@ -5,6 +5,11 @@ K = require('./const').kb
 
 #=================================================================
 
+class Encryption 
+  constructor : ({@tsenc, @passphrase}) ->
+
+#=================================================================
+
 class UserIds
   constructor : ({@openpgp, @keybase}) ->
     @openpgp or= "#{@keybase}@keybase.io"
@@ -44,6 +49,24 @@ class Bundle
     ring = new Bundle { primary, subkeys, userids }
     cb null, ring
 
+  @import_from_armored_pgp_private : ({raw, passphrase, asp}, cb) ->
+
+  @import_from_armored_pgp_public : ({raw, asp}, cb) ->
+
+  # The export consists of
+  #   1. A PGP message (potentially redacted from upload)
+  #   2. A keybase message (Public key only)
+  export_to_server_public_only : ({asp}, cb) ->
+
+  # A private export consists of:
+  #   1. The redacted PGP message
+  #   2. The keybase message (Public and private keys)
+  export_to_server_private : ({asp}, cb) ->
+
+  # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
+  # We'll need to reencrypt with a derived 
+  export_to_client : (cb) ->
+
   sign_pgp : ({asp}, cb) ->
 
   sign_keybase : ({asp}, cb) ->
@@ -61,4 +84,8 @@ class Bundle
 
 #=================================================================
 
+
+#=================================================================
+
 exports.Bundle = Bundle
+exports.Encryption = Encryption
