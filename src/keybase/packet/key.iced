@@ -11,7 +11,7 @@ rsa = require '../../rsa'
 
 #=================================================================================
 
-class KeyMaterial extends Packet
+class SingleKey extends Packet
 
   constructor : ({@key, @timestamp, @expires, @userid, @passphrase, @sig, @rawkey, @primary} ) ->
     super()

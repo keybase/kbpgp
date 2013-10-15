@@ -12,11 +12,10 @@ unpack = (x) -> purepack.unpack x
 
 #=================================================================================
 
-box = ({genre, type, obj}) ->
+box = ({type, obj}) ->
   hasher = SHA256
   oo = 
     version : K.versions.V1 
-    genre : genre
     type : type
     body : obj
     hash : 
@@ -38,7 +37,7 @@ unbox = (buf) ->
     h = hasher pack oo
     throw new Error "hash mismatch" unless bufeq_secure(h, hv)
     throw new Error "unknown version" unless oo.version is K.versions.V1
-    obj_extract oo, [ 'genre', 'type', 'body' ]
+    obj_extract oo, [ 'type', 'body' ]
 
 #=================================================================================
 
