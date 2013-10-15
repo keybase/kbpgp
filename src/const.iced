@@ -106,6 +106,10 @@ exports.kb =
     sub :
       expire_in : 24*60*60*365
       len : 2048
+  kid : 
+    version : 1
+    trailer : 0x0a
+    len : 20
 
 exports.header =
   version : "Keybase OpenPGP JS 0.0.1"
