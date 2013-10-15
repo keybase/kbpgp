@@ -1,7 +1,7 @@
 K = require('../const').kb
 {alloc,SHA256} = require '../hash'
 purepack = require 'purepack'
-{bufeq_secure} = require '../util'
+{katch,obj_extract,bufeq_secure} = require '../util'
 
 #=================================================================================
 
@@ -12,10 +12,11 @@ unpack = (x) -> purepack.unpack x
 
 #=================================================================================
 
-bencode = (type, obj) ->
+box = ({genre, type, obj}) ->
   hasher = SHA256
   oo = 
     version : K.versions.V1 
+    genre : genre
     type : type
     body : obj
     hash : 
@@ -27,10 +28,8 @@ bencode = (type, obj) ->
 
 #=================================================================================
 
-bdecode = (buf) ->
-  ret = null
-  err = null
-  try
+unbox = (buf) ->
+  katch () ->
     oo = unpack buf # throws an error if there's a problem
     throw new Error "missing obj.hash.value" unless (hv = oo?.hash?.value)?
     oo.hash.value = null_hash
@@ -39,14 +38,11 @@ bdecode = (buf) ->
     h = hasher pack oo
     throw new Error "hash mismatch" unless bufeq_secure(h, hv)
     throw new Error "unknown version" unless oo.version is K.versions.V1
-    ret = [ oo.type, oo.body ] 
-  catch e
-    err = e
-  [err, ret]
+    obj_extract oo, [ 'genre', 'type', 'body' ]
 
 #=================================================================================
 
-exports.bencode = bencode
+exports.box = box
 exports.pack = pack
-exports.unpack = unpack
-exports.bdecode = bdecode
+exports.unbox = unbox
+exports.decode = decode

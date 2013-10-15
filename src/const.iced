@@ -83,8 +83,12 @@ exports.kb =
   json_encoding :
     plain : 0
     msgpack : 1
+  genres : 
+    message : 0x1
+    packet : 0x2
   packet_tags : openpgp.packet_tags
   message_types : openpgp.message_types
+  sig_types : openpgp.sig_types
   public_key_algorithms : openpgp.public_key_algorithms
   versions :
     V1 : 1

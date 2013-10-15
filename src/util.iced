@@ -124,3 +124,10 @@ exports.unix_time = () -> Math.floor(Date.now()/1000)
 
 #=========================================================
 
+exports.obj_extract  = obj_extract = (o, keys) ->
+  ret = {}
+  (ret[k] = o[k] for k in keys)
+  ret
+
+#=========================================================
+

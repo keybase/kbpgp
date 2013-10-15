@@ -3,7 +3,7 @@ triplesec = require 'triplesec'
 {SHA512} = require '../../hash'
 {native_rng} = triplesec.prng
 {Packet} = require './base'
-{pack,bencode} = require '../encode'
+{pack,box} = require '../encode'
 {make_esc} = require 'iced-error'
 rsa = require '../../rsa'
 {sign,verify} = require '../sign'
@@ -62,11 +62,12 @@ class KeyMaterial extends Packet
     pub = @_write_public()
     ret = null
     {private_key, public_key} = K.message_types
+    {packet} = K.genres
     # XXX always binary-encode for now (see Issue #7)
     unless err?
       ret = 
-        private : bencode(private_key, { sig, @userid, key : priv }),
-        public  : bencode(public_key,  { sig, @userid, key : pub })
+        private : (box { genre : packet, type : private_key, packet : { sig, @userid, key : priv }),
+        public  : (box { genre : packet, type : public_key,  packet : { sig, @userid, key : pub })
     cb err, ret
 
   #--------------------------
