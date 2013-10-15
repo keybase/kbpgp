@@ -105,10 +105,10 @@ exports.kb =
   key_defaults:
     primary :
       expire_in : 24*60*60*365*10
-      len: 4096
+      nbits : 4096
     sub :
       expire_in : 24*60*60*365
-      len : 2048
+      nbits : 2048
   kid : 
     version : 1
     trailer : 0x0a
