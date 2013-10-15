@@ -49,6 +49,10 @@ _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
   passphrase = bufferify passphrase
 
   esc = make_esc cb, "KeyFactor::_generate_keypair"
+
+  userids = new UserIds { keybase : userid }
+  await Bundle.generate { asp, nsubs : 1, userids }, esc defer bundle
+
   await RSA.generate { nbits, asp }, esc defer key
 
   # Make a random password for OpenPGP for now
