@@ -33,8 +33,6 @@ class PacketParser
     @parse_tag_and_len()
     @header_len or= @slice.offset()
     @body or= new SlicerBuffer @slice.read_buffer @len
-    console.log "tag -> #{@tag}"
-    console.log "got packet len -> #{@len}"
     @real_packet_len or= @len
     @slice.unclamp()
 
@@ -43,8 +41,6 @@ class PacketParser
   parse : () ->
     @parse_header()
     ret = @parse_body()
-    console.log "got packet ->"
-    console.log ret
     ret
 
   #----------------
