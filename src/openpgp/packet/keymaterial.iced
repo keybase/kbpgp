@@ -116,9 +116,11 @@ class KeyMaterial extends Packet
 
   #--------------------------
   
-  public_framed : () ->
+  public_framed : (opts = {}) ->
     body = @public_body()
-    @frame_packet C.packet_tags.public_key, body
+    T = C.packet_tags
+    tag = if opts.subkey then T.public_subkey else T.public_key
+    @frame_packet tag, body
 
   #--------------------------
 

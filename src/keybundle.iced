@@ -95,7 +95,7 @@ class PgpEngine extends Engine
   export_public_to_client : () ->
     packets = [ @primary._pgp.public_framed(), @userid_packet().write(), @self_sig ]
     for subkey in @subkeys
-      packets.push subkey._pgp.public_framed(), subkey._pgp_sig
+      packets.push subkey._pgp.public_framed({subkey : true}), subkey._pgp_sig
     encode C.message_types.public_key, Buffer.concat(packets)
 
 #=================================================================
