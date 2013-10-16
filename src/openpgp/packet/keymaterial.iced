@@ -156,7 +156,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   sign_subkey : ({subkey, lifespan}, cb) ->
-    payload = subkey.to_signature_payload()
+    payload = Buffer.concat [ @to_signature_payload(), subkey.to_signature_payload() ]
     sigpkt = new Signature {
       type : C.sig_types.subkey_binding
       key : @key
