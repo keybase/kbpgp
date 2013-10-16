@@ -18,11 +18,16 @@ symmetric = require '../../symmetric'
 
 #=================================================================================
 
+
+#=================================================================================
+
 class KeyMaterial extends Packet
 
   constructor : ({@key, @timestamp, @userid, @passphrase, @skm}) ->
     @uidp = new UserID @userid if @userid?
     super()
+    F = C.key_flags
+    @KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
 
   #--------------------------
 
@@ -139,7 +144,7 @@ class KeyMaterial extends Packet
       key : @key,
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
-        new S.KeyFlags(C.key_flags.certify_keys | C.key_flags.sign_data)
+        new S.KeyFlags([C.key_flags.certify_keys | @KEY_FLAGS_STD])
         new S.KeyExpirationTime(lifespan.expire_in)
         new S.PreferredSymmetricAlgorithms([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
         new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
@@ -155,7 +160,27 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  sign_subkey : ({subkey, lifespan}, cb) ->
+  sign_primary : ({primary, lifespan}, cb) ->
+    payload = Buffer.concat [ primary.to_signature_payload(), @to_signature_payload() ]
+    sigpkt = new Signature {
+      type : C.sig_types.primary_binding
+      key : @key
+      hashed_subpackets : [
+        new S.CreationTime(lifespan.generated)
+      ],
+      unhashed_subpackets : [
+        new S.Issuer(@get_key_id())
+      ]}
+      
+    # We put these as signature subpackets, so we don't want to frame them;
+    # they already come with framing as a result of their placement in
+    # the signature.  This is a bit of a hack, but it's OK for now.
+    await sigpkt.write_unframed payload, defer err, sig
+    cb err, sig
+
+  #--------------------------
+
+  sign_subkey : ({subkey, lifespan, primary_binding}, cb) ->
     payload = Buffer.concat [ @to_signature_payload(), subkey.to_signature_payload() ]
     sigpkt = new Signature {
       type : C.sig_types.subkey_binding
@@ -163,10 +188,11 @@ class KeyMaterial extends Packet
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
         new S.KeyExpirationTime(lifespan.expire_in)
-        new S.KeyFlags(C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+        new S.KeyFlags([@KEY_FLAGS_STD])
       ],
       unhashed_subpackets : [
-        new S.Issuer(@get_key_id())
+        new S.Issuer(@get_key_id()),
+        new S.EmbeddedSignature { rawsig : primary_binding }
       ]}
       
     await sigpkt.write payload, defer err, sig

@@ -76,7 +76,7 @@ exports.openpgp = openpgp =
     key : 0x99
     userid : 0xb4
   key_flags : 
-    ceritfy_keys : 0x1
+    certify_keys : 0x1
     sign_data : 0x2
     encrypt_comm : 0x4
     encrypt_storage : 0x8

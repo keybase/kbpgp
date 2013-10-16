@@ -43,7 +43,7 @@ class Signature extends Packet
   #---------------------
 
   # See write_message_signature in packet.signature.js
-  write : (data, cb) ->
+  write_unframed : (data, cb) ->
     uhsp = Buffer.concat( s.to_buffer() for s in @unhashed_subpackets )
 
     { prefix, payload, hvalue } = @prepare_payload data
@@ -55,7 +55,13 @@ class Signature extends Packet
       sig
     ]
     results = Buffer.concat [ prefix, result2 ]
-    ret = @frame_packet(C.packet_tags.signature, results)
+    cb null, results
+
+  #---------------------
+
+  write : (data, cb) ->
+    await @write_unframed data, defer err, unframed
+    ret = @frame_packet(C.packet_tags.signature, unframed)
     cb null, ret
 
   #-----------------
@@ -332,11 +338,11 @@ class SignatureTarget extends SubPacket
 #------------
 
 class EmbeddedSignature extends SubPacket
-  constructor : (@sig) ->
+  constructor : ({@sig, @rawsig}) ->
     super S.embedded_signature
+  _v_to_buffer : () -> @rawsig
   @parse : (slice) -> 
-    console.log "holy shit, embedded sig!"
-    new EmbeddedSignature Signature.parse slice
+    new EmbeddedSignature { sig : Signature.parse slice }
 
 #===========================================================
 
@@ -435,6 +441,7 @@ exports.PreferredHashAlgorithms = PreferredHashAlgorithms
 exports.Features = Features
 exports.KeyServerPreferences = KeyServerPreferences
 exports.Issuer = Issuer
+exports.EmbeddedSignature = EmbeddedSignature
 
 #===========================================================
 

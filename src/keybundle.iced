@@ -79,7 +79,14 @@ class PgpEngine extends Engine
   #--------
   
   _v_sign_subkey : ({asp, subkey}, cb) ->
-    await @primary._pgp.sign_subkey { subkey : subkey._pgp, lifespan : subkey.lifespan }, defer err, sig
+    arg = 
+      primary : @primary._pgp, 
+      lifespan : subkey.lifespan
+    await subkey._pgp.sign_primary arg, defer err, primary_binding
+    unless err?
+      arg.subkey = subkey._pgp
+      arg.primary_binding = primary_binding
+      await @primary._pgp.sign_subkey arg, defer err, sig
     subkey._pgp_sig = sig    
     cb err
 
