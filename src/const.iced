@@ -83,7 +83,6 @@ exports.openpgp = openpgp =
     private_split : 0x10
     auth : 0x20
     shared : 0x80
-  default_key_expiration : 24*60*60*365*2
   features:
     modification_detection : 0x1
   key_server_preferences:
@@ -129,3 +128,8 @@ exports.kb =
 exports.header =
   version : "Keybase OpenPGP JS 0.0.1"
   comment : "https://keybase.io"
+
+config = 
+  default_key_expire_in: 24*60*60*365*2
+
+(exports[k] = v for k,v of config)

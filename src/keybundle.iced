@@ -3,6 +3,7 @@
 K = require('./const').kb
 {make_esc} = require 'iced-error'
 {unix_time,bufferify} = require './util'
+{Lifespan,Subkey,Primary} = require './keywrapper'
 
 opkts = require './openpgp/packet/all.iced'
 kpkts = require './keybase/packet/all.iced'
@@ -23,55 +24,67 @@ class UserIds
 
 #=================================================================
 
-class KeyWrapper
-  constructor : ({@key, @generated, @expire_in}) ->
-
-#=================================================================
-
-class Subkey extends KeyWrapper
-  constructor : ({key, @desc, generated, expire_in, @primary}) ->
-    super { key, generated, expire_in }
-
-#=================================================================
-
-class Primary extends KeyWrapper
-  constructor : ({key, generated, expire_in}) ->
-    super { key, generated, expire_in }
-
-#=================================================================
-
 class Engine
   constructor : ({@primray, @subkeys, @userids}) ->
     @packets = []
     @messages = []
     @_allocate_key_pakets()
 
-  _all_keys : () -> [ @primary ].concat @subkeys
+  #---------
 
   _allocate_key_packets : () ->
     for key in @_all_keys()
       @_v_allocate_key_packet key
 
-  _self_sign_primary : ({asp}, cb) -> @_v_self_sign_primary { asp }, cb
+  #--------
+
+  _all_keys : () -> [ @primary ].concat @subkeys
+  self_sign_primary : (args, cb) -> @_v_self_sign_primary args, cb
+
+  #--------
+
+  sign_subkeys : ({asp}, cb) -> 
+
+    @subkey_sigs = {}
+    err = null
+    for subkey in @subkeys when not err?
+      await @_v_sign_subkey {asp, subkey}, defer err, sig
+      unless err?
+        @subkey_sigs[subkey.kid()] = sig
+    cb err
 
 #=================================================================
 
 class PgpEngine extends Engine
 
+  #--------
+  
   constructor : ({primary, subkeys, userids}) ->
     super { primary, subkeys, userids }
 
+  #--------
+  
   _v_allocate_key_packet : (key) ->
     key._pgp = new opkts.KeyMaterial { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
 
+  #--------
+  
   userid_packet : () ->
     if not @_uidp
       @_uidp = new opkts.UserID @userids.get_keybase()
     @_uidp
 
+  #--------
+  
   _v_self_sign_primary : ({asp}, cb) ->
-    await @primary._pgp._self_sign_key { expire_in : @primary.expire_in, uidp : @userid_packet() }, defer err, @self_sign
+    await @primary._pgp.self_sign_key { lifespan : @primary.lifespan, uidp : @userid_packet() }, defer err, @self_sign
     cb err
+
+  #--------
+  
+  _v_sign_subkey : ({asp, subkey}, cb) ->
+    await @primary._pgp.sign_subkey { key_wrapper : sub_key }, defer err, sig
+    cb err, sig
 
 #=================================================================
 
@@ -80,8 +93,12 @@ class KeybaseEngine extends Engine
   constructor : ({primary, subkeys, userids}) ->
     super { primary, subkeys, userids }
 
+  #-----
+
   _v_allocate_key_packet : (key) ->
     key._keybase = new kpkts.Key { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
+
+  #-----
 
   _v_self_sign_primary : ({asp}, cb) ->
     esc = make_esc cb, "KeybaseEngine::_v_self_sign_primary"
@@ -91,6 +108,13 @@ class KeybaseEngine extends Engine
     p = new SelfSignPgpUserid { key_wrapper : @primary, @userids }
     await p.sign { asp }, esc defer @self_sigs.keybase
     cb null
+
+  #-----
+
+  _v_sign_subkey : ({asp, subkey}, cb) ->
+    p = new SubkeySignature { @primary, subkey }
+    await p.sign { asp }, defer err, sig
+    cb err, sig
 
 #=================================================================
 
@@ -112,13 +136,14 @@ class Bundle
     esc = make_esc cb, "Bundle::generate"
     asp.section "primary"
     await RSA.generate { asp, nbits: K.key_defaults.primary.nbits }, esc defer key
-    primary = new Primary { key, generated, expire_in : K.key_defaults.primary.expire_in }
+    lifespan = new Lifespan { generated, expire_in : K.key_defaults.primary.expire_in }
+    primary = new Primary { key, lifespan }
     subkeys = []
-    expire_in = K.key_defaults.sub.expire_in
+    lifespan = new Lifesparn { generated, expire_in : K.key_defaults.sub.expire_in }
     for i in [0...nsubs]
       asp.section "subkey #{i+1}"
       await RSA.generate { asp, nbits: K.key_defaults.sub.nbits }, esc defer key
-      subkeys.push new Subkey { key, desc : "subkey #{i}", primary, generated, expire_in }
+      subkeys.push new Subkey { key, desc : "subkey #{i}", primary, lifespan }
     bundle = new Bundle { primary, subkeys, userids }
 
     cb null, bundle
@@ -191,29 +216,30 @@ class Bundle
 
   sign : ({asp}, cb) ->
     esc = make_esc "Bundle::_sign_pgp", cb
-    await @_self_sign_primary { asp } , esc defer()
-    for s in @subkeys
-      await @_sign_subkey { s, asp } , esc defer()
+    await @_self_sign_primary { asp }, esc defer()
+    await @_sign_subkeys { asp }, esc defer()
     cb null
 
   # /Public Interface
   #========================
   
-  _self_sign_primary : ({asp}, cb) ->
-    @_apply_to_engines { asp, meth : Engine.prototype._self_self_primary }, cb
+  _self_sign_primary : (args cb) ->
+    @_apply_to_engines { args, meth : Engine.prototype.self_sign_primary }, cb
 
   #----------
 
-  _apply_to_engines : ({asp, meth}, cb) ->
+  _sign_subkey : (args, cb) ->
+    @_apply_to_engines { args, meth : Engine.prototype.sign_subkeys }, cb
+
+  #----------
+
+  _apply_to_engines : ({args, meth}, cb) ->
     err = null
     for e in @engines when not err
-      await meth.call e, {asp}, defer(err)
+      await meth.call e, args, defer(err)
     cb err
 
   #----------
-
-
-  _sign_keybase : ({asp}, cb) ->
 
   to_openpgp_packet : ( { tsec, passphrase } ) ->
 
