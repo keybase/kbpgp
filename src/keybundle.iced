@@ -71,7 +71,7 @@ class PgpEngine extends Engine
 
   _v_self_sign_primary : ({asp}, cb) ->
     await @primary._pgp._self_sign_key { expire_in : @primary.expire_in, uidp : @userid_packet() }, defer err, @self_sign
-    cb err, @self_sign
+    cb err
 
 #=================================================================
 
@@ -83,10 +83,14 @@ class KeybaseEngine extends Engine
   _v_allocate_key_packet : (key) ->
     key._keybase = new kpkts.Key { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
 
-  _self_sign_primary_key : ({asp}, cb) ->
-
   _v_self_sign_primary : ({asp}, cb) ->
-    @packets.push @primary.
+    esc = make_esc cb, "KeybaseEngine::_v_self_sign_primary"
+    @self_sigs = {}
+    p = new SelfSignKeybaseUsername { key_wrapper : @primary, @userids }
+    await p.sign { asp }, esc defer @self_sigs.openpgp
+    p = new SelfSignPgpUserid { key_wrapper : @primary, @userids }
+    await p.sign { asp }, esc defer @self_sigs.keybase
+    cb null
 
 #=================================================================
 
@@ -196,16 +200,17 @@ class Bundle
   #========================
   
   _self_sign_primary : ({asp}, cb) ->
-    @_apply_to_engines { asp, Engine.prototype._self_self_primary }, cb
+    @_apply_to_engines { asp, meth : Engine.prototype._self_self_primary }, cb
 
   #----------
 
-  _self_sign_primary_pgp : ({asp}, cb) ->
-    uidp = new opkt.UserId @userids.get_keybase()
-    @pgp.packets = [ @primary.pgp.public_framed(), uidp ]
-    payload = Buffer.concat [ 
-      @primary._pgp.to_signature_payload() 
-    ]
+  _apply_to_engines : ({asp, meth}, cb) ->
+    err = null
+    for e in @engines when not err
+      await meth.call e, {asp}, defer(err)
+    cb err
+
+  #----------
 
 
   _sign_keybase : ({asp}, cb) ->

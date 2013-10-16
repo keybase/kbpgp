@@ -1,6 +1,8 @@
 
 {Base} = require './base'
 K = require('../../const').kb
+{sign,verfiy} = require '../sign'
+{Packet} = require './base'
 
 #==================================================================================================
 
@@ -33,3 +35,27 @@ class SelfSignKeybaseUsername extends Base
     }
 
 #==================================================================================================
+
+class Base extends Packet
+  constructor : ({@type,@key}) ->
+    @sig = null
+
+  #------
+
+  sign : ({asp}, cb) ->
+    body = @_v_body()
+    await sign { @key, @type, body }, defer err, @sig
+    cb err, @sig
+
+  #------
+
+  frame_packet : () ->
+    super K.packet_tags.signature, @sig
+
+#=================================================================================
+
+exports.SelfSignPgpUserid = SelfSignPgpUserid
+exports.SelfSignKeybaseUsername = SelfSignKeybaseUsername
+
+#=================================================================================
+
