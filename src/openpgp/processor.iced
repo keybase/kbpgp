@@ -29,7 +29,6 @@ class Processor
           err = tmp
           # discard the signature, see the above comment...
         else
-          console.log "it worked --. #{i}"
           @verified_signatures.push p
         start = i + 1
 

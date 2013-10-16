@@ -4,6 +4,7 @@ armor = require '../src/openpgp/armor'
 fs = require 'fs'
 C = require '../src/const'
 {Processor} = require '../src/openpgp/processor'
+util = require 'util'
 
 await fs.readFile process.argv[2], defer err, res
 throw err if err
@@ -13,7 +14,7 @@ throw new Error "need a public key" unless msg.type is C.openpgp.message_types.p
 console.log msg.body.toString 'hex'
 [err, packets] = parse msg.body
 throw err if err
-console.log packets
+console.log util.inspect packets, { depth : null }
 processor = new Processor packets
 await processor.verify_signatures defer err
 throw err if err

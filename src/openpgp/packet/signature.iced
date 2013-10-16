@@ -43,13 +43,14 @@ class Signature extends Packet
   #---------------------
 
   # See write_message_signature in packet.signature.js
-  # XXX TODO -- write out unhashed subpackets -- See issue #17
   write : (data, cb) ->
+    uhsp = Buffer.concat( s.to_buffer() for s in @unhashed_subpackets )
 
     { prefix, payload, hvalue } = @prepare_payload data
     sig = @key.pad_and_sign payload, { @hasher }
     result2 = Buffer.concat [
-      uint_to_buffer(16, 0), # 0 unhashed packets, so write a 0!
+      uint_to_buffer(16, uhsp.length),
+      uhsp,
       new Buffer([hvalue.readUInt8(0), hvalue.readUInt8(1) ]),
       sig
     ]
@@ -333,7 +334,9 @@ class SignatureTarget extends SubPacket
 class EmbeddedSignature extends SubPacket
   constructor : (@sig) ->
     super S.embedded_signature
-  @parse : (slice) -> new EmbeddedSignature Signature.parse slice
+  @parse : (slice) -> 
+    console.log "holy shit, embedded sig!"
+    new EmbeddedSignature Signature.parse slice
 
 #===========================================================
 
@@ -369,7 +372,14 @@ class Parser
     o.hashed_subpackets = (@parse_subpacket() while @slice.i < end)
     unhashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + unhashed_subpacket_count
-    o.unhashed_subpackets = (@parse_subpacket() while @slice.i < end)
+    o.unhashed_subpackets = while @slice.i < end 
+      console.log "A @slice.i -> #{@slice.i}"
+      console.log "A end -> #{end}"
+      sp = @parse_subpacket()
+      console.log sp
+      console.log "B @slice.i -> #{@slice.i}"
+      console.log "B end -> #{end}"
+      sp
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
     new Signature o
