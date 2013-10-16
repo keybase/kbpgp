@@ -24,21 +24,28 @@ $(BUILD_STAMP): \
 	lib/symmetric.js \
 	lib/pad.js \
 	lib/keygen.js \
+	lib/keybundle.js \
+	lib/keywrapper.js \
 	lib/hash.js \
-	lib/keybase/packet/base.js \
-	lib/keybase/packet/keymaterial.js \
 	lib/keybase/encode.js \
 	lib/keybase/sign.js \
-	lib/openpgp/s2k.js \
-	lib/openpgp/cfb.js \
+	lib/keybase/parser.js \
+	lib/keybase/packet/all.js \
+	lib/keybase/packet/base.js \
+	lib/keybase/packet/keymaterial.js \
+	lib/keybase/packet/signature.js \
+	lib/keybase/packet/userid.js \
 	lib/openpgp/armor.js \
+	lib/openpgp/buffer.js \
+	lib/openpgp/cfb.js \
+	lib/openpgp/s2k.js \
 	lib/openpgp/util.js \
+	lib/openpgp/packet/all.js \
 	lib/openpgp/packet/base.js \
 	lib/openpgp/packet/userid.js \
 	lib/openpgp/packet/keymaterial.js \
 	lib/openpgp/packet/signature.js \
 	lib/openpgp/parser.js \
-	lib/openpgp/buffer.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/cast5.js 
 	date > $@
