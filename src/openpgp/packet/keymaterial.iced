@@ -10,7 +10,7 @@ RSA = require('../../rsa').Pair
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
-{CreationTime,Issuer,Signature} = require './signature'
+{CreationTime,Issuer,Signature,PreferredSymmetricAlgorithm,PreferredHashAlgorithms} = require './signature'
 {encode} = require '../armor'
 {S2K} = require '../s2k'
 symmetric = require '../../symmetric'
@@ -135,7 +135,7 @@ class KeyMaterial extends Packet
       type : C.sig_types.issuer,
       key : @key,
       hashed_subpackets : [
-        new CreationTime(unix_time()),
+        new CreationTime(@timestamp())
         new Issuer(@get_key_id())
       ]}
       

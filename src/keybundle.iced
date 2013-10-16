@@ -2,7 +2,10 @@
 {RSA} = require './rsa'
 K = require('./const').kb
 {make_esc} = require 'iced-error'
-{bufferify} = require './util'
+{unix_time,bufferify} = require './util'
+
+opkts = require './openpgp/packet/all.iced'
+kpkts = require './keybase/packet/all.iced'
 
 #=================================================================
 
@@ -15,7 +18,7 @@ class Encryption
 
 class UserIds
   constructor : ({@openpgp, @keybase}) ->
-    @openpgp or= "#{@keybase}@keybase.io"
+  get_keybase : () -> "#@{keybase}@keybase.io"
 
 #=================================================================
 
@@ -25,7 +28,7 @@ class KeyWrapper
 #=================================================================
 
 class Subkey extends KeyWrapper
-  constructor : ({key, @desc, generated, expires}) ->
+  constructor : ({key, @desc, generated, expires, @primary}) ->
     super { key, generated, expires }
 
 #=================================================================
@@ -36,10 +39,61 @@ class Primary extends KeyWrapper
 
 #=================================================================
 
+class Engine
+  constructor : ({@primray, @subkeys, @userids}) ->
+    @packets = []
+    @messages = []
+    @signatures = []
+    @_allocate_key_pakets()
+
+  _all_keys : () -> [ @primary ].concat @subkeys
+
+  _allocate_key_packets : () ->
+    for key in @_all_keys()
+      @_v_allocate_key_packet key
+
+  _self_sign_primary : ({asp}, cb) -> @_v_self_sign_primary { asp }, cb
+
+#=================================================================
+
+class PgpEngine extends Engine
+
+  constructor : ({primary, subkeys, userids}) ->
+    super { primary, subkeys, userids }
+
+  _v_allocate_key_packet : (key) ->
+    key._pgp = new opkts.KeyMaterial { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
+
+  userid_packet : () ->
+    if not @_uidp
+      @_uidp = new opkts.UserID @userids.get_keybase()
+    @_uidp
+
+  _v_self_sign_primary : ({asp}, cb) ->
+    @packets.push( @primary._pgp.public_framed(), @userid_packet() )
+    sig = 
+
+#=================================================================
+
+class KeybaseEngine extends Engine
+
+  constructor : ({primary, subkeys, userids}) ->
+    super { primary, subkeys, userids }
+
+  _v_allocate_key_packet : (key) ->
+    key._keybase = new kpkts.Key { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
+
+  _self_sign_primary_key : ({asp}, cb) ->
+
+#=================================================================
+
 class Bundle
 
   constructor : ({@primary, @subkeys, @userids}) ->
     @tsenc = null
+    @pgp = new PgpEngine { @primary, @subkeys, @userids }
+    @keybase = new KeybaseEngine { @primary, @subkeys, @userids }
+    @engines = [ @pgp, @keybase ]
 
   #========================
   # Public Interface
@@ -47,16 +101,20 @@ class Bundle
   # Generate a new key bunlde from scratch.  Make the given number
   # of subkeys.
   @generate : ({asp, nsubs, userids }, cb) ->
+    generated = unix_time()
     esc = make_esc cb, "Bundle::generate"
     asp.section "primary"
-    await RSA.generate { asp, nbits: K.key_defaults.primary.nbits }, esc defer primary
+    await RSA.generate { asp, nbits: K.key_defaults.primary.nbits }, esc defer key
+    primary = new Primary { key, generated, expire_in : K.key_defaults.primary.expire_in }
     subkeys = []
+    expire_in = K.key_defaults.sub.expire_in
     for i in [0...nsubs]
       asp.section "subkey #{i+1}"
       await RSA.generate { asp, nbits: K.key_defaults.sub.nbits }, esc defer key
-      subkeys.push new Subkey { key, desc : "subkey #{i}" }
-    ring = new Bundle { primary, subkeys, userids }
-    cb null, ring
+      subkeys.push new Subkey { key, desc : "subkey #{i}", primary, generated, expire_in }
+    bundle = new Bundle { primary, subkeys, userids }
+
+    cb null, bundle
 
   #------------
 
@@ -90,48 +148,68 @@ class Bundle
   # (which is going to be different from our strong keybase passphrase).
   open_pgp : ({passphrase}, cb) ->
 
+  #-----
+  
   # Open the private MPIs of the secret key, and check for sanity.
   # Use the given triplesec.Encryptor / password object.
   open_keybase : ({asp}, cb) ->
 
+  #-----
+  
   # The export consists of
   #   1. A PGP message (potentially redacted from upload)
   #   2. A keybase message (Public key only)
   export_public_to_server : ({asp}, cb) ->
 
+  #-----
+  
   # A private export consists of:
   #   1. The redacted PGP message
   #   2. The keybase message (Public and private keys)
   export_private_to_server : ({asp}, cb) ->
 
+  #-----
+  
   # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
   # We'll need to reencrypt with a derived key
   export_pgp_private_to_client : ({asp}, cb) ->
 
+  #-----
+  
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
   # to the client...
   export_pgp_public_to_client : ({asp}, cb) ->
 
+  #-----
+
+  sign : ({asp}, cb) ->
+    esc = make_esc "Bundle::_sign_pgp", cb
+    await @_self_sign_primary { asp } , esc defer()
+    for s in @subkeys
+      await @_sign_subkey { s, asp } , esc defer()
+    cb null
+
   # /Public Interface
   #========================
   
-  sign_pgp : ({asp}, cb) ->
+  _self_sign_primary : ({asp}, cb) ->
+    @_apply_to_engines { asp, Engine.prototype._self_self_primary }, cb
 
-  sign_keybase : ({asp}, cb) ->
+  #----------
 
-  sign : ({asp}, cb) ->
-    esc = make_esc cb, "Bundle::generate"
-    await @sign_pgp { asp }, esc defer()
-    await @sign_keybase { asp }, esc defer()
-    cb null
+  _self_sign_primary_pgp : ({asp}, cb) ->
+    uidp = new opkt.UserId @userids.get_keybase()
+    @pgp.packets = [ @primary.pgp.public_framed(), uidp ]
+    payload = Buffer.concat [ 
+      @primary._pgp.to_signature_payload() 
+    ]
 
+
+  _sign_keybase : ({asp}, cb) ->
 
   to_openpgp_packet : ( { tsec, passphrase } ) ->
 
   to_keybase_packet : ( { tsec, passphrase } ) ->
-
-#=================================================================
-
 
 #=================================================================
 

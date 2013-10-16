@@ -11,9 +11,9 @@ rsa = require '../../rsa'
 
 #=================================================================================
 
-class SingleKey extends Packet
+class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @expires, @userid, @passphrase, @sig, @rawkey, @primary} ) ->
+  constructor : ({@key, @timestamp, @expires, @userid, @passphrase, @sig, @rawkey}) ->
     super()
 
   #--------------------------
@@ -161,6 +161,10 @@ class SingleKey extends Packet
     cb err
   
   #--------------------------
+
+#=================================================================================
+
+exports.KeyMaterial = KeyMaterial
 
 #=================================================================================
 
