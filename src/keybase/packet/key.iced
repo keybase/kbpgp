@@ -74,7 +74,7 @@ class KeyMaterial extends Packet
 
   _self_sign_key : ( {hasher, progress_hook }, cb) ->
     hasher = SHA512 unless hasher?
-    type = K.signatures.self_sign_key_pgp_username
+    type = K.signatures.self_sign_key_keybase_username
     body = @_self_sign_body()
     await sign { @key, type, body, hasher, progress_hook }, defer err, res
     cb err, res
@@ -125,7 +125,7 @@ class KeyMaterial extends Packet
 
   verify_self_sig : ({progress_hook}, cb) ->
     body = @_self_sign_body()
-    type = K.signatures.self_sign_key_pgp_username
+    type = K.signatures.self_sign_key_keybase_username
     await verify { @key, @sig, body, type, progress_hook }, defer err
     cb err
 

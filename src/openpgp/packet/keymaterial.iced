@@ -134,6 +134,7 @@ class KeyMaterial extends Packet
     expire_in = C.default_key_expiration_time
     payload = Buffer.concat [ @to_signature_payload(), @uidp.to_signature_payload() ]
 
+    # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #23
     sigpkt = new Signature { 
       type : C.sig_types.issuer,
       key : @key,
@@ -145,6 +146,9 @@ class KeyMaterial extends Packet
         new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
         new S.Features([C.features.modification_detection])
         new S.KeyServerPreferences([C.key_server_preferences.no_modify])
+      ],
+      unhashed_subpackets : [
+        new S.Issuer(@get_key_id())
       ]}
       
     await sigpkt.write payload, defer err, sig

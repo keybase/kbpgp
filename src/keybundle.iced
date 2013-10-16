@@ -18,24 +18,25 @@ class Encryption
 
 class UserIds
   constructor : ({@openpgp, @keybase}) ->
-  get_keybase : () -> "#@{keybase}@keybase.io"
+  get_keybase : () -> "#{@keybase}@keybase.io"
+  get_openpgp : () -> @openpgp or @get_keybase()
 
 #=================================================================
 
 class KeyWrapper
-  constructor : ({@key, @generated, @expires}) ->
+  constructor : ({@key, @generated, @expire_in}) ->
 
 #=================================================================
 
 class Subkey extends KeyWrapper
-  constructor : ({key, @desc, generated, expires, @primary}) ->
-    super { key, generated, expires }
+  constructor : ({key, @desc, generated, expire_in, @primary}) ->
+    super { key, generated, expire_in }
 
 #=================================================================
 
 class Primary extends KeyWrapper
-  constructor : ({key, generated, expires}) ->
-    super { key, generated, expires }
+  constructor : ({key, generated, expire_in}) ->
+    super { key, generated, expire_in }
 
 #=================================================================
 
@@ -43,7 +44,6 @@ class Engine
   constructor : ({@primray, @subkeys, @userids}) ->
     @packets = []
     @messages = []
-    @signatures = []
     @_allocate_key_pakets()
 
   _all_keys : () -> [ @primary ].concat @subkeys
@@ -70,12 +70,8 @@ class PgpEngine extends Engine
     @_uidp
 
   _v_self_sign_primary : ({asp}, cb) ->
-    @packets.push( @primary._pgp.public_framed(), @userid_packet() )
-    await @primary._pgp._self_sign_key { uidp : @userid_packet() }, defer err, sig
-    unless err?
-      @signatures.push sig
-      @packets.push sig
-    cb err
+    await @primary._pgp._self_sign_key { expire_in : @primary.expire_in, uidp : @userid_packet() }, defer err, @self_sign
+    cb err, @self_sign
 
 #=================================================================
 
@@ -88,6 +84,9 @@ class KeybaseEngine extends Engine
     key._keybase = new kpkts.Key { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
 
   _self_sign_primary_key : ({asp}, cb) ->
+
+  _v_self_sign_primary : ({asp}, cb) ->
+    @packets.push @primary.
 
 #=================================================================
 
