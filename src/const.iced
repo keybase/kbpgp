@@ -116,10 +116,10 @@ exports.kb =
   key_defaults:
     primary :
       expire_in : 24*60*60*365*10
-      nbits : 4096
+      nbits : 1024 # 4096
     sub :
       expire_in : 24*60*60*365
-      nbits : 2048
+      nbits : 1024 # 2048
   kid : 
     version : 1
     trailer : 0x0a

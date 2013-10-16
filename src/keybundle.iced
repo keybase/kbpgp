@@ -1,10 +1,9 @@
-{Single} = require './single'
 {RSA} = require './rsa'
 K = require('./const').kb
 {make_esc} = require 'iced-error'
 {unix_time,bufferify} = require './util'
 {Lifespan,Subkey,Primary} = require './keywrapper'
-{encode,decode} = require './opengpgp/encode'
+{encode,decode} = require './openpgp/armor'
 
 opkts = require './openpgp/packet/all.iced'
 kpkts = require './keybase/packet/all.iced'
@@ -26,10 +25,10 @@ class UserIds
 #=================================================================
 
 class Engine
-  constructor : ({@primray, @subkeys, @userids}) ->
+  constructor : ({@primary, @subkeys, @userids}) ->
     @packets = []
     @messages = []
-    @_allocate_key_pakets()
+    @_allocate_key_packets()
 
   #---------
 
@@ -103,7 +102,7 @@ class KeybaseEngine extends Engine
   #-----
 
   _v_allocate_key_packet : (key) ->
-    key._keybase = new kpkts.Key { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
+    key._keybase = new kpkts.KeyMaterial { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
 
   #-----
 
@@ -125,7 +124,7 @@ class KeybaseEngine extends Engine
 
 #=================================================================
 
-class Bundle
+class KeyBundle
 
   constructor : ({@primary, @subkeys, @userids}) ->
     @tsenc = null
@@ -138,20 +137,21 @@ class Bundle
 
   # Generate a new key bunlde from scratch.  Make the given number
   # of subkeys.
-  @generate : ({asp, nsubs, userids }, cb) ->
+  @generate : ({asp, nsubs, userid }, cb) ->
+    userids = new UserIds { keybase : userid }
     generated = unix_time()
-    esc = make_esc cb, "Bundle::generate"
+    esc = make_esc cb, "KeyBundle::generate"
     asp.section "primary"
     await RSA.generate { asp, nbits: K.key_defaults.primary.nbits }, esc defer key
     lifespan = new Lifespan { generated, expire_in : K.key_defaults.primary.expire_in }
     primary = new Primary { key, lifespan }
     subkeys = []
-    lifespan = new Lifesparn { generated, expire_in : K.key_defaults.sub.expire_in }
+    lifespan = new Lifespan { generated, expire_in : K.key_defaults.sub.expire_in }
     for i in [0...nsubs]
       asp.section "subkey #{i+1}"
       await RSA.generate { asp, nbits: K.key_defaults.sub.nbits }, esc defer key
       subkeys.push new Subkey { key, desc : "subkey #{i}", primary, lifespan }
-    bundle = new Bundle { primary, subkeys, userids }
+    bundle = new KeyBundle { primary, subkeys, userids }
 
     cb null, bundle
 
@@ -224,7 +224,7 @@ class Bundle
   #-----
 
   sign : ({asp}, cb) ->
-    esc = make_esc "Bundle::_sign_pgp", cb
+    esc = make_esc "KeyBundle::_sign_pgp", cb
     await @_self_sign_primary { asp }, esc defer()
     await @_sign_subkeys { asp }, esc defer()
     cb null
@@ -232,7 +232,7 @@ class Bundle
   # /Public Interface
   #========================
   
-  _self_sign_primary : (args cb) ->
+  _self_sign_primary : (args, cb) ->
     @_apply_to_engines { args, meth : Engine.prototype.self_sign_primary }, cb
 
   #----------
@@ -256,5 +256,5 @@ class Bundle
 
 #=================================================================
 
-exports.Bundle = Bundle
+exports.KeyBundle = KeyBundle
 exports.Encryption = Encryption

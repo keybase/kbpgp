@@ -66,8 +66,8 @@ class KeyMaterial extends Packet
     # XXX always binary-encode for now (see Issue #7)
     unless err?
       ret = 
-        private : (box { type : private_key, packet : { sig, @userid, key : priv }),
-        public  : (box { type : public_key,  packet : { sig, @userid, key : pub })
+        private : (box { type : private_key, packet : { sig, @userid, key : priv }})
+        public  : (box { type : public_key,  packet : { sig, @userid, key : pub }})
     cb err, ret
 
   #--------------------------
@@ -168,17 +168,3 @@ exports.KeyMaterial = KeyMaterial
 
 #=================================================================================
 
-class BaseKeyBundle extends Packet
-
-  constructor : ({type, @keyring, @username}) ->
-    super { type }
-
-  make : ({tsec, passphrase}) ->
-    tsec = new Triplesec { key : passphrase } unless tsec?
-    @data = 
-      master : 
-        key : @keyring.master().to_packet()
-    isig = new IssuerSig { key : @keyring.master, @username }
-    for key in @keyring.subkeys()
-
-#=================================================================================

@@ -44,4 +44,4 @@ unbox = (buf) ->
 exports.box = box
 exports.pack = pack
 exports.unbox = unbox
-exports.decode = decode
+exports.unpack = unpack
