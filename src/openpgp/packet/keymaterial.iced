@@ -133,7 +133,7 @@ class KeyMaterial extends Packet
     uidp = @uidp unless uidp?
     payload = Buffer.concat [ @to_signature_payload(), @uidp.to_signature_payload() ]
 
-    # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #23
+    # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
     sigpkt = new Signature { 
       type : C.sig_types.issuer,
       key : @key,

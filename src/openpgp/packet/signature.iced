@@ -43,6 +43,7 @@ class Signature extends Packet
   #---------------------
 
   # See write_message_signature in packet.signature.js
+  # XXX TODO -- write out unhashed subpackets -- See issue #17
   write : (data, cb) ->
 
     { prefix, payload, hvalue } = @prepare_payload data
