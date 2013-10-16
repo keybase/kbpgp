@@ -4,6 +4,7 @@ K = require('./const').kb
 {make_esc} = require 'iced-error'
 {unix_time,bufferify} = require './util'
 {Lifespan,Subkey,Primary} = require './keywrapper'
+{encode,decode} = require './opengpgp/encode'
 
 opkts = require './openpgp/packet/all.iced'
 kpkts = require './keybase/packet/all.iced'
@@ -44,13 +45,10 @@ class Engine
   #--------
 
   sign_subkeys : ({asp}, cb) -> 
-
-    @subkey_sigs = {}
     err = null
     for subkey in @subkeys when not err?
       await @_v_sign_subkey {asp, subkey}, defer err, sig
-      unless err?
-        @subkey_sigs[subkey.kid()] = sig
+      subkey.sig = sig unless err?
     cb err
 
 #=================================================================
@@ -83,8 +81,17 @@ class PgpEngine extends Engine
   #--------
   
   _v_sign_subkey : ({asp, subkey}, cb) ->
-    await @primary._pgp.sign_subkey { key_wrapper : sub_key }, defer err, sig
+    await @primary._pgp.sign_subkey { key_wrapper : subkey }, defer err, sig
     cb err, sig
+
+  #--------
+
+  export_public_to_client : (cb) ->
+    packets = [ @primary.public_framed(), @userid_packet().write(), @self_sign ]
+    for subkey in @subkeys
+      packets.push(subkey.public_format(), subkey.sig)
+    message = encode C.message_types.public_key, Buffer.concat(packets)
+    cb message
 
 #=================================================================
 
@@ -103,16 +110,16 @@ class KeybaseEngine extends Engine
   _v_self_sign_primary : ({asp}, cb) ->
     esc = make_esc cb, "KeybaseEngine::_v_self_sign_primary"
     @self_sigs = {}
-    p = new SelfSignKeybaseUsername { key_wrapper : @primary, @userids }
+    p = new kpkts.SelfSignKeybaseUsername { key_wrapper : @primary, @userids }
     await p.sign { asp }, esc defer @self_sigs.openpgp
-    p = new SelfSignPgpUserid { key_wrapper : @primary, @userids }
+    p = new kpkts.SelfSignPgpUserid { key_wrapper : @primary, @userids }
     await p.sign { asp }, esc defer @self_sigs.keybase
     cb null
 
   #-----
 
   _v_sign_subkey : ({asp, subkey}, cb) ->
-    p = new SubkeySignature { @primary, subkey }
+    p = new kpkts.SubkeySignature { @primary, subkey }
     await p.sign { asp }, defer err, sig
     cb err, sig
 
@@ -211,6 +218,8 @@ class Bundle
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
   # to the client...
   export_pgp_public_to_client : ({asp}, cb) ->
+    msg = @pgp.export_public_to_client()
+    cb msg
 
   #-----
 

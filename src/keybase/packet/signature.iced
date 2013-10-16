@@ -71,6 +71,7 @@ class SubkeySignature extends Base
 
 exports.SelfSignPgpUserid = SelfSignPgpUserid
 exports.SelfSignKeybaseUsername = SelfSignKeybaseUsername
+exports.SubkeySignature = SubkeySignature
 
 #=================================================================================
 

@@ -12,6 +12,8 @@ class Lifespan
 class KeyWrapper
   constructor : ({@key, @lifespan}) ->
 
+  kid : () -> @key.kid()
+
 #=================================================================
 
 class Subkey extends KeyWrapper
