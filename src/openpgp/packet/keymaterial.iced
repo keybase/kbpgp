@@ -131,7 +131,7 @@ class KeyMaterial extends Packet
 
   self_sign_key : ({uidp, lifespan}, cb) ->
     uidp = @uidp unless uidp?
-    payload = Buffer.concat [ @to_signature_payload(), @uidp.to_signature_payload() ]
+    payload = Buffer.concat [ @to_signature_payload(), uidp.to_signature_payload() ]
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
     sigpkt = new Signature { 
@@ -140,8 +140,8 @@ class KeyMaterial extends Packet
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
         new S.KeyFlags(C.key_flags.certify_keys | C.key_flags.sign_data)
-        new S.KeyExpriationTime(lifespan.expire_in)
-        new S.PreferredSymmetricAlgorithm([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
+        new S.KeyExpirationTime(lifespan.expire_in)
+        new S.PreferredSymmetricAlgorithms([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
         new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
         new S.Features([C.features.modification_detection])
         new S.KeyServerPreferences([C.key_server_preferences.no_modify])
@@ -155,22 +155,22 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _sign_subkey : ({key_wrapper}, cb) ->
+  sign_subkey : ({subkey, lifespan}, cb) ->
     payload = subkey.to_signature_payload()
     sigpkt = new Signature {
       type : C.sig_types.subkey_binding
       key : @key
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
-        new S.KeyExpriationTime(lifespan.expire_in)
-        new KeyFlags(C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+        new S.KeyExpirationTime(lifespan.expire_in)
+        new S.KeyFlags(C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
       ],
       unhashed_subpackets : [
         new S.Issuer(@get_key_id())
       ]}
       
     await sigpkt.write payload, defer err, sig
-    cb err, sign
+    cb err, sig
 
   #--------------------------
 

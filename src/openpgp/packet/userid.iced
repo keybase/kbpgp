@@ -4,7 +4,7 @@ triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
-{uint_to_buffer} = require '../../util'
+{bufferify,uint_to_buffer} = require '../../util'
 {encrypt} = require '../cfb'
 {Packet} = require './base'
 
@@ -13,7 +13,9 @@ triplesec = require 'triplesec'
 class UserID extends Packet
 
   # @param {Buffer} userid The utf8-buffer withstring reprensentation of the UserID
-  constructor : (@userid) -> super()
+  constructor : (userid) -> 
+    @userid = bufferify userid
+    super()
 
   #--------------------------
 

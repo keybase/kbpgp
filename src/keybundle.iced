@@ -1,5 +1,6 @@
 {RSA} = require './rsa'
 K = require('./const').kb
+C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {unix_time,bufferify} = require './util'
 {Lifespan,Subkey,Primary} = require './keywrapper'
@@ -46,8 +47,7 @@ class Engine
   sign_subkeys : ({asp}, cb) -> 
     err = null
     for subkey in @subkeys when not err?
-      await @_v_sign_subkey {asp, subkey}, defer err, sig
-      subkey.sig = sig unless err?
+      await @_v_sign_subkey {asp, subkey}, defer err
     cb err
 
 #=================================================================
@@ -62,35 +62,34 @@ class PgpEngine extends Engine
   #--------
   
   _v_allocate_key_packet : (key) ->
-    key._pgp = new opkts.KeyMaterial { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
+    key._pgp = new opkts.KeyMaterial { key : key.key, timestamp : key.lifespan.generated, userid : @userids.get_keybase() }
 
   #--------
   
   userid_packet : () ->
-    if not @_uidp
-      @_uidp = new opkts.UserID @userids.get_keybase()
+    @_uidp = new opkts.UserID @userids.get_keybase() unless @_uidp?
     @_uidp
 
   #--------
   
   _v_self_sign_primary : ({asp}, cb) ->
-    await @primary._pgp.self_sign_key { lifespan : @primary.lifespan, uidp : @userid_packet() }, defer err, @self_sign
+    await @primary._pgp.self_sign_key { lifespan : @primary.lifespan, uidp : @userid_packet() }, defer err, @self_sig
     cb err
 
   #--------
   
   _v_sign_subkey : ({asp, subkey}, cb) ->
-    await @primary._pgp.sign_subkey { key_wrapper : subkey }, defer err, sig
-    cb err, sig
+    await @primary._pgp.sign_subkey { subkey : subkey._pgp, lifespan : subkey.lifespan }, defer err, sig
+    subkey._pgp_sig = sig    
+    cb err
 
   #--------
 
-  export_public_to_client : (cb) ->
-    packets = [ @primary.public_framed(), @userid_packet().write(), @self_sign ]
+  export_public_to_client : () ->
+    packets = [ @primary._pgp.public_framed(), @userid_packet().write(), @self_sig ]
     for subkey in @subkeys
-      packets.push(subkey.public_format(), subkey.sig)
-    message = encode C.message_types.public_key, Buffer.concat(packets)
-    cb message
+      packets.push subkey._pgp.public_framed(), subkey._pgp_sig
+    encode C.message_types.public_key, Buffer.concat(packets)
 
 #=================================================================
 
@@ -120,7 +119,8 @@ class KeybaseEngine extends Engine
   _v_sign_subkey : ({asp, subkey}, cb) ->
     p = new kpkts.SubkeySignature { @primary, subkey }
     await p.sign { asp }, defer err, sig
-    cb err, sig
+    subkey._keybase_sig = sig
+    cb err
 
 #=================================================================
 
@@ -219,12 +219,12 @@ class KeyBundle
   # to the client...
   export_pgp_public_to_client : ({asp}, cb) ->
     msg = @pgp.export_public_to_client()
-    cb msg
+    cb null, msg
 
   #-----
 
   sign : ({asp}, cb) ->
-    esc = make_esc "KeyBundle::_sign_pgp", cb
+    esc = make_esc cb, "KeyBundle::_sign_pgp"
     await @_self_sign_primary { asp }, esc defer()
     await @_sign_subkeys { asp }, esc defer()
     cb null
@@ -237,7 +237,7 @@ class KeyBundle
 
   #----------
 
-  _sign_subkey : (args, cb) ->
+  _sign_subkeys : (args, cb) ->
     @_apply_to_engines { args, meth : Engine.prototype.sign_subkeys }, cb
 
   #----------

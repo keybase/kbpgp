@@ -32,8 +32,8 @@ class SelfSignPgpUserid extends Base
   _v_body : () ->
     return {
       ekid : @key_wrapper.key.ekid()
-      generated : @key_wrapper.key.lifespan.generated
-      expire_in : @key_wrapper.key.lifespan.expire_in
+      generated : @key_wrapper.lifespan.generated
+      expire_in : @key_wrapper.lifespan.expire_in
       username : @userids.get_openpgp()
     }
 
@@ -42,13 +42,13 @@ class SelfSignPgpUserid extends Base
 class SelfSignKeybaseUsername extends Base
 
   constructor : ({@key_wrapper, @userids}) ->
-    super K.sig_types.self_sign_keybase_username
+    super { type : K.sig_types.self_sign_keybase_username, key : @key_wrapper.key }
 
   _v_body : () ->
     return {
       ekid : @key_wrapper.key.ekid()
-      generated : @key_wrapper.key.lifespan.generated
-      expire_in : @key_wrapper.key.lifespan.expire_in
+      generated : @key_wrapper.lifespan.generated
+      expire_in : @key_wrapper.lifespan.expire_in
       username : @userids.get_keybase()
     }
 
@@ -56,15 +56,16 @@ class SelfSignKeybaseUsername extends Base
 
 class SubkeySignature extends Base
 
-  constructor : ({primary, subkey}, cb) ->
-    super K.sig_types.subkey
+  # @param {KeyWrapper} subkey The primary key
+  constructor : ({@subkey}, cb) ->
+    super { type : K.sig_types.subkey, key : @subkey.primary.key }
 
   _v_body : () ->
     return {
-      primary_ekid : primary.ekid()
-      subkey_ekid  : subkey.ekid()
-      generated : subkey.lifespan.generated
-      expire_in : subkey.lifespan.expire_in
+      primary_ekid : @subkey.primary.ekid()
+      subkey_ekid  : @subkey.ekid()
+      generated : @subkey.lifespan.generated
+      expire_in : @subkey.lifespan.expire_in
     }
 
 #=================================================================================

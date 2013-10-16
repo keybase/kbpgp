@@ -418,6 +418,12 @@ class Parser
 #===========================================================
 
 exports.CreationTime = CreationTime
+exports.KeyFlags = KeyFlags
+exports.KeyExpirationTime = KeyExpirationTime
+exports.PreferredSymmetricAlgorithms = PreferredSymmetricAlgorithms
+exports.PreferredHashAlgorithms = PreferredHashAlgorithms
+exports.Features = Features
+exports.KeyServerPreferences = KeyServerPreferences
 exports.Issuer = Issuer
 
 #===========================================================
