@@ -21,7 +21,7 @@ symmetric = require '../../symmetric'
 class KeyMaterial extends Packet
 
   constructor : ({@key, @timestamp, @userid, @passphrase, @skm}) ->
-    @uidp = new UserID @userid
+    @uidp = new UserID @userid if @userid?
     super()
 
   #--------------------------

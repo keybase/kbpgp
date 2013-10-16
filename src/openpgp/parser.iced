@@ -33,6 +33,8 @@ class PacketParser
     @parse_tag_and_len()
     @header_len or= @slice.offset()
     @body or= new SlicerBuffer @slice.read_buffer @len
+    console.log "tag -> #{@tag}"
+    console.log "got packet len -> #{@len}"
     @real_packet_len or= @len
     @slice.unclamp()
 
@@ -40,7 +42,10 @@ class PacketParser
 
   parse : () ->
     @parse_header()
-    @parse_body()
+    ret = @parse_body()
+    console.log "got packet ->"
+    console.log ret
+    ret
 
   #----------------
 
@@ -91,11 +96,11 @@ class PacketParser
       go = false
       c = @slice.read_uint8()
 
-      lastlen = if (c < 192) then @slice.read_uint8()
+      lastlen = if (c < 192) then c
       else if (c is 255) then @slice.read_uint32()
       else if (c < 224) 
-        a = (@slice.read_uint8() for i in [0...2])
-        ((a[0] - 192) << 8) + (a[1] + 192)
+        d = @slice.read_uint8()
+        ((c - 192) << 8) + (d + 192)
       else
         @header_len or= @slice.offset()
         packet_length = 1 << (c & 0x1f)
