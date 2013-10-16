@@ -3,6 +3,7 @@
 {parse} = require '../../lib/openpgp/parser'
 armor = require '../../lib/openpgp/armor'
 C = require '../../lib/const'
+util = require 'util'
 
 #============================================================================
 
@@ -12,6 +13,7 @@ exports.decode_pgp_secret_key_1 = (T,cb) ->
   [err, packets] = parse (new Buffer skey, 'base64')
   T.no_error err
   T.waypoint "parsed"
+  console.log util.inspect packets, { depth : null }
   processor = new Processor packets
   await processor.verify_signatures defer err
   T.no_error err

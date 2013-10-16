@@ -75,6 +75,19 @@ exports.openpgp = openpgp =
   signatures :
     key : 0x99
     userid : 0xb4
+  key_flags : 
+    ceritfy_keys : 0x1
+    sign_data : 0x2
+    encrypt_comm : 0x4
+    encrypt_storage : 0x8
+    private_split : 0x10
+    auth : 0x20
+    shared : 0x80
+  default_key_expiration : 24*60*60*365*2
+  features:
+    modification_detection : 0x1
+  key_server_preferences:
+    no_modify : 0x80
 
 exports.kb =
   key_encryption:

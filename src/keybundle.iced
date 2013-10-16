@@ -71,7 +71,11 @@ class PgpEngine extends Engine
 
   _v_self_sign_primary : ({asp}, cb) ->
     @packets.push( @primary._pgp.public_framed(), @userid_packet() )
-    sig = 
+    await @primary._pgp._self_sign_key { uidp : @userid_packet() }, defer err, sig
+    unless err?
+      @signatures.push sig
+      @packets.push sig
+    cb err
 
 #=================================================================
 

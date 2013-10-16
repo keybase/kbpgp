@@ -10,7 +10,8 @@ RSA = require('../../rsa').Pair
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
-{CreationTime,Issuer,Signature,PreferredSymmetricAlgorithm,PreferredHashAlgorithms} = require './signature'
+S = require './signature'
+{Signature} = S
 {encode} = require '../armor'
 {S2K} = require '../s2k'
 symmetric = require '../../symmetric'
@@ -128,15 +129,22 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _self_sign_key : (cb) ->
+  _self_sign_key : ({uidp, expire_in}, cb) ->
+    uidp = @uidp unless uidp?
+    expire_in = C.default_key_expiration_time
     payload = Buffer.concat [ @to_signature_payload(), @uidp.to_signature_payload() ]
 
     sigpkt = new Signature { 
       type : C.sig_types.issuer,
       key : @key,
       hashed_subpackets : [
-        new CreationTime(@timestamp())
-        new Issuer(@get_key_id())
+        new S.CreationTime(@timestamp())
+        new S.KeyFlags(C.key_flags.certify_keys | C.key_flags.sign_data)
+        new S.KeyExpriationTime(expire_in)
+        new S.PreferredSymmetricAlgorithm([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
+        new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
+        new S.Features([C.features.modification_detection])
+        new S.KeyServerPreferences([C.key_server_preferences.no_modify])
       ]}
       
     await sigpkt.write payload, defer err, sig
@@ -146,7 +154,7 @@ class KeyMaterial extends Packet
 
   export_keys : ({armor}, cb) ->
     err = ret = null
-    await @_self_sign_key defer err, sig
+    await @_self_sign_key {}, defer err, sig
     ret = @_encode_keys { sig, armor } unless err?
     cb err, ret
 
