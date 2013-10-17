@@ -48,6 +48,7 @@ class PacketParser
   parse_body : () ->
     pt = C.packet_tags
     sb = @body
+    raw = sb.peek_rest_to_buffer()
     packet = switch @tag
       when pt.secret_key    then KeyMaterial.parse_private_key sb, true
       when pt.secret_subkey then KeyMaterial.parse_private_key sb, false
@@ -56,8 +57,7 @@ class PacketParser
       when pt.signature     then Signature.parse sb
       when pt.userid        then UserID.parse sb
       else throw new Error "Unknown packet tag: #{@tag}"
-    packet.set_tag @tag
-    packet.set_lengths @real_packet_len, @header_len
+    packet.set { @tag, @real_packet_len, @header_len, raw }
     packet
 
   #----------------

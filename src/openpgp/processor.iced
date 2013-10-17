@@ -13,6 +13,10 @@ class KeyBlock
 
   #--------------------
 
+  to_obj : () -> return { @subkeys, @primary, @userid }
+
+  #--------------------
+
   _extract_keys : () ->
     err = null
     for p,i in @packets when (p.is_key_material() and not err?)

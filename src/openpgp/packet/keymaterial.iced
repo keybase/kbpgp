@@ -138,6 +138,16 @@ class KeyMaterial extends Packet
   #--------------------------
 
   self_sign_key : ({uidp, lifespan}, cb) ->
+    err = sig = null
+    if @key.can_sign()
+      await @_self_sign_key { uidp, lifespan }, defer err, sig
+    else if not (sig = @self_sig.raw)?
+      err = new Error "Cannot sign key --- don't have a private key"
+    cb err, sig
+
+  #--------------------------
+
+  _self_sign_key : ( {uidp, lifespan}, cb) ->
     uidp = @uidp unless uidp?
     payload = Buffer.concat [ @to_signature_payload(), uidp.to_signature_payload() ]
 
@@ -163,7 +173,16 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  sign_primary : ({primary, lifespan}, cb) ->
+  sign_subkey : ({subkey, lifespan}, cb) ->
+    sig = err = null
+    await subkey._sign_primary { primary : @, lifespan }, defer err, primary_binding
+    unless err?
+      await @_sign_subkey { subkey, lifespan, primary_binding }, defer err, sig
+    cb err, sig 
+
+  #--------------------------
+
+  _sign_primary : ({primary, lifespan}, cb) ->
     payload = Buffer.concat [ primary.to_signature_payload(), @to_signature_payload() ]
     sigpkt = new Signature {
       type : C.sig_types.primary_binding
@@ -183,7 +202,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  sign_subkey : ({subkey, lifespan, primary_binding}, cb) ->
+  _sign_subkey : ({subkey, lifespan, primary_binding}, cb) ->
     payload = Buffer.concat [ @to_signature_payload(), subkey.to_signature_payload() ]
     sigpkt = new Signature {
       type : C.sig_types.subkey_binding

@@ -153,9 +153,9 @@ class Signature extends Packet
           # Mark what the key was self-signed to do 
           options = @_export_hashed_subpackets()
           userid = data_packets[1]?.get_userid()
-          primary.self_sig = { @type, options, userid }
+          primary.self_sig = { @type, options, userid, @raw }
         when T.subkey_binding
-          subkey.signed = { @primary } unless subkey.signed?
+          subkey.signed = { @primary, @raw } unless subkey.signed?
           subkey.signed.primary_of_subkey = true
         when T.primary_binding
           subkey.signed = { @primary } unless subkey.signed?

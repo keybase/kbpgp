@@ -94,6 +94,8 @@ class Pair
   kid : () -> @pub.kid()
   ekid : () -> @pub.ekid()
   fingerprint : () -> @pub.fingerprint()
+  can_sign : () -> @priv?
+  can_decrypt : () -> @priv?
 
   #----------------
 
