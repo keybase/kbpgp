@@ -24,8 +24,15 @@ util = require 'util'
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, primary}) ->
-    @primary_flag = primary
+  # 
+  # @param {Pair} key a Keypair that can be used for signing, etc.
+  # @param {number} timestamp Uint32 saying what time the key was born
+  # @param {string|Buffer} userid The userid that the key is bound to
+  # @param {string|Buffer} passphrase The passphrase used to lock the key
+  # @param {S2K} s2k the encryption engine used to lock the secret parts of the key
+  # @param {Object} opts a list of options
+  # @option opts {bool} subkey True if this is a subkey
+  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts}) ->
     @uidp = new UserID @userid if @userid?
     super()
     F = C.key_flags
@@ -256,16 +263,16 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  @parse_public_key : (slice, primary) -> (new Parser slice).parse_public_key primary
+  @parse_public_key : (slice, opts) -> (new Parser slice).parse_public_key opts
 
   #--------------------------
 
-  @parse_private_key : (slice, primary) -> (new Parser slice).parse_private_key primary
+  @parse_private_key : (slice, opts) -> (new Parser slice).parse_private_key opts
   
   #--------------------------
 
   is_key_material : () -> true
-  is_primary : -> @primary_flag
+  is_primary : -> not @opts?.subkey
   ekid : () -> @key.ekid()
   can_sign : () -> @key.can_sign()
 
@@ -361,9 +368,9 @@ class Parser
       when C.versions.keymaterial.V4 then @parse_public_key_v4()
       else throw new Error "Unknown public key version: #{version}"
 
-  parse_public_key : (primary) ->
+  parse_public_key : (opts) ->
     key = @_parse_public_key()
-    new KeyMaterial { key, @timestamp, primary }
+    new KeyMaterial { key, @timestamp, opts}
 
   #-------------------
 
@@ -371,7 +378,7 @@ class Parser
   #
   # See read_priv_key in openpgp.packet.keymaterial.js
   #
-  parse_private_key : (primary) ->
+  parse_private_key : (opts) ->
     skm = {}
     key = @_parse_public_key()
 
@@ -395,7 +402,7 @@ class Parser
       skm.payload = null
     else 
       skm.payload = @slice.consume_rest_to_buffer()
-    new KeyMaterial { key, skm, @timestamp, primary }
+    new KeyMaterial { key, skm, @timestamp, opts }
 
 #=================================================================================
 

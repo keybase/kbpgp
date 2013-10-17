@@ -56,9 +56,29 @@ class SelfSignKeybaseUsername extends Base
 
 class SubkeySignature extends Base
 
-  # @param {KeyWrapper} subkey The primary key
-  constructor : ({@subkey}, cb) ->
+  # @param {KeyWrapper} subkey The subkey, with a pointer back to the primary key
+  constructor : ({@subkey}) ->
     super { type : K.sig_types.subkey, key : @subkey.primary.key }
+
+  _v_body : () ->
+    return {
+      primary_ekid : @subkey.primary.ekid()
+      subkey_ekid  : @subkey.ekid()
+      generated : @subkey.lifespan.generated
+      expire_in : @subkey.lifespan.expire_in
+    }
+
+#==================================================================================================
+
+class SubkeyReverseSignature extends Base
+
+  #
+  # The only difference here is that we're signing wit the subkey, rather than
+  # the primary key.  The payload is the same...
+  #
+  # @param {KeyWrapper} subkey The subkey, with a pointer back to the primary key
+  constructor : ({@subkey}) ->
+    super { type : K.sig_types.subkey_reverse, key : @subkey.key }
 
   _v_body : () ->
     return {

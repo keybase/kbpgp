@@ -110,6 +110,7 @@ exports.kb =
     self_sign_key_pgp_userid : 1
     self_sign_key_keybase_username : 2
     subkey : 3
+    subkey_reverse : 4
   padding :
     EMSA_PCKS1_v1_5 : 3
     RSASSA_PSS : 4
