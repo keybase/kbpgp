@@ -28,6 +28,10 @@ class UserID extends Packet
 
   #--------------------------
 
+  get_userid : () -> @utf8()
+
+  #--------------------------
+
   to_signature_payload : () ->
 
     # RFC 4880 5.2.4 Computing Signatures Over a Key

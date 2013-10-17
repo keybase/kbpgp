@@ -3,7 +3,7 @@
 C = require('../../const').openpgp
 S = C.sig_subpacket
 {encode_length,make_time_packet} = require '../util'
-{uint_to_buffer} = require '../../util'
+{unix_time,uint_to_buffer} = require '../../util'
 {alloc_or_throw,SHA512,SHA1} = require '../../hash'
 asymmetric = require '../../asymmetric'
 
@@ -19,7 +19,18 @@ class Signature extends Packet
     @hasher = SHA512 unless @hasher?
     @hashed_subpackets = [] unless @hashed_subpackets?
     @unhashed_subpackets = [] unless @unhashed_subpackets?
+    @subpacket_index = @_make_subpacket_index()
 
+  #---------------------
+
+  _make_subpacket_index : () ->
+    ret = { hashed : {}, unhashed : {} }
+    for p in @hashed_subpackets
+      ret.hashed[p.type] = p
+    for p in @unhashed_subpackets
+      ret.unhashed[p.type] = p
+    ret
+ 
   #---------------------
 
   prepare_payload : (data) -> 
@@ -97,28 +108,78 @@ class Signature extends Packet
   _verify : (data_packets, cb) ->
     err = null
     T = C.sig_types
+
+    subkey = null
+
+    # It's worth it to be careful here and check that we're getting the
+    # right expected number of packets.
     @data_packets = switch @type
-      when T.issuer, T.personal, T.casual, T.positive then data_packets
-      when T.subkey_binding, T.primary_binding        then [ @primary ].concat data_packets
-      else (err = new Error "cannot verify sigtype #{@type}"); []
+      when T.issuer, T.personal, T.casual, T.positive 
+        data_packets
+      when T.subkey_binding, T.primary_binding
+        packets = []        
+        if data_packets.length isnt 1
+          err =  new Error "Wrong number of data packets; expected only 1"
+        else if not @primary?
+          err = new Error "Need a primary key for subkey signature"
+        else
+          subkey = data_packets[0]
+          packets = [ @primary, subkey ]
+        packets
+      else 
+        err = new Error "cannot verify sigtype #{@type}"
+        []
+
+    # Now actually check that the signature worked.
     unless err?
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
       err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
+
+    # Now make sure that the signature wasn't expired
     unless err?
-      # go ahead and check that the signature hasn't expired...
-      console.log "WRITE ME!"
+      err = @_check_key_sig_expiration()
+
     unless err?
       switch @type
-        when T.issuer, T.personal, T.casual, T.positive then data_packets[0].self_signed = @type
-        when T.subkey_binding                           then data_packets[0].got_subkey_binding = true
+        when T.issuer, T.personal, T.casual, T.positive 
+          # Mark what the key was self-signed to do 
+          options = @_export_hashed_subpackets()
+          userid = data_packets[1]?.get_userid()
+          @key.self_sign = { @type, options, userid }
+        when T.subkey_binding
+          data_packets[0].got_subkey_binding = true
     cb err
 
   #-----------------
 
   is_signature : () -> true
  
+  #-----------------
+
+  _export_hashed_subpackets : () ->
+    ret = {}
+    for p in @hashed_subpackets
+      if (pair = p.export_to_option())?
+        ret[pair[0]] = pair[1]
+    ret
+
+  #-----------------
+
+  _check_key_sig_expiration : () ->
+    ret = null
+    T = C.sig_types
+    if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
+      creation = @subpacket_index.hashed[S.creation_time]
+      expiration = @subpacket_index.hashed[S.key_expiration_time]
+      if creation? and expiration?
+        now = unix_time()
+        expiration = creation.time + expiration.time
+        if (now > expiration) and expiration.time isnt 0
+          ret = new Error "Key expired #{now - expiration}s ago"
+    return ret
+
 #===========================================================
 
 class SubPacket
@@ -131,6 +192,7 @@ class SubPacket
       inner
     ]
   to_sig : () -> null
+  export_to_option : () -> null
 
 #------------
 
@@ -321,6 +383,7 @@ class KeyFlags extends Preference
   constructor : (v) ->
     super S.key_flags, v
   @parse : (slice) -> Preference.parse slice, KeyFlags
+  export_to_option : -> [ "flags" , @v[0] ]
 
 #------------
 
@@ -403,14 +466,7 @@ class Parser
     o.hashed_subpackets = (@parse_subpacket() while @slice.i < end)
     unhashed_subpacket_count = @slice.read_uint16()
     end = @slice.i + unhashed_subpacket_count
-    o.unhashed_subpackets = while @slice.i < end 
-      console.log "A @slice.i -> #{@slice.i}"
-      console.log "A end -> #{end}"
-      sp = @parse_subpacket()
-      console.log sp
-      console.log "B @slice.i -> #{@slice.i}"
-      console.log "B end -> #{end}"
-      sp
+    o.unhashed_subpackets = (@parse_subpacket() while @slice.i < end)
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
     new Signature o
