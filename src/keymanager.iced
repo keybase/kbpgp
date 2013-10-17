@@ -156,9 +156,9 @@ class KeybaseEngine extends Engine
     subkey._keybase_sigs = {}
     await @_check_can_sign [ @primary, subkey ], esc defer()
     p = new kpkts.SubkeySignature { @primary, subkey }
-    await p.sign { asp }, defer err, subkey._keybase_sigs.fwd
+    await p.sign { asp }, esc defer subkey._keybase_sigs.fwd
     p = new kpkts.SubkeyReverseSignature { @primary, subkey }
-    await p.sign { asp }, defer err, subkey._keybase_sigs.rev
+    await p.sign { asp }, esc defer subkey._keybase_sigs.rev
     cb null
 
   #-----
@@ -166,14 +166,14 @@ class KeybaseEngine extends Engine
   export_private : ({tsenc,asp}, cb) ->
     ret = new kpkts.PrivateKeyBundle {}
     esc = make_esc cb, "KeybaseEngine::export_private"
-    await primary._keybase.write_private { tsenc, asp }, esc defer primary
+    await @primary._keybase.export_private { tsenc, asp }, esc defer primary
     ret.primary =
       key : primary
       sigs :
         keybase : @self_sigs.keybase
         openpgp : @self_sigs.openpgp
     for k in @subkeys
-      await k._keybase.write_private { tsenc, @asp }, esc defer key
+      await k._keybase.export_private { tsenc, @asp }, esc defer key
       ret.subkeys.push {
         key : key
         sigs :
@@ -187,19 +187,19 @@ class KeybaseEngine extends Engine
   export_public : ({asp}, cb) ->
     ret = new kpkts.PublicKeyBundle {}
     ret.primary =
-      key : primary._keybase.write_public()
+      key : primary._keybase.export_public()
       sigs :
         keybase : @self_sigs.keybase
         openpgp : @self_sigs.openpgp
-    for k in @subkeys
-      ret.subkeys.push {
-        key : k._keybase.write_public()
+    ret.subkeys = for k in @subkeys
+      {
+        key : k._keybase.export_public()
         sigs :
           forward : k._keybase_sigs.fwd
           reverse : k._keybase_sigs.rev
       }
     cb ret.frame_packet()
-    
+
 #=================================================================
 
 class KeyManager
@@ -295,10 +295,10 @@ class KeyManager
   # A private export consists of:
   #   1. The PGP public key block
   #   2. The keybase message (Public and private keys, triplesec'ed)
-  export_private_to_server : ({asp}, cb) ->
-    await @pgp.export_public { asp }, defer err, pgp
+  export_private_to_server : ({tsenc, asp}, cb) ->
+    pgp = @pgp.export_public()
     unless err?
-      await @keybase.export_private_to_server { @tsenc, asp }, defer err, keybase
+      await @keybase.export_private { @tsenc, asp }, defer err, keybase
     ret = if err? then null else { pgp, keybase }
     cb err, ret
 
@@ -314,26 +314,29 @@ class KeyManager
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
     msg = @armored_pgp_public unless regen
-    msg = @pgp.export_public () unless msg?
+    msg = @pgp.export_public() unless msg?
     cb null, msg
 
   #-----
 
   sign_pgp : ({asp}, cb) -> @pgp.sign { asp }, cb
+  sign_keybase : ({asp}, cb) -> @keybase.sign { asp }, cb
+
+  #-----
+
+  sign : ({asp}, cb) ->
+    asp?.section "sign"
+    asp?.progress { what : "sign PGP" , total : 1, i : 0 }
+    await @sign_pgp     { asp }, defer err
+    asp?.progress { what : "sign PGP" , total : 1, i : 1 }
+    asp?.progress { what : "sign keybase" , total : 1, i : 0 }
+    await @sign_keybase { asp }, defer err unless err?
+    asp?.progress { what : "sign keybase" , total : 1, i : 1 }
+    cb err
   
   # /Public Interface
   #========================
   
-  _self_sign_primary : (args, cb) ->
-    @_apply_to_engines { args, meth : Engine.prototype.self_sign_primary }, cb
-
-  #----------
-
-  _sign_subkeys : (args, cb) ->
-    @_apply_to_engines { args, meth : Engine.prototype.sign_subkeys }, cb
-
-  #----------
-
   _apply_to_engines : ({args, meth}, cb) ->
     err = null
     for e in @engines when not err
