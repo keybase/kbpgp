@@ -17,12 +17,14 @@ class KeyWrapper
 #=================================================================
 
 class Subkey extends KeyWrapper
-  constructor : ({key, @desc, lifespan, @primary}) -> super { key, lifespan }
+  constructor : ({key, _pgp, _keybase, @desc, lifespan, @primary}) -> 
+    super { key, lifespan, _pgp, _keybase }
 
 #=================================================================
 
 class Primary extends KeyWrapper
-  constructor : ({key, lifespan}) -> super { key, lifespan }
+  constructor : ({key, lifespan, _pgp, _keybase}) -> 
+    super { key, lifespan, _pgp, _keybase }
 
 #=================================================================
 

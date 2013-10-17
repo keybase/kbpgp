@@ -15,6 +15,7 @@ S = require './signature'
 {encode} = require '../armor'
 {S2K} = require '../s2k'
 symmetric = require '../../symmetric'
+util = require 'util'
 
 #=================================================================================
 
@@ -138,6 +139,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   self_sign_key : ({uidp, lifespan}, cb) ->
+    console.log util.inspect @, { depth: null}
     err = sig = null
     if @key.can_sign()
       await @_self_sign_key { uidp, lifespan }, defer err, sig

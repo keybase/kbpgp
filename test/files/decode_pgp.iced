@@ -182,7 +182,7 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
   T.no_error err
   await bundle.sign_pgp {asp}, defer err
   T.no_error err
-  await bundle.export_pgp_to_public_client {asp}, defer err, msg
+  await bundle.export_pgp_public_to_client {asp}, defer err, msg
   T.no_error err
   console.log msg
   cb()

@@ -6,6 +6,7 @@ S = C.sig_subpacket
 {unix_time,uint_to_buffer} = require '../../util'
 {alloc_or_throw,SHA512,SHA1} = require '../../hash'
 asymmetric = require '../../asymmetric'
+util = require 'util'
 
 #===========================================================
 
@@ -154,6 +155,8 @@ class Signature extends Packet
           options = @_export_hashed_subpackets()
           userid = data_packets[1]?.get_userid()
           primary.self_sig = { @type, options, userid, @raw }
+          console.log "verifying the primary ---> "
+          console.log util.inspect primary, { depth : null }
         when T.subkey_binding
           subkey.signed = { @primary, @raw } unless subkey.signed?
           subkey.signed.primary_of_subkey = true
