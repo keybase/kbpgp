@@ -24,8 +24,9 @@ frame = (t) ->
 
 b64e = (d) ->
   raw = d.toString 'base64'
-  parts = for i in [0...raw.length] by 60
-    end = Math.min(i+60,raw.length)
+  w = 64
+  parts = for i in [0...raw.length] by w
+    end = Math.min(i+w,raw.length)
     raw[i...end]
   make_line parts.join("\n")
 

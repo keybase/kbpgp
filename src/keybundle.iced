@@ -9,8 +9,8 @@ C = require('./const').openpgp
 {parse} = require './openpgp/parser'
 {KeyBlock} = require './openpgp/processor'
 
-opkts = require './openpgp/packet/all.iced'
-kpkts = require './keybase/packet/all.iced'
+opkts = require './openpgp/packet/all'
+kpkts = require './keybase/packet/all'
 
 #=================================================================
 
@@ -23,8 +23,8 @@ class Encryption
 
 class UserIds
   constructor : ({@openpgp, @keybase}) ->
-  get_keybase : () -> "#{@keybase}@keybase.io"
-  get_openpgp : () -> @openpgp or @get_keybase()
+  get_keybase : () -> @keybase
+  get_openpgp : () -> @openpgp 
 
 #=================================================================
 
@@ -81,7 +81,7 @@ class PgpEngine extends Engine
   #--------
   
   userid_packet : () ->
-    @_uidp = new opkts.UserID @userids.get_keybase() unless @_uidp?
+    @_uidp = new opkts.UserID @userids.get_openpgp() unless @_uidp?
     @_uidp
 
   #--------
@@ -103,6 +103,7 @@ class PgpEngine extends Engine
     packets = [ @primary._pgp.public_framed(), @userid_packet().write(), @self_sig ]
     for subkey in @subkeys
       packets.push subkey._pgp.public_framed({subkey : true}), subkey._pgp_sig
+    buf = Buffer.concat(packets)
     encode C.message_types.public_key, Buffer.concat(packets)
 
 #=================================================================
@@ -154,7 +155,7 @@ class KeybaseEngine extends Engine
 
 class KeyBundle
 
-  constructor : ({@primary, @subkeys, @userids}) ->
+  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public}) ->
     @tsenc = null
     @pgp = new PgpEngine { @primary, @subkeys, @userids }
     @keybase = new KeybaseEngine { @primary, @subkeys, @userids }
@@ -211,6 +212,7 @@ class KeyBundle
       bundle = new KeyBundle { 
         primary : KeyBundle._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyBundle._wrap_pgp(Subkey, k) for k in kb.subkeys), 
+        armored_pgp_public : raw,
         userids }
     cb err, bundle
 
@@ -257,8 +259,9 @@ class KeyBundle
   
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
   # to the client...
-  export_pgp_public_to_client : ({asp}, cb) ->
-    msg = @pgp.export_public_to_client()
+  export_pgp_public_to_client : ({asp, regen}, cb) ->
+    msg = @armored_pgp_public unless regen
+    msg = @pgp.export_public_to_client() unless msg?
     cb null, msg
 
   #-----

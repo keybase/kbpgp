@@ -148,17 +148,16 @@ class Signature extends Packet
       err = @_check_key_sig_expiration()
 
     # Now mark the object that was vouched for
+    sig = @
     unless err?
       switch @type
         when T.issuer, T.personal, T.casual, T.positive 
           # Mark what the key was self-signed to do 
           options = @_export_hashed_subpackets()
           userid = data_packets[1]?.get_userid()
-          primary.self_sig = { @type, options, userid, @raw }
-          console.log "verifying the primary ---> "
-          console.log util.inspect primary, { depth : null }
+          primary.self_sig = { @type, options, userid, sig }
         when T.subkey_binding
-          subkey.signed = { @primary, @raw } unless subkey.signed?
+          subkey.signed = { @primary, sig } unless subkey.signed?
           subkey.signed.primary_of_subkey = true
         when T.primary_binding
           subkey.signed = { @primary } unless subkey.signed?

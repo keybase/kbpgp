@@ -139,11 +139,12 @@ class KeyMaterial extends Packet
   #--------------------------
 
   self_sign_key : ({uidp, lifespan}, cb) ->
-    console.log util.inspect @, { depth: null}
     err = sig = null
     if @key.can_sign()
       await @_self_sign_key { uidp, lifespan }, defer err, sig
-    else if not (sig = @self_sig.raw)?
+    else if (sig = @self_sig.sig )?
+      sig = sig.replay()
+    else
       err = new Error "Cannot sign key --- don't have a private key"
     cb err, sig
 
@@ -179,7 +180,9 @@ class KeyMaterial extends Packet
     err = sig = null
     if @key.can_sign() and subkey.key.can_sign()
       await @_sign_subkey { subkey, lifespan }, defer err, sig
-    else if not (sig = subkey.signed.raw)?
+    else if (sig = subkey.signed.sig)?
+      sig = sig.replay()
+    else
       err = new Error "Cannot sign key --- don't have private key"
     cb err, sig
 
