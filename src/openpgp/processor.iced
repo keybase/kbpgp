@@ -28,7 +28,6 @@ class KeyBlock
   #--------------------
 
   _check_primary : () ->
-    console.log @primary.self_sig
     err = if not @primary.self_sig?.type
       new Error "no valid primary key self-signature"
     else if not @primary.self_sig.userid?
