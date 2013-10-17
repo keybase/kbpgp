@@ -12,6 +12,12 @@ C = require('./const').openpgp
 opkts = require './openpgp/packet/all'
 kpkts = require './keybase/packet/all'
 
+##
+## KeyBundle
+## 
+##
+##  
+
 #=================================================================
 
 class Encryption 
@@ -155,7 +161,7 @@ class KeybaseEngine extends Engine
 
 class KeyBundle
 
-  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public}) ->
+  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @nbits}) ->
     @tsenc = null
     @pgp = new PgpEngine { @primary, @subkeys, @userids }
     @keybase = new KeybaseEngine { @primary, @subkeys, @userids }
@@ -171,14 +177,14 @@ class KeyBundle
     generated = unix_time()
     esc = make_esc cb, "KeyBundle::generate"
     asp.section "primary"
-    await RSA.generate { asp, nbits: K.key_defaults.primary.nbits }, esc defer key
+    await RSA.generate { asp, nbits: (@nbits or K.key_defaults.primary.nbits) }, esc defer key
     lifespan = new Lifespan { generated, expire_in : K.key_defaults.primary.expire_in }
     primary = new Primary { key, lifespan }
     subkeys = []
     lifespan = new Lifespan { generated, expire_in : K.key_defaults.sub.expire_in }
     for i in [0...nsubs]
       asp.section "subkey #{i+1}"
-      await RSA.generate { asp, nbits: K.key_defaults.sub.nbits }, esc defer key
+      await RSA.generate { asp, nbits: (@nbits or K.key_defaults.sub.nbits) }, esc defer key
       subkeys.push new Subkey { key, desc : "subkey #{i}", primary, lifespan }
     bundle = new KeyBundle { primary, subkeys, userids }
 
