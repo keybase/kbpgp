@@ -4,7 +4,9 @@ C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {unix_time,bufferify} = require './util'
 {Lifespan,Subkey,Primary} = require './keywrapper'
+
 {encode,decode} = require './openpgp/armor'
+{parse} = require './openpgp/parser'
 
 opkts = require './openpgp/packet/all.iced'
 kpkts = require './keybase/packet/all.iced'
@@ -174,6 +176,13 @@ class KeyBundle
  
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   @import_from_armored_pgp_public : ({raw, asp}, cb) ->
+    [err,msg] = decode raw
+    unless err?
+      [err,packets] = parse msg
+    unless err?
+      processor = new Processor packets
+      await processor.verify_signatures defer err
+    cb err
 
   #------------
  

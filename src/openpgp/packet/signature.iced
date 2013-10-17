@@ -79,6 +79,22 @@ class Signature extends Packet
   #-----------------
 
   verify : (data_packets, cb) ->
+    await @_verify data_packets, defer err
+    for p in @unhashed_subpackets when (not err? and (s = p.to_sig())?)
+      if s.type is C.sig_types.primary_binding
+        subkey = data_packets[0]
+        s.primary = @primary
+        s.key = subkey.key
+        await s._verify data_packets, defer err
+        unless err?
+          subkey.got_primary_binding = true
+      else
+        err = new Error "unknown subpacket signature type: #{s.type}"
+    cb err
+
+  #-----------------
+
+  _verify : (data_packets, cb) ->
     err = null
     T = C.sig_types
     @data_packets = switch @type
@@ -90,6 +106,13 @@ class Signature extends Packet
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
       err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
+    unless err?
+      # go ahead and check that the signature hasn't expired...
+      console.log "WRITE ME!"
+    unless err?
+      switch @type
+        when T.issuer, T.personal, T.casual, T.positive then data_packets[0].self_signed = @type
+        when T.subkey_binding                           then data_packets[0].got_subkey_binding = true
     cb err
 
   #-----------------
@@ -107,6 +130,7 @@ class SubPacket
       uint_to_buffer(8, @type),
       inner
     ]
+  to_sig : () -> null
 
 #------------
 
@@ -341,6 +365,7 @@ class EmbeddedSignature extends SubPacket
   constructor : ({@sig, @rawsig}) ->
     super S.embedded_signature
   _v_to_buffer : () -> @rawsig
+  to_sig : () -> @sig
   @parse : (slice) -> 
     new EmbeddedSignature { sig : Signature.parse slice }
 
