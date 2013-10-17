@@ -6,7 +6,7 @@ main = (cb) ->
   esc = make_esc cb, "main"
   asp = new ASP { }
   await KeyBundle.generate { asp, nsubs : 1, userid : 'maxtaco' }, esc defer bundle
-  await bundle.sign {asp}, esc defer()
+  await bundle.sign_pgp {asp}, esc defer()
   await bundle.export_pgp_public_to_client {asp}, esc defer pub
   console.log pub
   cb()

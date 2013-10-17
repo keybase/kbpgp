@@ -10,7 +10,7 @@ class Lifespan
 #=================================================================
 
 class KeyWrapper
-  constructor : ({@key, @lifespan}) ->
+  constructor : ({@key, @lifespan, @_pgp, @_keybase}) ->
   kid : () -> @key.kid()
   ekid : () -> @key.ekid()
 

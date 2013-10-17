@@ -53,6 +53,13 @@ class Engine
       await @_v_sign_subkey {asp, subkey}, defer err
     cb err
 
+  #--------
+
+  sign : ({asp}, cb) ->
+    await @self_sign_primary { asp }, defer err
+    await @sign_subkeys { asp }, defer err unless err?
+    cb err
+
 #=================================================================
 
 class PgpEngine extends Engine
@@ -65,8 +72,11 @@ class PgpEngine extends Engine
   #--------
   
   _v_allocate_key_packet : (key) ->
-    key._pgp = new opkts.KeyMaterial { key : key.key, timestamp : key.lifespan.generated, userid : @userids.get_keybase() }
-    key._sig = key.raw_sig
+    unless key._pgp?
+      key._pgp = new opkts.KeyMaterial { 
+        key : key.key, 
+        timestamp : key.lifespan.generated, 
+        userid : @userids.get_keybase() }
 
   #--------
   
@@ -104,13 +114,26 @@ class KeybaseEngine extends Engine
 
   #-----
 
+  _check_can_sign : (keys,cb) ->
+    err = null
+    for k in keys when not err?
+      err = new Error "cannot sign; don't have private key" unless k.key.can_sign()
+    cb err
+
+  #-----
+
   _v_allocate_key_packet : (key) ->
-    key._keybase = new kpkts.KeyMaterial { key : key.key, timestamp : key.generated, userid : @userids.get_keybase() }
+    unless key._keybase?
+      key._keybase = new kpkts.KeyMaterial { 
+        key : key.key, 
+        timestamp : key.lifespan.generated, 
+        userid : @userids.get_keybase() }
 
   #-----
 
   _v_self_sign_primary : ({asp}, cb) ->
     esc = make_esc cb, "KeybaseEngine::_v_self_sign_primary"
+    await @_check_can_sign [@primary], esc defer()
     @self_sigs = {}
     p = new kpkts.SelfSignKeybaseUsername { key_wrapper : @primary, @userids }
     await p.sign { asp }, esc defer @self_sigs.openpgp
@@ -121,6 +144,7 @@ class KeybaseEngine extends Engine
   #-----
 
   _v_sign_subkey : ({asp, subkey}, cb) ->
+    await @_check_can_sign [ @primary, subkey ], esc defer()
     p = new kpkts.SubkeySignature { @primary, subkey }
     await p.sign { asp }, defer err, sig
     subkey._keybase_sig = sig
@@ -172,15 +196,21 @@ class KeyBundle
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   @import_from_armored_pgp_public : ({raw, asp, userid}, cb) ->
     [err,msg] = decode raw
+    unless err?
+      if msg.type isnt C.message_types.public_key
+        err = new Error "Wanted a public key; got: #{msg.type}"
     bundle = null
     unless err?
-      [err,packets] = parse msg
+      [err,packets] = parse msg.body
     unless err?
       kb = new KeyBlock packets
       await kb.process defer err
     unless err?
       userids = new UserIds { openpgp : kb.userid, keybase : userid }
-      bundle = new KeyBundle { primary : kb.primary, subkeys : kb.subkeys, userids }
+      bundle = new KeyBundle { 
+        primary : KeyBundle._wrap_pgp(Primary, kb.primary), 
+        subkeys : (KeyBundle._wrap_pgp(Subkey, k) for k in kb.subkeys), 
+        userids }
     cb err, bundle
 
   #------------
@@ -232,12 +262,8 @@ class KeyBundle
 
   #-----
 
-  sign : ({asp}, cb) ->
-    esc = make_esc cb, "KeyBundle::_sign_pgp"
-    await @_self_sign_primary { asp }, esc defer()
-    await @_sign_subkeys { asp }, esc defer()
-    cb null
-
+  sign_pgp : ({asp}, cb) -> @pgp.sign { asp }, cb
+  
   # /Public Interface
   #========================
   
@@ -256,6 +282,16 @@ class KeyBundle
     for e in @engines when not err
       await meth.call e, args, defer(err)
     cb err
+
+  #----------
+
+  # @param {openpgp.KeyMaterial} kmp An openpgp KeyMaterial packet
+  @_wrap_pgp : (klass, kmp) ->
+    new klass { 
+      key : kmp.key, 
+      lifespan : new Lifespan { generated : kmp.timestamp }
+      _pgp : kmp
+    }
 
   #----------
 
