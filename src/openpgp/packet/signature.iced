@@ -109,13 +109,18 @@ class Signature extends Packet
     err = null
     T = C.sig_types
 
-    subkey = null
+    primary = subkey = null
 
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
     @data_packets = switch @type
       when T.issuer, T.personal, T.casual, T.positive 
-        data_packets
+        primary = data_packets[0]
+        if primary.equal @primary
+          data_packets
+        else
+          err = new Error "Internal error; got confused on primary != @primary"
+          []
       when T.subkey_binding, T.primary_binding
         packets = []        
         if data_packets.length isnt 1
@@ -148,12 +153,12 @@ class Signature extends Packet
           # Mark what the key was self-signed to do 
           options = @_export_hashed_subpackets()
           userid = data_packets[1]?.get_userid()
-          @key.self_sign = { @type, options, userid }
+          primary.self_sig = { @type, options, userid }
         when T.subkey_binding
-          subkey.signed = {} unless subkey.signed?
+          subkey.signed = { @primary } unless subkey.signed?
           subkey.signed.primary_of_subkey = true
         when T.primary_binding
-          subkey.signed = {} unless subkey.signed?
+          subkey.signed = { @primary } unless subkey.signed?
           subkey.signed.subkey_of_primary = true
     cb err
 

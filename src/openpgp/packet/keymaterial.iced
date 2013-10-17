@@ -23,8 +23,8 @@ symmetric = require '../../symmetric'
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @primary}) ->
-    console.log "fuuuck #{@primary}"
+  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, primary}) ->
+    @primary_flag = primary
     @uidp = new UserID @userid if @userid?
     super()
     F = C.key_flags
@@ -231,7 +231,21 @@ class KeyMaterial extends Packet
   #--------------------------
 
   is_key_material : () -> true
-  is_primary : -> @primary
+  is_primary : -> @primary_flag
+  ekid : () -> @key.ekid()
+
+  #--------------------------
+
+  is_signed_subkey_of : (primary) ->
+    ((not @primary_flag) and 
+     @signed? and 
+     @signed.subkey_of_primary and 
+     @signed.primary_of_subkey and
+     @signed.primary.equal(primary))
+
+  #--------------------------
+
+  equal : (k2) -> bufeq_secure @ekid(), k2.ekid()
 
   #--------------------------
 
