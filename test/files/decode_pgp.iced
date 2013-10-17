@@ -179,7 +179,7 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
   T.no_error err
   await b1.sign_pgp {asp}, defer err
   T.no_error err
-  await b1.export_pgp_public_to_client {asp, regen : true}, defer err, raw
+  await b1.export_pgp_public {asp, regen : true}, defer err, raw
   T.no_error err
   await KeyManager.import_from_armored_pgp_public { asp, raw, userid }, defer err, b2
   T.no_error err

@@ -106,7 +106,7 @@ class PgpEngine extends Engine
 
   #--------
 
-  export_public_to_client : () ->
+  export_public : () ->
     packets = [ @primary._pgp.public_framed(), @userid_packet().write(), @self_sig ]
     for subkey in @subkeys
       packets.push subkey._pgp.public_framed({subkey : true}), subkey._pgp_sig
@@ -152,12 +152,54 @@ class KeybaseEngine extends Engine
   #-----
 
   _v_sign_subkey : ({asp, subkey}, cb) ->
+    esc = make_esc cb, "KeybaseEngine::_v_sign_subkey"
+    subkey._keybase_sigs = {}
     await @_check_can_sign [ @primary, subkey ], esc defer()
     p = new kpkts.SubkeySignature { @primary, subkey }
-    await p.sign { asp }, defer err, sig
-    subkey._keybase_sig = sig
-    cb err
+    await p.sign { asp }, defer err, subkey._keybase_sigs.fwd
+    p = new kpkts.SubkeyReverseSignature { @primary, subkey }
+    await p.sign { asp }, defer err, subkey._keybase_sigs.rev
+    cb null
 
+  #-----
+
+  export_private : ({tsenc,asp}, cb) ->
+    ret = new kpkts.PrivateKeyBundle {}
+    esc = make_esc cb, "KeybaseEngine::export_private"
+    await primary._keybase.write_private { tsenc, asp }, esc defer primary
+    ret.primary =
+      key : primary
+      sigs :
+        keybase : @self_sigs.keybase
+        openpgp : @self_sigs.openpgp
+    for k in @subkeys
+      await k._keybase.write_private { tsenc, @asp }, esc defer key
+      ret.subkeys.push {
+        key : key
+        sigs :
+          forward : k._keybase_sigs.fwd
+          reverse : k._keybase_sigs.rev
+      }
+    cb ret.frame_packet()
+
+  #-----
+
+  export_public : ({asp}, cb) ->
+    ret = new kpkts.PublicKeyBundle {}
+    ret.primary =
+      key : primary._keybase.write_public()
+      sigs :
+        keybase : @self_sigs.keybase
+        openpgp : @self_sigs.openpgp
+    for k in @subkeys
+      ret.subkeys.push {
+        key : k._keybase.write_public()
+        sigs :
+          forward : k._keybase_sigs.fwd
+          reverse : k._keybase_sigs.rev
+      }
+    cb ret.frame_packet()
+    
 #=================================================================
 
 class KeyManager
@@ -251,9 +293,14 @@ class KeyManager
   #-----
   
   # A private export consists of:
-  #   1. The redacted PGP message
-  #   2. The keybase message (Public and private keys)
+  #   1. The PGP public key block
+  #   2. The keybase message (Public and private keys, triplesec'ed)
   export_private_to_server : ({asp}, cb) ->
+    await @pgp.export_public { asp }, defer err, pgp
+    unless err?
+      await @keybase.export_private_to_server { @tsenc, asp }, defer err, keybase
+    ret = if err? then null else { pgp, keybase }
+    cb err, ret
 
   #-----
   
@@ -265,9 +312,9 @@ class KeyManager
   
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
   # to the client...
-  export_pgp_public_to_client : ({asp, regen}, cb) ->
+  export_pgp_public : ({asp, regen}, cb) ->
     msg = @armored_pgp_public unless regen
-    msg = @pgp.export_public_to_client() unless msg?
+    msg = @pgp.export_public () unless msg?
     cb null, msg
 
   #-----
