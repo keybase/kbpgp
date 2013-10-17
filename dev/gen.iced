@@ -1,6 +1,7 @@
 {KeyManager} = require '../src/keymanager'
 {ASP} = require '../src/util'
 {make_esc} = require 'iced-error'
+util = require 'util'
  
 progress_hook = (obj) ->
   if obj.p?
@@ -16,8 +17,10 @@ main = (cb) ->
   asp = new ASP { progress_hook }
   await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userid : 'maxtaco@keybase.io' }, esc defer bundle
   await bundle.sign {asp}, esc defer()
+  console.log "A"
   await bundle.export_private_to_server {asp}, esc defer pair
-  console.log pair
+  console.log "B"
+  console.log util.inspect(pair, { depth : null })
   cb()
 
 await main defer err

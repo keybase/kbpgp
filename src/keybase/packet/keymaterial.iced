@@ -25,11 +25,8 @@ class KeyMaterial extends Packet
   #--------------------------
 
   export_private : ({tsenc, asp}, cb) ->
-    console.log "A"
     ret = @export_public()
     priv = @key.priv.serialize()
-
-    console.log "B"
 
     if tsenc?
       await tsenc.encrypt { data : priv, progress_hook : asp.progress_hook() }, defer err, epriv
@@ -42,8 +39,6 @@ class KeyMaterial extends Packet
       ret.priv = 
         data : priv
         encryption : K.key_encryption.none
-        
-    console.log "C"
 
     cb err, ret
 

@@ -180,7 +180,7 @@ class KeybaseEngine extends Engine
           forward : k._keybase_sigs.fwd
           reverse : k._keybase_sigs.rev
       }
-    cb ret.frame_packet()
+    cb null, ret.frame_packet()
 
   #-----
 
