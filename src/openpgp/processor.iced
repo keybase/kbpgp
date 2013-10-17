@@ -9,6 +9,7 @@ class KeyBlock
     @verified_signatures = []
     @subkeys = []
     @primary = null
+    @userid = null
 
   #--------------------
 
@@ -30,7 +31,7 @@ class KeyBlock
   _check_primary : () ->
     err = if not @primary.self_sig?.type
       new Error "no valid primary key self-signature"
-    else if not @primary.self_sig.userid?
+    else if not (@userid = @primary.self_sig.userid)?
       new Error "no valid Userid signed into key"
     else null
 
