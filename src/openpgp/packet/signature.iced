@@ -97,8 +97,6 @@ class Signature extends Packet
         s.primary = @primary
         s.key = subkey.key
         await s._verify data_packets, defer err
-        unless err?
-          subkey.got_primary_binding = true
       else
         err = new Error "unknown subpacket signature type: #{s.type}"
     cb err
@@ -141,6 +139,7 @@ class Signature extends Packet
     unless err?
       err = @_check_key_sig_expiration()
 
+    # Now mark the object that was vouched for
     unless err?
       switch @type
         when T.issuer, T.personal, T.casual, T.positive 
@@ -149,7 +148,11 @@ class Signature extends Packet
           userid = data_packets[1]?.get_userid()
           @key.self_sign = { @type, options, userid }
         when T.subkey_binding
-          data_packets[0].got_subkey_binding = true
+          subkey.signed = {} unless subkey.signed?
+          subkey.signed.primary_of_subkey = true
+        when T.primary_binding
+          subkey.signed = {} unless subkey.signed?
+          subkey.signed.subkey_of_primary = true
     cb err
 
   #-----------------
