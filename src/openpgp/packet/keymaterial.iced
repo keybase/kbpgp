@@ -267,13 +267,14 @@ class KeyMaterial extends Packet
   is_key_material : () -> true
   is_primary : -> @primary_flag
   ekid : () -> @key.ekid()
+  can_sign : () -> @key.can_sign()
 
   #--------------------------
 
   is_signed_subkey_of : (primary) ->
+    # See Issue #19
     ((not @primary_flag) and 
      @signed? and 
-     @signed.subkey_of_primary and 
      @signed.primary_of_subkey and
      @signed.primary.equal(primary))
 

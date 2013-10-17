@@ -208,7 +208,6 @@ class KeyBundle
       await kb.process defer err
     unless err?
       userids = new UserIds { openpgp : kb.userid, keybase : userid }
-
       bundle = new KeyBundle { 
         primary : KeyBundle._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyBundle._wrap_pgp(Subkey, k) for k in kb.subkeys), 
