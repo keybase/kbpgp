@@ -92,13 +92,15 @@ class Signature extends Packet
   verify : (data_packets, cb) ->
     await @_verify data_packets, defer err
     for p in @unhashed_subpackets when (not err? and (s = p.to_sig())?)
-      if s.type is C.sig_types.primary_binding
+      if s.type isnt C.sig_types.primary_binding 
+        err = new Error "unknown subpacket signature type: #{s.type}"
+      else if data_packets.length isnt 1 
+        err = new Error "Needed 1 data packet for a primary_binding signature"
+      else
         subkey = data_packets[0]
         s.primary = @primary
         s.key = subkey.key
-        await s._verify data_packets, defer err
-      else
-        err = new Error "unknown subpacket signature type: #{s.type}"
+        await s._verify [ subkey ], defer err
     cb err
 
   #-----------------
