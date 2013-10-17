@@ -23,7 +23,8 @@ symmetric = require '../../symmetric'
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase, @skm}) ->
+  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @primary}) ->
+    console.log "fuuuck #{@primary}"
     @uidp = new UserID @userid if @userid?
     super()
     F = C.key_flags
@@ -221,15 +222,16 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  @parse_public_key : (slice) -> (new Parser slice).parse_public_key()
+  @parse_public_key : (slice, primary) -> (new Parser slice).parse_public_key primary
 
   #--------------------------
 
-  @parse_private_key : (slice) -> (new Parser slice).parse_private_key()
+  @parse_private_key : (slice, primary) -> (new Parser slice).parse_private_key primary
   
   #--------------------------
 
   is_key_material : () -> true
+  is_primary : -> @primary
 
   #--------------------------
 
@@ -310,9 +312,9 @@ class Parser
       when C.versions.keymaterial.V4 then @parse_public_key_v4()
       else throw new Error "Unknown public key version: #{version}"
 
-  parse_public_key : () ->
+  parse_public_key : (primary) ->
     key = @_parse_public_key()
-    new KeyMaterial { key, @timestamp }
+    new KeyMaterial { key, @timestamp, primary }
 
   #-------------------
 
@@ -320,7 +322,7 @@ class Parser
   #
   # See read_priv_key in openpgp.packet.keymaterial.js
   #
-  parse_private_key : () ->
+  parse_private_key : (primary) ->
     skm = {}
     key = @_parse_public_key()
 
@@ -344,7 +346,7 @@ class Parser
       skm.payload = null
     else 
       skm.payload = @slice.consume_rest_to_buffer()
-    new KeyMaterial { key, skm, @timestamp }
+    new KeyMaterial { key, skm, @timestamp, primary }
 
 #=================================================================================
 
