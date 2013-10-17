@@ -66,6 +66,7 @@ class PgpEngine extends Engine
   
   _v_allocate_key_packet : (key) ->
     key._pgp = new opkts.KeyMaterial { key : key.key, timestamp : key.lifespan.generated, userid : @userids.get_keybase() }
+    key._sig = key.raw_sig
 
   #--------
   
@@ -82,15 +83,8 @@ class PgpEngine extends Engine
   #--------
   
   _v_sign_subkey : ({asp, subkey}, cb) ->
-    arg = 
-      primary : @primary._pgp, 
-      lifespan : subkey.lifespan
-    await subkey._pgp.sign_primary arg, defer err, primary_binding
-    unless err?
-      arg.subkey = subkey._pgp
-      arg.primary_binding = primary_binding
-      await @primary._pgp.sign_subkey arg, defer err, sig
-    subkey._pgp_sig = sig    
+    await @primary._pgp.sign_subkey { subkey : subkey._pgp, lifespan : subkey.lifespan }, defer err, sig
+    subkey._pgp_sig = sig
     cb err
 
   #--------
@@ -176,7 +170,7 @@ class KeyBundle
   #------------
  
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
-  @import_from_armored_pgp_public : ({raw, asp}, cb) ->
+  @import_from_armored_pgp_public : ({raw, asp, userid}, cb) ->
     [err,msg] = decode raw
     bundle = null
     unless err?
@@ -185,15 +179,9 @@ class KeyBundle
       kb = new KeyBlock packets
       await kb.process defer err
     unless err?
-      userids = new UserIds { openpgp : bundle.userid }
+      userids = new UserIds { openpgp : kb.userid, keybase : userid }
       bundle = new KeyBundle { primary : kb.primary, subkeys : kb.subkeys, userids }
     cb err, bundle
-
-  #------------
- 
-  # Verify a key for sanity, and check its signatures, and that the keys
-  # haven't expired.
-  verify : ({asp}, cb) ->
 
   #------------
  
