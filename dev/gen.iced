@@ -1,11 +1,11 @@
-{KeyBundle} = require '../src/keybundle'
+{KeyManager} = require '../src/keymanager'
 {ASP} = require '../src/util'
 {make_esc} = require 'iced-error'
 
 main = (cb) ->
   esc = make_esc cb, "main"
   asp = new ASP { }
-  await KeyBundle.generate { asp, nsubs : 1, userid : 'maxtaco' }, esc defer bundle
+  await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userid : 'maxtaco@keybase.io' }, esc defer bundle
   await bundle.sign_pgp {asp}, esc defer()
   await bundle.export_pgp_public_to_client {asp}, esc defer pub
   console.log pub

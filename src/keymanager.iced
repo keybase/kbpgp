@@ -13,10 +13,11 @@ opkts = require './openpgp/packet/all'
 kpkts = require './keybase/packet/all'
 
 ##
-## KeyBundle
+## KeyManager
 ## 
+##   Manage the generation, import and export of keys, in either OpenPGP or
+##   keybase form.
 ##
-##  
 
 #=================================================================
 
@@ -159,9 +160,9 @@ class KeybaseEngine extends Engine
 
 #=================================================================
 
-class KeyBundle
+class KeyManager
 
-  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @nbits}) ->
+  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public}) ->
     @tsenc = null
     @pgp = new PgpEngine { @primary, @subkeys, @userids }
     @keybase = new KeybaseEngine { @primary, @subkeys, @userids }
@@ -172,21 +173,21 @@ class KeyBundle
 
   # Generate a new key bunlde from scratch.  Make the given number
   # of subkeys.
-  @generate : ({asp, nsubs, userid }, cb) ->
-    userids = new UserIds { keybase : userid }
+  @generate : ({asp, nsubs, userid, nbits }, cb) ->
+    userids = new UserIds { keybase : userid, openpgp : userid }
     generated = unix_time()
-    esc = make_esc cb, "KeyBundle::generate"
+    esc = make_esc cb, "KeyManager::generate"
     asp.section "primary"
-    await RSA.generate { asp, nbits: (@nbits or K.key_defaults.primary.nbits) }, esc defer key
+    await RSA.generate { asp, nbits: (nbits or K.key_defaults.primary.nbits) }, esc defer key
     lifespan = new Lifespan { generated, expire_in : K.key_defaults.primary.expire_in }
     primary = new Primary { key, lifespan }
     subkeys = []
     lifespan = new Lifespan { generated, expire_in : K.key_defaults.sub.expire_in }
     for i in [0...nsubs]
       asp.section "subkey #{i+1}"
-      await RSA.generate { asp, nbits: (@nbits or K.key_defaults.sub.nbits) }, esc defer key
+      await RSA.generate { asp, nbits: (nbits or K.key_defaults.sub.nbits) }, esc defer key
       subkeys.push new Subkey { key, desc : "subkey #{i}", primary, lifespan }
-    bundle = new KeyBundle { primary, subkeys, userids }
+    bundle = new KeyManager { primary, subkeys, userids }
 
     cb null, bundle
 
@@ -214,9 +215,9 @@ class KeyBundle
       await kb.process defer err
     unless err?
       userids = new UserIds { openpgp : kb.userid, keybase : userid }
-      bundle = new KeyBundle { 
-        primary : KeyBundle._wrap_pgp(Primary, kb.primary), 
-        subkeys : (KeyBundle._wrap_pgp(Subkey, k) for k in kb.subkeys), 
+      bundle = new KeyManager { 
+        primary : KeyManager._wrap_pgp(Primary, kb.primary), 
+        subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
         armored_pgp_public : raw,
         userids }
     cb err, bundle
@@ -310,5 +311,5 @@ class KeyBundle
 
 #=================================================================
 
-exports.KeyBundle = KeyBundle
+exports.KeyManager = KeyManager
 exports.Encryption = Encryption

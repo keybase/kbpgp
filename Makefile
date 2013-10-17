@@ -24,7 +24,7 @@ $(BUILD_STAMP): \
 	lib/symmetric.js \
 	lib/pad.js \
 	lib/keygen.js \
-	lib/keybundle.js \
+	lib/keymanager.js \
 	lib/keywrapper.js \
 	lib/hash.js \
 	lib/keybase/encode.js \
