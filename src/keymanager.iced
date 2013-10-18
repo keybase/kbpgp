@@ -229,14 +229,15 @@ class KeybaseEngine extends Engine
     ret = new kpkts.PrivateKeyBundle {}
     esc = make_esc cb, "KeybaseEngine::export_private"
     await @primary._keybase.export_private { tsenc, asp }, esc defer primary
-    ret.primary =
+    ret.set_primary {
       key : primary
       sigs :
         keybase : @self_sigs.keybase
         openpgp : @self_sigs.openpgp
+    }
     for k in @subkeys
       await k._keybase.export_private { tsenc, asp }, esc defer key
-      ret.subkeys.push {
+      ret.push_subkey {
         key : key
         sigs :
           forward : k._keybase_sigs.fwd
@@ -248,13 +249,14 @@ class KeybaseEngine extends Engine
 
   export_public : ({asp}, cb) ->
     ret = new kpkts.PublicKeyBundle {}
-    ret.primary =
+    ret.set_primary {
       key : primary._keybase.export_public()
       sigs :
         keybase : @self_sigs.keybase
         openpgp : @self_sigs.openpgp
-    ret.subkeys = for k in @subkeys
-      {
+    }
+    for k in @subkeys
+      ret.push_subkey {
         key : k._keybase.export_public()
         sigs :
           forward : k._keybase_sigs.fwd
@@ -331,11 +333,13 @@ class KeyManager
   # Import from a base64-encoded-purepacked keybase key structure
   @import_from_packed_keybase : ({raw, asp}, cb) ->
     [err, {tag,body}] = unbox read_base64 raw
-    unless err?
-      if not tag in [K.packet_tags.public_key_bundle, K.packet_tags.private_key_bundle]
-        err = new Error "Wanted a public or private key: #{tag}"
-    unless err?
+    [err, bundle] = kpkts.KeyBundle.alloc { tag, body } unless err?
+    await bundle.verify { asp }, defer err unless err?
+    ret = if err? then null else bundle.to_key_manager { raw }
+    cb err, ret
  
+  #------------
+
   # After importing the public portion of the key previously,
   # add the private portions with this call.  And again, verify
   # signatures.  And check that the public portions agree.
@@ -437,3 +441,7 @@ class KeyManager
 
 exports.KeyManager = KeyManager
 exports.Encryption = Encryption
+exports.UserIds = UserIds
+
+#=================================================================
+

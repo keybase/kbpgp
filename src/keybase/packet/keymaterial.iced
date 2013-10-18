@@ -45,7 +45,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  @alloc : (secret_tag, o) ->
+  @alloc : (is_private, o, cb) ->
     ret = null
     try
       ret = new KeyMaterial { 
@@ -55,10 +55,11 @@ class KeyMaterial extends Packet
           pub : o.key.pub,
           priv : o.key.priv 
       }
-      throw new Error "didn't a private key" if secret_tag and not ret.rawkey.priv?
+      throw new Error "didn't a private key" if is_private and not ret.rawkey.priv?
+      ret.alloc_public_key())
     catch e
-      err = e 
-    [err, ret]
+      throw e
+    return ret
 
   #--------------------------
 
@@ -72,15 +73,7 @@ class KeyMaterial extends Packet
         [ err, @key ] = rsa.RSA.alloc { pub : @rawkey.pub }
       else
         err = new Error "unknown key type: #{@rawkey.type}"
-    cb err
-
-  #--------------------------
-
-  verify_self_sig : ({progress_hook}, cb) ->
-    body = @_self_sign_body()
-    type = K.signatures.self_sign_key_keybase_username
-    await verify { @key, @sig, body, type, progress_hook }, defer err
-    cb err
+    throw err if err?
 
   #--------------------------
 
