@@ -19,9 +19,6 @@ util = require 'util'
 
 #=================================================================================
 
-
-#=================================================================================
-
 class KeyMaterial extends Packet
 
   # 
@@ -52,7 +49,8 @@ class KeyMaterial extends Packet
     bufs.push salt 
     c = 96
     bufs.push new Buffer [ c ]                # ??? translates to a count of 65336 ???
-    k = (new S2K).write pp, salt, c           # expanded encryption key (via s2k)
+    ks = AES.keySize
+    k = (new S2K).write pp, salt, c, ks       # expanded encryption key (via s2k)
     ivlen = AES.blockSize                     # ivsize = msgsize
     iv = native_rng ivlen                     # Consider a truly random number in the future
     bufs.push iv                              # push the IV on before the ciphertext
@@ -250,25 +248,6 @@ class KeyMaterial extends Packet
       
     await sigpkt.write payload, defer err, sig
     cb err, sig
-
-  #--------------------------
-
-  export_keys : ({armor}, cb) ->
-    err = ret = null
-    await @_self_sign_key {}, defer err, sig
-    ret = @_encode_keys { sig, armor } unless err?
-    cb err, ret
-
-  #--------
-
-  _encode_keys : ({ sig, armor }) ->
-    uidp = @uidp.write()
-    {private_key, public_key} = C.message_types
-    # XXX always armor for now ... in the future maybe allow binary output.. See Issue #6
-    return {
-      public  : encode(public_key , Buffer.concat([ @public_framed() , uidp, sig ]))
-      private : encode(private_key, Buffer.concat([ @private_framed(), uidp, sig ]))
-    }
 
   #--------------------------
 

@@ -120,7 +120,18 @@ class PgpEngine extends Engine
     for subkey in @subkeys
       packets.push subkey._pgp.export_framed(opts), subkey._pgp_sig
     buf = Buffer.concat(packets)
-    encode C.message_types.public_key, Buffer.concat(packets)
+    mt = C.message_types
+    type = if opts.private then mt.private_key else mt.public_key
+    encode type, Buffer.concat(packets)
+
+  #--------
+
+  open_keys : ({passphrase}, cb) ->
+    esc = make_esc cb, "PgpEngine::open_keys"
+    await @primary._pgp.open { passphrase } , esc defer()
+    for subkey in @subkeys
+      await subkey._pgp.open { passphrase }, esc defer()
+    cb null
 
 #=================================================================
 
@@ -251,11 +262,12 @@ class KeyManager
   #------------
  
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
-  @import_from_armored_pgp_public : ({raw, asp, userid}, cb) ->
+  # Also works for an armored PGP PRIVATE KEY BLOCK
+  @import_from_armored_pgp : ({raw, asp, userid}, cb) ->
     [err,msg] = decode raw
     unless err?
-      if msg.type isnt C.message_types.public_key
-        err = new Error "Wanted a public key; got: #{msg.type}"
+      if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
+        err = new Error "Wanted a public or private key; got: #{msg.type}"
     bundle = null
     unless err?
       [err,packets] = parse msg.body
@@ -283,6 +295,8 @@ class KeyManager
   # Open the private PGP key with the given passphrase
   # (which is going to be different from our strong keybase passphrase).
   open_pgp : ({passphrase}, cb) ->
+    await @pgp.open_keys { passphrase }, defer err
+    cb err
 
   #-----
   

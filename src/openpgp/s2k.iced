@@ -105,12 +105,12 @@ class S2K
   #
   # @return {Buffer} Produced key of hashAlgorithm hash length
   # 
-  write : (passphrase, salt, c) ->
+  write : (passphrase, salt, c, keysize) ->
     @type = type = 3 
     @salt = salt
     @count = @_count c, 6
     @s2kLength = 10
-    @produce_key passphrase
+    @produce_key passphrase, keysize
 
   #----------------------
   
