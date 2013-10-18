@@ -27,8 +27,8 @@ main = (cb) ->
   #console.log util.inspect(pair, { depth : null })
   #console.log box(pair.keybase).toString('base64')
   console.log msg
-  await KeyManager.import_from_armored_pgp { raw : msg, asp, userid}, esc defer b2
-  await b2.open_pgp { passphrase }, esc defer()
+  await bundle.merge_pgp_private { raw : msg, asp }, esc defer b2
+  await bundle.open_pgp { passphrase }, esc defer()
   cb null
 
 await main defer err

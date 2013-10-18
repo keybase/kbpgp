@@ -251,6 +251,10 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  merge_private : (k2) -> @skm = k2.skm
+
+  #--------------------------
+
   @parse_public_key : (slice, opts) -> (new Parser slice).parse_public_key opts
 
   #--------------------------
@@ -356,6 +360,8 @@ class Parser
       when C.versions.keymaterial.V4 then @parse_public_key_v4()
       else throw new Error "Unknown public key version: #{version}"
 
+  #-------------------
+  
   parse_public_key : (opts) ->
     key = @_parse_public_key()
     new KeyMaterial { key, @timestamp, opts}

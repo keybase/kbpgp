@@ -2,7 +2,7 @@
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
-{unix_time,bufferify} = require './util'
+{bufeq_secure,unix_time,bufferify} = require './util'
 {Lifespan,Subkey,Primary} = require './keywrapper'
 
 {encode,decode} = require './openpgp/armor'
@@ -67,6 +67,28 @@ class Engine
     await @sign_subkeys { asp }, defer err unless err?
     cb err
 
+  #--------
+
+  merge_private : (eng2) ->
+    err = null
+    if not @_merge_1_private @primary, eng2.primary
+      err = new Error "primary public key doesn't match private key"
+    else if @subkeys.length isnt eng2.subkeys.length
+      err = new Error "Different number of subkeys"
+    else
+      for key, i in @subkeys when not err?
+        if not @_merge_1_private key, eng2.subkeys[i]
+          err = new Error "Subkey #{i} doesn't match its public key"
+    err
+
+  #--------
+
+  _merge_1_private : (k1, k2) ->
+    if bufeq_secure(@ekid(k1), @ekid(k2))
+      @_v_merge_private k1, k2
+      true
+    else
+      false
 
 #=================================================================
 
@@ -77,6 +99,10 @@ class PgpEngine extends Engine
   constructor : ({primary, subkeys, userids}) ->
     super { primary, subkeys, userids }
 
+  #--------
+
+  ekid : (k) -> k._pgp.ekid()
+  
   #--------
   
   _v_allocate_key_packet : (key) ->
@@ -104,6 +130,10 @@ class PgpEngine extends Engine
     await @primary._pgp.sign_subkey { subkey : subkey._pgp, lifespan : subkey.lifespan }, defer err, sig
     subkey._pgp_sig = sig
     cb err
+
+  #--------
+
+  _v_merge_private : (k1, k2) -> k1._pgp.merge_private k2._pgp
 
   #--------
 
@@ -140,6 +170,10 @@ class KeybaseEngine extends Engine
   constructor : ({primary, subkeys, userids}) ->
     super { primary, subkeys, userids }
 
+  #--------
+
+  ekid : (k) -> k._keybase.ekid()
+  
   #-----
 
   _check_can_sign : (keys,cb) ->
@@ -179,6 +213,10 @@ class KeybaseEngine extends Engine
     p = new kpkts.SubkeyReverseSignature { @primary, subkey }
     await p.sign { asp , include_body : true }, esc defer subkey._keybase_sigs.rev
     cb null
+
+  #-----
+
+  _v_merge_private : (k1, k2) -> k1._keybase.merge_private k2._pgp
 
   #-----
 
@@ -288,7 +326,11 @@ class KeyManager
   # After importing the public portion of the key previously,
   # add the private portions with this call.  And again, verify
   # signatures.  And check that the public portions agree.
-  add_armored_pgp_private : ({raw, asp}, cb) ->
+  merge_pgp_private : ({raw, asp}, cb) ->
+    await KeyManager.import_from_armored_pgp { raw, asp }, defer err, b2
+    err = @pgp.merge_private b2.pgp         unless err?
+    err = @keybase.merge_private b2.keybase unless err?
+    cb err
 
   #------------
  

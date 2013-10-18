@@ -7,13 +7,14 @@ triplesec = require 'triplesec'
 {make_esc} = require 'iced-error'
 rsa = require '../../rsa'
 {sign,verify} = require '../sign'
-{bufferify} = require '../../util'
+{bufeq_secure,bufferify} = require '../../util'
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
   constructor : ({@key, @timestamp, @rawkey}) ->
+    @rawkey or= {}
     super()
 
   #--------------------------
@@ -61,6 +62,10 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  ekid : () -> @key.ekid()
+
+  #--------------------------
+
   alloc_public_key : ({progress_hook}, cb) ->
     switch @rawkey.type
       when K.public_key_algorithms.RSA
@@ -79,11 +84,15 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  merge_private : (k2) -> @rawkey.priv = k2.rawkey.priv
+
+  #--------------------------
+
   unlock_private_key : ({passphrase, progress_hook}, cb) ->
     err = null
     if (k = @rawkey.priv)?
       switch k.encryption
-        when K.key_encryption.triplesec_v1
+        when K.key_encryption.triplesec_v1, K.key_encryption.triplesec_v2
           await triplesec.decrypt { key : passphrase, data: k.data }, defer err, raw
         when K.key_encryption.none
           raw = k.data
