@@ -102,8 +102,8 @@ class KeyMaterial extends Packet
   private_framed : (opts) ->
     body = @private_body opts
     T = C.packet_tags
-    tags = if opts.subkey then T.secret_subkey else T.secret_key
-    @frame_packet C.packet_tags.secret_key, body
+    tag = if opts.subkey then T.secret_subkey else T.secret_key
+    @frame_packet tag, body
 
   #--------------------------
 

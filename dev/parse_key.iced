@@ -10,13 +10,17 @@ await fs.readFile process.argv[2], defer err, res
 throw err if err
 [err,msg] = armor.decode res
 throw err if err
-throw new Error "need a public key" unless msg.type is C.openpgp.message_types.public_key
+switch msg.type
+  when C.openpgp.message_types.public_key then console.log "Got a public key..."
+  when C.openpgp.message_types.private_key then console.log "Got a private key..."
+  else throw new Error "unknown msg typ: #{msg.type}"
 console.log msg.body.toString 'hex'
 [err, packets] = parse msg.body
 throw err if err
+console.log util.inspect packets, { depth : null }
 processor = new KeyBlock packets
 await processor.process defer err
 throw err if err
-console.log util.inspect packets, { depth : null }
+#console.log util.inspect packets, { depth : null }
 
 stripped_packets = packets[0...2] + packets[3...]
