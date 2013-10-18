@@ -29,6 +29,11 @@ main = (cb) ->
   console.log msg
   await bundle.merge_pgp_private { raw : msg, asp }, esc defer b2
   await bundle.open_pgp { passphrase }, esc defer()
+
+
+
+  await bundle.open_keybase { tsenc, asp}, esc defer()
+  console.log bundle.keybase.primary
   cb null
 
 await main defer err

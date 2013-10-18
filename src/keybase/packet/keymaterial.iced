@@ -1,7 +1,7 @@
 K = require('../../const').kb
 triplesec = require 'triplesec'
 {SHA512} = require '../../hash'
-{native_rng} = triplesec.prng
+{Decryptor,native_rng} = triplesec.prng
 {Packet} = require './base'
 {pack,box} = require '../encode'
 {make_esc} = require 'iced-error'
@@ -14,8 +14,8 @@ rsa = require '../../rsa'
 class KeyMaterial extends Packet
 
   constructor : ({@key, @timestamp, @rawkey}) ->
-    @rawkey or= {}
     super()
+    @rawkey or= {}
 
   #--------------------------
 
@@ -88,12 +88,14 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  unlock_private_key : ({passphrase, progress_hook}, cb) ->
+  open : ({tsenc, asp}, cb) ->
     err = null
     if (k = @rawkey.priv)?
       switch k.encryption
         when K.key_encryption.triplesec_v1, K.key_encryption.triplesec_v2
-          await triplesec.decrypt { key : passphrase, data: k.data }, defer err, raw
+          dec = new Decryptor { enc : tsenc }
+          await dec.run { data: k.data, progress_hook : asp.progress_hook() }, defer err, raw
+          dec.scrub()
         when K.key_encryption.none
           raw = k.data
         else
@@ -101,22 +103,6 @@ class KeyMaterial extends Packet
       err = @key.read_priv raw unless err?
     cb err
 
-  #--------------------------
-
-  # Open a keybase secret key packet, with the given passphrase.
-  #
-  # @param {string} passphrase the utf8-string that's the passphrase.
-  # @param {callback} cb Callback with `null` if it worked, or an {Error} otherwise
-  #
-  open : ({passphrase, progress_hook}, cb) ->
-    passphrase = bufferify passphrase 
-    esc = make_esc cb, "KeyMaterial::esc"
-    err = null
-    await @alloc_public_key {progress_hook}, esc defer()
-    await @verify_self_sig {progress_hook}, esc defer()
-    await @unlock_private_key {passphrase, progress_hook}, esc defer()
-    cb err
-  
   #--------------------------
 
 #=================================================================================

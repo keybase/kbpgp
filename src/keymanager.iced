@@ -43,6 +43,10 @@ class Engine
 
   #---------
 
+  ekid : (k) -> @key(k).ekid()
+
+  #---------
+  
   _allocate_key_packets : () ->
     for key in @_all_keys()
       @_v_allocate_key_packet key
@@ -83,6 +87,15 @@ class Engine
 
   #--------
 
+  open_keys : ({asp, passphrase, tsenc}, cb) ->
+    esc = make_esc cb, "Engine::open_keys"
+    await @key(@primary).open {asp, tsenc, passphrase }, esc defer()
+    for subkey in @subkeys
+      await @key(subkey).open {asp, tsenc, passphrase }, esc defer()
+    cb null
+
+  #--------
+
   _merge_1_private : (k1, k2) ->
     if bufeq_secure(@ekid(k1), @ekid(k2))
       @_v_merge_private k1, k2
@@ -101,7 +114,7 @@ class PgpEngine extends Engine
 
   #--------
 
-  ekid : (k) -> k._pgp.ekid()
+  key : (k) -> k._pgp
   
   #--------
   
@@ -154,14 +167,7 @@ class PgpEngine extends Engine
     type = if opts.private then mt.private_key else mt.public_key
     encode type, Buffer.concat(packets)
 
-  #--------
 
-  open_keys : ({passphrase}, cb) ->
-    esc = make_esc cb, "PgpEngine::open_keys"
-    await @primary._pgp.open { passphrase } , esc defer()
-    for subkey in @subkeys
-      await subkey._pgp.open { passphrase }, esc defer()
-    cb null
 
 #=================================================================
 
@@ -172,8 +178,8 @@ class KeybaseEngine extends Engine
 
   #--------
 
-  ekid : (k) -> k._keybase.ekid()
-  
+  key : (k) -> k._keybase
+
   #-----
 
   _check_can_sign : (keys,cb) ->
@@ -216,7 +222,7 @@ class KeybaseEngine extends Engine
 
   #-----
 
-  _v_merge_private : (k1, k2) -> k1._keybase.merge_private k2._pgp
+  _v_merge_private : (k1, k2) -> k1._keybase.merge_private k2._keybase
 
   #-----
 
@@ -328,8 +334,7 @@ class KeyManager
   # signatures.  And check that the public portions agree.
   merge_pgp_private : ({raw, asp}, cb) ->
     await KeyManager.import_from_armored_pgp { raw, asp }, defer err, b2
-    err = @pgp.merge_private b2.pgp         unless err?
-    err = @keybase.merge_private b2.keybase unless err?
+    err = @pgp.merge_private b2.pgp unless err?
     cb err
 
   #------------
@@ -344,7 +349,9 @@ class KeyManager
   
   # Open the private MPIs of the secret key, and check for sanity.
   # Use the given triplesec.Encryptor / password object.
-  open_keybase : ({asp}, cb) ->
+  open_keybase : ({tsenc, asp}, cb) ->
+    await @keybase.open_keys { tsenc, asp }, defer err
+    cb err
 
   #-----
   
