@@ -67,6 +67,7 @@ class Engine
     await @sign_subkeys { asp }, defer err unless err?
     cb err
 
+
 #=================================================================
 
 class PgpEngine extends Engine
@@ -106,10 +107,18 @@ class PgpEngine extends Engine
 
   #--------
 
-  export_public : () ->
-    packets = [ @primary._pgp.public_framed(), @userid_packet().write(), @self_sig ]
+  set_passphrase : (pp) ->
+    @primary.passphrase = pp
+    for k in @subkeys
+      k.passphrase = pp
+
+  #--------
+
+  export_keys : (opts) ->
+    packets = [ @primary._pgp.export_framed(opts), @userid_packet().write(), @self_sig ]
+    opts.subkey = true
     for subkey in @subkeys
-      packets.push subkey._pgp.public_framed({subkey : true}), subkey._pgp_sig
+      packets.push subkey._pgp.export_framed(opts), subkey._pgp_sig
     buf = Buffer.concat(packets)
     encode C.message_types.public_key, Buffer.concat(packets)
 
@@ -203,8 +212,7 @@ class KeybaseEngine extends Engine
 
 class KeyManager
 
-  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public}) ->
-    @tsenc = null
+  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private}) ->
     @pgp = new PgpEngine { @primary, @subkeys, @userids }
     @keybase = new KeybaseEngine { @primary, @subkeys, @userids }
     @engines = [ @pgp, @keybase ]
@@ -305,7 +313,11 @@ class KeyManager
   
   # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
   # We'll need to reencrypt with a derived key
-  export_pgp_private_to_client : ({asp}, cb) ->
+  export_pgp_private_to_client : ({passphrase, asp, regen}, cb) ->
+    passphrase = bufferify passphrase if passphrase?
+    msg = @armored_pgp_private unless regen
+    msg = @pgp.export_keys({private : true, passphrase}) unless msg?
+    cb null, msg
 
   #-----
   
@@ -313,7 +325,7 @@ class KeyManager
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
     msg = @armored_pgp_public unless regen
-    msg = @pgp.export_public() unless msg?
+    msg = @pgp.export_keys({private : false}) unless msg?
     cb null, msg
 
   #-----

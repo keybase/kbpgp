@@ -40,7 +40,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _write_private_enc : (bufs, priv) ->
+  _write_private_enc : (bufs, priv, pp) ->
     bufs.push new Buffer [ 
       C.s2k_convention.sha1,                  # Indicates s2k with SHA1 checksum
       C.symmetric_key_algorithms.AES256,      # Sym algo used to encrypt
@@ -52,7 +52,7 @@ class KeyMaterial extends Packet
     bufs.push salt 
     c = 96
     bufs.push new Buffer [ c ]                # ??? translates to a count of 65336 ???
-    k = (new S2K).write @passphrase, salt, c  # expanded encryption key (via s2k)
+    k = (new S2K).write pp, salt, c           # expanded encryption key (via s2k)
     ivlen = AES.blockSize                     # ivsize = msgsize
     iv = native_rng ivlen                     # Consider a truly random number in the future
     bufs.push iv                              # push the IV on before the ciphertext
@@ -87,19 +87,22 @@ class KeyMaterial extends Packet
 
   #--------------------------
   
-  private_body : () ->
+  private_body : (opts) ->
     bufs = []
     @_write_public bufs
     priv = @key.priv.serialize()
-    if @passphrase? then @_write_private_enc   bufs, priv
-    else                 @_write_private_clear bufs, priv
+    pp = opts.passphrase or @passphrase
+    if pp? then @_write_private_enc   bufs, priv, pp
+    else        @_write_private_clear bufs, priv
     ret = Buffer.concat bufs
     ret
 
   #--------------------------
 
-  private_framed : () ->
-    body = @private_body()
+  private_framed : (opts) ->
+    body = @private_body opts
+    T = C.packet_tags
+    tags = if opts.subkey then T.secret_subkey else T.secret_key
     @frame_packet C.packet_tags.secret_key, body
 
   #--------------------------
@@ -122,6 +125,12 @@ class KeyMaterial extends Packet
   #--------------------------
 
   get_key_id : () -> @get_fingerprint()[12...20]
+
+  #--------------------------
+
+  export_framed : (opts = {}) ->
+    if opts.private then @private_framed opts
+    else @public_framed opts
 
   #--------------------------
   
