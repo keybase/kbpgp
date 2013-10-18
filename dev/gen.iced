@@ -22,7 +22,8 @@ main = (cb) ->
   passphrase = new Buffer "cats1122", "utf8"
   await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userid }, esc defer bundle
   await bundle.sign {asp}, esc defer()
-  #await bundle.export_private_to_server {tsenc,asp}, esc defer pair
+  await bundle.export_private_to_server {tsenc,asp}, esc defer pair
+  
   await bundle.export_pgp_private_to_client { passphrase, asp }, esc defer msg
   #console.log util.inspect(pair, { depth : null })
   #console.log box(pair.keybase).toString('base64')

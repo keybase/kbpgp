@@ -27,6 +27,12 @@ box = ({tag, body}) ->
 
 #=================================================================================
 
+read_base64 = (raw) ->
+  parts = raw.split /\s+/
+  new Buffer parts, 'base64'
+
+#=================================================================================
+
 unbox = (buf) ->
   katch () ->
     oo = unpack buf # throws an error if there's a problem
@@ -45,3 +51,4 @@ exports.box = box
 exports.pack = pack
 exports.unbox = unbox
 exports.unpack = unpack
+exports.read_base64 = read_base64

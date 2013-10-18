@@ -4,6 +4,7 @@ C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {bufeq_secure,unix_time,bufferify} = require './util'
 {Lifespan,Subkey,Primary} = require './keywrapper'
+{read_base64,box,unbox} = require './keybase/encode'
 
 {encode,decode} = require './openpgp/armor'
 {parse} = require './openpgp/parser'
@@ -167,8 +168,6 @@ class PgpEngine extends Engine
     type = if opts.private then mt.private_key else mt.public_key
     encode type, Buffer.concat(packets)
 
-
-
 #=================================================================
 
 class KeybaseEngine extends Engine
@@ -328,6 +327,14 @@ class KeyManager
     cb err, bundle
 
   #------------
+
+  # Import from a base64-encoded-purepacked keybase key structure
+  @import_from_packed_keybase : ({raw, asp}, cb) ->
+    [err, {tag,body}] = unbox read_base64 raw
+    unless err?
+      if not tag in [K.packet_tags.public_key_bundle, K.packet_tags.private_key_bundle]
+        err = new Error "Wanted a public or private key: #{tag}"
+    unless err?
  
   # After importing the public portion of the key previously,
   # add the private portions with this call.  And again, verify
@@ -355,13 +362,6 @@ class KeyManager
 
   #-----
   
-  # The export consists of
-  #   1. A PGP message (potentially redacted from upload)
-  #   2. A keybase message (Public key only)
-  export_public_to_server : ({asp}, cb) ->
-
-  #-----
-  
   # A private export consists of:
   #   1. The PGP public key block
   #   2. The keybase message (Public and private keys, triplesec'ed)
@@ -369,7 +369,7 @@ class KeyManager
     pgp = @pgp.export_public()
     unless err?
       await @keybase.export_private { tsenc, asp }, defer err, keybase
-    ret = if err? then null else { pgp, keybase }
+    ret = if err? then null else { pgp, keybase : box(keybase).toString('base64') }
     cb err, ret
 
   #-----
