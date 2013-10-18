@@ -83,7 +83,7 @@ class PgpEngine extends Engine
       key._pgp = new opkts.KeyMaterial { 
         key : key.key, 
         timestamp : key.lifespan.generated, 
-        userid : @userids.get_keybase() }
+        userid : @userids.get_openpgp() }
 
   #--------
   
@@ -134,8 +134,7 @@ class KeybaseEngine extends Engine
     unless key._keybase?
       key._keybase = new kpkts.KeyMaterial { 
         key : key.key, 
-        timestamp : key.lifespan.generated, 
-        userid : @userids.get_keybase() }
+        timestamp : key.lifespan.generated }
 
   #-----
 
@@ -144,9 +143,9 @@ class KeybaseEngine extends Engine
     await @_check_can_sign [@primary], esc defer()
     @self_sigs = {}
     p = new kpkts.SelfSignKeybaseUsername { key_wrapper : @primary, @userids }
-    await p.sign { asp }, esc defer @self_sigs.openpgp
+    await p.sign { asp, include_body : true }, esc defer @self_sigs.openpgp
     p = new kpkts.SelfSignPgpUserid { key_wrapper : @primary, @userids }
-    await p.sign { asp }, esc defer @self_sigs.keybase
+    await p.sign { asp, include_body : true }, esc defer @self_sigs.keybase
     cb null
 
   #-----
@@ -156,9 +155,9 @@ class KeybaseEngine extends Engine
     subkey._keybase_sigs = {}
     await @_check_can_sign [ @primary, subkey ], esc defer()
     p = new kpkts.SubkeySignature { @primary, subkey }
-    await p.sign { asp }, esc defer subkey._keybase_sigs.fwd
+    await p.sign { asp, include_body : true }, esc defer subkey._keybase_sigs.fwd
     p = new kpkts.SubkeyReverseSignature { @primary, subkey }
-    await p.sign { asp }, esc defer subkey._keybase_sigs.rev
+    await p.sign { asp , include_body : true }, esc defer subkey._keybase_sigs.rev
     cb null
 
   #-----
@@ -173,7 +172,7 @@ class KeybaseEngine extends Engine
         keybase : @self_sigs.keybase
         openpgp : @self_sigs.openpgp
     for k in @subkeys
-      await k._keybase.export_private { tsenc, @asp }, esc defer key
+      await k._keybase.export_private { tsenc, asp }, esc defer key
       ret.subkeys.push {
         key : key
         sigs :
@@ -298,7 +297,7 @@ class KeyManager
   export_private_to_server : ({tsenc, asp}, cb) ->
     pgp = @pgp.export_public()
     unless err?
-      await @keybase.export_private { @tsenc, asp }, defer err, keybase
+      await @keybase.export_private { tsenc, asp }, defer err, keybase
     ret = if err? then null else { pgp, keybase }
     cb err, ret
 

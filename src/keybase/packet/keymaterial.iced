@@ -13,14 +13,14 @@ rsa = require '../../rsa'
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @rawkey}) ->
+  constructor : ({@key, @timestamp, @rawkey}) ->
     super()
 
   #--------------------------
 
   export_public : () ->
     pub = @key.pub.serialize()
-    return { type : @key.type, pub, @timestamp, @userid }
+    return { type : @key.type, pub, @timestamp }
 
   #--------------------------
 
@@ -29,12 +29,12 @@ class KeyMaterial extends Packet
     priv = @key.priv.serialize()
 
     if tsenc?
-      await tsenc.encrypt { data : priv, progress_hook : asp.progress_hook() }, defer err, epriv
+      await tsenc.run { data : priv, progress_hook : asp?.progress_hook() }, defer err, epriv
       if err? then ret = null
       else
         ret.priv = 
           data : epriv
-          encryption : K.key_encryption.triplesec_v1
+          encryption : K.key_encryption.triplesec_v2
     else
       ret.priv = 
         data : priv
@@ -48,7 +48,6 @@ class KeyMaterial extends Packet
     ret = null
     try
       ret = new KeyMaterial { 
-        userid : o.userid, 
         timestamp : o.key.timestamp, 
         rawkey:
           type : o.key.type

@@ -92,6 +92,7 @@ exports.kb =
   key_encryption:
     none : 0
     triplesec_v1 : 1
+    triplesec_v2 : 2
   json_encoding :
     plain : 0
     msgpack : 1
@@ -107,8 +108,8 @@ exports.kb =
   versions :
     V1 : 1
   sig_types:
-    self_sign_key_pgp_userid : 1
-    self_sign_key_keybase_username : 2
+    self_sign_pgp_userid : 1
+    self_sign_keybase_username : 2
     subkey : 3
     subkey_reverse : 4
   padding :

@@ -12,9 +12,9 @@ class Base extends Packet
 
   #------
 
-  sign : ({asp}, cb) ->
+  sign : ({asp, include_body }, cb) ->
     body = @_v_body()
-    await sign { @key, @type, body }, defer err, @sig
+    await sign { @key, @type, body, include_body }, defer err, @sig
     cb err, @sig
 
   #------
@@ -27,7 +27,7 @@ class Base extends Packet
 class SelfSignPgpUserid extends Base
 
   constructor : ({@key_wrapper, @userids}) ->
-    super { type : K.sig_types.self_sign_pgp_username, key : @key_wrapper.key }
+    super { type : K.sig_types.self_sign_pgp_userid, key : @key_wrapper.key }
 
   _v_body : () ->
     return {

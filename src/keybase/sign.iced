@@ -15,7 +15,7 @@ json_encode = ({header, body, json_encoding}) ->
 
 #==============
 
-sign = ({key, type, body, hasher, progress_hook, json_encoding}, cb) ->
+sign = ({key, type, body, hasher, progress_hook, json_encoding, include_body}, cb) ->
   # XXX Support RSA-PSS.  See Issue #4
   hasher = SHA512 unless hasher?
   json_encoding = K.json_encoding.msgpack unless json_encoding?
@@ -29,6 +29,7 @@ sign = ({key, type, body, hasher, progress_hook, json_encoding}, cb) ->
   unless err?
     sig = key.pad_and_sign payload, { hasher }
     output = { header, sig }
+    output.body = body if include_body
   cb err, output
 
 #==============
