@@ -28,6 +28,14 @@ class Primary extends KeyWrapper
 
 #=================================================================
 
+class UserIds
+  constructor : ({@openpgp, @keybase}) ->
+  get_keybase : () -> @keybase
+  get_openpgp : () -> @openpgp 
+
+#=================================================================
+
 exports.Lifespan = Lifespan
 exports.Subkey = Subkey
 exports.Primary = Primary
+exports.UserIds = UserIds

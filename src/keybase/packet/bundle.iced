@@ -2,7 +2,10 @@
 {Packet} = require './base'
 K = require('../../const').kb
 sig = require './signature'
-{Primary,Subkey,Lifespan} = require '../../keywrapper'
+{UserIds,Primary,Subkey,Lifespan} = require '../../keywrapper'
+{KeyMaterial} = require './keymaterial'
+{katch} = require '../../util'
+{make_esc} = require 'iced-error'
 
 #=================================================================
 
@@ -20,32 +23,38 @@ class KeyBundle extends Packet
 
   #-----------------
 
-  set_primary : (obj) -> @primary = p
+  set_primary : (obj) -> @primary = obj
   push_subkey : (sk) -> @subkeys.push sk
 
   #-----------------
 
   @alloc : ({tag, body}) ->
-    err = null
-    bundle = switch tag
+    body = {} unless body?
+    switch tag
       when K.packet_tags.public_key_bundle  then new PublicKeyBundle body
       when K.packet_tags.private_key_bundle then new PrivateKeyBundle body
       else
-        err = new Error "not a key bundle (tag=#{tag})"
-        null
-    [err, bundle]
+        throw new Error "not a key bundle (tag=#{tag})"
+
+  #-----------------
+
+  @alloc_nothrow : (obj) -> katch () -> KeyBundle.alloc obj
 
   #-----------------
 
   verify : ({asp}, cb) ->
-    await @verify_primary { asp }, defer err, { primary, userid } 
-    await @verify_subkeys { primary, asp }, defer err, subkeys unless err?
-    cb err, { primary, userid, subkeys }
+    await @verify_primary { asp }, defer err
+    await @verify_subkeys { asp }, defer err unless err?
+    cb err
+
+  #-----------------
+
+  export_to_obj : () -> { @primary,  @userids, @subkeys }
 
   #-----------------
 
   _verify_subkey : ({asp, sigs}, cb) ->
-    esc = make_err cb, "KeyBundle::_verify_subkey"
+    esc = make_esc cb, "KeyBundle::_verify_subkey"
     await sigs.fwd.verify esc defer()
     await sigs.rev.verify esc defer()
     cb null
@@ -55,7 +64,7 @@ class KeyBundle extends Packet
   _destructure_subkey : (primary, obj, cb) ->
     ret = err = null
     try
-      subkey = KeyMaterial.alloc(@is_private(), obj.key)
+      subkey = KeyMaterial.alloc(@is_private(), obj)
       key_wrapper = new Subkey { key : subkey.key, _keybase : subkey, primary }
       fwd = new sig.SubkeySignature { subkey : key_wrapper, sig : obj.sigs.forward  }
       rev = new sig.SubkeyReverse { subkey : key_wrapper, sig : obj.sigs.rev }
@@ -67,7 +76,7 @@ class KeyBundle extends Packet
   #-----------------
 
   verify_subkeys : ({primary, asp}, cb) ->
-    esc = make_err cb, "KeyBundle::verify_subkeys"
+    esc = make_esc cb, "KeyBundle::verify_subkeys"
     subkeys = @subkeys
     @subkeys = []
     ret = []
@@ -76,18 +85,20 @@ class KeyBundle extends Packet
       await @_verify_subkey {asp, sigs}, esc defer()
       key_wrapper.lifespan = sigs.fwd.get_lifespan()
       ret.push key_wrapper
-    cb null, ret
+    @subkeys = ret
+    cb null
 
   #-----------------
 
   _destructure_primary : (cb) ->
-    primary = @primary
+    raw_obj = @primary
     @primary = null
     err = ret = null
     try
-      key = KeyMaterial.alloc(@is_private(), primary.key)
-      sig = new sig.SelfSig { key, sig : primary.sig }
-      ret = {key,sig}
+      km = KeyMaterial.alloc(@is_private(), raw_obj.key)
+      key_wrapper = new Primary { key : km.key, _keybase : km }
+      sig = new sig.SelfSign { key_wrapper, sig : raw_obj.sig }
+      ret = {key_wrapper, sig }
     catch e
       err = e
     cb err, ret
@@ -95,30 +106,27 @@ class KeyBundle extends Packet
   #-----------------
 
   verify_primary : ({asp}, cb) ->
-    esc = make_err cb, "KeyBundle::verify_primary"
-    await @_destructure_primary esc defer { key, sig }
+    esc = make_esc cb, "KeyBundle::verify_primary"
+    await @_destructure_primary esc defer { key_wrapper, sig }
     await sig.verify esc defer()
-    ret = { 
-      primary : new Primary {
-        key : key.key,
-        lifespan : sig.get_lifespan(),
-        _keybase : key
-      }
-      userids : new UserIds { keybase : sig.userid }
-    }
-    cb null, ret
+    @primary = key_wrapper
+    @primary.lifespan = sig.get_lifespan()
+    @userids = new UserIds { keybase : sig.userid }
+    cb null
 
 #=================================================================
 
 class PublicKeyBundle extends KeyBundle
   constructor : ({primary, subkeys}) ->
     super { primary, subkeys, tag : K.packet_tags.public_key_bundle }
+  is_private : () -> false
 
 #=================================================================
 
 class PrivateKeyBundle extends KeyBundle
   constructor : ({primary, subkeys}) ->
     super { primary, subkeys, tag : K.packet_tags.private_key_bundle }
+  is_private : () -> true
 
 #=================================================================
 

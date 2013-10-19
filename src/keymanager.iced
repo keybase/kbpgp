@@ -3,7 +3,7 @@ K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {bufeq_secure,unix_time,bufferify} = require './util'
-{Lifespan,Subkey,Primary} = require './keywrapper'
+{UserIds,Lifespan,Subkey,Primary} = require './keywrapper'
 {read_base64,box,unbox} = require './keybase/encode'
 
 {encode,decode} = require './openpgp/armor'
@@ -27,12 +27,7 @@ class Encryption
     @passphrase = bufferify passphrase
     @tsenc or= new triplesec.Encryptor { version : 2, @passphrase }
 
-#=================================================================
 
-class UserIds
-  constructor : ({@openpgp, @keybase}) ->
-  get_keybase : () -> @keybase
-  get_openpgp : () -> @openpgp 
 
 #=================================================================
 
@@ -309,10 +304,10 @@ class KeyManager
 
   # Import from a base64-encoded-purepacked keybase key structure
   @import_from_packed_keybase : ({raw, asp}, cb) ->
-    [err, {tag,body}] = unbox read_base64 raw
-    [err, bundle] = kpkts.KeyBundle.alloc { tag, body } unless err?
-    await bundle.verify { asp }, defer err, obj unless err?
-    ret = if err? then null else new KeyManager obj
+    [err, tag_and_body ] = unbox read_base64 raw
+    [err, bundle] = kpkts.KeyBundle.alloc_nothrow tag_and_body unless err?
+    await bundle.verify { asp }, defer err unless err?
+    ret = if err? then null else new KeyManager bundle.export_to_obj()
     cb err, ret
  
   #------------

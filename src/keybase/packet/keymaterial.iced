@@ -25,7 +25,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  export_keys : (opts, cb) ->
+  export_key : (opts, cb) ->
     err = ret = null
     if opts.private 
       await @export_private opts, defer err, ret
@@ -55,15 +55,15 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  @alloc : (is_private, o, cb) ->
+  @alloc : (is_private, raw) ->
     ret = null
     try
       ret = new KeyMaterial { 
-        timestamp : o.key.timestamp, 
+        timestamp : raw.timestamp, 
         rawkey:
-          type : o.key.type
-          pub : o.key.pub,
-          priv : o.key.priv 
+          type : raw.type
+          pub : raw.pub
+          priv : raw.priv 
       }
       throw new Error "didn't a private key" if is_private and not ret.rawkey.priv?
       ret.alloc_public_key()
@@ -77,7 +77,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  alloc_public_key : ({progress_hook}, cb) ->
+  alloc_public_key : () ->
     switch @rawkey.type
       when K.public_key_algorithms.RSA
         [ err, @key ] = rsa.RSA.alloc { pub : @rawkey.pub }

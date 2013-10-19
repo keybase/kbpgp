@@ -1,9 +1,10 @@
 
 {Base} = require './base'
 K = require('../../const').kb
-{sign,verfiy} = require '../sign'
+{sign,verify} = require '../sign'
 {Packet} = require './base'
 {bufeq_secure,unix_time} = require '../../util'
+{Lifespan} = require '../../keywrapper'
 
 #==================================================================================================
 
@@ -32,9 +33,7 @@ class Base extends Packet
     err = null
     now = unix_time()
     @body = @sig.body unless @body?
-    if @body.generated isnt @key.timestamp
-      err = new Error "Timestamp generation mistmatch: #{@body.generated} != #{@key.timestamp}"
-    else if (d = (now - (@body.generated + @body.expire_in))) > 0
+    if (d = (now - (@body.generated + @body.expire_in))) > 0
       err = new Error "signature expired #{d}s ago"
     else if not bufeq_secure(@signing_ekid(), @key.ekid())
       err = new Error "trying to verify with the wrong key"
@@ -50,10 +49,9 @@ class Base extends Packet
 
 class SelfSign extends Base
 
-  constructor : ({@key_wrapper, @userid, key, sig, body}) ->
-    key = @key_wrapper.key unless key?
-    super { type : K.sig_types.self_sig, key, sig, body }
-
+  constructor : ({@key_wrapper, @userid, sig, body}) ->
+    key = @key_wrapper.key
+    super { type : K.sig_types.self_sign, key, sig, body }
 
   _v_body : () ->
     return {

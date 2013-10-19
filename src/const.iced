@@ -108,10 +108,9 @@ exports.kb =
   versions :
     V1 : 1
   sig_types:
-    self_sign_pgp_userid : 1
-    self_sign_keybase_username : 2
-    subkey : 3
-    subkey_reverse : 4
+    self_sign : 1
+    subkey : 2
+    subkey_reverse : 3
   padding :
     EMSA_PCKS1_v1_5 : 3
     RSASSA_PSS : 4
