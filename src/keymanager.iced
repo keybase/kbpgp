@@ -200,11 +200,8 @@ class KeybaseEngine extends Engine
   _v_self_sign_primary : ({asp}, cb) ->
     esc = make_esc cb, "KeybaseEngine::_v_self_sign_primary"
     await @_check_can_sign [@primary], esc defer()
-    @self_sigs = {}
-    p = new kpkts.SelfSignKeybaseUsername { key_wrapper : @primary, @userids }
-    await p.sign { asp, include_body : true }, esc defer @self_sigs.openpgp
-    p = new kpkts.SelfSignPgpUserid { key_wrapper : @primary, @userids }
-    await p.sign { asp, include_body : true }, esc defer @self_sigs.keybase
+    p = new kpkts.SelfSign { key_wrapper : @primary, userid : @userid.get_keybase() }
+    await p.sign { asp, include_body : true }, esc defer @self_sig
     cb null
 
   #-----
@@ -225,18 +222,17 @@ class KeybaseEngine extends Engine
 
   #-----
 
-  export_private : ({tsenc,asp}, cb) ->
-    ret = new kpkts.PrivateKeyBundle {}
-    esc = make_esc cb, "KeybaseEngine::export_private"
-    await @primary._keybase.export_private { tsenc, asp }, esc defer primary
+  export_keys : (opts, cb) ->
+    opts.tag = if opts.private then K.packet_tags.private_key_bundle else K.packet_tags.public_key_bundle
+    ret = new kpkts.KeyBundle.alloc opts
+    esc = make_esc cb, "KeybaseEngine::export_keys"
+    await @primary._keybase.export_key opts, esc defer primary
     ret.set_primary {
       key : primary
-      sigs :
-        keybase : @self_sigs.keybase
-        openpgp : @self_sigs.openpgp
+      sig : @self_sig
     }
     for k in @subkeys
-      await k._keybase.export_private { tsenc, asp }, esc defer key
+      await k._keybase.export_key opts, esc defer key
       ret.push_subkey {
         key : key
         sigs :
@@ -244,25 +240,6 @@ class KeybaseEngine extends Engine
           reverse : k._keybase_sigs.rev
       }
     cb null, ret.frame_packet()
-
-  #-----
-
-  export_public : ({asp}, cb) ->
-    ret = new kpkts.PublicKeyBundle {}
-    ret.set_primary {
-      key : primary._keybase.export_public()
-      sigs :
-        keybase : @self_sigs.keybase
-        openpgp : @self_sigs.openpgp
-    }
-    for k in @subkeys
-      ret.push_subkey {
-        key : k._keybase.export_public()
-        sigs :
-          forward : k._keybase_sigs.fwd
-          reverse : k._keybase_sigs.rev
-      }
-    cb ret.frame_packet()
 
 #=================================================================
 
@@ -372,7 +349,7 @@ class KeyManager
   export_private_to_server : ({tsenc, asp}, cb) ->
     pgp = @pgp.export_public()
     unless err?
-      await @keybase.export_private { tsenc, asp }, defer err, keybase
+      await @keybase.export_private { private : true, tsenc, asp }, defer err, keybase
     ret = if err? then null else { pgp, keybase : box(keybase).toString('base64') }
     cb err, ret
 

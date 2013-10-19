@@ -8,7 +8,7 @@ K = require('../../const').kb
 #==================================================================================================
 
 class Base extends Packet
-  constructor : ({@type,@key}) ->
+  constructor : ({@type,@key,@body}) ->
     @sig = null
 
   #------
@@ -29,6 +29,15 @@ class Base extends Packet
 
   #------
 
+  @allloc : ({sig, key, type}) ->
+    sig.key = key
+    switch key
+      when K.sign_types.self_sig then new SelfSig sig 
+      when K.sign_types.subkey then new Subkey sig 
+      when K.sign_types.subkey then new SubkeyReverse sig 
+
+  #------
+
   verify : (cb) ->
     err = null
     now = unix_time()
@@ -39,55 +48,25 @@ class Base extends Packet
     else if not bufeq_secure(@signing_ekid(), @key.ekid())
       err = new Error "trying to verify with the wrong key"
     else
-      await verify { @type, @key, @sig, @body}, defer err
+      body = @body or @sig.body
+      await verify { @type, @key, @sig, body}, defer err
     cb err
 
 
 #==================================================================================================
 
-class SelfSignPgpUserid extends Base
+class SelfSig extends Base
 
-  constructor : ({@key_wrapper, @userids}) ->
-    super { type : K.sig_types.self_sign_pgp_userid, key : @key_wrapper.key }
-
-  _v_body : () ->
-    return {
-      ekid : @key_wrapper.key.ekid()
-      generated : @key_wrapper.lifespan.generated
-      expire_in : @key_wrapper.lifespan.expire_in
-      username : @userids.get_openpgp()
-    }
-
-#==================================================================================================
-
-class SelfSignPgpUserid extends Base
-
-  constructor : ({@key_wrapper, @userids}) ->
-    super { type : K.sig_types.self_sign_pgp_userid, key : @key_wrapper.key }
+  constructor : ({@key_wrapper, @userid, key, sig, body}) ->
+    key = @key_wrapper.key unless key?
+    super { type : K.sig_types.self_sig, key, sig, body }
 
   _v_body : () ->
     return {
       ekid : @key_wrapper.key.ekid()
       generated : @key_wrapper.lifespan.generated
       expire_in : @key_wrapper.lifespan.expire_in
-      username : @userids.get_openpgp()
-    }
-
-#==================================================================================================
-
-class SelfSignKeybaseUsername extends Base
-
-  constructor : ({@key_wrapper, key, @userids}) ->
-    key = @key_wrapper?.key unless key?
-    super { type : K.sig_types.self_sign_keybase_username, key }
-
-
-  _v_body : () ->
-    return {
-      ekid : @key_wrapper.key.ekid()
-      generated : @key_wrapper.lifespan.generated
-      expire_in : @key_wrapper.lifespan.expire_in
-      username : @userids.get_keybase()
+      userids : @userid
     }
 
 #==================================================================================================
@@ -95,8 +74,8 @@ class SelfSignKeybaseUsername extends Base
 class SubkeySignature extends Base
 
   # @param {KeyWrapper} subkey The subkey, with a pointer back to the primary key
-  constructor : ({@subkey}) ->
-    super { type : K.sig_types.subkey, key : @subkey.primary.key }
+  constructor : ({@subkey, sig, body}) ->
+    super { type : K.sig_types.subkey, key : @subkey.primary.key, sig, body }
 
   signing_ekid : () -> @body.primary_ekid
 
@@ -117,8 +96,8 @@ class SubkeyReverseSignature extends Base
   # the primary key.  The payload is the same...
   #
   # @param {KeyWrapper} subkey The subkey, with a pointer back to the primary key
-  constructor : ({@subkey}) ->
-    super { type : K.sig_types.subkey_reverse, key : @subkey.key }
+  constructor : ({@subkey, sig, body}) ->
+    super { type : K.sig_types.subkey_reverse, key : @subkey.key, sig, body }
 
   signing_ekid : () -> @body.subkey_ekid
 
@@ -132,8 +111,7 @@ class SubkeyReverseSignature extends Base
 
 #=================================================================================
 
-exports.SelfSignPgpUserid = SelfSignPgpUserid
-exports.SelfSignKeybaseUsername = SelfSignKeybaseUsername
+exports.SelfSign = SelfSign
 exports.SubkeySignature = SubkeySignature
 exports.SubkeyReverseSignature = SubkeyReverseSignature
 

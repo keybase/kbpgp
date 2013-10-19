@@ -25,6 +25,16 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  export_keys : (opts, cb) ->
+    err = ret = null
+    if opts.private 
+      await @export_private opts, defer err, ret
+    else
+      ret = @export_public()
+    cb err, ret
+
+  #--------------------------
+
   export_private : ({tsenc, asp}, cb) ->
     ret = @export_public()
     priv = @key.priv.serialize()
