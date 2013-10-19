@@ -8,8 +8,7 @@ K = require('../../const').kb
 #==================================================================================================
 
 class Base extends Packet
-  constructor : ({@type,@key,@body}) ->
-    @sig = null
+  constructor : ({@type,@key,@sig,@body}) ->
 
   #------
 
@@ -29,18 +28,10 @@ class Base extends Packet
 
   #------
 
-  @allloc : ({sig, key, type}) ->
-    sig.key = key
-    switch key
-      when K.sign_types.self_sig then new SelfSig sig 
-      when K.sign_types.subkey then new Subkey sig 
-      when K.sign_types.subkey then new SubkeyReverse sig 
-
-  #------
-
   verify : (cb) ->
     err = null
     now = unix_time()
+    @body = @sig.body unless @body?
     if @body.generated isnt @key.timestamp
       err = new Error "Timestamp generation mistmatch: #{@body.generated} != #{@key.timestamp}"
     else if (d = (now - (@body.generated + @body.expire_in))) > 0
@@ -48,30 +39,33 @@ class Base extends Packet
     else if not bufeq_secure(@signing_ekid(), @key.ekid())
       err = new Error "trying to verify with the wrong key"
     else
-      body = @body or @sig.body
-      await verify { @type, @key, @sig, body}, defer err
+      await verify { @type, @key, @sig, @body}, defer err
     cb err
 
+  #------
+
+  get_lifespan : () -> new Lifespan @body
 
 #==================================================================================================
 
-class SelfSig extends Base
+class SelfSign extends Base
 
   constructor : ({@key_wrapper, @userid, key, sig, body}) ->
     key = @key_wrapper.key unless key?
     super { type : K.sig_types.self_sig, key, sig, body }
+
 
   _v_body : () ->
     return {
       ekid : @key_wrapper.key.ekid()
       generated : @key_wrapper.lifespan.generated
       expire_in : @key_wrapper.lifespan.expire_in
-      userids : @userid
+      userid : @userid
     }
 
 #==================================================================================================
 
-class SubkeySignature extends Base
+class Subkey extends Base
 
   # @param {KeyWrapper} subkey The subkey, with a pointer back to the primary key
   constructor : ({@subkey, sig, body}) ->
@@ -89,7 +83,7 @@ class SubkeySignature extends Base
 
 #==================================================================================================
 
-class SubkeyReverseSignature extends Base
+class SubkeyReverse extends Base
 
   #
   # The only difference here is that we're signing wit the subkey, rather than
@@ -112,8 +106,8 @@ class SubkeyReverseSignature extends Base
 #=================================================================================
 
 exports.SelfSign = SelfSign
-exports.SubkeySignature = SubkeySignature
-exports.SubkeyReverseSignature = SubkeyReverseSignature
+exports.Subkey = Subkey
+exports.SubkeyReverse = SubkeyReverse
 
 #=================================================================================
 

@@ -23,18 +23,17 @@ main = (cb) ->
   await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userid }, esc defer bundle
   await bundle.sign {asp}, esc defer()
   await bundle.export_private_to_server {tsenc,asp}, esc defer pair
-  
-  await bundle.export_pgp_private_to_client { passphrase, asp }, esc defer msg
+  await KeyManager.import_from_packet_keybase { raw : pair.keybase, asp }, defer b2
+  console.log b2
+ 
+  #await bundle.export_pgp_private_to_client { passphrase, asp }, esc defer msg
   #console.log util.inspect(pair, { depth : null })
   #console.log box(pair.keybase).toString('base64')
-  console.log msg
-  await bundle.merge_pgp_private { raw : msg, asp }, esc defer b2
-  await bundle.open_pgp { passphrase }, esc defer()
-
-
-
-  await bundle.open_keybase { tsenc, asp}, esc defer()
-  console.log bundle.keybase.primary
+  #console.log msg
+  #await bundle.merge_pgp_private { raw : msg, asp }, esc defer b2
+  #await bundle.open_pgp { passphrase }, esc defer()
+  #await bundle.open_keybase { tsenc, asp}, esc defer()
+  #console.log bundle.keybase.primary
   cb null
 
 await main defer err

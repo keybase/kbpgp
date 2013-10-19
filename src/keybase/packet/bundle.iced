@@ -1,6 +1,8 @@
 
 {Packet} = require './base'
 K = require('../../const').kb
+sig = require './signature'
+{Primary,Subkey,Lifespan} = require '../../keywrapper'
 
 #=================================================================
 
@@ -37,8 +39,44 @@ class KeyBundle extends Packet
 
   verify : ({asp}, cb) ->
     await @verify_primary { asp }, defer err, { primary, userid } 
-    await @verify_subkeys { asp }, defer err, subkeys unless err?
-    cb err 
+    await @verify_subkeys { primary, asp }, defer err, subkeys unless err?
+    cb err, { primary, userid, subkeys }
+
+  #-----------------
+
+  _verify_subkey : ({asp, sigs}, cb) ->
+    esc = make_err cb, "KeyBundle::_verify_subkey"
+    await sigs.fwd.verify esc defer()
+    await sigs.rev.verify esc defer()
+    cb null
+
+  #-----------------
+
+  _destructure_subkey : (primary, obj, cb) ->
+    ret = err = null
+    try
+      subkey = KeyMaterial.alloc(@is_private(), obj.key)
+      key_wrapper = new Subkey { key : subkey.key, _keybase : subkey, primary }
+      fwd = new sig.SubkeySignature { subkey : key_wrapper, sig : obj.sigs.forward  }
+      rev = new sig.SubkeyReverse { subkey : key_wrapper, sig : obj.sigs.rev }
+      ret = { key_wrapper, sig : { fwd, rev } }
+    catch e
+      err = e
+    cb err, ret
+
+  #-----------------
+
+  verify_subkeys : ({primary, asp}, cb) ->
+    esc = make_err cb, "KeyBundle::verify_subkeys"
+    subkeys = @subkeys
+    @subkeys = []
+    ret = []
+    for obj in subkeys
+      await @_destructure_subkey primary, obj, esc defer { key_wrapper, sigs }
+      await @_verify_subkey {asp, sigs}, esc defer()
+      key_wrapper.lifespan = sigs.fwd.get_lifespan()
+      ret.push key_wrapper
+    cb null, ret
 
   #-----------------
 
@@ -47,8 +85,8 @@ class KeyBundle extends Packet
     @primary = null
     err = ret = null
     try
-      key = KeyMaterial.alloc(@is_private(), primary.key),
-      sig = BaseSig.alloc {raw : primary.sigs.keybase, key, type : K.sig_types.self_sign }
+      key = KeyMaterial.alloc(@is_private(), primary.key)
+      sig = new sig.SelfSig { key, sig : primary.sig }
       ret = {key,sig}
     catch e
       err = e
@@ -66,9 +104,9 @@ class KeyBundle extends Packet
         lifespan : sig.get_lifespan(),
         _keybase : key
       }
-      userids : new UserIds { keybase : sig.username }
+      userids : new UserIds { keybase : sig.userid }
     }
-    cb ret
+    cb null, ret
 
 #=================================================================
 

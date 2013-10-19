@@ -66,7 +66,7 @@ class KeyMaterial extends Packet
           priv : o.key.priv 
       }
       throw new Error "didn't a private key" if is_private and not ret.rawkey.priv?
-      ret.alloc_public_key())
+      ret.alloc_public_key()
     catch e
       throw e
     return ret

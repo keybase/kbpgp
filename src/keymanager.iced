@@ -200,7 +200,7 @@ class KeybaseEngine extends Engine
   _v_self_sign_primary : ({asp}, cb) ->
     esc = make_esc cb, "KeybaseEngine::_v_self_sign_primary"
     await @_check_can_sign [@primary], esc defer()
-    p = new kpkts.SelfSign { key_wrapper : @primary, userid : @userid.get_keybase() }
+    p = new kpkts.SelfSign { key_wrapper : @primary, userid : @userids.get_keybase() }
     await p.sign { asp, include_body : true }, esc defer @self_sig
     cb null
 
@@ -210,9 +210,9 @@ class KeybaseEngine extends Engine
     esc = make_esc cb, "KeybaseEngine::_v_sign_subkey"
     subkey._keybase_sigs = {}
     await @_check_can_sign [ @primary, subkey ], esc defer()
-    p = new kpkts.SubkeySignature { @primary, subkey }
+    p = new kpkts.Subkey { @primary, subkey }
     await p.sign { asp, include_body : true }, esc defer subkey._keybase_sigs.fwd
-    p = new kpkts.SubkeyReverseSignature { @primary, subkey }
+    p = new kpkts.SubkeyReverse { @primary, subkey }
     await p.sign { asp , include_body : true }, esc defer subkey._keybase_sigs.rev
     cb null
 
@@ -311,8 +311,8 @@ class KeyManager
   @import_from_packed_keybase : ({raw, asp}, cb) ->
     [err, {tag,body}] = unbox read_base64 raw
     [err, bundle] = kpkts.KeyBundle.alloc { tag, body } unless err?
-    await bundle.verify { asp }, defer err unless err?
-    ret = if err? then null else bundle.to_key_manager { raw }
+    await bundle.verify { asp }, defer err, obj unless err?
+    ret = if err? then null else new KeyManager obj
     cb err, ret
  
   #------------
@@ -347,9 +347,9 @@ class KeyManager
   #   1. The PGP public key block
   #   2. The keybase message (Public and private keys, triplesec'ed)
   export_private_to_server : ({tsenc, asp}, cb) ->
-    pgp = @pgp.export_public()
+    pgp = @pgp.export_keys { private : false }
     unless err?
-      await @keybase.export_private { private : true, tsenc, asp }, defer err, keybase
+      await @keybase.export_keys { private : true, tsenc, asp }, defer err, keybase
     ret = if err? then null else { pgp, keybase : box(keybase).toString('base64') }
     cb err, ret
 
