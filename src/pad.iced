@@ -48,21 +48,21 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hasher) ->
   else 
     i++ if v.readUInt8(i) is 0
     if v.readUInt8(i++) isnt 1
-      err = new Error "Didn't get two-byte header 0x00 0x01"
+      err = new Error "Sig verify error: Didn't get two-byte header 0x00 0x01"
     else 
       (i++ while i < v.length and (v.readUInt8(i) is 0xff))
       if i >= v.length or v.readUInt8(i) isnt 0
-        err = new Error "Missed the 0x0 separator"
+        err = new Error "Sig verify error: Missed the 0x0 separator"
       else
         i++
         header = hash_headers[hasher.algname]
         if not bufeq_secure(new Buffer(header), v[i...(header.length+i)])
-          err = new Error "missing ASN header for #{hasher.algname}"
+          err = new Error "Sig verify error: missing ASN header for #{hasher.algname}"
         else
           i += header.length
           h = v[i...]
           if h.length isnt hasher.output_length
-            err = new Error "trailing garbage in signature"
+            err = new Error "Sig verify error: trailing garbage in signature"
           else
             ret = h
   [err, ret]

@@ -1,7 +1,7 @@
 
 {Packet} = require './base'
 K = require('../../const').kb
-sig = require './signature'
+sigmod = require './signature'
 {UserIds,Primary,Subkey,Lifespan} = require '../../keywrapper'
 {KeyMaterial} = require './keymaterial'
 {katch} = require '../../util'
@@ -61,14 +61,14 @@ class KeyBundle extends Packet
 
   #-----------------
 
-  _destructure_subkey : (primary, obj, cb) ->
+  _destructure_subkey : (obj, cb) ->
     ret = err = null
     try
-      subkey = KeyMaterial.alloc(@is_private(), obj)
-      key_wrapper = new Subkey { key : subkey.key, _keybase : subkey, primary }
-      fwd = new sig.SubkeySignature { subkey : key_wrapper, sig : obj.sigs.forward  }
-      rev = new sig.SubkeyReverse { subkey : key_wrapper, sig : obj.sigs.rev }
-      ret = { key_wrapper, sig : { fwd, rev } }
+      subkey = KeyMaterial.alloc(@is_private(), obj.key)
+      key_wrapper = new Subkey { key : subkey.key, _keybase : subkey, @primary }
+      fwd = new sigmod.Subkey { subkey : key_wrapper, sig : obj.sigs.forward  }
+      rev = new sigmod.SubkeyReverse { subkey : key_wrapper, sig : obj.sigs.reverse }
+      ret = { key_wrapper, sigs : { fwd, rev } }
     catch e
       err = e
     cb err, ret
@@ -81,7 +81,7 @@ class KeyBundle extends Packet
     @subkeys = []
     ret = []
     for obj in subkeys
-      await @_destructure_subkey primary, obj, esc defer { key_wrapper, sigs }
+      await @_destructure_subkey obj, esc defer { key_wrapper, sigs }
       await @_verify_subkey {asp, sigs}, esc defer()
       key_wrapper.lifespan = sigs.fwd.get_lifespan()
       ret.push key_wrapper
@@ -97,7 +97,7 @@ class KeyBundle extends Packet
     try
       km = KeyMaterial.alloc(@is_private(), raw_obj.key)
       key_wrapper = new Primary { key : km.key, _keybase : km }
-      sig = new sig.SelfSign { key_wrapper, sig : raw_obj.sig }
+      sig = new sigmod.SelfSign { key_wrapper, sig : raw_obj.sig }
       ret = {key_wrapper, sig }
     catch e
       err = e
