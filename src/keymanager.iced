@@ -27,8 +27,6 @@ class Encryption
     @passphrase = bufferify passphrase
     @tsenc or= new triplesec.Encryptor { version : 2, @passphrase }
 
-
-
 #=================================================================
 
 class Engine
@@ -244,6 +242,7 @@ class KeyManager
     @pgp = new PgpEngine { @primary, @subkeys, @userids }
     @keybase = new KeybaseEngine { @primary, @subkeys, @userids }
     @engines = [ @pgp, @keybase ]
+    @_signed = false
 
   #========================
   # Public Interface
@@ -342,8 +341,9 @@ class KeyManager
   #   1. The PGP public key block
   #   2. The keybase message (Public and private keys, triplesec'ed)
   export_private_to_server : ({tsenc, asp}, cb) ->
-    pgp = @pgp.export_keys { private : false }
-    unless err?
+    err = ret = null
+    if not (err = @_assert_signed())?
+      pgp = @pgp.export_keys { private : false }
       await @keybase.export_keys { private : true, tsenc, asp }, defer err, keybase
     ret = if err? then null else { pgp, keybase : box(keybase).toString('base64') }
     cb err, ret
@@ -353,10 +353,12 @@ class KeyManager
   # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
   # We'll need to reencrypt with a derived key
   export_pgp_private_to_client : ({passphrase, asp, regen}, cb) ->
+    err = msg = null
     passphrase = bufferify passphrase if passphrase?
-    msg = @armored_pgp_private unless regen
-    msg = @pgp.export_keys({private : true, passphrase}) unless msg?
-    cb null, msg
+    if not regen? and (msg = @armored_pgp_private) then #noop
+    else if not (err = @_assert_signed())?
+      msg = @pgp.export_keys({private : true, passphrase}) 
+    cb err, msg
 
   #-----
   
@@ -382,6 +384,7 @@ class KeyManager
     asp?.progress { what : "sign keybase" , total : 1, i : 0 }
     await @sign_keybase { asp }, defer err unless err?
     asp?.progress { what : "sign keybase" , total : 1, i : 1 }
+    @_signed = true unless err?
     cb err
   
   # /Public Interface
@@ -392,6 +395,11 @@ class KeyManager
     for e in @engines when not err
       await meth.call e, args, defer(err)
     cb err
+
+  #----------
+
+  _assert_signed : () ->
+    if @_signed then null else new Error "need to sign before export"
 
   #----------
 

@@ -123,8 +123,8 @@ class Pair
   sanity_check : () ->
     return new Error "pq != n" unless @priv.n().compareTo(@pub.n) is 0
     test = nbs("1111777111771")
-    return "Decrypt/encrypt failed" unless @decrypt(@encrypt(test)).compareTo(test) is 0
-    return "Sign/verify failed" unless @verify(@sign(test)).compareTo(test) is 0
+    return new Error "Decrypt/encrypt failed" unless @decrypt(@encrypt(test)).compareTo(test) is 0
+    return new Error "Sign/verify failed" unless @verify(@sign(test)).compareTo(test) is 0
     return null
 
   #----------------
