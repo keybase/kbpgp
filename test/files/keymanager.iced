@@ -13,16 +13,20 @@ master_passphrase = new Buffer 'so long and thanks for all the fish', "utf8"
 tsenc = null
 openpgp_pass = null
 pgp_private = null
+b2 = null
 
 compare_keys = (T, k1, k2, what) ->
   T.equal k1.ekid().toString('hex'), k2.ekid().toString('hex'), "#{what} keys match"
+
+sanity_check = (T, bundle) ->
+  T.no_error bundle.primary.key.sanity_check()
+  T.no_error bundle.subkeys[0].key.sanity_check()
 
 exports.step1_generated = (T,cb) ->
   await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userid }, defer err, tmp
   bundle = tmp
   T.no_error err
-  T.no_error bundle.primary.key.sanity_check()
-  T.no_error bundle.subkeys[0].key.sanity_check()
+  sanity_check T, bundle
   cb()
 
 exports.step2_salt_triplesec = (T, cb) ->
@@ -46,13 +50,24 @@ exports.step3_export_pgp_private = (T,cb) ->
   cb()
 
 exports.step4_import_pgp_public = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : pgp_private, asp, userid}, defer err, b2
+  await KeyManager.import_from_armored_pgp { raw : pgp_private, asp, userid}, defer err, tmp
+  b2 = tmp
   T.no_error err
   unless err?
     compare_keys T, bundle.primary, b2.primary, "primary keys"
     compare_keys T, bundle.subkeys[0], b2.subkeys[0], "subkeys[0]"
   cb()
 
+exports.step5_merge_pgp_private = (T,cb) ->
+  await b2.merge_pgp_private { raw : pgp_private, asp }, defer err
+  T.no_error err
+  bad_pass = "a" + openpgp_pass 
+  await b2.open_pgp { passphrase : bad_pass }, defer err
+  T.assert err?, "we should have gotten an error when opening with a bad password"
+  await b2.open_pgp { passphrase : openpgp_pass }, defer err
+  T.no_error err
+  sanity_check T, b2
+  cb()
 
  
 progress_hook = (obj) ->
