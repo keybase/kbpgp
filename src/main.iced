@@ -1,5 +1,5 @@
 mods = [ 
- require("./keygen"),
+ require("./keymanager"),
  require("./basex")
 ]
 for m in mods
