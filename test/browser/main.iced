@@ -1,12 +1,12 @@
 
 mods =  
+  keymanager : require '../files/keymanager.iced'
   decode_pgp : require '../files/decode_pgp.iced'
   cast5 : require '../files/cast5.iced'
   basex : require '../files/basex.iced'
   cfb : require '../files/cfb.iced'
   fermat2 : require '../files/fermat2.iced'
   miller_rabin : require '../files/miller_rabin.iced'
-  keygen : require '../files/keygen.iced'
   rsa : require '../files/rsa.iced'
 
 {BrowserRunner} = require('iced-test')

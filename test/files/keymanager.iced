@@ -1,10 +1,10 @@
-{KeyManager} = require '../../src/keymanager'
-{bufferify,ASP} = require '../../src/util'
+{KeyManager} = require '../../lib/keymanager'
+{bufferify,ASP} = require '../../lib/util'
 {make_esc} = require 'iced-error'
 util = require 'util'
-{box} = require '../../src/keybase/encode'
+{box} = require '../../lib/keybase/encode'
 {Encryptor} = require 'triplesec'
-{base91} = require '../../src/basex'
+{base91} = require '../../lib/basex'
 
 asp = new ASP {}
 bundle = null

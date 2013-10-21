@@ -32,6 +32,7 @@ $(BUILD_STAMP): \
 	lib/keybase/parser.js \
 	lib/keybase/packet/all.js \
 	lib/keybase/packet/base.js \
+	lib/keybase/packet/bundle.js \
 	lib/keybase/packet/keymaterial.js \
 	lib/keybase/packet/signature.js \
 	lib/keybase/packet/userid.js \

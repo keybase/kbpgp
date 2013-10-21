@@ -175,13 +175,13 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
 
   userid = "max@keybase.io"
   asp = new ASP {}
-  await KeyManager.import_from_armored_pgp_public { asp, raw, userid }, defer err, b1
+  await KeyManager.import_from_armored_pgp { asp, raw, userid }, defer err, b1
   T.no_error err
   await b1.sign_pgp {asp}, defer err
   T.no_error err
   await b1.export_pgp_public {asp, regen : true}, defer err, raw
   T.no_error err
-  await KeyManager.import_from_armored_pgp_public { asp, raw, userid }, defer err, b2
+  await KeyManager.import_from_armored_pgp { asp, raw, userid }, defer err, b2
   T.no_error err
   T.equal b1.primary.ekid().toString('hex'), b2.primary.ekid().toString('hex'), "primary keys match"
   T.equal b1.subkeys[0].ekid().toString('hex'), b2.subkeys[0].ekid().toString('hex'), "subkeys match"
