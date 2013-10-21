@@ -267,6 +267,7 @@ class KeyMaterial extends Packet
   is_primary : -> not @opts?.subkey
   ekid : () -> @key.ekid()
   can_sign : () -> @key.can_sign()
+  is_encrypted : () -> (@skm?.convention isnt C.s2k_convention.none)
 
   #--------------------------
 
@@ -287,7 +288,7 @@ class KeyMaterial extends Packet
   #
   # @param {string} passphrase the passphrase in uft8
   # 
-  open : ({passphrase}, cb) ->
+  unlock : ({passphrase}, cb) ->
     passphrase = bufferify passphrase
     err = null
 

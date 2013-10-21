@@ -60,6 +60,13 @@ class Engine
 
   #--------
 
+  is_encrypted : () ->
+    for k in @_all_keys()
+      return true if @key(k).is_encrypted()
+    return false
+
+  #--------
+
   sign : ({asp}, cb) ->
     await @self_sign_primary { asp }, defer err
     await @sign_subkeys { asp }, defer err unless err?
@@ -81,11 +88,11 @@ class Engine
 
   #--------
 
-  open_keys : ({asp, passphrase, tsenc}, cb) ->
-    esc = make_esc cb, "Engine::open_keys"
-    await @key(@primary).open {asp, tsenc, passphrase }, esc defer()
+  unlock_keys : ({asp, passphrase, tsenc}, cb) ->
+    esc = make_esc cb, "Engine::unlock_keys"
+    await @key(@primary).unlock {asp, tsenc, passphrase }, esc defer()
     for subkey in @subkeys
-      await @key(subkey).open {asp, tsenc, passphrase }, esc defer()
+      await @key(subkey).unlock {asp, tsenc, passphrase }, esc defer()
     cb null
 
   #--------
@@ -323,16 +330,21 @@ class KeyManager
  
   # Open the private PGP key with the given passphrase
   # (which is going to be different from our strong keybase passphrase).
-  open_pgp : ({passphrase}, cb) ->
-    await @pgp.open_keys { passphrase }, defer err
+  unlock_pgp : ({passphrase}, cb) ->
+    await @pgp.unlock_keys { passphrase }, defer err
     cb err
+
+  #-----
+
+  is_pgp_encrypted : () -> @pgp.is_encrypted()
+  is_keybase_encrypted : () -> @keybase.is_encrypted()
 
   #-----
   
   # Open the private MPIs of the secret key, and check for sanity.
   # Use the given triplesec.Encryptor / password object.
-  open_keybase : ({tsenc, asp}, cb) ->
-    await @keybase.open_keys { tsenc, asp }, defer err
+  unlock_keybase : ({tsenc, asp}, cb) ->
+    await @keybase.unlock_keys { tsenc, asp }, defer err
     cb err
 
   #-----
@@ -412,11 +424,6 @@ class KeyManager
     }
 
   #----------
-
-  to_openpgp_packet : ( { tsec, passphrase } ) ->
-
-  to_keybase_packet : ( { tsec, passphrase } ) ->
-
 #=================================================================
 
 exports.KeyManager = KeyManager

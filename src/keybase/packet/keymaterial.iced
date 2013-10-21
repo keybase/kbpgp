@@ -75,6 +75,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   ekid : () -> @key.ekid()
+  is_encrypted : () -> (@rawkey?.priv?.encryption isnt K.key_encryption.none)
 
   #--------------------------
 
@@ -92,7 +93,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  open : ({tsenc, asp}, cb) ->
+  unlock : ({tsenc, asp}, cb) ->
     err = null
     if (k = @rawkey.priv)?
       switch k.encryption
