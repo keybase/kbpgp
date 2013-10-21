@@ -31,6 +31,13 @@ class MediumRandomFountain
 
 #==================================================
 
+_mrf = null
+MRF = () ->
+  _mrf = new MediumRandomFountain() unless _mrf?
+  _mrf
+
+#==================================================
+
 class StrongRandomFountain 
 
   constructor : ->
@@ -49,7 +56,7 @@ class StrongRandomFountain
     go = true
     ret = false
     while go
-      await @random_nbit_bigint n.bitLength(), defer ret
+      await @random_nbit n.bitLength(), defer ret
       go = ((ret.compareTo(BigInteger.ONE) <= 0) or (ret.compareTo(n) >= 0))
     cb i
 
@@ -61,7 +68,7 @@ class StrongRandomFountain
 
   #---------
 
-  random_nbit_bigint : (nbits, cb) ->
+  random_nbit : (nbits, cb) ->
     await @lock.acquire defer()
     nbytes = (nbits >> 3) + 1
     await prng.generate nbytes, defer tmp
@@ -72,14 +79,14 @@ class StrongRandomFountain
 
 #=================================================================
 
-exports.fermat2_test = fermat2_test
-exports.nbs = nbs
-exports.small_primes = small_primes
-exports.miller_rabin = miller_rabin
-exports.random_prime = random_prime
-exports.random_zn = random_zn
-exports.MediumRandomFountain = MediumRandomFountain
-exports.StrongRandomFountain = StrongRandomFountain
+_srf = null
+SRF = () ->
+  _srf = new StrongRandomFountain() unless _srf?
+  _srf
 
 #=================================================================
 
+exports.MRF = MRF
+exports.SRF = SRF
+
+#=================================================================
