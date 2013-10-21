@@ -1,53 +1,52 @@
 K = require('../../const').kb
 triplesec = require 'triplesec'
 {SHA512} = require '../../hash'
+{Decryptor} = triplesec
 {native_rng} = triplesec.prng
 {Packet} = require './base'
-{pack,bencode} = require '../encode'
+{pack,box} = require '../encode'
 {make_esc} = require 'iced-error'
 rsa = require '../../rsa'
 {sign,verify} = require '../sign'
-{bufferify} = require '../../util'
+{bufeq_secure,bufferify} = require '../../util'
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @expires, @userid, @passphrase, @sig, @rawkey, @primary} ) ->
+  constructor : ({@key, @timestamp, @rawkey}) ->
     super()
+    @rawkey or= {}
 
   #--------------------------
 
-  _write_public : () ->
+  export_public : () ->
     pub = @key.pub.serialize()
-    return { type : @key.type, pub, @timestamp, @expires, @userid }
+    return { type : @key.type, pub, @timestamp }
 
   #--------------------------
 
-  write_public : () ->
-    body = @_write_public()
-    @frame_packet K.packet_tags.public_key, body
-
-  #--------------------------
-
-  write_private : ({progress_hook}, cb) ->
-    await @_write_private { progress_hook }, defer err, ret 
-    if ret? then ret = @frame_packet K.packet_tags.public_key, ret
+  export_key : (opts, cb) ->
+    err = ret = null
+    if opts.private 
+      await @export_private opts, defer err, ret
+    else
+      ret = @export_public()
     cb err, ret
 
   #--------------------------
 
-  _write_private : ({progress_hook}, cb) ->
-    ret = @_write_public()
+  export_private : ({tsenc, asp}, cb) ->
+    ret = @export_public()
     priv = @key.priv.serialize()
 
-    if @passphrase?
-      await triplesec.encrypt { key : @passphrase, data : priv, progress_hook }, defer err, epriv
+    if tsenc?
+      await tsenc.run { data : priv, progress_hook : asp?.progress_hook() }, defer err, epriv
       if err? then ret = null
       else
         ret.priv = 
           data : epriv
-          encryption : K.key_encryption.triplesec_v1
+          encryption : K.key_encryption.triplesec_v2
     else
       ret.priv = 
         data : priv
@@ -57,85 +56,50 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _encode_keys : ({progress_hook}, sig, cb) ->
-    await @_write_private { progress_hook }, defer err, priv
-    pub = @_write_public()
-    ret = null
-    {private_key, public_key} = K.message_types
-    # XXX always binary-encode for now (see Issue #7)
-    unless err?
-      ret = 
-        private : bencode(private_key, { sig, @userid, key : priv }),
-        public  : bencode(public_key,  { sig, @userid, key : pub })
-    cb err, ret
-
-  #--------------------------
-
-  _self_sign_key : ( {hasher, progress_hook }, cb) ->
-    hasher = SHA512 unless hasher?
-    type = K.signatures.self_sign_key_pgp_username
-    body = @_self_sign_body()
-    await sign { @key, type, body, hasher, progress_hook }, defer err, res
-    cb err, res
-
-  #--------------------------
-
-  _self_sign_body : () -> { @userid, key : @_write_public() }
-
-  #--------------------------
-
-  export_keys : ({armor, progress_hook}, cb) ->
-    ret = err = null
-    await @_self_sign_key {progress_hook}, defer err, sig
-    unless err?
-      await @_encode_keys { progress_hook }, sig, defer err, ret
-    cb err, ret
-
-  #--------------------------
-
-  @alloc : (secret_tag, o) ->
+  @alloc : (is_private, raw) ->
     ret = null
     try
       ret = new KeyMaterial { 
-        userid : o.userid, 
-        timestamp : o.key.timestamp, 
+        timestamp : raw.timestamp, 
         rawkey:
-          type : o.key.type
-          pub : o.key.pub,
-          priv : o.key.priv 
-        sig : o.sig  
+          type : raw.type
+          pub : raw.pub
+          priv : raw.priv 
       }
-      throw new Error "didn't a private key" if secret_tag and not ret.rawkey.priv?
+      throw new Error "didn't a private key" if is_private and not ret.rawkey.priv?
+      ret.alloc_public_key()
     catch e
-      err = e 
-    [err, ret]
+      throw e
+    return ret
 
   #--------------------------
 
-  alloc_public_key : ({progress_hook}, cb) ->
+  ekid : () -> @key.ekid()
+
+  #--------------------------
+
+  alloc_public_key : () ->
     switch @rawkey.type
       when K.public_key_algorithms.RSA
         [ err, @key ] = rsa.RSA.alloc { pub : @rawkey.pub }
       else
         err = new Error "unknown key type: #{@rawkey.type}"
-    cb err
+    throw err if err?
 
   #--------------------------
 
-  verify_self_sig : ({progress_hook}, cb) ->
-    body = @_self_sign_body()
-    type = K.signatures.self_sign_key_pgp_username
-    await verify { @key, @sig, body, type, progress_hook }, defer err
-    cb err
+  merge_private : (k2) -> @rawkey.priv = k2.rawkey.priv
 
   #--------------------------
 
-  unlock_private_key : ({passphrase, progress_hook}, cb) ->
+  open : ({tsenc, asp}, cb) ->
     err = null
     if (k = @rawkey.priv)?
       switch k.encryption
-        when K.key_encryption.triplesec_v1
-          await triplesec.decrypt { key : passphrase, data: k.data }, defer err, raw
+        when K.key_encryption.triplesec_v1, K.key_encryption.triplesec_v2
+          dec = new Decryptor { enc : tsenc }
+          await dec.run { data: k.data, progress_hook : asp.progress_hook() }, defer err, raw
+          dec.scrub()
         when K.key_encryption.none
           raw = k.data
         else
@@ -145,22 +109,9 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  # Open a keybase secret key packet, with the given passphrase.
-  #
-  # @param {string} passphrase the utf8-string that's the passphrase.
-  # @param {callback} cb Callback with `null` if it worked, or an {Error} otherwise
-  #
-  open : ({passphrase, progress_hook}, cb) ->
-    passphrase = bufferify passphrase 
-    esc = make_esc cb, "KeyMaterial::esc"
-    err = null
-    await @alloc_public_key {progress_hook}, esc defer()
-    await @verify_self_sig {progress_hook}, esc defer()
-    await @unlock_private_key {passphrase, progress_hook}, esc defer()
-    cb err
-  
-  #--------------------------
-
 #=================================================================================
 
 exports.KeyMaterial = KeyMaterial
+
+#=================================================================================
+

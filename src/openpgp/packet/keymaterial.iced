@@ -10,22 +10,34 @@ RSA = require('../../rsa').Pair
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
 {UserID} = require './userid'
-{CreationTime,Issuer,Signature} = require './signature'
+S = require './signature'
+{Signature} = S
 {encode} = require '../armor'
 {S2K} = require '../s2k'
 symmetric = require '../../symmetric'
+util = require 'util'
 
 #=================================================================================
 
 class KeyMaterial extends Packet
 
-  constructor : ({@key, @timestamp, @userid, @passphrase, @skm}) ->
-    @uidp = new UserID @userid
+  # 
+  # @param {Pair} key a Keypair that can be used for signing, etc.
+  # @param {number} timestamp Uint32 saying what time the key was born
+  # @param {string|Buffer} userid The userid that the key is bound to
+  # @param {string|Buffer} passphrase The passphrase used to lock the key
+  # @param {S2K} s2k the encryption engine used to lock the secret parts of the key
+  # @param {Object} opts a list of options
+  # @option opts {bool} subkey True if this is a subkey
+  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts}) ->
+    @uidp = new UserID @userid if @userid?
     super()
+    F = C.key_flags
+    @KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
 
   #--------------------------
 
-  _write_private_enc : (bufs, priv) ->
+  _write_private_enc : (bufs, priv, pp) ->
     bufs.push new Buffer [ 
       C.s2k_convention.sha1,                  # Indicates s2k with SHA1 checksum
       C.symmetric_key_algorithms.AES256,      # Sym algo used to encrypt
@@ -37,7 +49,8 @@ class KeyMaterial extends Packet
     bufs.push salt 
     c = 96
     bufs.push new Buffer [ c ]                # ??? translates to a count of 65336 ???
-    k = (new S2K).write @passphrase, salt, c  # expanded encryption key (via s2k)
+    ks = AES.keySize
+    k = (new S2K).write pp, salt, c, ks       # expanded encryption key (via s2k)
     ivlen = AES.blockSize                     # ivsize = msgsize
     iv = native_rng ivlen                     # Consider a truly random number in the future
     bufs.push iv                              # push the IV on before the ciphertext
@@ -72,20 +85,23 @@ class KeyMaterial extends Packet
 
   #--------------------------
   
-  private_body : () ->
+  private_body : (opts) ->
     bufs = []
     @_write_public bufs
     priv = @key.priv.serialize()
-    if @passphrase? then @_write_private_enc   bufs, priv
-    else                 @_write_private_clear bufs, priv
+    pp = opts.passphrase or @passphrase
+    if pp? then @_write_private_enc   bufs, priv, pp
+    else        @_write_private_clear bufs, priv
     ret = Buffer.concat bufs
     ret
 
   #--------------------------
 
-  private_framed : () ->
-    body = @private_body()
-    @frame_packet C.packet_tags.secret_key, body
+  private_framed : (opts) ->
+    body = @private_body opts
+    T = C.packet_tags
+    tag = if opts.subkey then T.secret_subkey else T.secret_key
+    @frame_packet tag, body
 
   #--------------------------
 
@@ -109,10 +125,18 @@ class KeyMaterial extends Packet
   get_key_id : () -> @get_fingerprint()[12...20]
 
   #--------------------------
+
+  export_framed : (opts = {}) ->
+    if opts.private then @private_framed opts
+    else @public_framed opts
+
+  #--------------------------
   
-  public_framed : () ->
+  public_framed : (opts = {}) ->
     body = @public_body()
-    @frame_packet C.packet_tags.public_key, body
+    T = C.packet_tags
+    tag = if opts.subkey then T.public_subkey else T.public_key
+    @frame_packet tag, body
 
   #--------------------------
 
@@ -128,15 +152,37 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  _self_sign_key : (cb) ->
-    payload = Buffer.concat [ @to_signature_payload(), @uidp.to_signature_payload() ]
+  self_sign_key : ({uidp, lifespan}, cb) ->
+    err = sig = null
+    if @key.can_sign()
+      await @_self_sign_key { uidp, lifespan }, defer err, sig
+    else if (sig = @self_sig.sig )?
+      sig = sig.replay()
+    else
+      err = new Error "Cannot sign key --- don't have a private key"
+    cb err, sig
 
+  #--------------------------
+
+  _self_sign_key : ( {uidp, lifespan}, cb) ->
+    uidp = @uidp unless uidp?
+    payload = Buffer.concat [ @to_signature_payload(), uidp.to_signature_payload() ]
+
+    # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
     sigpkt = new Signature { 
       type : C.sig_types.issuer,
       key : @key,
       hashed_subpackets : [
-        new CreationTime(unix_time()),
-        new Issuer(@get_key_id())
+        new S.CreationTime(lifespan.generated)
+        new S.KeyFlags([C.key_flags.certify_keys | @KEY_FLAGS_STD])
+        new S.KeyExpirationTime(lifespan.expire_in)
+        new S.PreferredSymmetricAlgorithms([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
+        new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
+        new S.Features([C.features.modification_detection])
+        new S.KeyServerPreferences([C.key_server_preferences.no_modify])
+      ],
+      unhashed_subpackets : [
+        new S.Issuer(@get_key_id())
       ]}
       
     await sigpkt.write payload, defer err, sig
@@ -144,34 +190,96 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  export_keys : ({armor}, cb) ->
-    err = ret = null
-    await @_self_sign_key defer err, sig
-    ret = @_encode_keys { sig, armor } unless err?
-    cb err, ret
-
-  #--------
-
-  _encode_keys : ({ sig, armor }) ->
-    uidp = @uidp.write()
-    {private_key, public_key} = C.message_types
-    # XXX always armor for now ... in the future maybe allow binary output.. See Issue #6
-    return {
-      public  : encode(public_key , Buffer.concat([ @public_framed() , uidp, sig ]))
-      private : encode(private_key, Buffer.concat([ @private_framed(), uidp, sig ]))
-    }
+  sign_subkey : ({subkey, lifespan}, cb) ->
+    err = sig = null
+    if @key.can_sign() and subkey.key.can_sign()
+      await @_sign_subkey { subkey, lifespan }, defer err, sig
+    else if (sig = subkey.signed.sig)?
+      sig = sig.replay()
+    else
+      err = new Error "Cannot sign key --- don't have private key"
+    cb err, sig
 
   #--------------------------
 
-  @parse_public_key : (slice) -> (new Parser slice).parse_public_key()
+  _sign_subkey : ({subkey, lifespan}, cb) ->
+    sig = err = null
+    await subkey._sign_primary_with_subkey { primary : @, lifespan }, defer err, primary_binding
+    unless err?
+      await @_sign_subkey_with_primary { subkey, lifespan, primary_binding }, defer err, sig
+    cb err, sig 
 
   #--------------------------
 
-  @parse_private_key : (slice) -> (new Parser slice).parse_private_key()
+  _sign_primary_with_subkey : ({primary, lifespan}, cb) ->
+    payload = Buffer.concat [ primary.to_signature_payload(), @to_signature_payload() ]
+    sigpkt = new Signature {
+      type : C.sig_types.primary_binding
+      key : @key
+      hashed_subpackets : [
+        new S.CreationTime(lifespan.generated)
+      ],
+      unhashed_subpackets : [
+        new S.Issuer(@get_key_id())
+      ]}
+      
+    # We put these as signature subpackets, so we don't want to frame them;
+    # they already come with framing as a result of their placement in
+    # the signature.  This is a bit of a hack, but it's OK for now.
+    await sigpkt.write_unframed payload, defer err, sig
+    cb err, sig
+
+  #--------------------------
+
+  _sign_subkey_with_primary : ({subkey, lifespan, primary_binding}, cb) ->
+    payload = Buffer.concat [ @to_signature_payload(), subkey.to_signature_payload() ]
+    sigpkt = new Signature {
+      type : C.sig_types.subkey_binding
+      key : @key
+      hashed_subpackets : [
+        new S.CreationTime(lifespan.generated)
+        new S.KeyExpirationTime(lifespan.expire_in)
+        new S.KeyFlags([@KEY_FLAGS_STD])
+      ],
+      unhashed_subpackets : [
+        new S.Issuer(@get_key_id()),
+        new S.EmbeddedSignature { rawsig : primary_binding }
+      ]}
+      
+    await sigpkt.write payload, defer err, sig
+    cb err, sig
+
+  #--------------------------
+
+  merge_private : (k2) -> @skm = k2.skm
+
+  #--------------------------
+
+  @parse_public_key : (slice, opts) -> (new Parser slice).parse_public_key opts
+
+  #--------------------------
+
+  @parse_private_key : (slice, opts) -> (new Parser slice).parse_private_key opts
   
   #--------------------------
 
   is_key_material : () -> true
+  is_primary : -> not @opts?.subkey
+  ekid : () -> @key.ekid()
+  can_sign : () -> @key.can_sign()
+
+  #--------------------------
+
+  is_signed_subkey_of : (primary) ->
+    # See Issue #19
+    ((not @primary_flag) and 
+     @signed? and 
+     @signed.primary_of_subkey and
+     @signed.primary.equal(primary))
+
+  #--------------------------
+
+  equal : (k2) -> bufeq_secure @ekid(), k2.ekid()
 
   #--------------------------
 
@@ -252,9 +360,11 @@ class Parser
       when C.versions.keymaterial.V4 then @parse_public_key_v4()
       else throw new Error "Unknown public key version: #{version}"
 
-  parse_public_key : () ->
+  #-------------------
+  
+  parse_public_key : (opts) ->
     key = @_parse_public_key()
-    new KeyMaterial { key, @timestamp }
+    new KeyMaterial { key, @timestamp, opts}
 
   #-------------------
 
@@ -262,7 +372,7 @@ class Parser
   #
   # See read_priv_key in openpgp.packet.keymaterial.js
   #
-  parse_private_key : () ->
+  parse_private_key : (opts) ->
     skm = {}
     key = @_parse_public_key()
 
@@ -286,7 +396,7 @@ class Parser
       skm.payload = null
     else 
       skm.payload = @slice.consume_rest_to_buffer()
-    new KeyMaterial { key, skm, @timestamp }
+    new KeyMaterial { key, skm, @timestamp, opts }
 
 #=================================================================================
 

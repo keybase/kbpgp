@@ -4,6 +4,7 @@
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 C = require('./const').openpgp
+K = require('./const').kb
 bn = require './bn'
 {SHA512} = require './hash'
 {emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
@@ -39,9 +40,13 @@ class Priv
       [d,p,q,u] = mpis
       [ null, new Priv({p,d,q,u,pub}) , (orig_len - raw.length) ]
 
+
 #=======================================================================
 
 class Pub
+  @type : C.public_key_algorithms.RSA
+  type : Pub.type
+
   constructor : ({@n,@e}) ->
   encrypt : (p) -> p.modPow @e, @n
   verify :  (s) -> s.modPow @e, @n
@@ -59,6 +64,16 @@ class Pub
     if err then [ err, null ]
     else [ null, new Pub({n, e}), (orig_len - raw.length) ]
 
+  #----------------
+
+  hash : () -> SHA512 @serialize()
+  kid : () -> Buffer.concat [ @fingerprint(), new Buffer([K.kid.trailer]) ]
+  fingerprint : () -> 
+    Buffer.concat [
+      new Buffer([K.kid.version, @type ] ),
+      @hash()[0...K.kid.len]
+    ]
+  ekid : () -> Buffer.concat [ new Buffer([K.kid.version, @type ] ), @hash() ]
 
 #=======================================================================
 
@@ -67,9 +82,20 @@ class Pair
   @type : C.public_key_algorithms.RSA
   type : Pair.type
 
+  #----------------
+
   constructor : ({@priv, @pub}) ->
     @pub.parent = @
     @priv.parent = @ if @priv?
+
+  #----------------
+
+  hash : () -> @pub.hash()
+  kid : () -> @pub.kid()
+  ekid : () -> @pub.ekid()
+  fingerprint : () -> @pub.fingerprint()
+  can_sign : () -> @priv?
+  can_decrypt : () -> @priv?
 
   #----------------
 
@@ -97,8 +123,8 @@ class Pair
   sanity_check : () ->
     return new Error "pq != n" unless @priv.n().compareTo(@pub.n) is 0
     test = nbs("1111777111771")
-    return "Decrypt/encrypt failed" unless @decrypt(@encrypt(test)).compareTo(test) is 0
-    return "Sign/verify failed" unless @verify(@sign(test)).compareTo(test) is 0
+    return new Error "Decrypt/encrypt failed" unless @decrypt(@encrypt(test)).compareTo(test) is 0
+    return new Error "Sign/verify failed" unless @verify(@sign(test)).compareTo(test) is 0
     return null
 
   #----------------

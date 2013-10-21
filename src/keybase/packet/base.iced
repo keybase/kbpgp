@@ -9,7 +9,9 @@ class Packet
   #----------------------
 
   constructor : () ->
-  frame_packet : (tag, body) -> pack { tag, body }
+
+  # XXX don't pack it for now!?!?!
+  frame_packet : (tag, body) -> { tag, body }
    
   #----------------------
 

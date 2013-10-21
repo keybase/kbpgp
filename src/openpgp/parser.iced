@@ -40,21 +40,24 @@ class PacketParser
 
   parse : () ->
     @parse_header()
-    @parse_body()
+    ret = @parse_body()
+    ret
 
   #----------------
 
   parse_body : () ->
     pt = C.packet_tags
     sb = @body
+    raw = sb.peek_rest_to_buffer()
     packet = switch @tag
-      when pt.secret_key, pt.secret_subkey then KeyMaterial.parse_private_key sb
-      when pt.public_key, pt.public_subkey then KeyMaterial.parse_public_key sb
-      when pt.signature                    then Signature.parse sb
-      when pt.userid                       then UserID.parse sb
+      when pt.secret_key    then KeyMaterial.parse_private_key sb, { subkey : false }
+      when pt.secret_subkey then KeyMaterial.parse_private_key sb, { subkey : true }
+      when pt.public_key    then KeyMaterial.parse_public_key sb,  { subkey : false }
+      when pt.public_subkey then KeyMaterial.parse_public_key sb,  { subkey : true }
+      when pt.signature     then Signature.parse sb
+      when pt.userid        then UserID.parse sb
       else throw new Error "Unknown packet tag: #{@tag}"
-    packet.set_tag @tag
-    packet.set_lengths @real_packet_len, @header_len
+    packet.set { @tag, @real_packet_len, @header_len, raw }
     packet
 
   #----------------
@@ -91,11 +94,11 @@ class PacketParser
       go = false
       c = @slice.read_uint8()
 
-      lastlen = if (c < 192) then @slice.read_uint8()
+      lastlen = if (c < 192) then c
       else if (c is 255) then @slice.read_uint32()
       else if (c < 224) 
-        a = (@slice.read_uint8() for i in [0...2])
-        ((a[0] - 192) << 8) + (a[1] + 192)
+        d = @slice.read_uint8()
+        ((c - 192) << 8) + (d + 192)
       else
         @header_len or= @slice.offset()
         packet_length = 1 << (c & 0x1f)

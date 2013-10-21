@@ -11,6 +11,7 @@ openpgpkm = require './openpgp/packet/keymaterial'
 kbkm = require './keybase/packet/keymaterial'
 {encode} = require './openpgp/armor'
 {base91} = require './basex'
+{UserIds,Bundle} = require './bundle'
 
 #=================================================================
 
@@ -49,7 +50,17 @@ _generate_keypair = ({nbits, asp, userid, passphrase}, cb) ->
   passphrase = bufferify passphrase
 
   esc = make_esc cb, "KeyFactor::_generate_keypair"
-  await RSA.generate { nbits, asp }, esc defer key
+
+  userids = new UserIds { keybase : userid }
+
+  # Generate the 2 keys in the bundle.  One primary key, and one subkey
+  # (of a smaller size, that will expire sooner).
+  await Bundle.generate { asp, nsubs : 1, userids }, esc defer bundle
+
+  # Carry out the various self-signatures, and signing of the subkeys.
+  await bundle.sign { asp }, esc defer()
+
+
 
   # Make a random password for OpenPGP for now
   await prng.generate 11, defer rd

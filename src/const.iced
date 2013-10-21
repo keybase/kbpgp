@@ -75,34 +75,62 @@ exports.openpgp = openpgp =
   signatures :
     key : 0x99
     userid : 0xb4
+  key_flags : 
+    certify_keys : 0x1
+    sign_data : 0x2
+    encrypt_comm : 0x4
+    encrypt_storage : 0x8
+    private_split : 0x10
+    auth : 0x20
+    shared : 0x80
+  features:
+    modification_detection : 0x1
+  key_server_preferences:
+    no_modify : 0x80
 
 exports.kb =
   key_encryption:
     none : 0
     triplesec_v1 : 1
+    triplesec_v2 : 2
   json_encoding :
     plain : 0
     msgpack : 1
-  packet_tags : openpgp.packet_tags
-  message_types : openpgp.message_types
+  packet_tags :
+    signature : 0x002
+    secret_key : 0x005
+    public_key : 0x006
+    secret_subkey : 0x007
+    public_subkey : 0x00d 
+    public_key_bundle : 0x101
+    private_key_bundle : 0x102
   public_key_algorithms : openpgp.public_key_algorithms
   versions :
     V1 : 1
-  signatures :
-    self_sign_key_pgp_username : 1
-    self_sign_key_keybase_username : 2
-    subkey : 3
+  sig_types:
+    self_sign : 1
+    subkey : 2
+    subkey_reverse : 3
   padding :
     EMSA_PCKS1_v1_5 : 3
     RSASSA_PSS : 4
   key_defaults:
     primary :
       expire_in : 24*60*60*365*10
-      len: 4096
+      nbits : 4096
     sub :
       expire_in : 24*60*60*365
-      len : 2048
+      nbits : 2048
+  kid : 
+    version : 1
+    trailer : 0x0a
+    len : 20
 
 exports.header =
   version : "Keybase OpenPGP JS 0.0.1"
   comment : "https://keybase.io"
+
+config = 
+  default_key_expire_in: 24*60*60*365*2
+
+(exports[k] = v for k,v of config)

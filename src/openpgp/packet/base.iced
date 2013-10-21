@@ -21,13 +21,7 @@ class Packet
 
   #----------------------
 
-  set_lengths : (real_packet_len, header_len) ->
-    @real_packet_len = real_packet_len
-    @header_len = header_len
-
-  #----------------------
-
-  set_tag : (t) -> @tag = t
+  set : (d) -> (@[k] = v for k,v of d)
 
   #----------------------
 
@@ -36,6 +30,17 @@ class Packet
   #----------------------
 
   is_key_material : () -> false
+
+  #----------------------
+
+  get_userid : () -> null
+
+  #----------------------
+
+  replay : () -> @frame_packet @tag, @raw
+
+  #----------------------
+
 
 #==================================================================================================
 

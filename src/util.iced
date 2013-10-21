@@ -124,7 +124,7 @@ exports.unix_time = () -> Math.floor(Date.now()/1000)
 
 #=========================================================
 
-json_stringify_sorted = (o, sort_fn) ->
+exports.json_stringify_sorted = (o, sort_fn) ->
 
   # ---------------------------------------------------------
   # this function should only be called on an object which
@@ -155,3 +155,11 @@ json_stringify_sorted = (o, sort_fn) ->
     return json_safe o2
 
 #=========================================================
+
+exports.obj_extract  = obj_extract = (o, keys) ->
+  ret = {}
+  (ret[k] = o[k] for k in keys)
+  ret
+
+#=========================================================
+
