@@ -22,7 +22,7 @@ exports.decode_pgp_secret_key_1 = (T,cb) ->
   n = 0
   for p,i in packets when p.is_key_material()
     n++
-    await p.open { passphrase }, defer err
+    await p.unlock { passphrase }, defer err
     T.no_error err
     err = p.key.sanity_check()
     T.waypoint "opened key #{i}"
