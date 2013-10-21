@@ -1,7 +1,8 @@
 K = require('../../const').kb
 triplesec = require 'triplesec'
 {SHA512} = require '../../hash'
-{Decryptor,native_rng} = triplesec.prng
+{Decryptor} = triplesec
+{native_rng} = triplesec.prng
 {Packet} = require './base'
 {pack,box} = require '../encode'
 {make_esc} = require 'iced-error'

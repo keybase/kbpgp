@@ -14,9 +14,13 @@ tsenc = null
 openpgp_pass = null
 pgp_private = null
 b2 = null
+b3 = null
 
 compare_keys = (T, k1, k2, what) ->
   T.equal k1.ekid().toString('hex'), k2.ekid().toString('hex'), "#{what} keys match"
+compare_bundles = (T, b1, b2) ->
+  compare_keys T, b1.primary, b2.primary, "primary"
+  compare_keys T, b1.subkeys[0], b2. subkeys[0], "subkeys[0]"
 
 sanity_check = (T, bundle) ->
   T.no_error bundle.primary.key.sanity_check()
@@ -54,8 +58,7 @@ exports.step4_import_pgp_public = (T,cb) ->
   b2 = tmp
   T.no_error err
   unless err?
-    compare_keys T, bundle.primary, b2.primary, "primary keys"
-    compare_keys T, bundle.subkeys[0], b2.subkeys[0], "subkeys[0]"
+    compare_bundles T, bundle, b2
   cb()
 
 exports.step5_merge_pgp_private = (T,cb) ->
@@ -69,34 +72,19 @@ exports.step5_merge_pgp_private = (T,cb) ->
   sanity_check T, b2
   cb()
 
- 
-progress_hook = (obj) ->
-  if obj.p?
-    s = obj.p.toString()
-    s = "#{s[0...3]}....#{s[(s.length-6)...]}"
-  else
-    s = ""
-  interval = if obj.total? and obj.i? then "(#{obj.i} of #{obj.total})" else ""
-  console.warn "+ #{obj.what} #{interval} #{s}"
-
-main = (cb) ->
-  esc = make_esc cb, "main"
-  tsenc = new Encryptor { key : bufferify("shitty"), version : 2 }
-  userid = 'maxtaco@keybase.io'
-  passphrase = new Buffer "cats1122", "utf8"
-  await bundle.sign {asp}, esc defer()
-  await bundle.export_private_to_server {tsenc,asp}, esc defer pair
-  await KeyManager.import_from_packed_keybase { raw : pair.keybase, asp }, defer b2
-  console.log b2
- 
-  #await bundle.export_pgp_private_to_client { passphrase, asp }, esc defer msg
-  #console.log util.inspect(pair, { depth : null })
-  #console.log box(pair.keybase).toString('base64')
-  #console.log msg
-  #await bundle.merge_pgp_private { raw : msg, asp }, esc defer b2
-  #await bundle.open_pgp { passphrase }, esc defer()
-  #await bundle.open_keybase { tsenc, asp}, esc defer()
-  #console.log bundle.keybase.primary
-  cb null
-
-
+exports.step6_export_keybase_private = (T,cb) ->
+  await bundle.export_private_to_server { tsenc, asp }, defer err, {keybase}
+  T.no_error err
+  await KeyManager.import_from_packed_keybase { raw : keybase, asp }, defer err, tmp
+  T.no_error err
+  b3 = tmp
+  bad_pass = Buffer.concat [ master_passphrase, (new Buffer "yo")]
+  bad_tsenc = new Encryptor { key : bad_pass, version : 2 }
+  await b3.open_keybase { tsenc : bad_tsenc, asp }, defer err
+  T.assert err?, "failed to decrypt w/ bad passphrase"
+  await b3.open_keybase { tsenc, asp }, defer err
+  T.no_error err
+  sanity_check T, b3
+  compare_bundles T, bundle, b3
+  T.no_error err
+  cb()
