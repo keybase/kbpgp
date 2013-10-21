@@ -8,6 +8,7 @@ K = require('./const').kb
 bn = require './bn'
 {SHA512} = require './hash'
 {emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
+{SRF,MRF} = require './rand'
 
 #=======================================================================
 
@@ -16,8 +17,8 @@ class Priv
 
   #--------------------
 
-  decrypt : (c) -> @mod_pow c, @d
-  sign    : (m) -> @mod_pow m, @d
+  decrypt : (c,cb) -> @mod_pow c, @d, cb
+  sign    : (m,cb) -> @mod_pow m, @d, cb
 
   #--------------------
 
@@ -237,12 +238,19 @@ class Pair
 
   #----------------
 
-  sanity_check : () ->
-    return new Error "pq != n" unless @priv.n().compareTo(@pub.n) is 0
-    test = nbs("1111777111771")
-    return new Error "Decrypt/encrypt failed" unless @decrypt(@encrypt(test)).compareTo(test) is 0
-    return new Error "Sign/verify failed" unless @verify(@sign(test)).compareTo(test) is 0
-    return null
+  sanity_check : (cb) ->
+    err = if @priv.n().compareTo(@pub.n) is 0 then null else new Error "pq != n"
+    unless err?
+      await SRF.random_zn @pub.n, defer x0
+      await @encrypt x0, defer x1
+      await @decrypt x1, defer x2
+      err = new Error "Decrypt/encrypt failed" unless x0.compareTo(x2) is 0
+    unless err?
+      await SRF.random_zn @pub.n, defer y0
+      await @sign y0, defer y1
+      await @sign y1, defer y2
+      err = new Error "Sign/verify failed" unless y0.compareTo(y2) is 0
+    cb err
 
   #----------------
 
@@ -297,16 +305,17 @@ class Pair
 
   #----------------
 
-  sign : (m) -> @priv.sign m
+  sign : (m, cb) -> @priv.sign m, cb
   verify : (s) -> @pub.verify s
 
   #----------------
 
-  pad_and_sign : (data, {hasher}) ->
+  pad_and_sign : (data, {hasher}, cb) ->
     hasher or= SHA512
     hashed_data = hasher data
     m = emsa_pkcs1_encode hashed_data, @pub.n.mpi_byte_length(), {hasher}
-    @sign(m).to_mpi_buffer()
+    await @sign m, defer sig
+    cb sig.to_mpi_buffer()
 
   #----------------
 

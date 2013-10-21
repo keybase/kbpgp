@@ -59,7 +59,7 @@ class Signature extends Packet
     uhsp = Buffer.concat( s.to_buffer() for s in @unhashed_subpackets )
 
     { prefix, payload, hvalue } = @prepare_payload data
-    sig = @key.pad_and_sign payload, { @hasher }
+    await @key.pad_and_sign payload, { @hasher }, defer sig
     result2 = Buffer.concat [
       uint_to_buffer(16, uhsp.length),
       uhsp,

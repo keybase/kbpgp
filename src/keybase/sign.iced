@@ -27,7 +27,7 @@ sign = ({key, type, body, hasher, progress_hook, json_encoding, include_body}, c
     json_encoding : json_encoding
   [err,payload] = json_encode { json_encoding, header, body }
   unless err?
-    sig = key.pad_and_sign payload, { hasher }
+    await key.pad_and_sign payload, { hasher }, defer sig
     output = { header, sig }
     output.body = body if include_body
   cb err, output
