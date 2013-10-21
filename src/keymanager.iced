@@ -34,6 +34,8 @@ class Engine
     @packets = []
     @messages = []
     @_allocate_key_packets()
+    (k.primary = @primary for k in @subkeys)
+    true
 
   #---------
 
@@ -217,9 +219,9 @@ class KeybaseEngine extends Engine
     esc = make_esc cb, "KeybaseEngine::_v_sign_subkey"
     subkey._keybase_sigs = {}
     await @_check_can_sign [ @primary, subkey ], esc defer()
-    p = new kpkts.Subkey { @primary, subkey }
+    p = new kpkts.Subkey { subkey }
     await p.sign { asp, include_body : true }, esc defer subkey._keybase_sigs.fwd
-    p = new kpkts.SubkeyReverse { @primary, subkey }
+    p = new kpkts.SubkeyReverse { subkey }
     await p.sign { asp , include_body : true }, esc defer subkey._keybase_sigs.rev
     cb null
 
