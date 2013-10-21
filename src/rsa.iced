@@ -53,9 +53,11 @@ class Priv
   # Use Chinese remainder theorem to compute (x^d mod n) quickly.
   mod_pow : (x,d) ->
 
-    # pre-compute dP, dQ, and qInv if necessary
-    @dP = @d.mod(@p.subtract(BigInteger.ONE)) unless @dP?
-    @dQ = @d.mod(@q.subtract(BigInteger.ONE)) unless @dQ?
+    # pre-compute dP, dQ
+    dP = @d.mod(@p.subtract(BigInteger.ONE))
+    dQ = @d.mod(@q.subtract(BigInteger.ONE))
+
+    # pre-compute qInv if necessary
     @qInv = @q.modInverse(@p) unless @qInv?
 
     ### Chinese remainder theorem (CRT) states:
@@ -142,8 +144,8 @@ class Priv
     # TODO: do cryptographic blinding
 
     # calculate xp and xq
-    xp = x.mod(@p).modPow(@dP, @p)
-    xq = x.mod(@q).modPow(@dQ, @q)
+    xp = x.mod(@p).modPow(dP, @p)
+    xq = x.mod(@q).modPow(dQ, @q)
 
     # xp must be larger than xq to avoid signed bit usage
     while xp.compareTo(xq) < 0
@@ -159,8 +161,8 @@ class Pub
   type : Pub.type
 
   constructor : ({@n,@e}) ->
-  encrypt : (p) -> p.modPow @e, @n
-  verify :  (s) -> s.modPow @e, @n
+  encrypt : (p) -> @mod_pow p, @e
+  verify :  (s) -> @mod_pow s, @e
 
   serialize : () -> 
     Buffer.concat [

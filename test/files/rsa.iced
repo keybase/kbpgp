@@ -30,13 +30,13 @@ exports.run_test_1024 = (T, cb) ->
   cb()
 
 exports.run_test_2048 = (T, cb) ->
-  await run_test T, 2048, 5, defer()
+  await run_test T, 2048, 8, defer()
   cb()
 
 exports.run_test_3072 = (T, cb) ->
-  await run_test T, 3072, 3, defer()
+  await run_test T, 3072, 6, defer()
   cb()
 
 exports.run_test_4096 = (T, cb) ->
-  await run_test T, 4096, 2, defer()
+  await run_test T, 4096, 5, defer()
   cb()
