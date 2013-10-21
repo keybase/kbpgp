@@ -23,7 +23,6 @@ $(BUILD_STAMP): \
 	lib/basex.js \
 	lib/symmetric.js \
 	lib/pad.js \
-	lib/keygen.js \
 	lib/keymanager.js \
 	lib/keywrapper.js \
 	lib/hash.js \
