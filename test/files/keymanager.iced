@@ -64,11 +64,14 @@ exports.step4_import_pgp_public = (T,cb) ->
 exports.step5_merge_pgp_private = (T,cb) ->
   await b2.merge_pgp_private { raw : pgp_private, asp }, defer err
   T.no_error err
+  T.assert b2.has_pgp_private(), "b2 has a private half"
+  T.assert b2.is_pgp_locked(), "b2 has a private half but is locked"
   bad_pass = "a" + openpgp_pass 
   await b2.unlock_pgp { passphrase : bad_pass }, defer err
   T.assert err?, "we should have gotten an error when opening with a bad password"
   await b2.unlock_pgp { passphrase : openpgp_pass }, defer err
   T.no_error err
+  T.assert (not b2.is_pgp_locked()), "unlocked b2 successfully"
   sanity_check T, b2
   cb()
 
@@ -78,12 +81,16 @@ exports.step6_export_keybase_private = (T,cb) ->
   await KeyManager.import_from_packed_keybase { raw : keybase, asp }, defer err, tmp
   T.no_error err
   b3 = tmp
+  T.assert b3.has_keybase_private(), "b3 has keybase private part"
+  T.assert b3.is_keybase_locked(), "b3 is still locked"
   bad_pass = Buffer.concat [ master_passphrase, (new Buffer "yo")]
   bad_tsenc = new Encryptor { key : bad_pass, version : 2 }
   await b3.unlock_keybase { tsenc : bad_tsenc, asp }, defer err
+  T.assert b3.is_keybase_locked(), "b3 is still locked"
   T.assert err?, "failed to decrypt w/ bad passphrase"
   await b3.unlock_keybase { tsenc, asp }, defer err
   T.no_error err
+  T.assert (not b3.is_keybase_locked()), "b3 is unlocked"
   sanity_check T, b3
   compare_bundles T, bundle, b3
   T.no_error err

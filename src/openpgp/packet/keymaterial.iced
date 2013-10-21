@@ -268,6 +268,7 @@ class KeyMaterial extends Packet
   ekid : () -> @key.ekid()
   can_sign : () -> @key.can_sign()
   is_locked : () -> (not @key.can_sign()) and (@skm?.convention isnt C.s2k_convention.none)
+  has_private : () -> (@key.can_sign() or @skm?)
 
   #--------------------------
 

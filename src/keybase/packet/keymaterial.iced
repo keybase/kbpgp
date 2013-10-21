@@ -76,6 +76,7 @@ class KeyMaterial extends Packet
 
   ekid : () -> @key.ekid()
   is_locked : () -> (not @key.can_sign()) and (@rawkey?.priv?.encryption isnt K.key_encryption.none)
+  has_private : () -> @key.can_sign() or @rawkey?.priv
 
   #--------------------------
 

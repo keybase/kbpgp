@@ -61,9 +61,16 @@ class Engine
   #--------
 
   is_locked : () ->
-    for k in @_all_keys()
+    for k,i in @_all_keys()
       return true if @key(k).is_locked()
     return false
+
+  #--------
+
+  has_private : () ->
+    for k in @_all_keys()
+      return false unless @key(k).has_private()
+    return true
 
   #--------
 
@@ -76,13 +83,17 @@ class Engine
 
   merge_private : (eng2) ->
     err = null
-    if not @_merge_1_private @primary, eng2.primary
+    if not @key(eng2.primary).has_private()
+      err = new Error "Expected a private key; got a public key!"
+    else if not @_merge_1_private @primary, eng2.primary
       err = new Error "primary public key doesn't match private key"
     else if @subkeys.length isnt eng2.subkeys.length
       err = new Error "Different number of subkeys"
     else
       for key, i in @subkeys when not err?
-        if not @_merge_1_private key, eng2.subkeys[i]
+        if not @key(eng2.subkeys[i]).has_private()
+          err = new Error "Subkey #{i} doesn't have a private key"
+        else if not @_merge_1_private key, eng2.subkeys[i]
           err = new Error "Subkey #{i} doesn't match its public key"
     err
 
@@ -99,7 +110,7 @@ class Engine
 
   _merge_1_private : (k1, k2) ->
     if bufeq_secure(@ekid(k1), @ekid(k2))
-      @_v_merge_private k1, k2
+      @key(k1).merge_private @key(k2)
       true
     else
       false
@@ -144,10 +155,6 @@ class PgpEngine extends Engine
     await @primary._pgp.sign_subkey { subkey : subkey._pgp, lifespan : subkey.lifespan }, defer err, sig
     subkey._pgp_sig = sig
     cb err
-
-  #--------
-
-  _v_merge_private : (k1, k2) -> k1._pgp.merge_private k2._pgp
 
   #--------
 
@@ -215,10 +222,6 @@ class KeybaseEngine extends Engine
     p = new kpkts.SubkeyReverse { @primary, subkey }
     await p.sign { asp , include_body : true }, esc defer subkey._keybase_sigs.rev
     cb null
-
-  #-----
-
-  _v_merge_private : (k1, k2) -> k1._keybase.merge_private k2._keybase
 
   #-----
 
@@ -338,6 +341,8 @@ class KeyManager
 
   is_pgp_locked : () -> @pgp.is_locked()
   is_keybase_locked : () -> @keybase.is_locked()
+  has_pgp_private : () -> @pgp.has_private()
+  has_keybase_private : () -> @keybase.has_private()
 
   #-----
   
