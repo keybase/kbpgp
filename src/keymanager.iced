@@ -60,9 +60,9 @@ class Engine
 
   #--------
 
-  is_encrypted : () ->
+  is_locked : () ->
     for k in @_all_keys()
-      return true if @key(k).is_encrypted()
+      return true if @key(k).is_locked()
     return false
 
   #--------
@@ -336,8 +336,8 @@ class KeyManager
 
   #-----
 
-  is_pgp_encrypted : () -> @pgp.is_encrypted()
-  is_keybase_encrypted : () -> @keybase.is_encrypted()
+  is_pgp_locked : () -> @pgp.is_locked()
+  is_keybase_locked : () -> @keybase.is_locked()
 
   #-----
   
