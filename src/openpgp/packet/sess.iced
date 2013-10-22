@@ -15,6 +15,26 @@ class PKESK extends Packet
 
 #=================================================================================
 
+# 5.13.  Sym. Encrypted Integrity Protected Data Packet (Tag 18)
+class SEIPD extends Packet
+
+#=================================================================================
+
+class SEIPD_Parser 
+
+  constructor : (@slice) ->
+
+  #  The body of this packet consists of:
+  #
+  #   - A one-octet version number.  The only currently defined value is 1.
+  #   - Encrypted data, the output of the selected symmetric-key cipher
+  #     operating in Cipher Feedback mode with shift amount equal to the
+  #     block size of the cipher (CFB-n where n is the block size).
+  parse : () ->
+    throw new Error "Unknown SEIPD version #{v}" unless (v = @slice.read_uint8()) is C.versions.SEIPD
+
+#=================================================================================
+
 class PKESK_Parser
 
   constructor : (@slice) ->
