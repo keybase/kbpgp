@@ -10,13 +10,17 @@ class PKESK extends Packet
 
   constructor : ( {@crypto_type, @fingerprint, @ekey }) ->
 
-  @parse : (slice) -> (new PKESK_Parser(slice)).parse()
+  @parse : (slice) -> (new PKESK_Parser slice).parse()
 
 
 #=================================================================================
 
 # 5.13.  Sym. Encrypted Integrity Protected Data Packet (Tag 18)
 class SEIPD extends Packet
+
+  constructor : ( { @ciphertext } ) ->
+
+  @parse : (slice) -> (new SEIPD_Parser slice).parse()
 
 #=================================================================================
 
@@ -32,6 +36,8 @@ class SEIPD_Parser
   #     block size of the cipher (CFB-n where n is the block size).
   parse : () ->
     throw new Error "Unknown SEIPD version #{v}" unless (v = @slice.read_uint8()) is C.versions.SEIPD
+    ciphertext = @slice.consume_rest_to_buffer()
+    new SEIPD { ciphertext } 
 
 #=================================================================================
 
@@ -56,6 +62,7 @@ class PKESK_Parser
 
 #=================================================================================
 
+exports.SEIPD = SEIPD
 exports.PKESK = PKESK
 
 #=================================================================================

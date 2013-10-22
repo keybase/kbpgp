@@ -69,8 +69,10 @@ exports.openpgp = openpgp =
     secret_subkey : 7
     public_subkey : 14
     userid : 13
+    SEIPD : 18
   versions :
     PKESK : 3
+    SEIPD : 1
     keymaterial : V4 : 4
     signature : 
       V3 : 3

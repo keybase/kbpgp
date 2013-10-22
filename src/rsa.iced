@@ -147,7 +147,7 @@ class Priv
     n = @pub.n
     await SRF().random_zn n, defer r
     r_inv = r.modInverse(n) 
-    r_e = r.modPow(@pub.e,n)             # Also do this with CRT?
+    r_e = r.modPow(@pub.e,n)
     x_1 = x.multiply(r_e).mod(n)
 
     # calculate xp and xq
