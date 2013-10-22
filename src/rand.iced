@@ -58,7 +58,7 @@ class StrongRandomFountain
     while go
       await @random_nbit n.bitLength(), defer ret
       go = ((ret.compareTo(BigInteger.ONE) <= 0) or (ret.compareTo(n) >= 0))
-    cb i
+    cb ret
 
   #---------
 

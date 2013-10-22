@@ -277,6 +277,7 @@ exports.fermat2_test = fermat2_test
 exports.nbs = nbs
 exports.small_primes = small_primes
 exports.miller_rabin = miller_rabin
+exports.random_prime = random_prime
 
 #=================================================================
 

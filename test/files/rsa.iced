@@ -1,8 +1,6 @@
 
 {RSA} = require '../../lib/rsa'
-{MediumRandomFountain,random_zn} = require '../../lib/primegen'
-
-rf = new MediumRandomFountain()
+{MRF} = require '../../lib/rand'
 
 run_test = (T,nbits,n,cb) ->
   await setTimeout defer(), 10
@@ -11,10 +9,10 @@ run_test = (T,nbits,n,cb) ->
   await setTimeout defer(), 10
   T.waypoint "generated #{nbits} bit key!"
   for i in [0...n]
-    x = random_zn rf, key.pub.n
-    y = key.encrypt x
+    x = MRF().random_zn key.pub.n
+    await key.encrypt x, defer y
     await setTimeout defer(), 2
-    z = key.decrypt y
+    await key.decrypt y, defer z
     T.waypoint "did encrypt/decrypt ##{i}"
     await setTimeout defer(), 10
     cmp = x.compareTo z

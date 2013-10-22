@@ -26,6 +26,8 @@ $(BUILD_STAMP): \
 	lib/keymanager.js \
 	lib/keywrapper.js \
 	lib/hash.js \
+	lib/rand.js \
+	lib/lock.js \
 	lib/keybase/encode.js \
 	lib/keybase/sign.js \
 	lib/keybase/parser.js \
