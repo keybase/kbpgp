@@ -59,7 +59,7 @@ class Signature extends Packet
     uhsp = Buffer.concat( s.to_buffer() for s in @unhashed_subpackets )
 
     { prefix, payload, hvalue } = @prepare_payload data
-    sig = @key.pad_and_sign payload, { @hasher }
+    await @key.pad_and_sign payload, { @hasher }, defer sig
     result2 = Buffer.concat [
       uint_to_buffer(16, uhsp.length),
       uhsp,
@@ -141,7 +141,7 @@ class Signature extends Packet
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
-      err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
+      await @key.verify_unpad_and_check_hash @sig, payload, @hasher, defer err
 
     # Now make sure that the signature wasn't expired
     unless err?

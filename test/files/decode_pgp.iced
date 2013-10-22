@@ -24,7 +24,7 @@ exports.decode_pgp_secret_key_1 = (T,cb) ->
     n++
     await p.unlock { passphrase }, defer err
     T.no_error err
-    err = p.key.sanity_check()
+    await p.key.sanity_check defer err
     T.waypoint "opened key #{i}"
     T.no_error err
     T.waypoint "sanity checked key #{i}"

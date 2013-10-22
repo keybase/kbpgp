@@ -1,10 +1,11 @@
-{Montgomery,nbv,nbi,BigInteger} = require('openpgp').bigint
+{nbv,nbi,BigInteger} = require 'bn'
 {prng} = require 'triplesec'
 native_rng = prng.native_rng
 {small_primes} = require './primes'
 {make_esc} = require 'iced-error'
 {ASP} = require './util'
 {nbs} = require './bn'
+{MRF,SRF} = require './rand'
 
 #=================================================================
 
@@ -77,32 +78,10 @@ fermat2_test = (n) ->
   #fta.stop()
   ret
 
-#--------------
-
-# Medium-strength random values for things like M-R
-# witnesses.
-ms_random_word = () -> native_rng(4).readUInt32BE 0
-
-# Medium-strength fountain of random values
-class MediumRandomFountain
-  constructor : ->
-  nextBytes : (v) ->
-    b = native_rng v.length
-    v[i] = c for c,i in b
-
-#--------------
-
-# @param {MS_RandomFountain} rf A RandomFountain
-# @param {BigInteger} n the modulus
-random_zn = (rf, n) ->
-  loop
-    i = new BigInteger n.bitLength(), rf
-    return i if i.compareTo(BigInteger.ONE) > 0 and i.compareTo(n) < 0
-
 #==================================================
 
-_MR_inner = ({mrf, s, r, p, p1}) ->
-  a = random_zn mrf, p
+_MR_inner = ({s, r, p, p1}) ->
+  a = MRF().random_zn p
   y = a.modPow(r,p)
   if y.compareTo(BigInteger.ONE) isnt 0
     for j in [(s-1)..0] when y.compareTo(p1) isnt 0
@@ -140,12 +119,10 @@ miller_rabin = ({p, iter, asp}, cb) ->
     s = p1.getLowestSetBit()
     r = p1.shiftRight(s)
 
-    mrf = new MediumRandomFountain()
-
     ret = true
     for i in [0...iter]
       await asp.progress { what : "mr", i, total : iter, p }, esc defer()
-      unless _MR_inner { mrf, s, r, p, p1 }
+      unless _MR_inner { s, r, p, p1 }
         ret = false
         break
 
@@ -245,7 +222,7 @@ prime_search = ({start, range, sieve, asp, iters}, cb) ->
 
   ret = null
   while pvec.length and not ret?
-    i = ms_random_word() % pvec.length
+    i = MRF().random_word() % pvec.length
     p = pvec[i]
 
     await asp.progress { what : "fermat", p }, esc defer()
@@ -264,23 +241,6 @@ prime_search = ({start, range, sieve, asp, iters}, cb) ->
 
 #=================================================================
 
-#-----------------------
-
-class StrongRandomFountain 
-  constructor : ->
-    @buf = null
-  recharge : (cb) ->
-    await prng.generate Math.floor(7000/8), defer tmp
-    @buf = tmp.to_buffer()
-    cb()
-  nextBytes : (v) ->
-    throw new Error "need a recharge!" unless @buf?
-    for i in [0...v.length]
-      v[i] = @buf[i]
-    @buf = null
-
-#-----------------------
-
 #
 # Find a random prime that is nbits long, with certainty
 # 1 - 2^{-iter}
@@ -294,7 +254,6 @@ class StrongRandomFountain
 #   It saves a tiny bit of work, but not much if e = 2^16+1 as usual.
 #
 random_prime = ({nbits, iters, asp, e}, cb) ->
-  srf = new StrongRandomFountain()
   sieve = [1,2]
   go = true
   esc = make_esc cb, "random_prime"
@@ -302,8 +261,7 @@ random_prime = ({nbits, iters, asp, e}, cb) ->
   p = null
 
   while go 
-    await srf.recharge defer()
-    p = new BigInteger nbits, srf
+    await SRF().random_nbit nbits, defer p
     p = p.setBit(0).setBit(nbits-1).setBit(nbits-2)
     if not e? or p.subtract(BigInteger.ONE).gcd(e).compareTo(BigInteger.ONE) is 0
       await asp.progress { what : "guess", p }, esc defer()
@@ -320,9 +278,6 @@ exports.nbs = nbs
 exports.small_primes = small_primes
 exports.miller_rabin = miller_rabin
 exports.random_prime = random_prime
-exports.random_zn = random_zn
-exports.MediumRandomFountain = MediumRandomFountain
-exports.StrongRandomFountain = StrongRandomFountain
 
 #=================================================================
 

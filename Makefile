@@ -26,6 +26,8 @@ $(BUILD_STAMP): \
 	lib/keymanager.js \
 	lib/keywrapper.js \
 	lib/hash.js \
+	lib/rand.js \
+	lib/lock.js \
 	lib/keybase/encode.js \
 	lib/keybase/sign.js \
 	lib/keybase/parser.js \
@@ -45,6 +47,8 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/userid.js \
 	lib/openpgp/packet/keymaterial.js \
 	lib/openpgp/packet/signature.js \
+	lib/openpgp/packet/sess.js \
+	lib/openpgp/packet/generic.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/cast5.js 

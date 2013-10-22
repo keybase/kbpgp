@@ -27,7 +27,7 @@ sign = ({key, type, body, hasher, progress_hook, json_encoding, include_body}, c
     json_encoding : json_encoding
   [err,payload] = json_encode { json_encoding, header, body }
   unless err?
-    sig = key.pad_and_sign payload, { hasher }
+    await key.pad_and_sign payload, { hasher }, defer sig
     output = { header, sig }
     output.body = body if include_body
   cb err, output
@@ -44,7 +44,9 @@ verify = ({type, key, sig, body, progress_hook}, cb) ->
   else if hd.version isnt K.versions.V1 then new Error "unknown version: #{header.version}"
   else if hd.padding isnt K.padding.EMSA_PCKS1_v1_5 then new Error "unknown padding: #{header.padding}"
   else if type isnt hd.type then new Error "Unexpected sig type; wanted #{type}, got #{hd.type}"
-  else key.verify_unpad_and_check_hash sig.sig, payload, hasher
+  else null
+  unless err?
+    await key.verify_unpad_and_check_hash sig.sig, payload, hasher, defer err
   cb err
 
 #==============
