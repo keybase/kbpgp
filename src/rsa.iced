@@ -145,17 +145,15 @@ class Priv
     # Cryptographic blinding: compute random r,
     # r_e <- r^e mod n
     # and x <- x*r_e mod n
-    #console.log "d-->"
-    #console.log d.toString(16)
-    #console.log @d.toString(16)
-    #n = @pub.n
-    #await SRF().random_zn n, defer r
-    #r_e = r.modPow(@pub.e,n)             # Also do this with CRT?
-    #x = x.multiply(r_e).mod(n)
+    n = @pub.n
+    await SRF().random_zn n, defer r
+    r_inv = r.modInverse(n) 
+    r_e = r.modPow(@pub.e,n)             # Also do this with CRT?
+    x_1 = x.multiply(r_e).mod(n)
 
     # calculate xp and xq
-    xp = x.mod(@p).modPow(@dP, @p)
-    xq = x.mod(@q).modPow(@dQ, @q)
+    xp = x_1.mod(@p).modPow(@dP, @p)
+    xq = x_1.mod(@q).modPow(@dQ, @q)
 
     # xp must be larger than xq to avoid signed bit usage
     while xp.compareTo(xq) < 0
@@ -163,13 +161,11 @@ class Priv
 
     # do last step
     y_0 = xp.subtract(xq).multiply(@qInv).mod(@p).multiply(@q).add(xq)
-    #console.log y_0.toString(16)
-    #console.log r.toString(16)
 
     # multiply by r^-1...
-    #y = y_0.multiply(r.modInverse(n)).mod(@p)
+    y = y_0.multiply(r_inv).mod(n)
 
-    cb y_0
+    cb y
 
 #=======================================================================
 
