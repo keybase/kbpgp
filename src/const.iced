@@ -62,6 +62,7 @@ exports.openpgp = openpgp =
     checksum : 255
     sha1 : 254
   packet_tags :
+    public_key_encrypted_session_key : 1
     signature : 2
     secret_key : 5
     public_key : 6
@@ -69,6 +70,7 @@ exports.openpgp = openpgp =
     public_subkey : 14
     userid : 13
   versions :
+    PKESK : 3
     keymaterial : V4 : 4
     signature : 
       V3 : 3

@@ -243,6 +243,17 @@ class Pair
 
 #=======================================================================
 
+class Output
+  constructor : (@y) ->
+  @parse : (buf) ->
+    [err, ret, raw, n] = bn.mpi_from_buffer buf
+    throw err if err?
+    throw new Error "junk at the end of input" unless raw.length is 0
+    new Ciphertext ret
+
+#=======================================================================
+
 exports.RSA = exports.Pair = Pair
+exports.Output = Output
 
 #=======================================================================
