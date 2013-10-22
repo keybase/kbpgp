@@ -62,12 +62,8 @@ decrypt = ({block_cipher_class, key, cipher, ciphertext, iv}) ->
 
 #=======================================================================
 
-exports.encrypt = encrypt;
-exports.decrypt = decrypt;
+exports.encrypt = encrypt
+exports.decrypt = decrypt
 
 #=======================================================================
 
-
-test = () ->
-
-test()
