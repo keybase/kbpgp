@@ -1,6 +1,6 @@
 {random_prime,nbs} = require './primegen'
 {RSA} = require('openpgp').ciphers.asymmetric
-{nbv,nbi,BigInteger} = require('openpgp').bigint
+{nbv,nbi,BigInteger} = require 'bn'
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 C = require('./const').openpgp
@@ -142,7 +142,13 @@ class Priv
       y by r^-1 afterwards.
     ###
 
-    # TODO: do cryptographic blinding
+    # Cryptographic blinding: compute random r,
+    # r_e <- r^e mod n
+    # and x <- x*r_e mod n
+    n = @pub.n
+    await SRF().random_zn n, defer r
+    r_e = r.modPow(@pub.e,n)             # Also do this with CRT?
+    x = x.multiply(r_e).mod(n)
 
     # calculate xp and xq
     xp = x.mod(@p).modPow(dP, @p)
@@ -153,7 +159,12 @@ class Priv
       xp = xp.add @p
 
     # do last step
-    xp.subtract(xq).multiply(@qInv).mod(@p).multiply(@q).add(xq)
+    y_0 = xp.subtract(xq).multiply(@qInv).mod(@p).multiply(@q).add(xq)
+
+    # multiply by r^-1...
+    y = y_0.multiply(r.modInverse(n)).mod(@p)
+
+    cb y
 
 #=======================================================================
 
@@ -162,8 +173,8 @@ class Pub
   type : Pub.type
 
   constructor : ({@n,@e}) ->
-  encrypt : (p) -> @mod_pow p, @e
-  verify :  (s) -> @mod_pow s, @e
+  encrypt : (p) -> @mod_pow p, @e, cb
+  verify :  (s) -> @mod_pow s, @e, cb
 
   serialize : () -> 
     Buffer.concat [
@@ -191,7 +202,7 @@ class Pub
 
   #----------------
 
-  mod_pow : (x,d) -> x.modPow(d,@n)
+  mod_pow : (x,d,cb) -> cb x.modPow(d,@n)
 
 #=======================================================================
 
@@ -273,8 +284,8 @@ class Pair
 
   #----------------
 
-  encrypt : (p) -> @pub.encrypt p
-  decrypt : (c) -> @priv.decrypt c
+  encrypt : (p, cb) -> @pub.encrypt p, cb
+  decrypt : (c, cb) -> @priv.decrypt c, cb
 
   #----------------
 
@@ -306,7 +317,7 @@ class Pair
   #----------------
 
   sign : (m, cb) -> @priv.sign m, cb
-  verify : (s) -> @pub.verify s
+  verify : (s) -> @pub.verify s, cb
 
   #----------------
 
@@ -319,17 +330,17 @@ class Pair
 
   #----------------
 
-  verify_unpad_and_check_hash : (sig, data, hasher) ->
+  verify_unpad_and_check_hash : (sig, data, hasher, cb) ->
     err = null
     [err, sig] = bn.mpi_from_buffer sig if Buffer.isBuffer sig
     unless err?
-      v = @verify sig
+      await @verify sig, defer v
       b = new Buffer v.toByteArray()
       [err, hd1] = emsa_pkcs1_decode b, hasher
       unless err?
         hd2 = hasher data
         err = new Error "hash mismatch" unless bufeq_secure hd1, hd2
-    err
+    cb err
 
   #----------------
 

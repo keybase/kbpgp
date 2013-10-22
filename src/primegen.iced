@@ -1,4 +1,4 @@
-{Montgomery,nbv,nbi,BigInteger} = require('openpgp').bigint
+{nbv,nbi,BigInteger} = require 'bn'
 {prng} = require 'triplesec'
 native_rng = prng.native_rng
 {small_primes} = require './primes'
