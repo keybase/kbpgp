@@ -1,6 +1,6 @@
 
 {small_primes,fermat2_test} = require '../../lib/primegen'
-{nbv} = require('openpgp').bigint
+{nbv} = require 'bn'
 {nbs} = require '../../lib/bn'
 numbers = require '../data/numbers.iced'
 

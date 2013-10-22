@@ -1,5 +1,4 @@
 {random_prime,nbs} = require './primegen'
-{RSA} = require('openpgp').ciphers.asymmetric
 {nbv,nbi,BigInteger} = require 'bn'
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
@@ -253,14 +252,14 @@ class Pair
   sanity_check : (cb) ->
     err = if @priv.n().compareTo(@pub.n) is 0 then null else new Error "pq != n"
     unless err?
-      await SRF.random_zn @pub.n, defer x0
+      x0 = MRF().random_zn @pub.n
       await @encrypt x0, defer x1
       await @decrypt x1, defer x2
       err = new Error "Decrypt/encrypt failed" unless x0.compareTo(x2) is 0
     unless err?
-      await SRF.random_zn @pub.n, defer y0
+      y0 = MRF().random_zn @pub.n
       await @sign y0, defer y1
-      await @sign y1, defer y2
+      await @verify y1, defer y2
       err = new Error "Sign/verify failed" unless y0.compareTo(y2) is 0
     cb err
 
@@ -318,7 +317,7 @@ class Pair
   #----------------
 
   sign : (m, cb) -> @priv.sign m, cb
-  verify : (s) -> @pub.verify s, cb
+  verify : (s, cb) -> @pub.verify s, cb
 
   #----------------
 

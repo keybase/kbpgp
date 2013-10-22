@@ -141,7 +141,7 @@ class Signature extends Packet
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
-      err = @key.verify_unpad_and_check_hash @sig, payload, @hasher
+      await @key.verify_unpad_and_check_hash @sig, payload, @hasher, defer err
 
     # Now make sure that the signature wasn't expired
     unless err?

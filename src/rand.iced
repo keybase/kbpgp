@@ -1,4 +1,4 @@
-{BigInteger} = require('openpgp').bigint
+{BigInteger} = require 'bn'
 {prng} = require 'triplesec'
 native_rng = prng.native_rng
 {Lock} = require './lock'

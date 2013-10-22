@@ -1,4 +1,4 @@
-{nbv,nbi,BigInteger} = require('openpgp').bigint
+{nbv,nbi,BigInteger} = require 'bn'
 {nbs} = require './bn'
 {buffer_to_ui8a} = require './util'
 

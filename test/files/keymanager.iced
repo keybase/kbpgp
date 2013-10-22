@@ -22,15 +22,18 @@ compare_bundles = (T, b1, b2) ->
   compare_keys T, b1.primary, b2.primary, "primary"
   compare_keys T, b1.subkeys[0], b2. subkeys[0], "subkeys[0]"
 
-sanity_check = (T, bundle) ->
-  T.no_error bundle.primary.key.sanity_check()
-  T.no_error bundle.subkeys[0].key.sanity_check()
+sanity_check = (T, bundle, cb) ->
+  await bundle.primary.key.sanity_check defer err
+  T.no_error err
+  await bundle.subkeys[0].key.sanity_check defer err
+  T.no_error err
+  cb()
 
-exports.step1_generated = (T,cb) ->
+exports.step1_generate = (T,cb) ->
   await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userid }, defer err, tmp
   bundle = tmp
   T.no_error err
-  sanity_check T, bundle
+  await sanity_check T, bundle, defer err
   cb()
 
 exports.step2_salt_triplesec = (T, cb) ->
@@ -69,7 +72,7 @@ exports.step5_merge_pgp_private = (T,cb) ->
   T.assert err?, "we should have gotten an error when opening with a bad password"
   await b2.open_pgp { passphrase : openpgp_pass }, defer err
   T.no_error err
-  sanity_check T, b2
+  await sanity_check T, b2, defer err
   cb()
 
 exports.step6_export_keybase_private = (T,cb) ->
@@ -84,7 +87,7 @@ exports.step6_export_keybase_private = (T,cb) ->
   T.assert err?, "failed to decrypt w/ bad passphrase"
   await b3.open_keybase { tsenc, asp }, defer err
   T.no_error err
-  sanity_check T, b3
+  await sanity_check T, b3, defer err
   compare_bundles T, bundle, b3
   T.no_error err
   cb()
