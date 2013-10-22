@@ -241,6 +241,12 @@ class Pair
     key = Pair.make { p, q, e, phi, p1, q1, lambda }
     cb null, key
 
+  #----------------
+
+  @parse_output : (buf) -> (Output.parse buf)
+
+  #----------------
+
 #=======================================================================
 
 class Output
@@ -249,7 +255,7 @@ class Output
     [err, ret, raw, n] = bn.mpi_from_buffer buf
     throw err if err?
     throw new Error "junk at the end of input" unless raw.length is 0
-    new Ciphertext ret
+    new Output ret
 
 #=======================================================================
 

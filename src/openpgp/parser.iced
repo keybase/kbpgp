@@ -4,6 +4,7 @@ util = require '../util'
 C = require('../const').openpgp
 {KeyMaterial} = require './packet/keymaterial'
 {Signature} = require './packet/signature'
+{PKESK} = require './packet/sess'
 {UserID} = require './packet/userid'
 {Generic} = require './packet/generic'
 {inspect} = require 'util'
@@ -51,6 +52,7 @@ class PacketParser
     sb = @body
     raw = sb.peek_rest_to_buffer()
     packet = switch @tag
+      when pt.PKESK         then PKESK.parse sb
       when pt.secret_key    then KeyMaterial.parse_private_key sb, { subkey : false }
       when pt.secret_subkey then KeyMaterial.parse_private_key sb, { subkey : true }
       when pt.public_key    then KeyMaterial.parse_public_key sb,  { subkey : false }
