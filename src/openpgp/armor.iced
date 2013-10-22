@@ -50,29 +50,6 @@ encode = (type, data) ->
 
 #=========================================================================
 
-
-#
-# Calculates a checksum over the given data and returns it base64 encoded
-# @param {Buffer} data Data to create a CRC-24 checksum for
-# @return {Buffer} Base64 encoded checksum
-#
-getCheckSum = (data) ->
-  c = createcrc24 data
-  buf = uint_to_buffer 32, c
-  buf[1...4].toString 'base64'
-
-formatCheckSum = (data) ->
-  make_line("=" + getCheckSum(data))
-
-
-# Calculates the checksum over the given data and compares it with the 
-# given base64 encoded checksum
-# @param {String} data Data to create a CRC-24 checksum for
-# @param {String} checksum Base64 encoded checksum
-# @return {Boolean} True if the given checksum is correct; otherwise false
-#
-verifyCheckSum = (data, checksum) -> (getCheckSum(data) is checksum)
-
 #
 # Internal function to calculate a CRC-24 checksum over a given string (data)
 # @param {Buffer} data Data to create a CRC-24 checksum for
@@ -118,7 +95,7 @@ crc_table = [
   0x56d11cce, 0x56575035, 0x575bc9c3, 0x57dd8538
 ]
 
-#------------------------
+#-----
 
 createcrc24 = (input) ->
   crc = 0xB704CE
@@ -148,6 +125,28 @@ createcrc24 = (input) ->
   return crc & 0xffffff
 
 #=========================================================================
+
+#
+# Calculates a checksum over the given data and returns it base64 encoded
+# @param {Buffer} data Data to create a CRC-24 checksum for
+# @return {Buffer} Base64 encoded checksum
+#
+getCheckSum = (data) ->
+  c = createcrc24 data
+  buf = uint_to_buffer 32, c
+  buf[1...4].toString 'base64'
+
+formatCheckSum = (data) ->
+  make_line("=" + getCheckSum(data))
+
+
+# Calculates the checksum over the given data and compares it with the 
+# given base64 encoded checksum
+# @param {String} data Data to create a CRC-24 checksum for
+# @param {String} checksum Base64 encoded checksum
+# @return {Boolean} True if the given checksum is correct; otherwise false
+#
+verifyCheckSum = (data, checksum) -> (getCheckSum(data) is checksum)
 
 exports.Message = class Message 
   constructor : ({@body, @type, @comment, @version}) ->
@@ -195,6 +194,7 @@ class Parser
     @ret.type = switch @type
       when "PUBLIC KEY BLOCK" then mt.public_key
       when "PRIVATE KEY BLOCK" then mt.private_key
+      when "MESSAGE" then mt.generic
       else throw new Error "Unknown messasge type: #{@type}"
 
   unframe : () ->

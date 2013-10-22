@@ -49,6 +49,7 @@ exports.openpgp = openpgp =
     subkey_binding : 0x18
     primary_binding : 0x19
   message_types :
+    generic : 0
     public_key : 4
     private_key : 5
   s2k :

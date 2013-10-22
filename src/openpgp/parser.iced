@@ -5,6 +5,7 @@ C = require('../const').openpgp
 {KeyMaterial} = require './packet/keymaterial'
 {Signature} = require './packet/signature'
 {UserID} = require './packet/userid'
+{Generic} = require './packet/generic'
 {inspect} = require 'util'
 
 #==================================================================================================
@@ -56,7 +57,7 @@ class PacketParser
       when pt.public_subkey then KeyMaterial.parse_public_key sb,  { subkey : true }
       when pt.signature     then Signature.parse sb
       when pt.userid        then UserID.parse sb
-      else throw new Error "Unknown packet tag: #{@tag}"
+      else                  new Generic @tag, sb # throw new Error "Unknown packet tag: #{@tag}"
     packet.set { @tag, @real_packet_len, @header_len, raw }
     packet
 
