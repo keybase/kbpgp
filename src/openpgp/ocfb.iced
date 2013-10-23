@@ -167,41 +167,55 @@ class Decryptor extends Base
 
   #-------------
 
-  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync}) ->
+  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync, @ciphertext}) ->
     super { block_cipher_class, key, cipher, resync }
     @_init()
 
   #-------------
 
   _init : () ->
+    @reset()
 
   #-------------
 
-  dec : (ciphertext) ->
+  reset : () -> @sb = new SlicerBuffer @ciphertext
+
+  #-------------
+
+  next_block : () -> WordArray.from_buffer @sb.read_buffer_at_most @block_size
+
+  #-------------
+
+  check : () ->
+    @reset()
     iblock = new WordArray(0 for i in [0...@block_size/4])
     @cipher.encryptBlock iblock.words, 0
-    sb = new SlicerBuffer ciphertext
-    next_block = () => WordArray.from_buffer sb.read_buffer_at_most @block_size
-    ablock = next_block()
+    ablock = @next_block()
     iblock.xor ablock, {}
     @cipher.encryptBlock ablock.words, 0
 
     # the last two bytes in iblock
     lhs = (iblock.words[-1...][0] & 0xffff)
-    rhs = (ablock.words[0] >>> 16) ^ (sb.peek_uint16())
+    rhs = (ablock.words[0] >>> 16) ^ (@sb.peek_uint16())
 
-    throw new Error "Canary block mismatch: #{lhs} != #{rhs}" unless lhs is rhs
+    if lhs is rhs then null else new Error "Canary block mismatch: #{lhs} != #{rhs}"
 
-    if @resync
-      @sb.advance 2
-    iblock = next_block()
-    while sb.rem()
+  #-------------
+
+  dec : () ->
+    @reset()
+    if @resync then @sb.advance 2
+    iblock = @next_block()
+    while @sb.rem()
       ablock = iblock
       @cipher.encryptBlock ablock.words, 0
-      iblock = next_block()
+      iblock = @next_block()
       ablock.xor iblock, {}
       @out_bufs.push ablock.to_buffer()
-    @compact()
+
+    out = @compact()
+    if not @resync then out = out[2...]
+    out
 
 #===============================================================================
 
@@ -212,8 +226,10 @@ encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext} ) 
 #===============================================================================
 
 decrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, ciphertext} ) ->
-  eng = new Decryptor { block_cipher_class, key, cipher, prefixrandom, resync }
-  eng.dec ciphertext
+  eng = new Decryptor { block_cipher_class, key, cipher, prefixrandom, resync, ciphertext }
+  err = eng.check()
+  throw err if ferr?
+  eng.dec()
 
 #===============================================================================
 
