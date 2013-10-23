@@ -80,20 +80,23 @@ class Encryptor extends Base
 
   #-------------
 
-  enc : () ->
+  _enc : () ->
     @FRE = WordArray.from_buffer @FR
     @cipher.encryptBlock @FRE.words, 0
 
   #-------------
 
-  emit_sb : (sb) ->
-    @emit_buf sb.read_buffer @block_size
+  _emit_sb : (sb) ->
+    @_emit_buf sb.read_buffer_at_most @block_size
 
   #-------------
 
-  emit_buf : (buf) ->
+  _emit_buf : (buf) ->
     wa = WordArray.from_buffer buf
-    wa.xor @FRE, {}
+    console.log buf
+    console.log wa
+    console.log @FRE
+    wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words_length) }
     buf = wa.to_buffer()
     @FR = buf
     @out_bufs.push buf
@@ -108,18 +111,18 @@ class Encryptor extends Base
 
     # 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the
     #     encryption of an all-zero value.
-    @enc()
+    @_enc()
 
     # 3.  FRE is xored with the first BS octets of random data prefixed to
     #     the plaintext to produce C[1] through C[BS], the first BS octets
     #     of ciphertext.
     # 4.  FR is loaded with C[1] through C[BS]
-    @emit_buf prefixrandom
+    @_emit_buf prefixrandom
 
 
     # 5.  FR is encrypted to produce FRE, the encryption of the first BS
     #    octets of ciphertext.
-    @enc()
+    @_enc()
 
     # 6.  The left two octets of FRE get xored with the next two octets of
     #     data that were prefixed to the plaintext.  This produces C[BS+1]
@@ -133,7 +136,7 @@ class Encryptor extends Base
     @FR = ct[offset...(offset+@block_size)]
 
     # 8.  FR is encrypted to produce FRE.
-    @enc()
+    @_enc()
 
   #-------------
 
@@ -146,12 +149,13 @@ class Encryptor extends Base
       # 9. FRE is xored with the first 8 octets of the given plaintext, now
       #    That we have finished encrypting the 10 octets of prefixed data.
       #    This produces C11-C18, the next 8 octets of ciphertext.
-      buf = Buffer.concat[ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
-      @emit_buf buf
+      buf = Buffer.concat [ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
+      @_emit_buf buf
 
     while sb.rem()
-      @enc()
-      @emit sb
+      console.log sb.rem()
+      @_enc()
+      @_emit_sb sb
 
     @compact()
 
@@ -213,6 +217,33 @@ decrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, ciphertext} )
 
 exports.encrypt = encrypt
 exports.encrypt = encrypt
+
+#===============================================================================
+
+class JenkyCipher
+
+  constructor : ->
+    @blockSize = 16
+
+  encryptBlock : (words) ->
+    t = words[0]
+    words[0] = words[1]
+    words[1] = words[2]
+    words[2] = words[3]
+    words[3] = t
+
+#===============================================================================
+
+test = () ->
+  ct = encrypt { 
+    block_cipher_class : JenkyCipher, 
+    key : new Buffer([1]), 
+    prefixrandom : new Buffer([0...16]),
+    plaintext : new Buffer("a man a plan a canal panama.  and you know the rest"),
+  }
+  console.log ct
+
+test()
 
 #===============================================================================
 

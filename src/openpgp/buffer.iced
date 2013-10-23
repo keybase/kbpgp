@@ -19,7 +19,9 @@ class SlicerBuffer
   len : () -> @buf.length - @start
   rem : () -> @buf.length - @i
   offset : () -> @i - @start
-  check : () -> throw new Error "read off the end of the packet @#{@i}" if @_end? and @i > @_end
+  check : () -> 
+    if (@_end and @i > @_end) or (@i > @buf.length)
+      throw new Error "read off the end of the packet @#{@i}"
   read_uint8 : () -> 
     ret = @buf.readUInt8 @i++
     @check()
@@ -34,6 +36,8 @@ class SlicerBuffer
     @i += 4
     @check()
     ret
+  read_buffer_at_most : (l) ->
+    @read_buffer (Math.min(l, @rem()))
   read_buffer : (l) ->
     ret = @buf[@i...(@i+l)]
     @i += l
