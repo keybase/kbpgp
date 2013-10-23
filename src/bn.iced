@@ -55,13 +55,24 @@ mpi_from_buffer = (raw) ->
 
 #================================================================
 
+mpi_to_padded_octets = (bn, base) ->
+  n = base.mpi_byte_length()
+  ba = bn.toByteArray()
+  diff = (n - ba.length)
+  pad = new Buffer(0 for i in [0...diff])
+  Buffer.concat [ pad, new Buffer(ba) ]
+
+#================================================================
+
 exports.toMPI = toMPI
 exports.nbs = nbs
 exports.mpi_from_buffer = mpi_from_buffer
+exports.mpi_to_padded_octets = mpi_to_padded_octets
 
 # Monkey-patch the BigInteger prototyp, for convenience...
 BigInteger.prototype.to_mpi_buffer = () -> toMPI @
 BigInteger.prototype.mpi_byte_length = () -> mpi_byte_length @
+BigInteger.prototype.to_padded_octets = (base) -> mpi_to_padded_octets @, base
 
 #================================================================
 

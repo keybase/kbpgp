@@ -6,7 +6,7 @@ C = require('./const').openpgp
 K = require('./const').kb
 bn = require './bn'
 {SHA512} = require './hash'
-{emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
+{eme_pkcs1_encode,eme_pkcs1_decode,emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
 {SRF,MRF} = require './rand'
 
 #=======================================================================
@@ -321,6 +321,27 @@ class Pair
 
   #----------------
 
+  pad_and_encrypt : (data, cb) ->
+    err = ret = null
+    await eme_pkcs1_encode data, @pub.n.mpi_byte_length(), defer err, m
+    unless err?
+      await @encrypt m, defer sig
+      ret = sig.to_mpi_buffer()
+    cb err, ret
+
+  #----------------
+
+  decrypt_and_unpad : (ciphertext, cb) ->
+    err = ret = null
+    [err, ciphertext] = bn.mpi_from_buffer ciphertext if Buffer.isBuffer ciphertext
+    unless err?
+      await @decrypt ciphertext, defer p
+      b = p.to_padded_octets @pub.n
+      [err, ret] = eme_pkcs1_decode b
+    cb err, ret
+
+  #----------------
+
   pad_and_sign : (data, {hasher}, cb) ->
     hasher or= SHA512
     hashed_data = hasher data
@@ -335,7 +356,7 @@ class Pair
     [err, sig] = bn.mpi_from_buffer sig if Buffer.isBuffer sig
     unless err?
       await @verify sig, defer v
-      b = new Buffer v.toByteArray()
+      b = v.to_padded_octets @pub.n
       [err, hd1] = emsa_pkcs1_decode b, hasher
       unless err?
         hd2 = hasher data

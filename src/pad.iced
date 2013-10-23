@@ -1,8 +1,8 @@
-
 {SHA512} = require './hash'
 C = require('./const').openpgp
 {nbs} = require './bn'
 {buffer_to_ui8a,bufeq_secure} = require './util'
+{prng} = require 'triplesec'
 
 #====================================================================
 
@@ -46,10 +46,10 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hasher) ->
   if v.length < 2
     err = new Error "signature was way too short: < 2 bytes"
   else 
-    i++ if v.readUInt8(i) is 0
-    if v.readUInt8(i++) isnt 1
+    if v.readUInt16BE(0) isnt 0x0001
       err = new Error "Sig verify error: Didn't get two-byte header 0x00 0x01"
     else 
+      i = 2
       (i++ while i < v.length and (v.readUInt8(i) is 0xff))
       if i >= v.length or v.readUInt8(i) isnt 0
         err = new Error "Sig verify error: Missed the 0x0 separator"
@@ -67,6 +67,42 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hasher) ->
             ret = h
   [err, ret]
 
+#====================================================================
+
+# See
+# 13.1.1. EME-PKCS1-v1_5-ENCODE
+exports.eme_pkcs1_encode = (v, len, cb) ->
+  ret = err = null
+  if v.length > len - 11
+    err = new Error "cannot encrypt message -- it's too long!"
+  else
+    n_randos = len - 3 - v.length
+    await prng.generate n_randos, defer PS
+    ret = Buffer.concat [ 
+      new Buffer( [0x00, 0x02] ),
+      PS,
+      new Buffer( [0x00] ),
+      v
+    ]
+  cb err, ret
+
+#====================================================================
+
+exports.eme_pkcs1_decode = (v) ->
+  err = ret = null
+  if v.length < 12
+    err = new Error "Ciphertext too short, needs to be >= 12 bytes"
+  else if v.readUInt16BE(0) isnt 0x0002
+    err = new Error "Failed to find expected header: 0x00 0x02"
+  else
+    i = 2
+    (i++ while i < v.length and (v.readUInt8(i) isnt 0x0))
+    if i >= v.length
+      err = new Error "didn't get 0x00 seperator octet"
+    else
+      i++
+      ret = v[i...]
+  [err, ret]
 
 #====================================================================
 

@@ -132,6 +132,11 @@ await km.unlock_pgp { passphrase }, defer err
 throw error if err?
 km = km.find_pgp_key packets[0].fingerprint
 console.log km
+console.log packets[0].ekey.y.toString(16)
+await km.key.decrypt_and_unpad packets[0].ekey.y, defer err, msg
+throw err if err?
+console.log msg
+console.log msg.length
 
 
 
