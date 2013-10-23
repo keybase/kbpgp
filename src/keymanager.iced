@@ -177,6 +177,14 @@ class PgpEngine extends Engine
     type = if opts.private then mt.private_key else mt.public_key
     encode type, Buffer.concat(packets)
 
+  #--------
+
+  find_key : (key_id) ->
+    for k in @_all_keys()
+      if bufeq_secure k._pgp.get_key_id(), key_id
+        return k 
+    return null
+
 #=================================================================
 
 class KeybaseEngine extends Engine
@@ -405,6 +413,10 @@ class KeyManager
     asp?.progress { what : "sign keybase" , total : 1, i : 1 }
     @_signed = true unless err?
     cb err
+
+  #--------
+
+  find_pgp_key : (key_id) -> @pgp.find_key key_id
   
   # /Public Interface
   #========================
