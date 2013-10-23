@@ -130,25 +130,21 @@ class Encryptor
 
 	enc : (plaintext) -> 
 		sb = new SlicerBuffer plaintext
-		if @resync then @_enc_resync(sb) else @_enc(sb)
 
-	#-------------
+		if @resync
+			@emit_sb sb
+		else
+			# 9. FRE is xored with the first 8 octets of the given plaintext, now
+	    #	   That we have finished encrypting the 10 octets of prefixed data.
+	    # 	 This produces C11-C18, the next 8 octets of ciphertext.
+			buf = Buffer.concat[ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
+			@emit_buf buf
 
-	_enc_resync : (sb) ->
-		@emit_sb sb
 		while sb.rem()
 			@enc()
 			@emit sb
 
-	#-------------
-
-	_enc : (sb) ->
-		# 9. FRE is xored with the first 8 octets of the given plaintext, now
-    #	   That we have finished encrypting the 10 octets of prefixed data.
-    # 	 This produces C11-C18, the next 8 octets of ciphertext.
-		buf = Buffer.concat[ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
-		@emit_buf buf
-
+		@compact()
 
 #===============================================================================
 
