@@ -88,7 +88,8 @@ class Encryptor extends Base
 
   _emit_sb : (sb) ->
     buf = if (deficit = @block_size - sb.rem()) > 0
-      Buffer.concat [ sb.consume_rest_to_buffer(), new Buffer(0 for i in [0...deficit]) ]
+      pad = new Buffer( 0 for i in [0...deficit])
+      Buffer.concat [ sb.consume_rest_to_buffer(), pad ]
     else sb.read_buffer @block_size
     @_emit_buf buf
 
