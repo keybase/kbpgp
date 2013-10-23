@@ -64,6 +64,7 @@ exports.openpgp = openpgp =
   packet_tags :
     PKESK : 1
     signature : 2
+    one_pass_sig: 4
     secret_key : 5
     public_key : 6
     secret_subkey : 7

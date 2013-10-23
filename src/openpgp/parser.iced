@@ -8,6 +8,7 @@ C = require('../const').openpgp
 {UserID} = require './packet/userid'
 {Compressed} = require './packet/compressed'
 {Generic} = require './packet/generic'
+{OpenPassSignature} = require './packet/one_pass_sig'
 {inspect} = require 'util'
 
 #==================================================================================================
@@ -54,6 +55,7 @@ class PacketParser
     raw = sb.peek_rest_to_buffer()
     packet = switch @tag
       when pt.PKESK         then PKESK.parse sb
+      when pt.one_pass_sig  then OnePassSignature.parse sb
       when pt.secret_key    then KeyMaterial.parse_private_key sb, { subkey : false }
       when pt.secret_subkey then KeyMaterial.parse_private_key sb, { subkey : true }
       when pt.public_key    then KeyMaterial.parse_public_key sb,  { subkey : false }

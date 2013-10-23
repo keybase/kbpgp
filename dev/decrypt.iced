@@ -148,5 +148,5 @@ await packets[0].inflate defer err, res
 throw err if err?
 [err, packets] = parse res
 throw err if err?
-console.log packets
+console.log util.inspect packets, { depth : null }
 process.exit 0
