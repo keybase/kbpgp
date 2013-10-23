@@ -242,32 +242,15 @@ decrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, ciphertext} )
 exports.encrypt = encrypt
 exports.encrypt = encrypt
 
-#===============================================================================
-
-class JenkyCipher
-
-  constructor : ->
-    @blockSize = 16
-    key = WordArray.from_buffer(new Buffer [0...32])
-    @aes = new AES key
-
-  encryptBlock : (words) ->
-    @aes.encryptBlock words, 0
-    #for w, i in words
-    #  words[i] = w ^ 0x11223344
-    #t = words[0]
-    #words[0] = words[1]
-    #words[1] = words[2]
-    #words[2] = words[3]
-    #words[3] = t
 
 #===============================================================================
 
+{rng} = require 'crypto'
 test = () ->
   plaintext = new Buffer("a man a plan a canal panama. and you know the rest")
-  key = new Buffer [1]
+  key = rng(32)
   prefixrandom = new Buffer [0...16]
-  block_cipher_class = JenkyCipher
+  block_cipher_class = AES
   ct = encrypt { block_cipher_class, key, prefixrandom, plaintext }
   console.log ct.toString('hex')
   pt = decrypt {block_cipher_class, key, prefixrandom, ciphertext : ct }
