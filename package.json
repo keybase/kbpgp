@@ -31,6 +31,7 @@
     "optimist" : "*",
     "deep-equal" : "*",
     "icsify" : "*",
-    "iced-error" : ">=0.0.6"
+    "iced-error" : ">=0.0.6",
+    "zlib-browserify" : "*"
   }
 }

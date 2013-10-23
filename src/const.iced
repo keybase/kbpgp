@@ -67,6 +67,7 @@ exports.openpgp = openpgp =
     secret_key : 5
     public_key : 6
     secret_subkey : 7
+    compressed : 8
     public_subkey : 14
     userid : 13
     SEIPD : 18

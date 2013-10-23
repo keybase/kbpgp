@@ -144,3 +144,9 @@ console.log pt.length
 [err, packets] = parse pt
 throw err if err?
 console.log packets
+await packets[0].inflate defer err, res
+throw err if err?
+[err, packets] = parse res
+throw err if err?
+console.log packets
+process.exit 0

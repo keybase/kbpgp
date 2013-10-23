@@ -6,6 +6,7 @@ C = require('../const').openpgp
 {Signature} = require './packet/signature'
 {SEIPD,PKESK} = require './packet/sess'
 {UserID} = require './packet/userid'
+{Compressed} = require './packet/compressed'
 {Generic} = require './packet/generic'
 {inspect} = require 'util'
 
@@ -60,6 +61,7 @@ class PacketParser
       when pt.signature     then Signature.parse sb
       when pt.userid        then UserID.parse sb
       when pt.SEIPD         then SEIPD.parse sb
+      when pt.compressed    then Compressed.parse sb
       else                  new Generic @tag, sb # throw new Error "Unknown packet tag: #{@tag}"
     packet.set { @tag, @real_packet_len, @header_len, raw }
     packet
