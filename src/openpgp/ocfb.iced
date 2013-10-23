@@ -95,8 +95,8 @@ class Encryptor extends Base
     wa = WordArray.from_buffer buf[0...@block_size]
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
-    @FR = buf
     @out_bufs.push buf
+    @FR = new Buffer buf
 
   #-------------
 
@@ -125,12 +125,13 @@ class Encryptor extends Base
     #     data that were prefixed to the plaintext.  This produces C[BS+1]
     #     and C[BS+2], the next two octets of ciphertext.
     b = @FRE.to_buffer()
-    @out_bufs.push new Buffer((b.readUInt8(i) ^ prefixrandom.readUInt8(@block_size+i)) for i in [0...2])
+    canary = new Buffer((b.readUInt8(i) ^ prefixrandom.readUInt8(@block_size+i)) for i in [0...2])
+    @out_bufs.push canary
 
     # 7.  (The resync step) FR is loaded with C3-C10.
-    ct = @compact()
     offset = if @resync then 2 else 0
-    @FR = ct[offset...(offset+@block_size)]
+    ct = @compact()
+    ct.copy(@FR,0,offset,offset+@block_size)
 
     # 8.  FR is encrypted to produce FRE.
     @_enc()
@@ -141,13 +142,19 @@ class Encryptor extends Base
     sb = new SlicerBuffer plaintext
 
     if @resync
-      @emit_sb sb
+      @_emit_sb sb
     else
       # 9. FRE is xored with the first 8 octets of the given plaintext, now
       #    That we have finished encrypting the 10 octets of prefixed data.
       #    This produces C11-C18, the next 8 octets of ciphertext.
       buf = Buffer.concat [ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
-      @_emit_buf buf
+      wa = WordArray.from_buffer buf
+      wa.xor @FRE, {}
+      buf = wa.to_buffer()[2...]
+      console.log @out_bufs
+      @out_bufs.push buf
+      buf.copy(@FR, 2, 0)
+      console.log @out_bufs
 
     while sb.rem()
       @_enc()
@@ -222,8 +229,8 @@ class JenkyCipher
     @blockSize = 16
 
   encryptBlock : (words) ->
-    for w, i in words
-      words[i] = w ^ 0x11223344
+    #for w, i in words
+    #  words[i] = w ^ 0x11223344
     #t = words[0]
     #words[0] = words[1]
     #words[1] = words[2]
@@ -240,7 +247,7 @@ test = () ->
   ct = encrypt { block_cipher_class, key, prefixrandom, plaintext }
   console.log ct
   pt = decrypt {block_cipher_class, key, prefixrandom, ciphertext : ct }
-  console.log pt.toString('utf8')
+  console.log pt # .toString('utf8')
 
 test()
 
