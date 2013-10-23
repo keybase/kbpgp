@@ -174,22 +174,22 @@ class Decryptor extends Base
   dec : (ciphertext) ->
     iblock = new WordArray(0 for i in [0...@block_size/4])
     @cipher.encryptBlock iblock.words, 0
-    @sb = new SlicerBuffer ciphertext
-    next_block = () => WordArray.from_buffer sb.read_buffer @block_size
+    sb = new SlicerBuffer ciphertext
+    next_block = () => WordArray.from_buffer sb.read_buffer_at_most @block_size
     ablock = next_block()
     iblock.xor ablock, {}
     @cipher.encryptBlock ablock.words, 0
 
     # the last two bytes in iblock
-    lhs = (iblock.words[@block_size - 1] & 0xffff)
-    rhs = (ablock.words[0] >>> 16) ^ (@sb.peek_uint16())
+    lhs = (iblock.words[-1...][0] & 0xffff)
+    rhs = (ablock.words[0] >>> 16) ^ (sb.peek_uint16())
 
     throw new Error "Canary block mismatch: #{lhs} != #{rhs}" unless lhs is rhs
 
     if @resync
       @sb.advance 2
     iblock = next_block()
-    while @sb.rem()
+    while sb.rem()
       ablock = iblock
       @cipher.encryptBlock ablock.words, 0
       iblock = next_block()
@@ -233,13 +233,14 @@ class JenkyCipher
 #===============================================================================
 
 test = () ->
-  ct = encrypt { 
-    block_cipher_class : JenkyCipher, 
-    key : new Buffer([1]), 
-    prefixrandom : new Buffer([0...16]),
-    plaintext : new Buffer("a man a plan a canal panama.  and you know the rest"),
-  }
+  plaintext = new Buffer("a man a plan a canal panama.  and you know the rest")
+  key = new Buffer [1]
+  prefixrandom = new Buffer [0...16]
+  block_cipher_class = JenkyCipher
+  ct = encrypt { block_cipher_class, key, prefixrandom, plaintext }
   console.log ct
+  pt = decrypt {block_cipher_class, key, prefixrandom, ciphertext : ct }
+  console.log pt.toString('utf8')
 
 test()
 
