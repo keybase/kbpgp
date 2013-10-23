@@ -7,6 +7,7 @@ C = require '../src/const'
 util = require 'util'
 {ASP} = require '../src/util'
 {KeyManager} = require '../src/keymanager'
+{import_key_pgp} = require '../src/symmetric'
 
 msg = """-----BEGIN PGP MESSAGE-----
 Version: GnuPG/MacGPG2 v2.0.20 (Darwin)
@@ -137,6 +138,8 @@ await km.key.decrypt_and_unpad packets[0].ekey.y, defer err, msg
 throw err if err?
 console.log msg
 console.log msg.length
+algo = import_key_pgp msg
+console.log algo
 
 
 
