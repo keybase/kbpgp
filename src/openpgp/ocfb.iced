@@ -92,14 +92,10 @@ class Encryptor extends Base
   #-------------
 
   _emit_buf : (buf) ->
-    console.log "emit ->"
     wa = WordArray.from_buffer buf[0...@block_size]
-    console.log @FRE.to_buffer().toString('hex')
-    console.log buf.toString('hex')
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
     @out_bufs.push buf
-    console.log buf.toString('hex')
     @FR = new Buffer buf
 
   #-------------
