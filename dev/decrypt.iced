@@ -8,6 +8,7 @@ util = require 'util'
 {ASP} = require '../src/util'
 {KeyManager} = require '../src/keymanager'
 {import_key_pgp} = require '../src/symmetric'
+{decrypt} = require '../src/openpgp/ocfb'
 
 msg = """-----BEGIN PGP MESSAGE-----
 Version: GnuPG/MacGPG2 v2.0.20 (Darwin)
@@ -134,13 +135,12 @@ throw error if err?
 km = km.find_pgp_key packets[0].fingerprint
 console.log km
 console.log packets[0].ekey.y.toString(16)
-await km.key.decrypt_and_unpad packets[0].ekey.y, defer err, msg
+await km.key.decrypt_and_unpad packets[0].ekey.y, defer err, key
 throw err if err?
-console.log msg
-console.log msg.length
-algo = import_key_pgp msg
-console.log algo
-
-
-
-
+cipher = import_key_pgp key
+pt = decrypt { cipher, ciphertext : packets[1].ciphertext }
+console.log util.inspect pt, { depth : null }
+console.log pt.length
+[err, packets] = parse pt
+throw err if err?
+console.log packets

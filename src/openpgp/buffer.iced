@@ -21,7 +21,7 @@ class SlicerBuffer
   offset : () -> @i - @start
   check : () -> 
     if (@_end and @i > @_end) or (@i > @buf.length)
-      throw new Error "read off the end of the packet @#{@i}"
+      throw new Error "read off the end of the packet @#{@i}/#{@buf.length}/#{@_end}"
   read_uint8 : () -> 
     ret = @buf.readUInt8 @i++
     @check()

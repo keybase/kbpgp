@@ -231,17 +231,16 @@ encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext} ) 
 
 #===============================================================================
 
-decrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, ciphertext} ) ->
-  eng = new Decryptor { block_cipher_class, key, cipher, prefixrandom, resync, ciphertext }
+decrypt = ({block_cipher_class, key, cipher, resync, ciphertext} ) ->
+  eng = new Decryptor { block_cipher_class, key, cipher, resync, ciphertext }
   err = eng.check()
-  throw err if ferr?
+  throw err if err?
   eng.dec()
 
 #===============================================================================
 
 exports.encrypt = encrypt
-exports.encrypt = encrypt
-
+exports.decrypt = decrypt
 
 #===============================================================================
 
@@ -256,7 +255,7 @@ test = () ->
   pt = decrypt {block_cipher_class, key, prefixrandom, ciphertext : ct }
   console.log pt.toString('utf8')
 
-test()
+#test()
 
 #===============================================================================
 
