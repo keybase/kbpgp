@@ -92,11 +92,8 @@ class Encryptor extends Base
   #-------------
 
   _emit_buf : (buf) ->
-    wa = WordArray.from_buffer buf
-    console.log buf
-    console.log wa
-    console.log @FRE
-    wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words_length) }
+    wa = WordArray.from_buffer buf[0...@block_size]
+    wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
     @FR = buf
     @out_bufs.push buf
@@ -153,7 +150,6 @@ class Encryptor extends Base
       @_emit_buf buf
 
     while sb.rem()
-      console.log sb.rem()
       @_enc()
       @_emit_sb sb
 
@@ -226,11 +222,13 @@ class JenkyCipher
     @blockSize = 16
 
   encryptBlock : (words) ->
-    t = words[0]
-    words[0] = words[1]
-    words[1] = words[2]
-    words[2] = words[3]
-    words[3] = t
+    for w, i in words
+      words[i] = w ^ 0x11223344
+    #t = words[0]
+    #words[0] = words[1]
+    #words[1] = words[2]
+    #words[2] = words[3]
+    #words[3] = t
 
 #===============================================================================
 
