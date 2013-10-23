@@ -34,8 +34,6 @@ class PacketParser
   parse_header : () ->
     @parse_tag_and_len()
     @header_len or= @slice.offset()
-    console.log "reading packet length -> #{@len}"
-    console.log "rem -> #{@slice.rem()}"
     @body or= new SlicerBuffer @slice.read_buffer @len
     @real_packet_len or= @len
     @slice.unclamp()
@@ -43,9 +41,7 @@ class PacketParser
   #----------------
 
   parse : () ->
-    console.log "1. lefties -> #{@slice.rem()}"
     @parse_header()
-    console.log "2. lefties -> #{@slice.rem()}"
     ret = @parse_body()
     ret
 
@@ -78,25 +74,18 @@ class PacketParser
   #----------------
 
   parse_tag_and_len_old : (c) ->
-    console.log "in parse_tag_and_len old! #{@slice.rem()}"
     @tag = (c & 0x3f) >> 2
     @len = switch (c & 0x03)
       when 0 then @slice.read_uint8()
       when 1 then @slice.read_uint16()
       when 2 then @slice.read_uint32()
       when 3 then @slice.rem()
-    console.log "tag -> #{@tag}"
-    console.log "len -> #{@len}"
-    console.log "rem -> #{@slice.rem()}"
 
   #----------------
 
   parse_tag_and_len_new : (c) ->
-    console.log "in parse tag and len new..."
     @tag = (c & 0x3f)
     @parse_tag_len_new()
-    console.log "tag -> #{@tag}"
-    console.log "len -> #{@len}"
 
   #----------------
 
