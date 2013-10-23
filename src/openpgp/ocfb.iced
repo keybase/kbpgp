@@ -44,6 +44,8 @@
 
 {WordArray} = require 'triplesec'
 {SlicerBuffer} = require './buffer'
+triplesec = require 'triplesec'
+{AES} = triplesec.ciphers
 
 #===============================================================================
 
@@ -246,8 +248,11 @@ class JenkyCipher
 
   constructor : ->
     @blockSize = 16
+    key = WordArray.from_buffer(new Buffer [0...32])
+    @aes = new AES key
 
   encryptBlock : (words) ->
+    @aes.encryptBlock words, 0
     #for w, i in words
     #  words[i] = w ^ 0x11223344
     #t = words[0]
