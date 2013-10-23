@@ -49,6 +49,7 @@ class SlicerBuffer
   peek_to_buffer : (len) -> @buf[@i...(@i + len)]
 
   peek_uint8 : () -> @buf.readUInt8 @i
+  peek_uint16 : () -> @buf.readUInt16BE @i
 
   read_v4_length : () ->
     p = @peek_uint8()

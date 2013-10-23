@@ -51,348 +51,168 @@ repeat = (b, n) -> Buffer.concat [ b, b[(b.length - n)...] ]
 
 #===============================================================================
 
-class Encryptor 
+class Base 
 
-	#-------------
+  #-------------
 
-	enc : () ->
-		@FRE = WordArray.from_buffer @FR
-		@cipher.encryptBlock @FRE.words, 0
+  constructor : ({@block_cipher_class, key, @cipher, @resync}) ->
+    @block_cipher_class or= AES
+    @cipher or= new @block_cipher_class WordArray.from_buffer key
+    @block_size = @cipher.blockSize
+    @out_bufs = []
 
-	#-------------
+  #-------------
 
-	emit_sb : (sb) ->
-		@emit_buf sb.read_buffer @block_size
-
-	#-------------
-
-	emit_buf : (buf) ->
-		wa = WordArray.from_buffer buf
-		wa.xor @FRE, {}
-		buf = wa.to_buffer()
-		@FR = buf
-		@cipher_bufs.push buf
-
-	#-------------
-
-	compact : () ->
-		b = Buffer.concat @cipher_bufs
-		@cipher_bufs = [ b ] 
-		b
-
-	#-------------
-
-	constructor : ({@block_cipher_class, key, @cipher, prefixrandom, @resync}) ->
-		@block_cipher_class or= AES
-		@cipher or= new @block_cipher_class WordArray.from_buffer key
-		@block_size = @cipher.blockSize
-		@cipher_bufs = []
-		@_init prefixrandom
-
-	#-------------
-
-	_init : (prefixrandom) ->
-
-		# 1. The feedback register (FR) is set to the IV, which is all zeros.
-		@FR = new Buffer(0 for i in [0...@block_size]) 
-		prefixrandom = repeat prefixrandom, 2 
-
-		# 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the
-    #     encryption of an all-zero value.
-    @enc()
-
-	  # 3.  FRE is xored with the first BS octets of random data prefixed to
-    #     the plaintext to produce C[1] through C[BS], the first BS octets
-    #     of ciphertext.
-	  # 4.  FR is loaded with C[1] through C[BS]
-		@emit_buf prefixrandom
-
-
-	  # 5.  FR is encrypted to produce FRE, the encryption of the first BS
-    #	   octets of ciphertext.
-    @enc()
-
-	  # 6.  The left two octets of FRE get xored with the next two octets of
-	  #     data that were prefixed to the plaintext.  This produces C[BS+1]
-	  #     and C[BS+2], the next two octets of ciphertext.
-	  b = @FRE.to_buffer()
-	  @cipher_bufs.push new Buffer((b.readUInt8(i) ^ prefixrandom.readUInt8(@block_size+i)) for i in [0...2])
-
-		# 7.  (The resync step) FR is loaded with C3-C10.
-	  ct = @compact()
-	  offset = if @resync then 2 else 0
-	  @FR = ct[offset...(offset+@block_size)]
-
-		# 8.  FR is encrypted to produce FRE.
-		@enc()
-
-	#-------------
-
-	enc : (plaintext) -> 
-		sb = new SlicerBuffer plaintext
-
-		if @resync
-			@emit_sb sb
-		else
-			# 9. FRE is xored with the first 8 octets of the given plaintext, now
-	    #	   That we have finished encrypting the 10 octets of prefixed data.
-	    # 	 This produces C11-C18, the next 8 octets of ciphertext.
-			buf = Buffer.concat[ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
-			@emit_buf buf
-
-		while sb.rem()
-			@enc()
-			@emit sb
-
-		@compact()
+  compact : () ->
+    b = Buffer.concat @out_bufs
+    @out_bufs = [ b ] 
+    b
 
 #===============================================================================
 
-#
-# @param {Buffer} key The key to encrypt with
-#
-encrypt = ({block_cipher_class, key, cipher, plaintext, R, resync}) ->
-	block_cipher_class or= AES
-	cipher or= new block_cipher_class WordArray.from_buffer key
-	block_size = cipher.blockSize
+class Encryptor extends Base
 
-	cipher_bufs = []
+  #-------------
 
-	# ?? I can't explain this, but openpgp JS does it.
-	# R is the "random prefix" value, input as a buffer
-	# RW is the same value as a word array
-	RW = WordArray.from_buffer Buffer.concat [ R, R[(R.length-2)...]]
+  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync}) ->
+    super { block_cipher_class, key, cipher, resync }
+    @_init prefixrandom
 
-	# 1.  The feedback register (FR) is set to the IV, which is all zeros.
-	# 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the encryption of an all-zero value.
-	FRE = new WordArray(0 for i in [0...(block_size/4)])
-	cipher.encryptBlock FRE.words, 0
+  #-------------
 
-	# 3.  FRE is xored with the first BS octets of random data prefixed to
-  #     the plaintext to produce C[1] through C[BS], the first BS octets
-  #     of ciphertext.
-  tmp = FRE.clone()
-  tmp.xor RW, {}
-  cipher_bufs.push tmp.to_buffer()
+  enc : () ->
+    @FRE = WordArray.from_buffer @FR
+    @cipher.encryptBlock @FRE.words, 0
 
-	# 5.  FR is encrypted to produce FRE, the encryption of the first BS
-  # 	   octets of ciphertext.
-  cipher.encryptBlock tmp.words, 0
+  #-------------
 
+  emit_sb : (sb) ->
+    @emit_buf sb.read_buffer @block_size
 
-	// 6.  The left two octets of FRE get xored with the next two octets of
-	//     data that were prefixed to the plaintext.  This produces C[BS+1]
-	//     and C[BS+2], the next two octets of ciphertext.
-	ciphertext += String.fromCharCode(FRE[0] ^ prefixrandom.charCodeAt(block_size));
-	ciphertext += String.fromCharCode(FRE[1] ^ prefixrandom.charCodeAt(block_size+1));
+  #-------------
 
-	if (resync) {
-		// 7.  (The resync step) FR is loaded with C3-C10.
-		for (var i = 0; i < block_size; i++) FR[i] = ciphertext.charCodeAt(i+2);
-	} else {
-		for (var i = 0; i < block_size; i++) FR[i] = ciphertext.charCodeAt(i);
-	}
-	// 8.  FR is encrypted to produce FRE.
-	FRE = blockcipherencryptfn(FR, key);
-	
-	if (resync) {
-		// 9.  FRE is xored with the first 8 octets of the given plaintext, now
-	    //	   that we have finished encrypting the 10 octets of prefixed data.
-	    // 	   This produces C11-C18, the next 8 octets of ciphertext.
-		for (var i = 0; i < block_size; i++)
-			ciphertext += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(i));
-		for(n=block_size+2; n < plaintext.length; n+=block_size) {
-			// 10. FR is loaded with C11-C18
-			for (var i = 0; i < block_size; i++) FR[i] = ciphertext.charCodeAt(n+i);
-		
-			// 11. FR is encrypted to produce FRE.
-			FRE = blockcipherencryptfn(FR, key);
-		
-			// 12. FRE is xored with the next 8 octets of plaintext, to produce the
-			// next 8 octets of ciphertext.  These are loaded into FR and the
-			// process is repeated until the plaintext is used up.
-			for (var i = 0; i < block_size; i++) ciphertext += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt((n-2)+i));
-		}
-	}
-	else {
-		plaintext = "  "+plaintext;
-		// 9.  FRE is xored with the first 8 octets of the given plaintext, now
-	    //	   that we have finished encrypting the 10 octets of prefixed data.
-	    // 	   This produces C11-C18, the next 8 octets of ciphertext.
-		for (var i = 2; i < block_size; i++) ciphertext += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(i));
-		var tempCiphertext = ciphertext.substring(0,2*block_size).split('');
-		var tempCiphertextString = ciphertext.substring(block_size);
-		for(n=block_size; n<plaintext.length; n+=block_size) {
-			// 10. FR is loaded with C11-C18
-			for (var i = 0; i < block_size; i++) FR[i] = tempCiphertextString.charCodeAt(i);
-			tempCiphertextString='';
-			
-			// 11. FR is encrypted to produce FRE.
-			FRE = blockcipherencryptfn(FR, key);
-			
-			// 12. FRE is xored with the next 8 octets of plaintext, to produce the
-			//     next 8 octets of ciphertext.  These are loaded into FR and the
-			//     process is repeated until the plaintext is used up.
-			for (var i = 0; i < block_size; i++){ tempCiphertext.push(String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(n+i)));
-			tempCiphertextString += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(n+i));
-			}
-		}
-		ciphertext = tempCiphertext.join('');
-		
-	}
-	return ciphertext;
-}
+  emit_buf : (buf) ->
+    wa = WordArray.from_buffer buf
+    wa.xor @FRE, {}
+    buf = wa.to_buffer()
+    @FR = buf
+    @out_bufs.push buf
 
-/**
- * Decrypts the prefixed data for the Modification Detection Code (MDC) computation
- * @param {openpgp_block_cipher_fn} blockcipherencryptfn Cipher function to use
- * @param {Integer} block_size Blocksize of the algorithm
- * @param {openpgp_byte_array} key The key for encryption
- * @param {String} ciphertext The encrypted data
- * @return {String} plaintext Data of D(ciphertext) with blocksize length +2
- */
-function openpgp_cfb_mdc(blockcipherencryptfn, block_size, key, ciphertext) {
-	var iblock = new Array(block_size);
-	var ablock = new Array(block_size);
-	var i;
+  #-------------
 
-	// initialisation vector
-	for(i=0; i < block_size; i++) iblock[i] = 0;
+  _init : (prefixrandom) ->
 
-	iblock = blockcipherencryptfn(iblock, key);
-	for(i = 0; i < block_size; i++)
-	{
-		ablock[i] = ciphertext.charCodeAt(i);
-		iblock[i] ^= ablock[i];
-	}
+    # 1. The feedback register (FR) is set to the IV, which is all zeros.
+    @FR = new Buffer(0 for i in [0...@block_size]) 
+    prefixrandom = repeat prefixrandom, 2 
 
-	ablock = blockcipherencryptfn(ablock, key);
+    # 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the
+    #     encryption of an all-zero value.
+    @enc()
 
-	return util.bin2str(iblock)+
-		String.fromCharCode(ablock[0]^ciphertext.charCodeAt(block_size))+
-		String.fromCharCode(ablock[1]^ciphertext.charCodeAt(block_size+1));
-}
-/**
- * This function decrypts a given plaintext using the specified
- * blockcipher to decrypt a message
- * @param {openpgp_cipher_block_fn} blockcipherfn The algorithm _encrypt_ function to encrypt
- *  data in one block_size encryption.
- * @param {Integer} block_size the block size in bytes of the algorithm used
- * @param {String} plaintext ciphertext to be decrypted provided as a string
- * @param {openpgp_byte_array} key key to be used to decrypt the ciphertext. This will be passed to the 
- *  blockcipherfn
- * @param {Boolean} resync a boolean value specifying if a resync of the 
- *  IV should be used or not. The encrypteddatapacket uses the 
- *  "old" style with a resync. Decryption within an 
- *  encryptedintegrityprotecteddata packet is not resyncing the IV.
- * @return {String} a string with the plaintext data
- */
-
-function openpgp_cfb_decrypt(blockcipherencryptfn, block_size, key, ciphertext, resync)
-{
-	util.print_debug("resync:"+resync);
-	var iblock = new Array(block_size);
-	var ablock = new Array(block_size);
-	var i, n = '';
-	var text = [];
-
-	// initialisation vector
-	for(i=0; i < block_size; i++) iblock[i] = 0;
-
-	iblock = blockcipherencryptfn(iblock, key);
-	for(i = 0; i < block_size; i++)
-	{
-		ablock[i] = ciphertext.charCodeAt(i);
-		iblock[i] ^= ablock[i];
-	}
-
-	ablock = blockcipherencryptfn(ablock, key);
-
-	util.print_debug("openpgp_cfb_decrypt:\niblock:"+util.hexidump(iblock)+"\nablock:"+util.hexidump(ablock)+"\n");
-	util.print_debug((ablock[0]^ciphertext.charCodeAt(block_size)).toString(16)+(ablock[1]^ciphertext.charCodeAt(block_size+1)).toString(16));
-	
-	// test check octets
-	if(iblock[block_size-2]!=(ablock[0]^ciphertext.charCodeAt(block_size))
-	|| iblock[block_size-1]!=(ablock[1]^ciphertext.charCodeAt(block_size+1)))
-	{
-		util.print_eror("error duding decryption. Symmectric encrypted data not valid.");
-		return text.join('');
-	}
-	
-	/*  RFC4880: Tag 18 and Resync:
-	 *  [...] Unlike the Symmetrically Encrypted Data Packet, no
-   	 *  special CFB resynchronization is done after encrypting this prefix
-     *  data.  See "OpenPGP CFB Mode" below for more details.
-
-	 */
-	
-	if (resync) {
-	    for(i=0; i<block_size; i++) iblock[i] = ciphertext.charCodeAt(i+2);
-		for(n=block_size+2; n<ciphertext.length; n+=block_size)
-		{
-			ablock = blockcipherencryptfn(iblock, key);
-
-			for(i = 0; i<block_size && i+n < ciphertext.length; i++)
-			{
-				iblock[i] = ciphertext.charCodeAt(n+i);
-				text.push(String.fromCharCode(ablock[i]^iblock[i])); 
-			}
-		}
-	} else {
-		for(i=0; i<block_size; i++) iblock[i] = ciphertext.charCodeAt(i);
-		for(n=block_size; n<ciphertext.length; n+=block_size)
-		{
-			ablock = blockcipherencryptfn(iblock, key);
-			for(i = 0; i<block_size && i+n < ciphertext.length; i++)
-			{
-				iblock[i] = ciphertext.charCodeAt(n+i);
-				text.push(String.fromCharCode(ablock[i]^iblock[i])); 
-			}
-		}
-		
-	}
-	
-	return text.join('');
-}
+    # 3.  FRE is xored with the first BS octets of random data prefixed to
+    #     the plaintext to produce C[1] through C[BS], the first BS octets
+    #     of ciphertext.
+    # 4.  FR is loaded with C[1] through C[BS]
+    @emit_buf prefixrandom
 
 
-function normal_cfb_encrypt(blockcipherencryptfn, block_size, key, plaintext, iv) {
-	var blocki ="";
-	var blockc = "";
-	var pos = 0;
-	var cyphertext = [];
-	var tempBlock = [];
-	blockc = iv.substring(0,block_size);
-	while (plaintext.length > block_size*pos) {
-		var encblock = blockcipherencryptfn(blockc, key);
-		blocki = plaintext.substring((pos*block_size),(pos*block_size)+block_size);
-		for (var i=0; i < blocki.length; i++)
-		    tempBlock.push(String.fromCharCode(blocki.charCodeAt(i) ^ encblock[i]));
-		blockc = tempBlock.join('');
-		tempBlock = [];
-		cyphertext.push(blockc);
-		pos++;
-	}
-	return cyphertext.join('');
-}
+    # 5.  FR is encrypted to produce FRE, the encryption of the first BS
+    #    octets of ciphertext.
+    @enc()
 
-function normal_cfb_decrypt(blockcipherencryptfn, block_size, key, ciphertext, iv) { 
-	var blockp ="";
-	var pos = 0;
-	var plaintext = [];
-	var offset = 0;
-	if (iv == null)
-		for (var i = 0; i < block_size; i++) blockp += String.fromCharCode(0);
-	else
-		blockp = iv.substring(0,block_size);
-	while (ciphertext.length > (block_size*pos)) {
-		var decblock = blockcipherencryptfn(blockp, key);
-		blockp = ciphertext.substring((pos*(block_size))+offset,(pos*(block_size))+(block_size)+offset);
-		for (var i=0; i < blockp.length; i++) {
-			plaintext.push(String.fromCharCode(blockp.charCodeAt(i) ^ decblock[i]));
-		}
-		pos++;
-	}
-	
-	return plaintext.join('');
-}
+    # 6.  The left two octets of FRE get xored with the next two octets of
+    #     data that were prefixed to the plaintext.  This produces C[BS+1]
+    #     and C[BS+2], the next two octets of ciphertext.
+    b = @FRE.to_buffer()
+    @out_bufs.push new Buffer((b.readUInt8(i) ^ prefixrandom.readUInt8(@block_size+i)) for i in [0...2])
+
+    # 7.  (The resync step) FR is loaded with C3-C10.
+    ct = @compact()
+    offset = if @resync then 2 else 0
+    @FR = ct[offset...(offset+@block_size)]
+
+    # 8.  FR is encrypted to produce FRE.
+    @enc()
+
+  #-------------
+
+  enc : (plaintext) -> 
+    sb = new SlicerBuffer plaintext
+
+    if @resync
+      @emit_sb sb
+    else
+      # 9. FRE is xored with the first 8 octets of the given plaintext, now
+      #    That we have finished encrypting the 10 octets of prefixed data.
+      #    This produces C11-C18, the next 8 octets of ciphertext.
+      buf = Buffer.concat[ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
+      @emit_buf buf
+
+    while sb.rem()
+      @enc()
+      @emit sb
+
+    @compact()
+
+#===============================================================================
+
+class Decryptor extends Base
+
+  #-------------
+
+  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync}) ->
+    super { block_cipher_class, key, cipher, resync }
+    @_init()
+
+  #-------------
+
+  _init : () ->
+
+  #-------------
+
+  dec : (ciphertext) ->
+    iblock = new WordArray(0 for i in [0...@block_size/4])
+    @cipher.encryptBlock iblock.words, 0
+    @sb = new SlicerBuffer ciphertext
+    next_block = () => WordArray.from_buffer sb.read_buffer @block_size
+    ablock = next_block()
+    iblock.xor ablock, {}
+    @cipher.encryptBlock ablock.words, 0
+
+    # the last two bytes in iblock
+    lhs = (iblock.words[@block_size - 1] & 0xffff)
+    rhs = (ablock.words[0] >>> 16) ^ (@sb.peek_uint16())
+
+    throw new Error "Canary block mismatch: #{lhs} != #{rhs}" unless lhs is rhs
+
+    if @resync
+      @sb.advance 2
+    iblock = next_block()
+    while @sb.rem()
+      ablock = iblock
+      @cipher.encryptBlock ablock.words, 0
+      iblock = next_block()
+      ablock.xor iblock, {}
+      @out_bufs.push ablock.to_buffer()
+    @compact()
+
+#===============================================================================
+
+encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext} ) ->
+  eng = new Encryptor { block_cipher_class, key, cipher, prefixrandom, resync }
+  eng.enc plaintext
+
+#===============================================================================
+
+decrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, ciphertext} ) ->
+  eng = new Decryptor { block_cipher_class, key, cipher, prefixrandom, resync }
+  eng.dec ciphertext
+
+#===============================================================================
+
+exports.encrypt = encrypt
+exports.encrypt = encrypt
+
+#===============================================================================
+
