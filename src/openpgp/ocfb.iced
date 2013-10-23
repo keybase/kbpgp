@@ -92,10 +92,14 @@ class Encryptor extends Base
   #-------------
 
   _emit_buf : (buf) ->
+    console.log "emit ->"
     wa = WordArray.from_buffer buf[0...@block_size]
+    console.log @FRE.to_buffer().toString('hex')
+    console.log buf.toString('hex')
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
     @out_bufs.push buf
+    console.log buf.toString('hex')
     @FR = new Buffer buf
 
   #-------------
@@ -151,10 +155,9 @@ class Encryptor extends Base
       wa = WordArray.from_buffer buf
       wa.xor @FRE, {}
       buf = wa.to_buffer()[2...]
-      console.log @out_bufs
       @out_bufs.push buf
-      buf.copy(@FR, 2, 0)
-      console.log @out_bufs
+      ct = @compact()
+      ct.copy(@FR,0,ct.length - @block_size,ct.length)
 
     while sb.rem()
       @_enc()
@@ -240,14 +243,14 @@ class JenkyCipher
 #===============================================================================
 
 test = () ->
-  plaintext = new Buffer("a man a plan a canal panama.  and you know the rest")
+  plaintext = new Buffer("a man a plan a canal panama. and you know the rest")
   key = new Buffer [1]
   prefixrandom = new Buffer [0...16]
   block_cipher_class = JenkyCipher
   ct = encrypt { block_cipher_class, key, prefixrandom, plaintext }
-  console.log ct
+  console.log ct.toString('hex')
   pt = decrypt {block_cipher_class, key, prefixrandom, ciphertext : ct }
-  console.log pt # .toString('utf8')
+  console.log pt.toString('utf8')
 
 test()
 
