@@ -40,6 +40,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/armor.js \
 	lib/openpgp/buffer.js \
 	lib/openpgp/cfb.js \
+	lib/openpgp/ocfb.js \
 	lib/openpgp/s2k.js \
 	lib/openpgp/util.js \
 	lib/openpgp/packet/all.js \
@@ -49,6 +50,9 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/signature.js \
 	lib/openpgp/packet/sess.js \
 	lib/openpgp/packet/generic.js \
+	lib/openpgp/packet/one_pass_sig.js \
+	lib/openpgp/packet/compressed.js \
+	lib/openpgp/packet/literal.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/cast5.js 

@@ -1,13 +1,13 @@
 
-{parse} = require '../../src/openpgp/parser'
-armor = require '../../src/openpgp/armor'
-C = require '../../src/const'
-{KeyBlock} = require '../../src/openpgp/processor'
+{parse} = require '../../lib/openpgp/parser'
+armor = require '../../lib/openpgp/armor'
+C = require '../../lib/const'
+{KeyBlock} = require '../../lib/openpgp/processor'
 util = require 'util'
-{katch,ASP} = require '../../src/util'
-{KeyManager} = require '../../src/keymanager'
-{import_key_pgp} = require '../../src/symmetric'
-{decrypt} = require '../../src/openpgp/ocfb'
+{katch,ASP} = require '../../lib/util'
+{KeyManager} = require '../../lib/keymanager'
+{import_key_pgp} = require '../../lib/symmetric'
+{decrypt} = require '../../lib/openpgp/ocfb'
 
 data = {
   msg : """-----BEGIN PGP MESSAGE-----
