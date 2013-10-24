@@ -24,6 +24,12 @@ class Signature extends Packet
 
   #---------------------
 
+  get_key_id : () ->
+    if @key_id then @key_id
+    else @subpacket_index.unhashed[S.issuer]?.id
+
+  #---------------------
+
   _make_subpacket_index : () ->
     ret = { hashed : {}, unhashed : {} }
     for p in @hashed_subpackets

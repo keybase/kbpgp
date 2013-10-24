@@ -1,6 +1,9 @@
 
 {make_esc} = require 'iced-error'
 {OPS} = require '../keyfetch'
+const = require '../const'
+C = const.openpgp
+{bufeq_secure} = require '../util'
 
 #==========================================================================================
 
@@ -113,7 +116,7 @@ class Message
 
     if key_ids.length 
       enc = true      
-      await @key_fetch.fetch key_ids, [ OPS.decrypt ], defer err, obj, index
+      await @key_fetch.fetch key_ids, [ const.ops.decrypt ], defer err, obj, index
       unless err?
         packet = esk_packets[index]
         await obj.key.decrypt_and_unpad packet.ekey.y, defer err, sesskey
@@ -169,8 +172,60 @@ class Message
     for p in @packets
       await @p.inflate esc defer inflated
       if inflated? then packets.push inflated...
-      else packets.push  p
+      else packets.push p
     @packets = packets
+    cb null
+
+  #---------
+
+  # This does our best to handle nested signatures.  It won't crash, but it will
+  # give weird results on garbage in, which will likely cause signature verification
+  # to fail.
+  _frame_signatures : () ->
+    ret = []
+    stack = []
+    payload = []
+    for p in @packets
+      if p.tag is C.packet_tags.one_pass_sig 
+        stack.push { open : p }
+      else if not stack.length then # noop
+      else if p.tag is C.packet_tags.signature
+        o = stack.pop()
+        o.close = p
+        ret.push o
+      else 
+        payload.push p
+
+    for o in ret
+      o.payload = payload
+    ret
+
+  #---------
+
+  _verify_sig : (sig, cb) ->
+    err = null
+    if not bufeq_secure (a = sig.open.key_id), (b = sig.close.get_key_id())
+      err = new Error "signature mismatch: #{a.toString('hex')}} != #{b.toString('hex')}"
+
+    unless err?
+      await @key_fetch.fetch [ a ], [ const.ops.verify ], defer err, obj
+
+    unless err?
+      await sig.close.verify sig.payload, defer err
+
+    unless.err
+      for p in sig.payload
+        p.add_signed_by sig.close
+
+    cb err
+
+  #---------
+
+  _verify : (cb) ->
+    esc = make_esc cb, "Message::_verify_sigs"
+    sigs = @_frame_signatures()
+    for sig in sigs
+      await @_verify_sig sig esc defer()
     cb null
 
   #---------
