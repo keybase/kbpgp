@@ -7,11 +7,10 @@ asymmetric = require '../../asymmetric'
 
 # 5.1.  Public-Key Encrypted Session Key Packets (Tag 1)
 class PKESK extends Packet
-
   constructor : ( {@crypto_type, @key_id, @ekey }) ->
-
   @parse : (slice) -> (new PKESK_Parser slice).parse()
-
+  to_esk_packet : () -> @
+  get_key_id : () -> @key_id
 
 #=================================================================================
 
@@ -21,6 +20,8 @@ class SEIPD extends Packet
   constructor : ( { @ciphertext } ) ->
 
   @parse : (slice) -> (new SEIPD_Parser slice).parse()
+
+  to_enc_data_packet : () -> @
 
 #=================================================================================
 

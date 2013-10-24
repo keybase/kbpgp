@@ -140,6 +140,12 @@ exports.kb =
     trailer : 0x0a
     len : 20
 
+exports.ops = 
+  encrypt : 0x1
+  decrypt : 0x2
+  verify  : 0x4
+  sign    : 0x8
+
 exports.header =
   version : "Keybase OpenPGP JS 0.0.1"
   comment : "https://keybase.io"

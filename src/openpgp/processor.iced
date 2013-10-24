@@ -1,4 +1,6 @@
 
+{make_esc} = require 'iced-error'
+{OPS} = require '../keyfetch'
 
 #==========================================================================================
 
@@ -83,6 +85,105 @@ class KeyBlock
   #--------------------
 
 #==========================================================================================
+
+class Message 
+
+  #---------
+
+  constructor : (@packets, @key_fetch) ->
+    @literals = []
+    @enc_data_packet = null
+
+  #---------
+
+  _decrypt : (cb) ->
+    await @key.decrypt_and_unpad @enc_data_packet
+
+  #---------
+
+  _get_session_key : (cb) ->
+    key_ids = []
+    esk_packets = []
+    err = null
+
+    key_ids = while @packets.length and (p = @packets[0].to_esk_packet())
+      esk_packets.push p
+      @packets.pop()
+      p.get_key_id()
+
+    if key_ids.length 
+      enc = true      
+      await @key_fetch.fetch key_ids, [ OPS.decrypt ], defer err, obj, index
+      unless err?
+        packet = esk_packets[index]
+        await obj.key.decrypt_and_unpad packet.ekey.y, defer err, sesskey
+    else
+      enc = false
+
+    cb err, enc, sesskey
+
+  #---------
+
+  _find_encrypted_data : (cb) ->
+    err = ret = null
+    if @packets.length and (ret = @packets[0].to_enc_data_packet())
+      @packets.pop()
+    else err = new Error "Could not encrypted data packet"
+    cb err, ret
+
+  #---------
+
+  _decrypt_with_session_key : (sesskey, edat, cb) ->
+    err = null
+    try
+      cipher = import_key_pgp sesskey
+      ret = decrypt { cipher, ciphertext : edat.ciphertext }
+    catch e
+      err = e
+    cb err, ret
+
+  #---------
+
+  _parse : (raw) ->
+    [err, packets] = parse raw
+    cb err, packets
+
+  #---------
+
+  _decrypt : (cb) ->
+    err = null
+    esc = make_esc cb, "Message::decrypt"
+    await @_get_session_key esc defer is_enc, sesskey
+    if is_enc
+      await @_find_encrypted_data esc defer edat
+      await @_decrypt_with_session_key sesskey, edat, esc defer plaintext
+      await @_parse plaintext, esc defer packets
+      @packets = packets.concat @packets
+    cb err 
+
+  #---------
+
+  _inflate : (cb) ->
+    packets = []
+    esc = make_esc cb, "Message::_inflate"
+    for p in @packets
+      await @p.inflate esc defer inflated
+      if inflated? then packets.push inflated...
+      else packets.push  p
+    @packets = packets
+    cb null
+
+  #---------
+  
+  process : (cb) ->
+    esc = make_esc cb, "Message:process"
+    await @_decrypt esc defer()
+    await @_inflate esc defer()
+    await @_verify esc defer()
+    cb null, @literals
+
+#==========================================================================================
+
 
 exports.KeyBlock = KeyBlock
 

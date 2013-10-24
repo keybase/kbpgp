@@ -228,6 +228,14 @@ class Pair
 
   #----------------
 
+  can_perform : (ops) ->
+    for op in ops
+      if op is const.ops.sign and not @can_sign() then return false
+      else if op is const.ops.decrypt and not @can_decrypt() then return false
+    return true
+
+  #----------------
+
   @parse : (pub_raw) ->
     [err, key, len ] = Pub.alloc pub_raw
     key = new Pair { pub : key } if key?

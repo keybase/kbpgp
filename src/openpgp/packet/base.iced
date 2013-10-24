@@ -37,10 +37,20 @@ class Packet
 
   #----------------------
 
+  # ESK = "Encrypted Session Key"
+  to_esk_packet : () -> null
+
+  #----------------------
+
+  to_enc_data_packet : () -> null
+
+  #----------------------
+
   replay : () -> @frame_packet @tag, @raw
 
   #----------------------
 
+  inflate : (cb) -> cb null, null
 
 #==================================================================================================
 

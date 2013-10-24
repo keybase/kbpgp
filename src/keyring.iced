@@ -1,8 +1,8 @@
-
+{KeyFetcher} = require './keyfetch'
 
 #=================================================================================
 
-class PgpKeyRing
+class PgpKeyRing extends KeyFetcher
 
   constructor : () ->
     @_keys = {}
@@ -12,7 +12,15 @@ class PgpKeyRing
     for k in keys
       @_keys[k.key_material.get_key_id()] = k
 
-  lookup : (key_id) -> @_keys[key_id]
+  fetch : (key_ids, ops, cb) -> 
+    ret = null
+    for id,i in key_ids when not ret?
+      k = @_keys[id]
+      if k?.key?.can_peform ops
+        ret_i = i
+        ret = k
+    err = if ret? then null else new Error "key not found"
+    cb err, ret, ret_i
 
 #=================================================================================
 
