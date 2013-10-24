@@ -115,6 +115,7 @@ class Signature extends Packet
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
     @data_packets = switch @type
+      when T.binary_doc then data_packets
       when T.issuer, T.personal, T.casual, T.positive 
         primary = data_packets[0]
         if primary.equal @primary
@@ -151,10 +152,13 @@ class Signature extends Packet
     sig = @
     unless err?
       switch @type
+        when T.binary_doc
+          for d in @data_packets
+            d.signed_with = @
         when T.issuer, T.personal, T.casual, T.positive 
           # Mark what the key was self-signed to do 
           options = @_export_hashed_subpackets()
-          userid = data_packets[1]?.get_userid()
+          userid = @data_packets[1]?.get_userid()
           primary.self_sig = { @type, options, userid, sig }
         when T.subkey_binding
           subkey.signed = { @primary, sig } unless subkey.signed?

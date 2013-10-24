@@ -42,6 +42,7 @@ exports.openpgp = openpgp =
     signature_target : 31
     embedded_signature : 32
   sig_types :  # See RFC 4880 5.2.1. Signature Types
+    binary_doc : 0x00
     issuer : 0x10
     persona : 0x11
     casual : 0x12

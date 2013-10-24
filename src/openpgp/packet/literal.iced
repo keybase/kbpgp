@@ -20,6 +20,8 @@ class Literal extends Packet
       when C.literal_formats.utf8 then 'utf8'
       else 'binary'
 
+  to_signature_payload : () -> Buffer.concat [ @data ]
+
 #=================================================================================
 
 class LiteralParser 
