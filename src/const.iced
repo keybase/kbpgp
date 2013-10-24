@@ -69,9 +69,14 @@ exports.openpgp = openpgp =
     public_key : 6
     secret_subkey : 7
     compressed : 8
+    literal : 11
     public_subkey : 14
     userid : 13
     SEIPD : 18
+  literal_formats :
+    binary : 0x62
+    text : 0x74
+    utf8 : 0x75
   versions :
     PKESK : 3
     SEIPD : 1

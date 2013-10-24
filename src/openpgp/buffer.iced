@@ -55,6 +55,8 @@ class SlicerBuffer
   peek_uint8 : () -> @buf.readUInt8 @i
   peek_uint16 : () -> @buf.readUInt16BE @i
 
+  read_string : () -> @read_buffer @read_uint8()
+
   read_v4_length : () ->
     p = @peek_uint8()
     if p < 192       then @advance(1); p

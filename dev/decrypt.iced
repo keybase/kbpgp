@@ -149,4 +149,5 @@ throw err if err?
 [err, packets] = parse res
 throw err if err?
 console.log util.inspect packets, { depth : null }
+console.log packets[1].toString()
 process.exit 0
