@@ -55,7 +55,8 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/literal.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
-	lib/openpgp/cast5.js 
+	lib/openpgp/cast5.js \
+	lib/keyring.js 
 	date > $@
 
 build: $(BUILD_STAMP) 

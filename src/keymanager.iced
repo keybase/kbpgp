@@ -110,6 +110,13 @@ class Engine
 
   #--------
 
+  export_keys_to_keyring : (km) ->
+    x = (key_wrapper, is_primary) =>
+      { km, is_primary, key_wrapper, key_material : @key(key_wrapper), key : @key(key_wrapper).key }
+    [ x(@primary, true) ].concat( x(k,false) for k in @subkeys )
+
+  #--------
+
   _merge_1_private : (k1, k2) ->
     if bufeq_secure(@ekid(k1), @ekid(k2))
       @key(k1).merge_private @key(k2)
@@ -417,6 +424,9 @@ class KeyManager
   #--------
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
+
+  export_pgp_keys_to_keyring : () -> @pgp.export_keys_to_keyring @
+  export_keybase_keys_to_keyring : () -> @keybase.export_keys_to_keyring @
   
   # /Public Interface
   #========================

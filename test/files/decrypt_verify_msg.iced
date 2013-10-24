@@ -8,6 +8,7 @@ util = require 'util'
 {KeyManager} = require '../../lib/keymanager'
 {import_key_pgp} = require '../../lib/symmetric'
 {decrypt} = require '../../lib/openpgp/ocfb'
+{PgpKeyRing} = require '../../lib/keyring'
 
 data = {
   msg : """-----BEGIN PGP MESSAGE-----
@@ -187,6 +188,7 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
 }
 
 exports.run_test1 = (T, cb) ->
+  ring = new PgpKeyRing()
   [err,msg] = armor.decode data.msg
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
@@ -203,7 +205,9 @@ exports.run_test1 = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : data.keys.verify.key, asp }, defer err, vkm
   T.no_error err
   T.waypoint "imported verification key"
-  dkey = dkm.find_pgp_key packets[0].key_id
+  ring.add_key_manager vkm
+  ring.add_key_manager dkm
+  dkey = ring.lookup packets[0].key_id
   T.assert dkey?, "found the right decryption key"
   await dkey.key.decrypt_and_unpad packets[0].ekey.y, defer err, sesskey
   T.no_error err
@@ -221,7 +225,7 @@ exports.run_test1 = (T, cb) ->
   [err, packets] = parse res
   T.no_error err
   T.waypoint "parsed the inflated message body"
-  vkey = vkm.find_pgp_key packets[0].key_id
+  vkey = ring.lookup packets[0].key_id
   T.assert vkey?, "found the right verification key"
   packets[2].key = vkey.key
   await packets[2].verify [ packets[1] ], defer err
