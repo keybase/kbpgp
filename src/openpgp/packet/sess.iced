@@ -8,7 +8,7 @@ asymmetric = require '../../asymmetric'
 # 5.1.  Public-Key Encrypted Session Key Packets (Tag 1)
 class PKESK extends Packet
 
-  constructor : ( {@crypto_type, @fingerprint, @ekey }) ->
+  constructor : ( {@crypto_type, @key_id, @ekey }) ->
 
   @parse : (slice) -> (new PKESK_Parser slice).parse()
 
@@ -54,11 +54,11 @@ class PKESK_Parser
   #   
   parse : () ->
     throw new Error "Unknown PKESK version: #{v}" unless (v = @slice.read_uint8()) is C.versions.PKESK
-    fingerprint = @slice.read_buffer 8
+    key_id = @slice.read_buffer 8
     crypto_type = @slice.read_uint8()
     klass = asymmetric.get_class crypto_type
     ekey = klass.parse_output @slice.consume_rest_to_buffer() 
-    new PKESK { crypto_type, fingerprint, ekey }
+    new PKESK { crypto_type, key_id, ekey }
 
 #=================================================================================
 

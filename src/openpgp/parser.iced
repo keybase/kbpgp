@@ -8,7 +8,7 @@ C = require('../const').openpgp
 {UserID} = require './packet/userid'
 {Compressed} = require './packet/compressed'
 {Generic} = require './packet/generic'
-{OpenPassSignature} = require './packet/one_pass_sig'
+{OnePassSignature} = require './packet/one_pass_sig'
 {inspect} = require 'util'
 
 #==================================================================================================

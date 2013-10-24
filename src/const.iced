@@ -75,6 +75,7 @@ exports.openpgp = openpgp =
   versions :
     PKESK : 3
     SEIPD : 1
+    one_pass_sig : 3
     keymaterial : V4 : 4
     signature : 
       V3 : 3

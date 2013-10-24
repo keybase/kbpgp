@@ -132,7 +132,7 @@ await KeyManager.import_from_armored_pgp { raw : armored_key, asp }, defer err, 
 throw err if err?
 await km.unlock_pgp { passphrase }, defer err
 throw error if err?
-km = km.find_pgp_key packets[0].fingerprint
+km = km.find_pgp_key packets[0].key_id
 console.log km
 console.log packets[0].ekey.y.toString(16)
 await km.key.decrypt_and_unpad packets[0].ekey.y, defer err, key
