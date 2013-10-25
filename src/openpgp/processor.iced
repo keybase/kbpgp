@@ -1,9 +1,12 @@
 
 {make_esc} = require 'iced-error'
 {OPS} = require '../keyfetch'
-const = require '../const'
-C = const.openpgp
+konst = require '../const'
+C = konst.openpgp
 {bufeq_secure} = require '../util'
+{parse} = require './parser'
+{import_key_pgp} = require '../symmetric'
+{decrypt} = require './ocfb'
 
 #==========================================================================================
 
@@ -93,14 +96,9 @@ class Message
 
   #---------
 
-  constructor : (@packets, @key_fetch) ->
+  constructor : (@key_fetch) ->
     @literals = []
     @enc_data_packet = null
-
-  #---------
-
-  _decrypt : (cb) ->
-    await @key.decrypt_and_unpad @enc_data_packet
 
   #---------
 
@@ -111,12 +109,12 @@ class Message
 
     key_ids = while @packets.length and (p = @packets[0].to_esk_packet())
       esk_packets.push p
-      @packets.pop()
+      @packets.shift()
       p.get_key_id()
 
     if key_ids.length 
       enc = true      
-      await @key_fetch.fetch key_ids, [ const.ops.decrypt ], defer err, obj, index
+      await @key_fetch.fetch key_ids, [ konst.ops.decrypt ], defer err, obj, index
       unless err?
         packet = esk_packets[index]
         await obj.key.decrypt_and_unpad packet.ekey.y, defer err, sesskey
@@ -131,7 +129,7 @@ class Message
     err = ret = null
     if @packets.length and (ret = @packets[0].to_enc_data_packet())
       @packets.pop()
-    else err = new Error "Could not encrypted data packet"
+    else err = new Error "Could not find encrypted data packet"
     cb err, ret
 
   #---------
@@ -147,7 +145,7 @@ class Message
 
   #---------
 
-  _parse : (raw) ->
+  _parse : (raw, cb) ->
     [err, packets] = parse raw
     cb err, packets
 
@@ -170,8 +168,10 @@ class Message
     packets = []
     esc = make_esc cb, "Message::_inflate"
     for p in @packets
-      await @p.inflate esc defer inflated
-      if inflated? then packets.push inflated...
+      await p.inflate esc defer inflated
+      if inflated? 
+        await @_parse inflated, esc defer p
+        packets.push p...
       else packets.push p
     @packets = packets
     cb null
@@ -208,12 +208,13 @@ class Message
       err = new Error "signature mismatch: #{a.toString('hex')}} != #{b.toString('hex')}"
 
     unless err?
-      await @key_fetch.fetch [ a ], [ const.ops.verify ], defer err, obj
+      await @key_fetch.fetch [ a ], [ konst.ops.verify ], defer err, obj
 
     unless err?
+      sig.close.key = obj.key
       await sig.close.verify sig.payload, defer err
 
-    unless.err
+    unless err?
       for p in sig.payload
         p.add_signed_by sig.close
 
@@ -225,21 +226,32 @@ class Message
     esc = make_esc cb, "Message::_verify_sigs"
     sigs = @_frame_signatures()
     for sig in sigs
-      await @_verify_sig sig esc defer()
+      await @_verify_sig sig, esc defer()
     cb null
 
   #---------
+
+  collect_literals : () ->
+    (p for p in @packets when p.tag is C.packet_tags.literal)
+
+  #---------
   
-  process : (cb) ->
+  process : (packets, cb) ->
+    @packets = packets
     esc = make_esc cb, "Message:process"
     await @_decrypt esc defer()
     await @_inflate esc defer()
     await @_verify esc defer()
-    cb null, @literals
+    cb null, @collect_literals()
+
+  parse_and_process : (raw, cb) ->
+    await @_parse raw, defer err, packets
+    await @process packets, defer err, literals unless err?
+    cb err, literals
 
 #==========================================================================================
 
-
 exports.KeyBlock = KeyBlock
+exports.Message = Message
 
 #==========================================================================================

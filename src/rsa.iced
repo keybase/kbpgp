@@ -2,8 +2,9 @@
 {nbv,nbi,BigInteger} = require 'bn'
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
-C = require('./const').openpgp
-K = require('./const').kb
+konst = require './const'
+C = konst.openpgp
+K = konst.kb
 bn = require './bn'
 {SHA512} = require './hash'
 {eme_pkcs1_encode,eme_pkcs1_decode,emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
@@ -230,8 +231,8 @@ class Pair
 
   can_perform : (ops) ->
     for op in ops
-      if op is const.ops.sign and not @can_sign() then return false
-      else if op is const.ops.decrypt and not @can_decrypt() then return false
+      if op is konst.ops.sign and not @can_sign() then return false
+      else if op is konst.ops.decrypt and not @can_decrypt() then return false
     return true
 
   #----------------

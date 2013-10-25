@@ -25,6 +25,7 @@ $(BUILD_STAMP): \
 	lib/pad.js \
 	lib/keymanager.js \
 	lib/keywrapper.js \
+	lib/keyfetch.js \
 	lib/hash.js \
 	lib/rand.js \
 	lib/lock.js \

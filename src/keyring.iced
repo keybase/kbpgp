@@ -16,11 +16,13 @@ class PgpKeyRing extends KeyFetcher
     ret = null
     for id,i in key_ids when not ret?
       k = @_keys[id]
-      if k?.key?.can_peform ops
+      if k?.key?.can_perform ops
         ret_i = i
         ret = k
     err = if ret? then null else new Error "key not found"
     cb err, ret, ret_i
+
+  lookup : (key_id) -> @_keys[key_id]
 
 #=================================================================================
 

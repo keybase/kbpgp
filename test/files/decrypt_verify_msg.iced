@@ -2,7 +2,7 @@
 {parse} = require '../../lib/openpgp/parser'
 armor = require '../../lib/openpgp/armor'
 C = require '../../lib/const'
-{KeyBlock} = require '../../lib/openpgp/processor'
+{Message} = require '../../lib/openpgp/processor'
 util = require 'util'
 {katch,ASP} = require '../../lib/util'
 {KeyManager} = require '../../lib/keymanager'
@@ -187,14 +187,10 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
   }
 }
 
-exports.run_test1 = (T, cb) ->
+#===============================================================
+
+load_keyring = (T,cb) ->
   ring = new PgpKeyRing()
-  [err,msg] = armor.decode data.msg
-  T.no_error err
-  T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
-  [err, packets] = parse msg.body
-  T.no_error err
-  T.waypoint "parsed incoming message"
   asp = new ASP {}
   await KeyManager.import_from_armored_pgp { raw : data.keys.decryption.key, asp }, defer err, dkm
   T.no_error err
@@ -207,6 +203,26 @@ exports.run_test1 = (T, cb) ->
   T.waypoint "imported verification key"
   ring.add_key_manager vkm
   ring.add_key_manager dkm
+  cb ring
+
+#===============================================================
+
+ring = null
+exports.init = (T,cb) ->
+  await load_keyring T, defer tmp
+  ring = tmp
+  cb()
+
+#===============================================================
+
+exports.run_test1 = (T, cb) ->
+  [err,msg] = armor.decode data.msg
+  T.no_error err
+  T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
+  [err, packets] = parse msg.body
+  T.no_error err
+  T.waypoint "parsed incoming message"
+  await load_keyring T, defer ring
   dkey = ring.lookup packets[0].key_id
   T.assert dkey?, "found the right decryption key"
   await dkey.key.decrypt_and_unpad packets[0].ekey.y, defer err, sesskey
@@ -235,3 +251,18 @@ exports.run_test1 = (T, cb) ->
   T.assert (ind > 0), "found some text we expected"
   cb()
 
+#===============================================================
+
+exports.process_msg = (T,cb) ->
+  [err,msg] = armor.decode data.msg
+  T.no_error err
+  T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
+  proc = new Message ring
+  await proc.parse_and_process msg.body, defer err, literals
+  T.no_error err
+  ind = literals[0].toString().indexOf 'Buffer "cats1122", "utf8"'
+  T.assert (ind > 0), "found some text we expected"
+  T.assert literals[0].signed_with?, "was signed"
+  cb()
+
+#===============================================================
