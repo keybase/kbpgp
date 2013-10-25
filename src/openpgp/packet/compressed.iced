@@ -2,7 +2,7 @@
 {Packet} = require './base'
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
-zlib = require 'zlib-browserify'
+zlib = require 'zlib'
 
 #=================================================================================
 
