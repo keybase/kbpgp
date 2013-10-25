@@ -148,8 +148,12 @@ formatCheckSum = (data) ->
 #
 verifyCheckSum = (data, checksum) -> (getCheckSum(data) is checksum)
 
+#=========================================================================
+
 exports.Message = class Message 
-  constructor : ({@body, @type, @comment, @version}) ->
+  constructor : ({@body, @type, @comment, @version, @lines}) ->
+    @lines = []
+  raw : -> @lines.join '\n'
 
 #=========================================================================
 
@@ -225,6 +229,7 @@ class Parser
     go = true
     while @lines.length and go
       line = @lines.shift()
+      @ret.lines.push line
       switch stage
         when 0
           if (m = line.match rxx_b)

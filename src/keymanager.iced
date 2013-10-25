@@ -307,10 +307,19 @@ class KeyManager
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   # Also works for an armored PGP PRIVATE KEY BLOCK
   @import_from_armored_pgp : ({raw, asp, userid}, cb) ->
+    ret = null
     [err,msg] = decode raw
     unless err?
       if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
         err = new Error "Wanted a public or private key; got: #{msg.type}"
+    unless err?
+      await KeyManager.import_from_pgp_message { msg, asp, userid }, defer err, ret
+    cb err, ret
+
+  #--------------
+
+  # Import from a dearmored/decoded PGP message.
+  @import_from_pgp_message : ({msg, raw, asp, userid}, cb) ->
     bundle = null
     unless err?
       [err,packets] = parse msg.body
@@ -322,7 +331,7 @@ class KeyManager
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
-        armored_pgp_public : raw,
+        armored_pgp_public : msg.raw(),
         userids }
     cb err, bundle
 
