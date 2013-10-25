@@ -11,7 +11,8 @@ util = require 'util'
 {PgpKeyRing} = require '../../lib/keyring'
 
 data = {
-  msg : """-----BEGIN PGP MESSAGE-----
+  msgs : [
+    """-----BEGIN PGP MESSAGE-----
 Version: GnuPG/MacGPG2 v2.0.20 (Darwin)
 Comment: GPGTools - http://gpgtools.org
 
@@ -53,6 +54,29 @@ mqG0bSbMM3VJ307AWDqoiP2hSW5wZ9YweVeFh1DdH2I2Xwt5xYkQDx27M/H9LO1A
 WYxrooYFv+qVvVMS
 =euQN
 -----END PGP MESSAGE-----""",
+  """-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - http://gpgtools.org
+
+hQEMA+bZw3a+syp5AQf6ArI5PQg+kzq4h7T4nZA9q/Li4kjf7eN2C4m1XuBm/B08
+245kUmI5iOkfFe9HbT3azrvdNYe9VzFweoKKJkWbYLRQsw8BN4lGlixpETDle4cz
+bd94yIbs//Xe+505h7jU+RY+cAqamaSPTpZG901dIB5XJwdP8qM2mYacCeBXIWmE
+BMUYUT9MtYZFESstbMHI/pKUiJRhhBpJLO0FP5KdGyuO9JOQZui0cagnxUynqVTU
++/DOMNf3nQeXBM4lyZQx3pFcXzNwL6URXz/yRa25CxDP4bpVcrZ5qSiJqZ+jpSRs
+F8WKEkGCftzwsWIxsUPcs+6ClBruLbSKSroP4+ci/dLBDgHoMF+R6Efj5sU8tWlE
+1Z3KQjB2ENqu7XIKf49cpnY06K3QKWppexflWT5UbHzOwn5O9Ih1NPL3PbFqQV+/
+yJDO2qjxvq6PXOOwRbxvasYzpYXoLO5soyoEbmQ/VwTZL8Pw0Gima1s1GejTHcvv
+Z3BvqyuiJGAnYq5ShI+SlDVI2uRwJ6nThQtGdIjaQZo3ilSPuFE8sWSO03IKKxQy
+ZyNwKj0miHaIOqevu88588zwsAKAxUw7gYd0GWSN9G6MHf6P1P7dZyd92dPnBJu0
+L8AFMrYN1HcLuLG12BeONPUty4ZGUwjnFn9wu83RRKZ0d+yjVzhoAv7VbQxKBE/p
+eQntRg76DYwOmTBV+ZGsO+rezxQ/1sEMRq0bvJIybpDLFUwg3QmGc4ZGJyBQ/FKA
+V7xwSJBg5wSzZ9pSo4HQFi6pF/UPTc9xbbKQDIEnZlYdaIiTS0J/Xx321f5Paicw
+wa/vt7tlsS8evxmVvhgMWZ0tc8B82ZM8o1AHLewmty2PFPuGVMG9W3DJJSBH+fRC
+7jB2iHwfhUQ5ntFkxMcmVY1IYK2WtHQ4nzYdvhiSp9MTuBqXfy1RzWq6LAbUUGfU
+o7cJyIX4q4MjzvkYEjxxnw==
+=S4AK
+-----END PGP MESSAGE-----
+  """ ],
   keys : {
     decryption: {
       passphrase : "catsdogs",
@@ -215,8 +239,8 @@ exports.init = (T,cb) ->
 
 #===============================================================
 
-exports.run_test1 = (T, cb) ->
-  [err,msg] = armor.decode data.msg
+exports.run_test_msg_0 = (T, cb) ->
+  [err,msg] = armor.decode data.msgs[0]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
   [err, packets] = parse msg.body
@@ -253,8 +277,8 @@ exports.run_test1 = (T, cb) ->
 
 #===============================================================
 
-exports.process_msg = (T,cb) ->
-  [err,msg] = armor.decode data.msg
+exports.process_msg_0 = (T,cb) ->
+  [err,msg] = armor.decode data.msgs[0]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
   proc = new Message ring
@@ -263,6 +287,20 @@ exports.process_msg = (T,cb) ->
   ind = literals[0].toString().indexOf 'Buffer "cats1122", "utf8"'
   T.assert (ind > 0), "found some text we expected"
   T.assert literals[0].signed_with?, "was signed"
+  cb()
+
+#===============================================================
+
+exports.process_msg_1 = (T,cb) ->
+  [err,msg] = armor.decode data.msgs[1]
+  T.no_error err
+  T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
+  proc = new Message ring
+  await proc.parse_and_process msg.body, defer err, literals
+  T.no_error err
+  ind = literals[0].toString().indexOf '"devDependencies" : {'
+  T.assert (ind > 0), "found some text we expected"
+  T.assert not literals[0].signed_with?, "was not signed"
   cb()
 
 #===============================================================
