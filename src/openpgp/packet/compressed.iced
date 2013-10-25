@@ -6,6 +6,13 @@ zlib = require 'zlib-browserify'
 
 #=================================================================================
 
+fake_zip_inflate = (buf, cb) ->
+  buf = Buffer.concat [ new Buffer([0x78,0x9c]), buf ]
+  await zlib.inflate buf, defer err, ret
+  cb err, ret
+
+#=================================================================================
+
 # 5.1.  Public-Key Encrypted Session Key Packets (Tag 1)
 class Compressed extends Packet
 
@@ -15,10 +22,14 @@ class Compressed extends Packet
 
   inflate : (cb) ->
     err = ret = null
-    if @algo is 2
-      await zlib.inflate @compressed, defer err, ret
-    else
-      err = new Error "no known inflation"
+    switch @algo
+      when C.compression.none then ret = @compressed
+      when C.compression.zlib
+        await zlib.inflate @compressed, defer err, ret
+      when C.compression.zip
+        await fake_zip_inflate @compressed, defer err, ret
+      else
+        err = new Error "no known inflation -- algo: #{@algo}"
     cb err, ret
 
 #=================================================================================

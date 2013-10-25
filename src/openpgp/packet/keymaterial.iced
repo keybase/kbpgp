@@ -267,7 +267,7 @@ class KeyMaterial extends Packet
   is_primary : -> not @opts?.subkey
   ekid : () -> @key.ekid()
   can_sign : () -> @key.can_sign()
-  is_locked : () -> (not @key.can_sign()) and (@skm?.convention isnt C.s2k_convention.none)
+  is_locked : () -> (not @key.can_sign()) and (@skm? and (@skm.convention isnt C.s2k_convention.none))
   has_private : () -> (@key.can_sign() or @skm?)
 
   #--------------------------

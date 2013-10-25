@@ -101,6 +101,11 @@ exports.openpgp = openpgp =
     modification_detection : 0x1
   key_server_preferences:
     no_modify : 0x80
+  compression : 
+    none : 0
+    zip  : 1
+    zlib : 2
+    bzip : 3
 
 exports.kb =
   key_encryption:

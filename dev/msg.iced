@@ -10,7 +10,7 @@ util = require '../lib/util'
 #=================================================================
 
 class Runner
-  constructor : ({@msgfile, @keyfile, @password}) ->
+  constructor : ({@msgfile, @keyfile, @passphrase}) ->
     @ring = new PgpKeyRing
 
   _read_file : (fn, cb) ->
@@ -27,15 +27,24 @@ class Runner
     userid = "anon@keybase.io"
     for msg in msgs
       await KeyManager.import_from_pgp_message { msg, asp, userid }, esc defer km
+      if km.is_pgp_locked()
+        await km.unlock_pgp { @passphrase }, esc defer()
       @ring.add_key_manager km
     cb null
 
   read_msg : (cb) ->
     esc = make_esc cb, "read_msg"
     await @_read_file @msgfile, esc defer msgs
+    @msg = msgs[0]
     cb null
 
   process : (cb) ->
+    esc = make_esc cb, "process"
+    proc = new Message @ring
+    await proc.parse_and_process @msg.body, esc defer literals
+    console.log literals
+    for l in literals
+      console.log l.toString()
     cb null
 
   run : (cb) ->
@@ -47,9 +56,9 @@ class Runner
 
 #=================================================================
 
-argv = require('optimist').alias("m", "msg").alias("k","keyfile").alias("p","password").argv
+argv = require('optimist').alias("m", "msg").alias("k","keyfile").alias("p","passphrase").argv
 
-runner = new Runner { msgfile : argv.m, keyfile : argv.k, password : argv.p }
+runner = new Runner { msgfile : argv.m, keyfile : argv.k, passphrase : argv.p }
 await runner.run defer err
 throw err if err?
 process.exit 0
