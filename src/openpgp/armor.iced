@@ -156,13 +156,14 @@ exports.Message = class Message
 class Parser
 
   constructor : (@data) ->
+    @data = @data.toString('utf8') if Buffer.isBuffer @data
     @lines = @data.split /\n/
     @checksum = null
     @body = null
     @type = null
-    @ret = new Message {}
 
   parse : () ->
+    @ret = new Message {}
     @unframe()
     @pop_headers()
     @parse_type()
@@ -171,8 +172,24 @@ class Parser
     @check_checksum()
     @ret
 
+  mparse : () ->
+    out = []
+    go = true
+    while go
+      @skip()
+      if @lines.length
+        out.push @parse()
+      else
+        go = false
+    out
+
+  skip : () ->
+    while @lines.length
+      if @lines[0].match /\S+/ then break
+      @lines.shift()
+
   read_body : () ->
-    dat = @lines.join ''
+    dat = @payload.join ''
     @ret.body = new Buffer dat, 'base64'
 
   check_checksum : () ->
@@ -180,14 +197,14 @@ class Parser
       throw new Error "checksum mismatch"
 
   pop_headers : () ->
-    while @lines.length
-      l = @lines.shift()
+    while @payload.length
+      l = @payload.shift()
       if (m = l.match /Version: (.*)/) then @ret.version = m[1]
       else if (m = l.match /Comment: (.*)/)? then @ret.comment = m[1]
       else if (not l? or l.length is 0) then break
 
   find_checksum : () ->
-    @checksum = @lines.pop()[1...] if (l = @lines[@lines.length-1])? and l[0] is '='
+    @checksum = @payload.pop()[1...] if (l = @payload[-1...][0])? and l[0] is '='
 
   parse_type : () ->
     mt = C.openpgp.message_types
@@ -205,8 +222,9 @@ class Parser
     stage = 0
     type = null
     ret = null
-
-    for line in @lines
+    go = true
+    while @lines.length and go
+      line = @lines.shift()
       switch stage
         when 0
           if (m = line.match rxx_b)
@@ -217,13 +235,14 @@ class Parser
             if m[1] isnt @type
               throw new Error "type mismatch -- begin #{type} w/ end #{m[1]}"
             stage++
+            go = false
           else
             payload.push line
         when 2
-          break
+          go = false
     if stage is 0 then throw new Error "no header found"
     else if stage is 1 then throw new Error "no tailer found"
-    else @lines = payload
+    else @payload = payload
 
 #=========================================================================
 
@@ -234,10 +253,9 @@ class Parser
 #   a Buffer, and we'll output utf8 string out of it.
 # @return {Array<{Error},{Buffer}>} And error or a buffer if success.
 #
-exports.decode = decode = (data) ->
-  data = data.toString('utf8') if Buffer.isBuffer data
-  katch () ->
-    (new Parser data).parse()
+exports.decode = decode = (data) -> katch () -> (new Parser data).parse()
+
+exports.mdecode = decode = (data) -> katch () -> (new Parser data).mparse()
 
 #=========================================================================
 
