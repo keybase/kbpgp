@@ -76,7 +76,35 @@ wa/vt7tlsS8evxmVvhgMWZ0tc8B82ZM8o1AHLewmty2PFPuGVMG9W3DJJSBH+fRC
 o7cJyIX4q4MjzvkYEjxxnw==
 =S4AK
 -----END PGP MESSAGE-----
-  """ ],
+  """,
+  """-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - http://gpgtools.org
+
+owGbwMvMwMSo/0DG1dnjliXj6ZdJDEFZhebVXAoKSnmJualKVgowoJSdVJBeoKQD
+kkpJLU4uyiwoyczPA6lQ8k6tTEosTlUvVghwD1DwzC3ISc1NzStJBCsA68hOrSzP
+L0ophhoYrZRcVFlQkq+ko6AENhWsAmSGkkIsWENiaUlGfhHcfiXfxIry1JwcBe+i
+/AyomWWpRcVQF4CVGOgZ6BlCpHIyk1PzilPh1oE8BBQuqSxIRTLSMwSsGsgsLcpB
+eFVJCShYC3FGbmJmnpICQkpPPyczSR8kqpdVDA2MzKLU5JL8okygdQpApVC7gOpA
+GsE0yDyw2oz83NSCxHSYI5QySkoKrPT10zNLMkqT9JLzc/WhwaCPFNpJpenFyBEB
+0lSMR5d+ZnFxaSrUdUWpBfnFmUDnVYKNQA0IJaARqEFw4B5IDI/heiAtcP+kpBak
+5qWk5iWDPQ/3e0Ep0NrE5GxwANjZGiJrKHPBriepKL+8OLUoM60SrEsL5q7k/Jz8
+omJUMWDspuiWpBaXQC0Axbw5TLIEmDJzUotTk8GSMMcjRKHKkvJQ5JPyUAxPzk9L
+S03VhSRzVMvzgek+N7MYTTQlNbVAN7WwNDEH3anFGF4C25BaVARM3wj3m8Fkq4Ap
+RhcjNEAhyFXL1ckkw8LAyMTAxsoEyqgMXJwCsNzLsIf/v8vd8sUme3UElO58Zrko
+lcM7/0fuk6KiE15KcfZr7Sau0+44GZAguGBXYFeH/Q5lwcXFfzb9PnFF10l5V1LX
+PnZVni9PZ/74785esCHmTmGTcerPta9fnSnTtDad+HlDe379gx2ONu/9Poaavn0S
+9TBA5WT869nvTx2JXJrqb11X3loi+eKkUq5eJj/3A8Ng27gkCb6WFUo9firKEXvy
+tA6d4Sr+Hjz1qJDjyi2Or+te337+onL+2puytjwr9uebnZx+bl/jrIe3xbYo/Vz8
+MKht7nndOYc8St/t3bLghWHn/tz4cz2GUR6LV+/d++7MdeXjWldb+59xVb2azVMb
+4MrV23v89ZpY5ZMLzDe+s9J5uXvn0hl3jE1yVO2yrgXOK88RTsi2/r02Y7/PfIa1
+uxXme4gyeVUEZ2/tfzP3bFRKhYRSzytdLeMyswvXbuw23t8vZ5Cd1fgptEEqTz1u
+bZjQoZViEVEa986Vv98wiW+eQsikYoNXl/Qt9oRHTvkxOaE+a6FxoHjr7YJz1iEP
+7n719BOuS+nkkeqPPT93AQvvwxK7PydyUi4YdO4XkExRZPY8uznL10ilmOfaXfcm
+ZubtJlEMmxiKY7nanMukz9XoaGyU0vUKyfdSlKlatkmLpeMF38Sdq6zumce8n77Z
++2alsv4GBtmYKYsloiQbrW/a2dwQn2TzWlzkmOXLOuOzDVUiyx3T86q6DQA=
+=kOKo
+-----END PGP MESSAGE-----"""],
   keys : {
     decryption: {
       passphrase : "catsdogs",
@@ -303,4 +331,19 @@ exports.process_msg_1 = (T,cb) ->
   T.assert not literals[0].signed_with?, "was not signed"
   cb()
 
+#===============================================================
+
+exports.process_msg_2 = (T,cb) ->
+  [err,msg] = armor.decode data.msgs[2]
+  T.no_error err
+  T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
+  proc = new Message ring
+  await proc.parse_and_process msg.body, defer err, literals
+  T.no_error err
+  ind = literals[0].toString().indexOf '"devDependencies" : {'
+  T.assert (ind > 0), "found some text we expected"
+  T.assert literals[0].signed_with?, "was signed"
+  cb()
+
+#===============================================================
 #===============================================================
