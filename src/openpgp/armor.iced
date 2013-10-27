@@ -151,7 +151,7 @@ verifyCheckSum = (data, checksum) -> (getCheckSum(data) is checksum)
 #=========================================================================
 
 exports.Message = class Message 
-  constructor : ({@body, @type, @comment, @version, @lines}) ->
+  constructor : ({@body, @type, @comment, @version}) ->
     @lines = []
   raw : -> @lines.join '\n'
 

@@ -123,14 +123,14 @@ exports.kb =
     public_subkey : 0x00d 
     public_key_bundle : 0x101
     private_key_bundle : 0x102
-    pgp_secret_key_bundle : 0x201
+    p3skb : 0x201
   public_key_algorithms : openpgp.public_key_algorithms
   versions :
     V1 : 1
   sig_types:
     self_sign : 1
     subkey : 2
-    subkey_reverse : 3
+    subkey_reverse : G3
   padding :
     EMSA_PCKS1_v1_5 : 3
     RSASSA_PSS : 4

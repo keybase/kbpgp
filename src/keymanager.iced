@@ -183,20 +183,10 @@ class PgpEngine extends Engine
 
   #--------
 
-  export_private_key_to_server : ({asp, tsenc}, cb) ->
+  export_to_p3skb : () ->
     pub = @_export_keys_to_binary { private : false } 
-    priv = @_export_keys_to_binary { private : true }
-    await tsenc.run { progress_hook : asp?.progress_hook, data : priv } , defer err, priv
-    unless err?
-      out = box({tag : K.packet_tags.pgp_secret_key_bundle,  body : { pub, priv }).toBase
-
-
-    err = ret = null
-    if (tsenc = opts.tsenc)?
-      await tsenc.run { data : msg, progress_hook : opts.asp?.progress_hook }, defer err, ret
-    else
-      ret = encode type, msg
-    cb err, ret
+    priv_clear = @_export_keys_to_binary { private : true }
+    new P3SKB { pub, priv_clear }
 
   #--------
 
@@ -214,6 +204,7 @@ class KeyManager
     @pgp = new PgpEngine { @primary, @subkeys, @userids }
     @engines = [ @pgp ]
     @_signed = false
+    @p3skb = null
 
   #========================
   # Public Interface
@@ -262,13 +253,14 @@ class KeyManager
 
   #--------------
 
-  @import_from_triplesec_pgp : ({raw, base}, cb) ->
-    await util.asyncify read_base64(raw), esc defer bin
+  @import_from_p3skb : ({raw, asp, userid}, cb) ->
+    [err, tag_and_body] = unbox read_base64 raw
+    [err, p3skb] = P3SKB.alloc_nothrow tag_and_body unless err?
 
   #--------------
 
   # Import from a dearmored/decoded PGP message.
-  @import_from_pgp_message : ({msg, raw, asp, userid}, cb) ->
+  @import_from_pgp_message : ({msg, asp, userid}, cb) ->
     bundle = null
     unless err?
       [err,packets] = parse msg.body
@@ -335,12 +327,10 @@ class KeyManager
   export_private_to_server : ({tsenc, asp}, cb) ->
     err = ret = null
     unless (err = @_assert_signed())?
-      await @pgp.export_keys { private : false }, defer err, pub
+      p3skb = new @pgp.export_to_p3skb()
+      await p3skb.lock { tsenc, asp }, defer err
     unless err?
-      await @pgp.export_keys { private : true, tsenc, asp }, defer err, priv
-    unless err?
-      priv = priv.toString('base64')
-    ret = if err? then null else { pub, priv }
+      ret = box(p3sbk.frame_packet()).toString('base64')
     cb err, ret
 
   #-----
@@ -352,7 +342,7 @@ class KeyManager
     passphrase = bufferify passphrase if passphrase?
     if not regen? and (msg = @armored_pgp_private) then #noop
     else if not (err = @_assert_signed())?
-      await @pgp.export_keys({private : true, passphrase}), defer err, msg
+      msg = @pgp.export_keys({private : true, passphrase})
     cb err, msg
 
   #-----
@@ -361,7 +351,7 @@ class KeyManager
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
     msg = @armored_pgp_public unless regen
-    await @pgp.export_keys({private : false}), defer err, msg unless msg?
+    msg = @pgp.export_keys({private : false}) unless msg?
     cb err, msg
 
   #-----
