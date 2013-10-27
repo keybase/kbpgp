@@ -4,29 +4,21 @@ C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {bufeq_secure,unix_time,bufferify} = require './util'
 {UserIds,Lifespan,Subkey,Primary} = require './keywrapper'
-{read_base64,box,unbox} = require './keybase/encode'
 
 {encode,decode} = require './openpgp/armor'
 {parse} = require './openpgp/parser'
 {KeyBlock} = require './openpgp/processor'
 
 opkts = require './openpgp/packet/all'
-kpkts = require './keybase/packet/all'
 
 ##
 ## KeyManager
 ## 
 ##   Manage the generation, import and export of keys, in either OpenPGP or
-##   keybase form.
+##   keybase form.  For now, we're only using PGP form, for convenience
+##   of the different clients (since otherwise they'd need to reimplement
+##   RSA, etc.)
 ##
-
-#=================================================================
-
-class Encryption 
-  constructor : ({@tsenc, passphrase}) ->
-    @passphrase = bufferify passphrase
-    @tsenc or= new triplesec.Encryptor { version : 2, @passphrase }
-
 #=================================================================
 
 class Engine
@@ -174,7 +166,7 @@ class PgpEngine extends Engine
 
   #--------
 
-  export_keys : (opts, cb) ->
+  export_keys : (opts) ->
     packets = [ @primary._pgp.export_framed(opts), @userid_packet().write(), @self_sig ]
     opts.subkey = true
     for subkey in @subkeys
@@ -182,13 +174,7 @@ class PgpEngine extends Engine
     buf = Buffer.concat(packets)
     mt = C.message_types
     type = if opts.private then mt.private_key else mt.public_key
-    msg = Buffer.concat packets
-    err = ret = null
-    if (tsenc = opts.tsenc)?
-      await tsenc.run { data : msg, progress_hook : opts.asp?.progress_hook }, defer err, ret
-    else
-      ret = encode type, msg
-    cb err, ret
+    encode type, Buffer.concat(packets)
 
   #--------
 
@@ -200,81 +186,11 @@ class PgpEngine extends Engine
 
 #=================================================================
 
-class KeybaseEngine extends Engine
-
-  constructor : ({primary, subkeys, userids}) ->
-    super { primary, subkeys, userids }
-
-  #--------
-
-  key : (k) -> k._keybase
-
-  #-----
-
-  _check_can_sign : (keys,cb) ->
-    err = null
-    for k in keys when not err?
-      err = new Error "cannot sign; don't have private key" unless k.key.can_sign()
-    cb err
-
-  #-----
-
-  _v_allocate_key_packet : (key) ->
-    unless key._keybase?
-      key._keybase = new kpkts.KeyMaterial { 
-        key : key.key, 
-        timestamp : key.lifespan.generated }
-
-  #-----
-
-  _v_self_sign_primary : ({asp}, cb) ->
-    esc = make_esc cb, "KeybaseEngine::_v_self_sign_primary"
-    await @_check_can_sign [@primary], esc defer()
-    p = new kpkts.SelfSign { key_wrapper : @primary, userid : @userids.get_keybase() }
-    await p.sign { asp, include_body : true }, esc defer @self_sig
-    cb null
-
-  #-----
-
-  _v_sign_subkey : ({asp, subkey}, cb) ->
-    esc = make_esc cb, "KeybaseEngine::_v_sign_subkey"
-    subkey._keybase_sigs = {}
-    await @_check_can_sign [ @primary, subkey ], esc defer()
-    p = new kpkts.Subkey { subkey }
-    await p.sign { asp, include_body : true }, esc defer subkey._keybase_sigs.fwd
-    p = new kpkts.SubkeyReverse { subkey }
-    await p.sign { asp , include_body : true }, esc defer subkey._keybase_sigs.rev
-    cb null
-
-  #-----
-
-  export_keys : (opts, cb) ->
-    opts.tag = if opts.private then K.packet_tags.private_key_bundle else K.packet_tags.public_key_bundle
-    ret = new kpkts.KeyBundle.alloc opts
-    esc = make_esc cb, "KeybaseEngine::export_keys"
-    await @primary._keybase.export_key opts, esc defer primary
-    ret.set_primary {
-      key : primary
-      sig : @self_sig
-    }
-    for k in @subkeys
-      await k._keybase.export_key opts, esc defer key
-      ret.push_subkey {
-        key : key
-        sigs :
-          forward : k._keybase_sigs.fwd
-          reverse : k._keybase_sigs.rev
-      }
-    cb null, ret.frame_packet()
-
-#=================================================================
-
 class KeyManager
 
   constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private}) ->
     @pgp = new PgpEngine { @primary, @subkeys, @userids }
-    @keybase = new KeybaseEngine { @primary, @subkeys, @userids }
-    @engines = [ @pgp, @keybase ]
+    @engines = [ @pgp ]
     @_signed = false
 
   #========================
@@ -321,11 +237,6 @@ class KeyManager
     unless err?
       await KeyManager.import_from_pgp_message { msg, asp, userid }, defer err, ret
     cb err, ret
-
-  #--------------
-
-  @import_from_triplesec_pgp : ({raw, base}, cb) ->
-    await util.asyncify read_base64(raw), esc defer bin
 
   #--------------
 
@@ -393,16 +304,13 @@ class KeyManager
   
   # A private export consists of:
   #   1. The PGP public key block
-  #   2. The PGP private key block (Public and private keys, triplesec'ed)
+  #   2. The keybase message (Public and private keys, triplesec'ed)
   export_private_to_server : ({tsenc, asp}, cb) ->
     err = ret = null
-    unless (err = @_assert_signed())?
-      await @pgp.export_keys { private : false }, defer err, pub
-    unless err?
-      await @pgp.export_keys { private : true, tsenc, asp }, defer err, priv
-    unless err?
-      priv = priv.toString('base64')
-    ret = if err? then null else { pub, priv }
+    if not (err = @_assert_signed())?
+      pgp = @pgp.export_keys { private : false }
+      await @keybase.export_keys { private : true, tsenc, asp }, defer err, keybase
+    ret = if err? then null else { pgp, keybase : box(keybase).toString('base64') }
     cb err, ret
 
   #-----
@@ -414,7 +322,7 @@ class KeyManager
     passphrase = bufferify passphrase if passphrase?
     if not regen? and (msg = @armored_pgp_private) then #noop
     else if not (err = @_assert_signed())?
-      await @pgp.export_keys({private : true, passphrase}), defer err, msg
+      msg = @pgp.export_keys({private : true, passphrase}) 
     cb err, msg
 
   #-----
@@ -423,13 +331,12 @@ class KeyManager
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
     msg = @armored_pgp_public unless regen
-    await @pgp.export_keys({private : false}), defer err, msg unless msg?
-    cb err, msg
+    msg = @pgp.export_keys({private : false}) unless msg?
+    cb null, msg
 
   #-----
 
   sign_pgp : ({asp}, cb) -> @pgp.sign { asp }, cb
-  sign_keybase : ({asp}, cb) -> @keybase.sign { asp }, cb
 
   #-----
 
@@ -438,9 +345,6 @@ class KeyManager
     asp?.progress { what : "sign PGP" , total : 1, i : 0 }
     await @sign_pgp     { asp }, defer err
     asp?.progress { what : "sign PGP" , total : 1, i : 1 }
-    asp?.progress { what : "sign keybase" , total : 1, i : 0 }
-    await @sign_keybase { asp }, defer err unless err?
-    asp?.progress { what : "sign keybase" , total : 1, i : 1 }
     @_signed = true unless err?
     cb err
 
@@ -449,7 +353,6 @@ class KeyManager
   find_pgp_key : (key_id) -> @pgp.find_key key_id
 
   export_pgp_keys_to_keyring : () -> @pgp.export_keys_to_keyring @
-  export_keybase_keys_to_keyring : () -> @keybase.export_keys_to_keyring @
   
   # /Public Interface
   #========================
@@ -479,7 +382,6 @@ class KeyManager
 #=================================================================
 
 exports.KeyManager = KeyManager
-exports.Encryption = Encryption
 exports.UserIds = UserIds
 
 #=================================================================
