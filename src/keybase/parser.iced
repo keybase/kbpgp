@@ -15,7 +15,7 @@ K = require('../const').kb
 #
 parse = (raw) ->
   ret = null
-  [err, res] = unbox raw
+  [err, res] = katch () -> unbox raw
   err = new Error "cannot unbox message" if not err? and (res.genre isnt K.genres.message)
   unless err?
     packets = res.obj

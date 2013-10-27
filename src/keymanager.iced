@@ -5,11 +5,12 @@ C = require('./const').openpgp
 {bufeq_secure,unix_time,bufferify} = require './util'
 {UserIds,Lifespan,Subkey,Primary} = require './keywrapper'
 
-{encode,decode} = require './openpgp/armor'
+{Message,encode,decode} = require './openpgp/armor'
 {parse} = require './openpgp/parser'
 {KeyBlock} = require './openpgp/processor'
 
 opkts = require './openpgp/packet/all'
+{read_base64,box,unbox,box} = require './keybase/encode'
 
 ##
 ## KeyManager
@@ -256,6 +257,8 @@ class KeyManager
   @import_from_p3skb : ({raw, asp, userid}, cb) ->
     [err, tag_and_body] = unbox read_base64 raw
     [err, p3skb] = P3SKB.alloc_nothrow tag_and_body unless err?
+    unless err?
+      msg = new Message { body : p3sbk.pub, type : C.message_types.public_key }
 
   #--------------
 

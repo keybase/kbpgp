@@ -34,16 +34,15 @@ read_base64 = (raw) ->
 #=================================================================================
 
 unbox = (buf) ->
-  katch () ->
-    oo = unpack buf # throws an error if there's a problem
-    throw new Error "missing obj.hash.value" unless (hv = oo?.hash?.value)?
-    oo.hash.value = null_hash
-    hasher = alloc (t = oo.hash.type)
-    throw new Error "unknown hash algo: #{t}" unless hasher?
-    h = hasher pack oo
-    throw new Error "hash mismatch" unless bufeq_secure(h, hv)
-    throw new Error "unknown version" unless oo.version is K.versions.V1
-    obj_extract oo, [ 'tag', 'body' ]
+  oo = unpack buf # throws an error if there's a problem
+  throw new Error "missing obj.hash.value" unless (hv = oo?.hash?.value)?
+  oo.hash.value = null_hash
+  hasher = alloc (t = oo.hash.type)
+  throw new Error "unknown hash algo: #{t}" unless hasher?
+  h = hasher pack oo
+  throw new Error "hash mismatch" unless bufeq_secure(h, hv)
+  throw new Error "unknown version" unless oo.version is K.versions.V1
+  obj_extract oo, [ 'tag', 'body' ]
 
 #=================================================================================
 

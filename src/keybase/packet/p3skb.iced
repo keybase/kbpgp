@@ -15,11 +15,10 @@ rsa = require '../../rsa'
 # PGP Triplesec Secret Key Bundle
 class P3SKB extends Packet
 
-  constructor : ({@pub,priv_clear}) ->
+  constructor : ({@pub,priv_clear,priv}) ->
     super()
-    @priv = 
-      data : priv_clear
-      encryption : K.key_encryption.none
+    @priv = if priv? then priv 
+    else if priv_clear? then { data : priv_clear encryption : K.key_encryption.none }
 
   frame_packet : () ->
     super K.packet_tags.p3skb, { @pub, @priv }
@@ -31,5 +30,12 @@ class P3SKB extends Packet
       @priv.encryption = K.key_encryption.triplesec_v2
     cb err
 
+  @alloc : ({tag,body}) ->
+    if tag is K.packet_tags.p3skb then new P3SKB body
+    else throw new Error "wrong tag found: #{tag}"
+
+  @alloc_nothrow : (obj) -> katch () -> P3SKB.alloc obj
+
 #=================================================================================
 
+exports.P3SKB = P3SKB
