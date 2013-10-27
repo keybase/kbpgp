@@ -272,15 +272,15 @@ class KeyManager
       msg = new Message { body : @p3skb.priv.data, type : C.message_types.private_key }
       await KeyManager.import_from_pgp_message { msg, asp }, defer err, km
 
+    unless err?
+      err = @pgp.merge_private km.pgp
+
     # The private key isn't locked, but it is stored in 's2k' notation
     # and needs to be decoded.  That happens with this call (w/ a NULL pw)
     unless err?
       passphrase = new Buffer []
-      await km.unlock_pgp { passphrase }, defer err
-    unless err?
-      err = @pgp.merge_private km.pgp
-      console.log @primary.key
-      console.log @subkeys[0].key
+      await @unlock_pgp { passphrase }, defer err
+
     cb err
 
   #--------------
