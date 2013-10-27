@@ -123,6 +123,7 @@ exports.kb =
     public_subkey : 0x00d 
     public_key_bundle : 0x101
     private_key_bundle : 0x102
+    pgp_secret_key_bundle : 0x201
   public_key_algorithms : openpgp.public_key_algorithms
   versions :
     V1 : 1

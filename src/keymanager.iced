@@ -166,15 +166,31 @@ class PgpEngine extends Engine
 
   #--------
 
-  export_keys : (opts, cb) ->
+  _export_keys_to_binary : (opts) ->
     packets = [ @primary._pgp.export_framed(opts), @userid_packet().write(), @self_sig ]
     opts.subkey = true
     for subkey in @subkeys
       packets.push subkey._pgp.export_framed(opts), subkey._pgp_sig
-    buf = Buffer.concat(packets)
+    Buffer.concat packets
+
+  #--------
+
+  export_keys : (opts) ->
     mt = C.message_types
     type = if opts.private then mt.private_key else mt.public_key
-    msg = Buffer.concat packets
+    msg = @_export_keys_to_binary opts
+    encode type, msg
+
+  #--------
+
+  export_private_key_to_server : ({asp, tsenc}, cb) ->
+    pub = @_export_keys_to_binary { private : false } 
+    priv = @_export_keys_to_binary { private : true }
+    await tsenc.run { progress_hook : asp?.progress_hook, data : priv } , defer err, priv
+    unless err?
+      out = box({tag : K.packet_tags.pgp_secret_key_bundle,  body : { pub, priv }).toBase
+
+
     err = ret = null
     if (tsenc = opts.tsenc)?
       await tsenc.run { data : msg, progress_hook : opts.asp?.progress_hook }, defer err, ret
