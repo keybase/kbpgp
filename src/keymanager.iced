@@ -174,7 +174,7 @@ class PgpEngine extends Engine
 
   #--------
 
-  export_keys : (opts) ->
+  export_keys : (opts, cb) ->
     packets = [ @primary._pgp.export_framed(opts), @userid_packet().write(), @self_sig ]
     opts.subkey = true
     for subkey in @subkeys
@@ -182,7 +182,13 @@ class PgpEngine extends Engine
     buf = Buffer.concat(packets)
     mt = C.message_types
     type = if opts.private then mt.private_key else mt.public_key
-    encode type, Buffer.concat(packets)
+    msg = Buffer.concat packets
+    err = ret = null
+    if (tsenc = opts.tsenc)?
+      await tsenc.run { data : msg, progress_hook : opts.asp?.progress_hook }, defer err, ret
+    else
+      ret = encode type, msg
+    cb err, ret
 
   #--------
 
@@ -318,6 +324,11 @@ class KeyManager
 
   #--------------
 
+  @import_from_triplesec_pgp : ({raw, base}, cb) ->
+    await util.asyncify read_base64(raw), esc defer bin
+
+  #--------------
+
   # Import from a dearmored/decoded PGP message.
   @import_from_pgp_message : ({msg, raw, asp, userid}, cb) ->
     bundle = null
@@ -382,13 +393,16 @@ class KeyManager
   
   # A private export consists of:
   #   1. The PGP public key block
-  #   2. The keybase message (Public and private keys, triplesec'ed)
+  #   2. The PGP private key block (Public and private keys, triplesec'ed)
   export_private_to_server : ({tsenc, asp}, cb) ->
     err = ret = null
-    if not (err = @_assert_signed())?
-      pgp = @pgp.export_keys { private : false }
-      await @keybase.export_keys { private : true, tsenc, asp }, defer err, keybase
-    ret = if err? then null else { pgp, keybase : box(keybase).toString('base64') }
+    unless (err = @_assert_signed())?
+      await @pgp.export_keys { private : false }, defer err, pub
+    unless err?
+      await @pgp.export_keys { private : true, tsenc, asp }, defer err, priv
+    unless err?
+      priv = priv.toString('base64')
+    ret = if err? then null else { pub, priv }
     cb err, ret
 
   #-----
@@ -400,7 +414,7 @@ class KeyManager
     passphrase = bufferify passphrase if passphrase?
     if not regen? and (msg = @armored_pgp_private) then #noop
     else if not (err = @_assert_signed())?
-      msg = @pgp.export_keys({private : true, passphrase}) 
+      await @pgp.export_keys({private : true, passphrase}), defer err, msg
     cb err, msg
 
   #-----
@@ -409,8 +423,8 @@ class KeyManager
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
     msg = @armored_pgp_public unless regen
-    msg = @pgp.export_keys({private : false}) unless msg?
-    cb null, msg
+    await @pgp.export_keys({private : false}), defer err, msg unless msg?
+    cb err, msg
 
   #-----
 

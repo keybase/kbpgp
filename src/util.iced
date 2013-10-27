@@ -164,6 +164,7 @@ exports.obj_extract  = obj_extract = (o, keys) ->
 #=========================================================
 
 exports.athrow = (err, cb) -> cb err
+exports.asynicfy = (args, cb) -> cb args...
    
 #=========================================================
 
