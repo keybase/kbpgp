@@ -78,22 +78,22 @@ exports.step5_merge_pgp_private = (T,cb) ->
   await sanity_check T, b2, defer err
   cb()
 
-exports.step6_export_keybase_private = (T,cb) ->
-  await bundle.export_private_to_server { tsenc, asp }, defer err, {keybase}
+exports.step6_export_p3skb_private = (T,cb) ->
+  await bundle.export_private_to_server { tsenc, asp }, defer err, p3skb
   T.no_error err
-  await KeyManager.import_from_packed_keybase { raw : keybase, asp }, defer err, tmp
+  await KeyManager.import_from_p3skb { raw : p3skb, asp }, defer err, tmp
   T.no_error err
   b3 = tmp
-  T.assert b3.has_keybase_private(), "b3 has keybase private part"
-  T.assert b3.is_keybase_locked(), "b3 is still locked"
+  T.assert b3.has_p3skb_private(), "b3 has keybase private part"
+  T.assert b3.is_p3skb_locked(), "b3 is still locked"
   bad_pass = Buffer.concat [ master_passphrase, (new Buffer "yo")]
   bad_tsenc = new Encryptor { key : bad_pass, version : 2 }
-  await b3.unlock_keybase { tsenc : bad_tsenc, asp }, defer err
-  T.assert b3.is_keybase_locked(), "b3 is still locked"
+  await b3.unlock_p3skb { tsenc : bad_tsenc, asp }, defer err
+  T.assert b3.is_p3skb_locked(), "b3 is still locked"
   T.assert err?, "failed to decrypt w/ bad passphrase"
-  await b3.unlock_keybase { tsenc, asp }, defer err
+  await b3.unlock_p3skb { tsenc, asp }, defer err
   T.no_error err
-  T.assert (not b3.is_keybase_locked()), "b3 is unlocked"
+  T.assert (not b3.is_p3skb_locked()), "b3 is unlocked"
   await sanity_check T, b3, defer err
   compare_bundles T, bundle, b3
   T.no_error err

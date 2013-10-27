@@ -2,7 +2,7 @@
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
-{bufeq_secure,unix_time,bufferify} = require './util'
+{katch,bufeq_secure,unix_time,bufferify} = require './util'
 {UserIds,Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
@@ -11,6 +11,7 @@ C = require('./const').openpgp
 
 opkts = require './openpgp/packet/all'
 {read_base64,box,unbox,box} = require './keybase/encode'
+{P3SKB} = require './keybase/packet/p3skb'
 
 ##
 ## KeyManager
@@ -254,11 +255,33 @@ class KeyManager
 
   #--------------
 
-  @import_from_p3skb : ({raw, asp, userid}, cb) ->
-    [err, tag_and_body] = unbox read_base64 raw
-    [err, p3skb] = P3SKB.alloc_nothrow tag_and_body unless err?
+  @import_from_p3skb : ({raw, asp}, cb) ->
+    km = null
+    [err, p3skb] = katch () -> P3SKB.alloc unbox read_base64 raw
     unless err?
-      msg = new Message { body : p3sbk.pub, type : C.message_types.public_key }
+      msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
+      await KeyManager.import_from_pgp_message {msg, asp}, defer err, km
+      km.p3skb = p3skb if km?
+    cb err, km
+
+  #--------------
+
+  unlock_p3skb : ({asp, tsenc}, cb) ->
+    await @p3skb.unlock { tsenc, asp }, defer err
+    unless err?
+      msg = new Message { body : @p3skb.priv.data, type : C.message_types.private_key }
+      await KeyManager.import_from_pgp_message { msg, asp }, defer err, km
+
+    # The private key isn't locked, but it is stored in 's2k' notation
+    # and needs to be decoded.  That happens with this call (w/ a NULL pw)
+    unless err?
+      passphrase = new Buffer []
+      await km.unlock_pgp { passphrase }, defer err
+    unless err?
+      err = @pgp.merge_private km.pgp
+      console.log @primary.key
+      console.log @subkeys[0].key
+    cb err
 
   #--------------
 
@@ -279,16 +302,6 @@ class KeyManager
         userids }
     cb err, bundle
 
-  #------------
-
-  # Import from a base64-encoded-purepacked keybase key structure
-  @import_from_packed_keybase : ({raw, asp}, cb) ->
-    [err, tag_and_body ] = unbox read_base64 raw
-    [err, bundle] = kpkts.KeyBundle.alloc_nothrow tag_and_body unless err?
-    await bundle.verify { asp }, defer err unless err?
-    ret = if err? then null else new KeyManager bundle.export_to_obj()
-    cb err, ret
- 
   #------------
 
   # After importing the public portion of the key previously,
@@ -312,7 +325,9 @@ class KeyManager
   is_pgp_locked : () -> @pgp.is_locked()
   is_keybase_locked : () -> @keybase.is_locked()
   has_pgp_private : () -> @pgp.has_private()
+  has_p3skb_private : () -> @p3skb?.has_private()
   has_keybase_private : () -> @keybase.has_private()
+  is_p3skb_locked : () -> @p3skb?.is_locked()
 
   #-----
   
@@ -330,10 +345,10 @@ class KeyManager
   export_private_to_server : ({tsenc, asp}, cb) ->
     err = ret = null
     unless (err = @_assert_signed())?
-      p3skb = new @pgp.export_to_p3skb()
+      p3skb = @pgp.export_to_p3skb()
       await p3skb.lock { tsenc, asp }, defer err
     unless err?
-      ret = box(p3sbk.frame_packet()).toString('base64')
+      ret = box(p3skb.frame_packet()).toString('base64')
     cb err, ret
 
   #-----

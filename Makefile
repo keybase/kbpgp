@@ -31,13 +31,13 @@ $(BUILD_STAMP): \
 	lib/lock.js \
 	lib/keybase/encode.js \
 	lib/keybase/sign.js \
-	lib/keybase/parser.js \
 	lib/keybase/packet/all.js \
 	lib/keybase/packet/base.js \
 	lib/keybase/packet/bundle.js \
 	lib/keybase/packet/keymaterial.js \
 	lib/keybase/packet/signature.js \
 	lib/keybase/packet/userid.js \
+	lib/keybase/packet/p3skb.js \
 	lib/openpgp/armor.js \
 	lib/openpgp/buffer.js \
 	lib/openpgp/cfb.js \

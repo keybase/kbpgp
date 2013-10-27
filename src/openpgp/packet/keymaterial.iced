@@ -311,7 +311,7 @@ class KeyMaterial extends Packet
         err = new Error "hash mismatch" unless bufeq_secure(h1, h2)
       when C.s2k_convention.checksum, C.s2k_convention.none
         end = pt.length - 2
-        c1 = pt.readUInt32BE end
+        c1 = pt.readUInt16BE end
         pt = pt[0...end]
         c2 = calc_checksum pt
         err = new Error "checksum mismatch" unless c1 is c2
