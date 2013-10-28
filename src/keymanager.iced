@@ -368,6 +368,7 @@ class KeyManager
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
+    err = null
     msg = @armored_pgp_public unless regen
     msg = @pgp.export_keys({private : false}) unless msg?
     cb err, msg
