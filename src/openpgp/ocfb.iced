@@ -201,8 +201,8 @@ class Decryptor extends Base
     iblock = new WordArray(0 for i in [0...@block_size/4])
     @cipher.encryptBlock iblock.words, 0
     ablock = @next_block()
-    @_prefix = ablock.to_buffer()
     iblock.xor ablock, {}
+    @_prefix = iblock.to_buffer()
     @cipher.encryptBlock ablock.words, 0
 
     # the last two bytes in iblock
