@@ -217,7 +217,7 @@ class Decryptor extends Base
       @cipher.encryptBlock ablock.words, 0
       iblock = @next_block()
       ablock.xor iblock, {}
-      @out_bufs.push ablock.to_buffer()
+      @out_bufs.push ablock.to_buffer()[0...iblock.sigBytes]
 
     out = @compact()
     if not @resync then out = out[2...]
