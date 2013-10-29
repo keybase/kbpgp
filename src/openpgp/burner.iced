@@ -14,6 +14,7 @@
 {SRF} = require '../../rand'
 triplesec = require 'triplesec'
 {export_key_pgp,get_cipher} = require '../../symmetric'
+{scrub_buffer} = triplesec.util
 
 #==========================================================================================
 
@@ -85,13 +86,38 @@ class Burner
 
   #------------
 
+  scrub : () ->
+    @_cipher.scrub() if @_cipher?
+    scrub_buffer @_session_key if @_session_key?
+
+  #------------
+
   _encrypt_session_key : (cb) ->
     payload = export_key_pgp @_cipher_algo, @_session_key
-    pkt = new PKSESK { 
-      crypto_type : @encrypt_key.get_klass().type,
-      key_id : @encrypt_key.get_key_id(),
-      ekey : payload
-    } 
+    k = @encrypt_key.key
+    await k.pad_and_encrypt payload, defer err, y
+    unless err?
+      ekey = k.export_output y
+      pkt = new PKSESK { 
+        crypto_type : k.type,
+        key_id : @encrypt_key.get_key_id(),
+        ekey : { y }
+      } 
+      await pkt.write defer err, @_pkesk
+    cb err
+
+  #------------
+
+  _encrypt_payload : (cb) ->
+    esc = make_esc cb, "Burner::_encrypt_payload"
+    plaintext = @collect_packets()
+    await SRF().random_bytes @_cipher.blockSize, defer prefixrandom
+    pkt = new SEPID {}
+    await pkt.encrypt { cipher : @_cipher, plaintext, prefixrandom }, esc defer()
+    await pkt.write esc defer pkt
+    scrub_buffer plaintext
+    @packets = [ @_pkesk, pkt ]
+    cb null
 
   #------------
 
@@ -103,6 +129,10 @@ class Burner
     cb null
 
   #------------
+
+  scrub : () ->
+
+  #------------
   
   burn : (cb) ->
     esc = make_esc cb, "Burner::burn"
@@ -112,14 +142,15 @@ class Burner
     await @_compress esc defer()
     if @encrypt_key
       await @_encrypt esc defer()
-    await @_encode esc defer()
-    cb null, @output
+    output = Buffer.concat @packets
+    cb null, output
 
 #==========================================================================================
 
 exports.burn = ({msg, signing_key, encryption_key}, cb) ->
   b = new Burner { msg, signing_key, encryption_key }
   await b.burn defer err, out
+  b.scrub()
   cb err, out
 
 #==========================================================================================
