@@ -73,7 +73,6 @@ class Signature extends Packet
       sig
     ]
     results = Buffer.concat [ prefix, result2 ]
-    @_unframed = results
     cb null, results
 
   #---------------------

@@ -11,14 +11,24 @@ fake_zip_inflate = (buf, cb) ->
   await zlib.inflate buf, defer err, ret
   cb err, ret
 
+fix_zip_deflate = (buf, cb) ->
+  await zlib.deflate buf, defer err, ret
+  cb err, ret
+
 #=================================================================================
 
 # 5.1.  Public-Key Encrypted Session Key Packets (Tag 1)
 class Compressed extends Packet
 
-  constructor : ( {@algo, @compressed}) ->
+  #--------
+
+  constructor : ( {@algo, @compressed, @inflated}) ->
+
+  #--------
 
   @parse : (slice) -> (new CompressionParser slice).parse()
+
+  #--------
 
   inflate : (cb) ->
     err = ret = null
@@ -30,6 +40,39 @@ class Compressed extends Packet
         await fake_zip_inflate @compressed, defer err, ret
       else
         err = new Error "no known inflation -- algo: #{@algo}"
+    cb err, ret
+
+  #--------
+
+  deflate : (cb) ->
+    err = ret = null
+    switch @algo
+      when C.compression.none then ret = @inflated
+      when C.compression.zlib
+        await zlib.deflate @inflated, defer err, ret
+      when C.compression.zip
+        await fake_zip_deflate @inflated, defer err, ret
+      else
+        err = new Error "no known deflation -- algo: #{@algo}"
+    cb err, ret
+
+  #--------
+
+  write_unframed : (cb) ->
+    err = ret = null
+    await @deflate defer err, @compressed
+    unless err?
+      bufs = [ uint_to_buffer(8, @algo), @compressed ]
+      ret = Buffer.concat bufs
+    cb err, ret
+
+  #--------
+
+  write : (cb) ->
+    err = ret = null
+    await @write_unframed defer err, unframed
+    unless err?
+      ret = @frame_packet C.packet_tags.compressed, unframed
     cb err, ret
 
 #=================================================================================

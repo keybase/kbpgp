@@ -3,15 +3,42 @@
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 hash = require '../../hash'
+{uint_to_buffer} = require '../../util'
 
 #=================================================================================
 
 # 5.4. One-Pass Signature Packets (Tag 4)
 class OnePassSignature extends Packet
 
+  #---------------
+
   constructor : ( {@sig_type, @hasher, @sig_klass, @key_id, @is_final }) ->
 
+  #---------------
+
   @parse : (slice) -> (new OPS_Parser slice).parse()
+
+  #---------------
+
+  write_unframed : (cb) ->
+    vals = [
+      C.versions.one_pass_sig, 
+      sig_type,
+      @hasher.type,
+      sig_klass.type
+    ]
+    bufs = (uint_to_buffer(8,x) for x in vals)
+    bufs.push @key_id
+    bufs.push uint_to_buffer(8,@is_final)
+    unframed = Buffer.concat bufs
+    cb null, unframed
+
+  #---------------
+
+  write : (cb) ->
+    await @write_unframed defer err, unframed
+    framed = @frame_packet C.packet_tags.one_pass_sig, unframed
+    cb err, framed
 
 #=================================================================================
 

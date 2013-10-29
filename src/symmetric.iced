@@ -5,7 +5,7 @@ triplesec = require 'triplesec'
 {CAST5} = require './openpgp/cast5'
 {SlicerBuffer} = require './openpgp/buffer'
 {WordArray} = triplesec
-
+{uint_to_buffer} = require './util'
 
 exports.get_cipher = get_cipher = (n) ->
   switch n
@@ -31,4 +31,12 @@ exports.import_key_pgp = import_key_pgp = (msg) ->
   throw new Error "Junk at the end of input" unless sb.rem() is 0
   throw new Error "Checksum mismatch" unless checksum2(key) is checksum
   new cipher.klass WordArray.from_buffer key
+
+exports.export_key_pgp = export_key_pgp = (algo_id, key) ->
+  csum = checksum2 key
+  Buffer.concat [
+    new Buffer([ algo_id ]),
+    key,
+    uint_to_buffer(16,csum)
+  ]
 
