@@ -192,11 +192,16 @@ class Decryptor extends Base
 
   #-------------
 
+  get_prefix : () -> @_prefix
+
+  #-------------
+
   check : () ->
     @reset()
     iblock = new WordArray(0 for i in [0...@block_size/4])
     @cipher.encryptBlock iblock.words, 0
     ablock = @next_block()
+    @_prefix = ablock.to_buffer()
     iblock.xor ablock, {}
     @cipher.encryptBlock ablock.words, 0
 
@@ -231,7 +236,7 @@ encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext} ) 
 
 #===============================================================================
 
-decrypt = ({block_cipher_class, key, cipher, resync, ciphertext} ) ->
+decrypt = ({block_cipher_class, key, cipher, resync, ciphertext}) ->
   eng = new Decryptor { block_cipher_class, key, cipher, resync, ciphertext }
   err = eng.check()
   throw err if err?
@@ -241,6 +246,7 @@ decrypt = ({block_cipher_class, key, cipher, resync, ciphertext} ) ->
 
 exports.encrypt = encrypt
 exports.decrypt = decrypt
+exports.Decryptor = Decryptor
 
 #===============================================================================
 

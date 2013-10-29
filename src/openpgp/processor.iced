@@ -6,7 +6,6 @@ C = konst.openpgp
 {bufeq_secure} = require '../util'
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
-{decrypt} = require './ocfb'
 
 #==========================================================================================
 
@@ -138,7 +137,7 @@ class Message
     err = null
     try
       cipher = import_key_pgp sesskey
-      ret = decrypt { cipher, ciphertext : edat.ciphertext }
+      ret = edat.decrypt cipher
     catch e
       err = e
     cb err, ret

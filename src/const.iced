@@ -74,6 +74,7 @@ exports.openpgp = openpgp =
     public_subkey : 14
     userid : 13
     SEIPD : 18
+    MDC : 19
   literal_formats :
     binary : 0x62
     text : 0x74

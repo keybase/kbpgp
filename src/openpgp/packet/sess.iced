@@ -2,6 +2,9 @@
 {Packet} = require './base'
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
+{SHA1} = require '../../hash'
+{bufeq_fast} = require '../../util'
+{Decryptor} = require '../ocfb'
 
 #=================================================================================
 
@@ -17,17 +20,60 @@ class PKESK extends Packet
 # 5.13.  Sym. Encrypted Integrity Protected Data Packet (Tag 18)
 class SEIPD extends Packet
 
-  constructor : ( { @ciphertext } ) ->
+  constructor : ( { @ciphertext, @mdc } ) ->
 
   @parse : (slice) -> (new SEIPD_Parser slice).parse()
 
   to_enc_data_packet : () -> @
+
+  decrypt : (cipher) ->
+    eng = new Decryptor { cipher, ciphertext : @ciphertext }
+    err = eng.check()
+    throw err if err?
+    mdcp = new MDC_Parser eng.dec()
+    @mdc = mdcp.parse()
+    @prefix = eng.get_prefix()
+    return (@plaintext = mdcp.rem())
+
+#=================================================================================
+
+# 5.14.  Modification Detection Code Packet (Tag 19)
+class MDC extends Packet
+  constructor : ({@digest}) ->
+
+  @parse : (buf) -> (new MDC_Parser buf).parse()
+
+#=================================================================================
+
+class MDC_Parser 
+
+  #----------
+
+  constructor : (@buf) ->
+    @header = new Buffer [ (0xc0 | C.packet_tags.MDC ), SHA1.output_length ]
+
+  #----------
+
+  parse : () ->
+    hl = @header.length
+    len = SHA1.output_length + hl
+    @_rem = @buf[0...(-len)]
+    chunk = @buf[(-len)...]
+    throw new Error 'Missing MDC header' unless bufeq_fast chunk[0...hl], @header
+    digest = chunk[hl...]
+    new MDC { digest } 
+
+  #----------
+
+  rem : () -> @_rem
 
 #=================================================================================
 
 class SEIPD_Parser 
 
   constructor : (@slice) ->
+
+  payload_split : (raw) ->
 
   #  The body of this packet consists of:
   #
@@ -65,5 +111,6 @@ class PKESK_Parser
 
 exports.SEIPD = SEIPD
 exports.PKESK = PKESK
+exports.MDC = MDC
 
 #=================================================================================
