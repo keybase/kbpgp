@@ -46,7 +46,7 @@ class KeyMaterial extends Packet
       else
         ret.priv = 
           data : epriv
-          encryption : K.key_encryption.triplesec_v2
+          encryption : K.key_encryption.triplesec_v3
     else
       ret.priv = 
         data : priv
@@ -98,7 +98,7 @@ class KeyMaterial extends Packet
     err = null
     if (k = @rawkey.priv)?
       switch k.encryption
-        when K.key_encryption.triplesec_v1, K.key_encryption.triplesec_v2
+        when K.key_encryption.triplesec_v1, K.key_encryption.triplesec_v2, K.key_encryption.triplesec_v3
           dec = new Decryptor { enc : tsenc }
           await dec.run { data: k.data, progress_hook : asp.progress_hook() }, defer err, raw
           dec.scrub()

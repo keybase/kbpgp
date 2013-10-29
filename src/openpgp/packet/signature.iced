@@ -72,21 +72,17 @@ class Signature extends Packet
       new Buffer([hvalue.readUInt8(0), hvalue.readUInt8(1) ]),
       sig
     ]
-    @_unframed = results = Buffer.concat [ prefix, result2 ]
+    results = Buffer.concat [ prefix, result2 ]
+    @_unframed = results
     cb null, results
-
-  #---------------------
-
-  frame_packet : (unframed) ->
-    unframed or= @_unframed
-    super C.packet_tags.signatures, unframed
 
   #---------------------
 
   write : (data, cb) ->
     await @write_unframed data, defer err, unframed
-    ret = @frame_packet unframed
-    cb null, ret
+    unless err?
+      ret = @frame_packet C.packet_tags.signature, unframed
+    cb err, ret
 
   #-----------------
   

@@ -113,6 +113,7 @@ exports.kb =
     none : 0
     triplesec_v1 : 1
     triplesec_v2 : 2
+    triplesec_v3 : 3
   json_encoding :
     plain : 0
     msgpack : 1

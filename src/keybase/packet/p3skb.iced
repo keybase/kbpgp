@@ -27,12 +27,12 @@ class P3SKB extends Packet
     await tsenc.run { data : @priv.data, progress_hook : asp?.progress_hook() }, defer err, ct
     unless err?
       @priv.data = ct
-      @priv.encryption = K.key_encryption.triplesec_v2
+      @priv.encryption = K.key_encryption.triplesec_v3
     cb err
 
   unlock : ({asp, tsenc}, cb) ->
     switch @priv.encryption
-      when K.key_encryption.triplesec_v2, K.key_encryption.triplesec_v1
+      when K.key_encryption.triplesec_v3, K.key_encryption.triplesec_v2, K.key_encryption.triplesec_v1
         dec = new Decryptor { enc : tsenc }
         progress_hook = asp?.progress_hook()
         await dec.run { data : @priv.data, progress_hook }, defer err, raw

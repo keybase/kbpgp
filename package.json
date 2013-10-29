@@ -20,7 +20,7 @@
   },
   "dependencies" : {
     "purepack" : ">=1",
-    "triplesec" : "keybase/triplesec",
+    "triplesec" : "keybase/triplesec#header_v3",
     "bn" : "keybase/bn"
   },
   "devDependencies" : {

@@ -37,7 +37,7 @@ exports.step1_generate = (T,cb) ->
   cb()
 
 exports.step2_salt_triplesec = (T, cb) ->
-  tsenc = new Encryptor { key : master_passphrase, version : 2 }
+  tsenc = new Encryptor { key : master_passphrase, version : 3 }
   len = 12
   await tsenc.resalt { extra_keymaterial : len}, defer keys
   openpgp_pass = base91.encode keys.extra[0...len]
@@ -87,7 +87,7 @@ exports.step6_export_p3skb_private = (T,cb) ->
   T.assert b3.has_p3skb_private(), "b3 has keybase private part"
   T.assert b3.is_p3skb_locked(), "b3 is still locked"
   bad_pass = Buffer.concat [ master_passphrase, (new Buffer "yo")]
-  bad_tsenc = new Encryptor { key : bad_pass, version : 2 }
+  bad_tsenc = new Encryptor { key : bad_pass, version : 3 }
   await b3.unlock_p3skb { tsenc : bad_tsenc, asp }, defer err
   T.assert b3.is_p3skb_locked(), "b3 is still locked"
   T.assert err?, "failed to decrypt w/ bad passphrase"
