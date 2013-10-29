@@ -6,6 +6,7 @@ C = konst.openpgp
 {bufeq_secure} = require '../util'
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
+util = require 'util'
 
 #==========================================================================================
 
@@ -240,13 +241,18 @@ class Message
     esc = make_esc cb, "Message:process"
     await @_decrypt esc defer()
     await @_inflate esc defer()
+    console.log util.inspect @packets, { depth : null }
     await @_verify esc defer()
     cb null, @collect_literals()
+
+  #---------
 
   parse_and_process : (raw, cb) ->
     await @_parse raw, defer err, packets
     await @process packets, defer err, literals unless err?
     cb err, literals
+
+  #---------
 
 #==========================================================================================
 

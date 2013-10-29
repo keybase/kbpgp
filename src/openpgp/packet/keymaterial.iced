@@ -126,6 +126,12 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  # TODO --- support Other signature systems like DSA?
+  # See Issue #23: https://github.com/keybase/kbpgp/issues/23
+  get_klass : () -> RSA
+
+  #--------------------------
+
   export_framed : (opts = {}) ->
     if opts.private then @private_framed opts
     else @public_framed opts
