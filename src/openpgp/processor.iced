@@ -241,7 +241,6 @@ class Message
     esc = make_esc cb, "Message:process"
     await @_decrypt esc defer()
     await @_inflate esc defer()
-    console.log util.inspect @packets, { depth : null }
     await @_verify esc defer()
     cb null, @collect_literals()
 

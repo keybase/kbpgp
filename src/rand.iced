@@ -52,6 +52,12 @@ class StrongRandomFountain
 
   #---------
 
+  random_double : (cb) ->
+    await prng.generate 8, defer wa
+    cb wa.to_buffer().readDoubleBE(0)
+
+  #---------
+
   random_zn : (n, cb) ->
     go = true
     ret = false
