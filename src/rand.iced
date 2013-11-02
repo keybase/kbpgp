@@ -58,6 +58,14 @@ class StrongRandomFountain
 
   #---------
 
+  rand_0_1 : (cb) ->
+    await @random_word defer w1
+    await @random_word defer w2
+    ret = w1*Math.pow(2,-32) + w2*Math.pow(2,-64)
+    cb ret
+
+  #---------
+
   random_zn : (n, cb) ->
     go = true
     ret = false
