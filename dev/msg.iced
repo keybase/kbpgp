@@ -1,3 +1,4 @@
+#!/usr/bin/env iced
 
 fs = require 'fs'
 {make_esc} = require 'iced-error'
@@ -56,7 +57,31 @@ class Runner
 
 #=================================================================
 
-argv = require('optimist').alias("m", "msg").alias("k","keyfile").alias("p","passphrase").argv
+argv = require('optimist')
+       .alias("m", "msg")
+       .alias("k","keyfile")
+       .alias("s", "sign")
+       .boolean("s")
+       .alias("e", "encrypt")
+       .boolean("e")
+       .usage("$0 -m <msg> -k <keyfile> -p <passphrase> -s -e")
+       .alias("p","passphrase").argv
+
+#=================================================================
+
+ok = false
+if not argv.msg?
+  console.error "need a msg file to operate on"
+else if not argv.keyfile?
+  console.error "need a keyfile to read keys from "
+else if (argv.s or not argv.e) and not argv.passphrase
+  console.error "need a passphrase to unlock a signing or decrypting key"
+else
+  ok = true
+
+process.exit -1 unless ok
+
+#=================================================================
 
 runner = new Runner { msgfile : argv.m, keyfile : argv.k, passphrase : argv.p }
 await runner.run defer err
