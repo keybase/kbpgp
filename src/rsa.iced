@@ -173,11 +173,44 @@ class Pub
   @type : C.public_key_algorithms.RSA
   type : Pub.type
 
+  #----------------
+
   constructor : ({@n,@e}) ->
   encrypt : (p, cb) -> @mod_pow p, @e, cb
   verify :  (s, cb) -> @mod_pow s, @e, cb
 
-  
+  #----------------
+
+  serialize : () -> 
+    Buffer.concat [
+      @n.to_mpi_buffer()
+      @e.to_mpi_buffer() 
+    ]
+
+  #----------------
+
+  @alloc : (raw) ->
+    orig_len = raw.length
+    [err, n, raw] = bn.mpi_from_buffer raw
+    [err, e, raw] = bn.mpi_from_buffer raw unless err?
+    if err then [ err, null ]
+    else [ null, new Pub({n, e}), (orig_len - raw.length) ]
+
+  #----------------
+
+  hash : () -> SHA512 @serialize()
+  kid : () -> Buffer.concat [ @fingerprint(), new Buffer([K.kid.trailer]) ]
+  fingerprint : () -> 
+    Buffer.concat [
+      new Buffer([K.kid.version, @type ] ),
+      @hash()[0...K.kid.len]
+    ]
+  ekid : () -> Buffer.concat [ new Buffer([K.kid.version, @type ] ), @hash() ]
+
+  #----------------
+
+  mod_pow : (x,d,cb) -> cb x.modPow(d,@n)
+
   #----------------
 
   mod_pow : (x,d,cb) -> cb x.modPow(d,@n)

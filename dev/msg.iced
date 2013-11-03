@@ -10,6 +10,8 @@ util = require '../lib/util'
 {burn} = require '../lib/openpgp/burner'
 C = require '../lib/const'
 
+iced.catchExceptions()
+
 #=================================================================
 
 argv = require('optimist')
@@ -64,6 +66,7 @@ class Runner
   
   from_pgp : (cb) ->
     esc = make_esc cb, "process"
+    await @read_msg esc defer()
     proc = new Message @ring
     await proc.parse_and_process @msg.body, esc defer literals
     console.log literals
@@ -72,14 +75,21 @@ class Runner
     cb null
 
   #----------
+
+  read_input : (cb) ->
+    await fs.readFile @argv.msg, defer err, msg
+    cb err, msg
+
+  #----------
   
   to_pgp : (cb) ->
     esc = make_esc cb, "to_pgp/burn"
+    await @read_input esc defer msg
     encyption_key = signing_key = null
     if @argv.e? 
-      await @ring.fetch @argv.e, [ C.ops.encrypt ], esc defer encryption_key
+      await @ring.fetch [new Buffer(@argv.e, 'hex')], [C.ops.encrypt], esc defer encryption_key
     if @argv.s?
-      await @ring.fetch @argv.s, [ C.ops.sign], esc defer signing_key
+      await @ring.fetch [new Buffer(@argv.s, 'hex')], [C.ops.sign], esc defer signing_key
     await burn { @msg, signing_key, encryption_key }, esc defer raw
     out = armor.encode C.openpgp.message_types.generic, raw
     console.log out
@@ -110,7 +120,6 @@ class Runner
     esc = make_esc cb, "run"
     await @parse_args esc defer()
     await @read_keys esc defer()
-    await @read_msg esc defer()
     if @do_to_pgp()
       await @to_pgp esc defer()
     else
