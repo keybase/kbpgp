@@ -67,6 +67,7 @@ class PacketParser
       when pt.literal       then Literal.parse sb
       when pt.compressed    then Compressed.parse sb
       else                  new Generic @tag, sb # throw new Error "Unknown packet tag: #{@tag}"
+    console.log "parsed sucessfull #{@tag}"
     packet.set { @tag, @real_packet_len, @header_len, raw }
     packet
 
@@ -74,7 +75,7 @@ class PacketParser
 
   parse_tag_and_len : () ->
     if @slice.len() < 2 or ((c = @slice.read_uint8()) & 0x80) is 0
-      throw new Error "This doesn't look like a binary PGP packet"
+      throw new Error "This doesn't look like a binary PGP packet (c=#{c})"
     if (c & 0x40) is 0 then @parse_tag_and_len_old(c) else @parse_tag_and_len_new(c)
 
   #----------------

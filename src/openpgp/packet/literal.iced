@@ -38,9 +38,8 @@ class Literal extends Packet
   write : (cb) ->
     err = ret = null
     await @write_unframed defer err, raw
-    unless err?
-      ret = @frame_packet C.packet_tags.literal, raw
-    cb err, raw
+    ret = @frame_packet C.packet_tags.literal, raw unless err?
+    cb err, ret
 
 #=================================================================================
 

@@ -74,6 +74,8 @@ class Burner
   _compress : (cb) ->
     inflated = @collect_packets()
     pkt = new Compressed { algo : C.compression.zlib, inflated }
+    console.log "compressing this guy ->"
+    console.log inflated
     await pkt.write defer err, opkt
     unless err?
       @packets.push opkt

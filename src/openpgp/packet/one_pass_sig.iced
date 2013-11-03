@@ -37,7 +37,11 @@ class OnePassSignature extends Packet
 
   write : (cb) ->
     await @write_unframed defer err, unframed
+    console.log "OPS unframed"
+    console.log unframed
     framed = @frame_packet C.packet_tags.one_pass_sig, unframed
+    console.log "OPS framed"
+    console.log framed
     cb err, framed
 
 #=================================================================================

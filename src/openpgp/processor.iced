@@ -172,9 +172,16 @@ class Message
     packets = []
     esc = make_esc cb, "Message::_inflate"
     for p in @packets
+      console.log "inflate ->"
+      console.log p
       await p.inflate esc defer inflated
+      console.log "inflated ->"
+      console.log inflated
       if inflated? 
+        console.log "parsing..."
         await @_parse inflated, esc defer p
+        console.log "parsed!"
+        console.log p
         packets.push p...
       else packets.push p
     @packets = packets
@@ -244,7 +251,9 @@ class Message
     @packets = packets
     esc = make_esc cb, "Message:process"
     await @_decrypt esc defer()
+    console.log "decrypted!"
     await @_inflate esc defer()
+    console.log "inflated!"
     console.log util.inspect @packets, { depth : null }
     await @_verify esc defer()
     cb null, @collect_literals()
