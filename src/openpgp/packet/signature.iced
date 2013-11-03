@@ -409,10 +409,10 @@ class KeyFlags extends Preference
   export_to_option : -> [ "flags" , @v[0] ]
   all_flags : () ->
     ret = 0
-    for e in v
-      total_flags |= e
+    ret |= e for e in @v
     ret
   has_flags : (f) ->
+    console.log "all flags -> #{@all_flags()}"
     return (@all_flags() & f) is f
 
 #------------

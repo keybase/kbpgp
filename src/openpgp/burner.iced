@@ -15,6 +15,8 @@
 triplesec = require 'triplesec'
 {export_key_pgp,get_cipher} = require '../symmetric'
 {scrub_buffer} = triplesec.util
+C = require('../const').openpgp
+{SHA512} = require '../hash'
 
 #==========================================================================================
 
@@ -151,8 +153,8 @@ exports.Burner = Burner
 
 #==========================================================================================
 
-exports.burn = ({msg, signing_key, encryption_key}, cb) ->
-  b = new Burner { msg, signing_key, encryption_key }
+exports.burn = ({literals, signing_key, encryption_key}, cb) ->
+  b = new Burner { literals, signing_key, encryption_key }
   await b.burn defer err, out
   b.scrub()
   cb err, out

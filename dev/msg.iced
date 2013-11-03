@@ -5,10 +5,12 @@ fs = require 'fs'
 armor = require '../lib/openpgp/armor'
 util = require '../lib/util'
 {Message} = require '../lib/openpgp/processor'
+{Literal} = require '../lib/openpgp/packet/literal'
 {PgpKeyRing} = require '../lib/keyring'
 {KeyManager} = require '../lib/keymanager'
 {burn} = require '../lib/openpgp/burner'
 C = require '../lib/const'
+{unix_time} = require '../lib/util'
 
 iced.catchExceptions()
 
@@ -87,10 +89,20 @@ class Runner
     await @read_input esc defer msg
     encyption_key = signing_key = null
     if @argv.e? 
-      await @ring.fetch [new Buffer(@argv.e, 'hex')], [C.ops.encrypt], esc defer encryption_key
+      await @ring.find_best_key {
+        key_id : (new Buffer(@argv.e, 'hex')), 
+        flags : C.openpgp.key_flags.encrypt_comm
+        }, esc defer encryption_key
+    console.log "found encryption key!"
     if @argv.s?
-      await @ring.fetch [new Buffer(@argv.s, 'hex')], [C.ops.sign], esc defer signing_key
-    await burn { @msg, signing_key, encryption_key }, esc defer raw
+      await @ring.find_best_key {
+        key_id : (new Buffer(@argv.s, 'hex')), 
+        flags : C.openpgp.key_flags.sign_data
+      }, esc defer signing_key
+    literals = [ 
+      new Literal { data : msg, format : C.openpgp.literal_formats.utf8, date : unix_time() } 
+    ]
+    await burn { literals, signing_key, encryption_key }, esc defer raw
     out = armor.encode C.openpgp.message_types.generic, raw
     console.log out
     cb null

@@ -23,9 +23,9 @@ class OnePassSignature extends Packet
   write_unframed : (cb) ->
     vals = [
       C.versions.one_pass_sig, 
-      sig_type,
+      @sig_type,
       @hasher.type,
-      sig_klass.type
+      @sig_klass.type
     ]
     bufs = (uint_to_buffer(8,x) for x in vals)
     bufs.push @key_id

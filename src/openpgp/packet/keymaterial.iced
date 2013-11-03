@@ -325,6 +325,11 @@ class KeyMaterial extends Packet
     err = @key.read_priv(pt) unless err?
     cb err
 
+  #-------------------
+
+  fulfills_flags : (flags) ->
+    (@signed or @self_sig)?.sig?.subpacket_index?.hashed?[C.sig_subpacket.key_flags].has_flags flags
+
 #=================================================================================
 
 class Parser

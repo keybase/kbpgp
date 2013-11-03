@@ -2,6 +2,7 @@
 {Packet} = require './base'
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
+{uint_to_buffer} = require '../../util'
 
 #=================================================================================
 
@@ -21,6 +22,25 @@ class Literal extends Packet
       else 'binary'
 
   to_signature_payload : () -> Buffer.concat [ @data ]
+
+  write_unframed : (cb) ->
+    @filename or= new Buffer []
+    bufs = [
+      new Buffer([@format]),
+      uint_to_buffer(8,@filename.length)
+      @filename,
+      uint_to_buffer(32, @date),
+      @data
+    ]
+    ret = Buffer.concat bufs
+    cb null, ret
+
+  write : (cb) ->
+    err = ret = null
+    await @write_unframed defer err, raw
+    unless err?
+      ret = @frame_packet C.packet_tags.literal, raw
+    cb err, raw
 
 #=================================================================================
 
