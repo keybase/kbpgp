@@ -3,6 +3,7 @@
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 zlib = require 'zlib'
+{uint_to_buffer} = require '../../util'
 
 #=================================================================================
 

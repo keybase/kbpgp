@@ -42,11 +42,16 @@ header = () ->
 
 encode = (type, data) ->
   mt = C.openpgp.message_types
+  f = null
   switch type
     when mt.public_key, mt.private_key
       t = if type is mt.public_key then "PUBLIC" else "PRIVATE"
       f = frame "#{t} KEY BLOCK"
-      f.begin.concat(header(), make_line(), b64e(data), formatCheckSum(data), f.end)
+    when mt.generic
+      f = frame "MESSAGE"
+    else
+      throw new Error "Cannot encode tag type #{type}"
+  f.begin.concat(header(), make_line(), b64e(data), formatCheckSum(data), f.end)
 
 #=========================================================================
 

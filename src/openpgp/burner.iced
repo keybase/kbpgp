@@ -10,6 +10,7 @@
 {make_esc} = require 'iced-error'
 {OnePassSignature} = require './packet/one_pass_sig'
 {Signature,CreationTime,Issuer} = require './packet/signature'
+{Compressed} = require './packet/compressed'
 {unix_time} = require '../util'
 {SRF} = require '../rand'
 triplesec = require 'triplesec'
@@ -50,11 +51,12 @@ class Burner
     await ops.write esc defer ops_framed
     sig = new Signature {
       type : C.sig_types.binary_doc
-      key : @signing_key
+      key : @signing_key.key
       hashed_subpackets : [ new CreationTime(unix_time()) ]
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
     }
-    await sig.write @packets, defer err, fp
+    flat_packets = Buffer.concat @packets
+    await sig.write flat_packets, defer err, fp
     unless err?
       @packets.unshift ops_framed
       @packets.push fp
