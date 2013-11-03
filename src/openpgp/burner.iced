@@ -27,14 +27,18 @@ class Burner
 
   constructor : ({@literals, @signing_key, @encryption_key}) ->
     @packets = []
+    @signed_payload = null
 
   #------------
 
   _frame_literals : (cb) ->
     esc = make_esc cb, "Burner::_frame_literals"
+    sp = []
     for l in @literals
+      sp.push l.to_signature_payload()
       await l.write esc defer p
       @packets.push p
+    @signed_payload = Buffer.concat sp
     cb null
 
   #------------
@@ -55,8 +59,7 @@ class Burner
       hashed_subpackets : [ new CreationTime(unix_time()) ]
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
     }
-    flat_packets = Buffer.concat @packets
-    await sig.write flat_packets, defer err, fp
+    await sig.write @signed_payload, defer err, fp
     unless err?
       @packets.unshift ops_framed
       @packets.push fp
