@@ -8,12 +8,12 @@
 #==========================================================================================
 
 {make_esc} = require 'iced-error'
-{OnePassSignature} = require './packets/one_pass_sig'
-{Signature,CreationTime,Issuer} = require './packets/signature'
-{unix_time} = require '../../util'
-{SRF} = require '../../rand'
+{OnePassSignature} = require './packet/one_pass_sig'
+{Signature,CreationTime,Issuer} = require './packet/signature'
+{unix_time} = require '../util'
+{SRF} = require '../rand'
 triplesec = require 'triplesec'
-{export_key_pgp,get_cipher} = require '../../symmetric'
+{export_key_pgp,get_cipher} = require '../symmetric'
 {scrub_buffer} = triplesec.util
 
 #==========================================================================================
@@ -144,6 +144,10 @@ class Burner
       await @_encrypt esc defer()
     output = Buffer.concat @packets
     cb null, output
+
+#==========================================================================================
+
+exports.Burner = Burner
 
 #==========================================================================================
 

@@ -7,6 +7,8 @@ util = require '../lib/util'
 {Message} = require '../lib/openpgp/processor'
 {PgpKeyRing} = require '../lib/keyring'
 {KeyManager} = require '../lib/keymanager'
+{burn} = require '../lib/openpgp/burner'
+C = require '../lib/const'
 
 #=================================================================
 
@@ -14,18 +16,21 @@ argv = require('optimist')
        .alias("m", "msg")
        .alias("k","keyfile")
        .alias("s", "sign")
-       .boolean("s")
        .alias("e", "encrypt")
-       .boolean("e")
        .usage("$0 -m <msg> -k <keyfile> -p <passphrase> -s -e")
        .alias("p","passphrase").argv
 
 #=================================================================
 
 class Runner
+
+  #----------
+  
   constructor : (@argv) ->
     @ring = new PgpKeyRing
 
+  #----------
+  
   _read_file : (fn, cb) ->
     esc = make_esc cb, "read_file #{fn}"
     await fs.readFile fn, esc defer data
@@ -33,6 +38,8 @@ class Runner
     await util.athrow err, esc defer()
     cb null, msgs
 
+  #----------
+  
   read_keys : (cb) ->
     esc = make_esc cb, "read_keys"
     await @_read_file @argv.keyfile, esc defer msgs
@@ -45,12 +52,16 @@ class Runner
       @ring.add_key_manager km
     cb null
 
+  #----------
+  
   read_msg : (cb) ->
     esc = make_esc cb, "read_msg"
     await @_read_file @argv.msg, esc defer msgs
     @msg = msgs[0]
     cb null
 
+  #----------
+  
   from_pgp : (cb) ->
     esc = make_esc cb, "process"
     proc = new Message @ring
@@ -60,12 +71,27 @@ class Runner
       console.log l.toString()
     cb null
 
+  #----------
+  
   to_pgp : (cb) ->
+    esc = make_esc cb, "to_pgp/burn"
+    encyption_key = signing_key = null
+    if @argv.e? 
+      await @ring.fetch @argv.e, [ C.ops.encrypt ], esc defer encryption_key
+    if @argv.s?
+      await @ring.fetch @argv.s, [ C.ops.sign], esc defer signing_key
+    await burn { @msg, signing_key, encryption_key }, esc defer raw
+    out = armor.encode C.openpgp.message_types.generic, raw
+    console.log out
     cb null
 
-  need_private_keys : () -> (not @do_to_pgp()) or @argv.s
-  do_to_pgp : () -> @argv.s or @argv.e
+  #----------
+  
+  need_private_keys : () -> (not @do_to_pgp()) or @argv.s?
+  do_to_pgp : () -> @argv.s? or @argv.e?
 
+  #----------
+  
   parse_args : (cb) ->
     ok = false
     err = if not @argv.msg?
@@ -77,6 +103,8 @@ class Runner
     else
       null
     cb err
+
+  #----------
 
   run : (cb) ->
     esc = make_esc cb, "run"
