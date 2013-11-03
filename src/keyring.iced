@@ -2,6 +2,10 @@
 
 #=================================================================================
 
+hkid = (k) -> k.toString('base64')
+
+#=================================================================================
+
 class PgpKeyRing extends KeyFetcher
 
   constructor : () ->
@@ -10,12 +14,11 @@ class PgpKeyRing extends KeyFetcher
   add_key_manager : (km) ->
     keys = km.export_pgp_keys_to_keyring()
     for k in keys
-      console.log "I " + k.key_material.get_key_id().toString('base64')
-      @_keys[k.key_material.get_key_id().toString('base64')] = k
+      @_keys[hkid(k.key_material.get_key_id())] = k
 
   fetch : (key_ids, ops, cb) -> 
     ret = null
-    key_ids = (k.toString('base64') for k in key_ids)
+    key_ids = (hkid(k) for k in key_ids)
     for id,i in key_ids when not ret?
       k = @_keys[id]
       if k?.key?.can_perform ops
@@ -23,6 +26,8 @@ class PgpKeyRing extends KeyFetcher
         ret = k
     err = if ret? then null else new Error "key not found: #{JSON.stringify key_ids}"
     cb err, ret, ret_i
+
+  pick : (key_id, flags, cb) ->
 
   lookup : (key_id) -> @_keys[key_id]
 
