@@ -49,7 +49,7 @@ class PgpKeyRing extends KeyFetcher
 
   #-------------
 
-  lookup : (key_id) -> @_keys[key_id]
+  lookup : (key_id) -> @_keys[hexkid key_id]
 
 #=================================================================================
 

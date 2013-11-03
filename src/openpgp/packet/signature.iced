@@ -53,8 +53,6 @@ class Signature extends Packet
       uint_to_buffer(32, prefix.length)
     ]
 
-    console.log "input packets...."
-    console.log [ data, prefix, trailer ]
     payload = Buffer.concat [ data, prefix, trailer ]
     hvalue = @hasher payload
 

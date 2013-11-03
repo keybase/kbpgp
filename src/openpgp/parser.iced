@@ -67,7 +67,6 @@ class PacketParser
       when pt.literal       then Literal.parse sb
       when pt.compressed    then Compressed.parse sb
       else                  new Generic @tag, sb # throw new Error "Unknown packet tag: #{@tag}"
-    console.log "parsed sucessfull #{@tag}"
     packet.set { @tag, @real_packet_len, @header_len, raw }
     packet
 
