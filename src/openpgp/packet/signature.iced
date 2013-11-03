@@ -412,7 +412,6 @@ class KeyFlags extends Preference
     ret |= e for e in @v
     ret
   has_flags : (f) ->
-    console.log "all flags -> #{@all_flags()}"
     return (@all_flags() & f) is f
 
 #------------

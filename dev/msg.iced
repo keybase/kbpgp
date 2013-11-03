@@ -93,7 +93,6 @@ class Runner
         key_id : (new Buffer(@argv.e, 'hex')), 
         flags : C.openpgp.key_flags.encrypt_comm
         }, esc defer encryption_key
-    console.log "found encryption key!"
     if @argv.s?
       await @ring.find_best_key {
         key_id : (new Buffer(@argv.s, 'hex')), 
@@ -103,8 +102,6 @@ class Runner
       new Literal { data : msg, format : C.openpgp.literal_formats.utf8, date : unix_time() } 
     ]
     await burn { literals, signing_key, encryption_key }, esc defer raw
-    console.log "ok, got out -> "
-    console.log raw
     out = armor.encode C.openpgp.message_types.generic, raw
     console.log out
     cb null
