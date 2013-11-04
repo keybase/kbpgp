@@ -344,8 +344,8 @@ class Pair
     err = ret = null
     await eme_pkcs1_encode data, @pub.n.mpi_byte_length(), defer err, m
     unless err?
-      await @encrypt m, defer sig
-      ret = sig.to_mpi_buffer()
+      await @encrypt m, defer ct
+      ret = ct.to_mpi_buffer()
     cb err, ret
 
   #----------------
@@ -421,21 +421,21 @@ class Pair
   #----------------
 
   @parse_output : (buf) -> (Output.parse buf)
-  export_output : (y) -> new Output y
+  export_output : (args) -> new Output args
 
   #----------------
 
 #=======================================================================
 
 class Output
-  constructor : (@y) ->
+  constructor : ({@y_mpi, @y_buf}) ->
   @parse : (buf) ->
     [err, ret, raw, n] = bn.mpi_from_buffer buf
     throw err if err?
     throw new Error "junk at the end of input" unless raw.length is 0
-    new Output ret
+    new Output { y_mpi : ret }
 
-  output : () -> @y.to_mpi_buffer()
+  output : () -> (@y_buf or @y_mpi.to_mpi_buffer())
 
 #=======================================================================
 

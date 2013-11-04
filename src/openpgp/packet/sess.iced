@@ -18,7 +18,7 @@ class PKESK extends Packet
   #------
 
   write_unframed : (cb) ->
-    bufs = [ @key_ids, uint_to_buffer(8, @crypto_type), @ekey.output() ]
+    bufs = [ @key_id, uint_to_buffer(8, @crypto_type), @ekey.output() ]
     ret = Buffer.concat bufs
     err = null
     cb err, ret
@@ -84,7 +84,7 @@ class SEIPD extends Packet
     ret = err = null
     await @write_unframed defer err, unframed
     unless err?
-      ret = @frame_packed C.packet_tags.SEIPD, unframed
+      ret = @frame_packet C.packet_tags.SEIPD, unframed
     cb err, ret
 
 #=================================================================================

@@ -17,7 +17,7 @@ triplesec = require 'triplesec'
 {export_key_pgp,get_cipher} = require '../symmetric'
 {scrub_buffer} = triplesec.util
 {WordArray} = triplesec
-{PKESK} = require './packet/sess'
+{SEIPD,PKESK} = require './packet/sess'
 C = require('../const').openpgp
 {SHA512} = require '../hash'
 
@@ -104,9 +104,9 @@ class Burner
   _encrypt_session_key : (cb) ->
     payload = export_key_pgp @_cipher_algo, @_session_key
     k = @encryption_key.key
-    await k.pad_and_encrypt payload, defer err, y
+    await k.pad_and_encrypt payload, defer err, y_buf
     unless err?
-      ekey = k.export_output y
+      ekey = k.export_output { y_buf }
       pkt = new PKESK { 
         crypto_type : k.type,
         key_id : @encryption_key.get_key_id(),
@@ -121,7 +121,7 @@ class Burner
     esc = make_esc cb, "Burner::_encrypt_payload"
     plaintext = @collect_packets()
     await SRF().random_bytes @_cipher.blockSize, defer prefixrandom
-    pkt = new SEPID {}
+    pkt = new SEIPD {}
     await pkt.encrypt { cipher : @_cipher, plaintext, prefixrandom }, esc defer()
     await pkt.write esc defer pkt
     scrub_buffer plaintext
