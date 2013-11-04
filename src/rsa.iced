@@ -434,6 +434,7 @@ class Output
     throw err if err?
     throw new Error "junk at the end of input" unless raw.length is 0
     new Output { y_mpi : ret }
+  mpi : () -> @y_mpi
 
   output : () -> (@y_buf or @y_mpi.to_mpi_buffer())
 

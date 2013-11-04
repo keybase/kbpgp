@@ -18,7 +18,12 @@ class PKESK extends Packet
   #------
 
   write_unframed : (cb) ->
-    bufs = [ @key_id, uint_to_buffer(8, @crypto_type), @ekey.output() ]
+    bufs = [ 
+      uint_to_buffer(8, C.versions.PKESK)
+      @key_id,
+      uint_to_buffer(8, @crypto_type),
+      @ekey.output() 
+    ]
     ret = Buffer.concat bufs
     err = null
     cb err, ret
