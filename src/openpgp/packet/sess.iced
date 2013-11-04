@@ -114,7 +114,7 @@ class MDC_Parser
   #----------
 
   parse : () ->
-    hl = MDC.length
+    hl = MDC.header.length
     len = SHA1.output_length + hl
     rem = @buf[0...(-len)]
     chunk = @buf[(-len)...]
