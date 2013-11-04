@@ -1,5 +1,6 @@
 
 mods =  
+  msg_roundtrip : require '../files/msg_roundtrip.iced'
   decrypt_verify_msg : require '../files/decrypt_verify_msg.iced'
   keymanager : require '../files/keymanager.iced'
   decode_pgp : require '../files/decode_pgp.iced'

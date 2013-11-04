@@ -3,8 +3,8 @@
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 {SHA1} = require '../../hash'
-{bufeq_secure,bufeq_fast} = require '../../util'
-{Decryptor} = require '../ocfb'
+{uint_to_buffer,bufeq_secure,bufeq_fast} = require '../../util'
+{encrypt,Decryptor} = require '../ocfb'
 
 #=================================================================================
 
@@ -15,6 +15,28 @@ class PKESK extends Packet
   to_esk_packet : () -> @
   get_key_id : () -> @key_id
 
+  #------
+
+  write_unframed : (cb) ->
+    bufs = [ 
+      uint_to_buffer(8, C.versions.PKESK)
+      @key_id,
+      uint_to_buffer(8, @crypto_type),
+      @ekey.output() 
+    ]
+    ret = Buffer.concat bufs
+    err = null
+    cb err, ret
+
+  #------
+
+  write : (cb) ->
+    ret = null
+    await @write_unframed defer err, unframed
+    unless err?
+      ret = @frame_packet C.packet_tags.PKESK, unframed
+    cb err, ret
+
 #=================================================================================
 
 # 5.13.  Sym. Encrypted Integrity Protected Data Packet (Tag 18)
@@ -24,31 +46,68 @@ class SEIPD extends Packet
 
   @parse : (slice) -> (new SEIPD_Parser slice).parse()
 
+  #------
+
   to_enc_data_packet : () -> @
 
   check : () ->
+
+  #------
 
   decrypt : (cipher) ->
     eng = new Decryptor { cipher, ciphertext : @ciphertext }
     err = eng.check()
     throw err if err?
-    [ mdc, plaintext ] = MDC.parse eng.dec()
+    pt = eng.dec()
+    [ mdc, plaintext ] = MDC.parse pt
     prefix = eng.get_prefix()
 
     # check that the hash matches what we fetched out of the message
-    bufs = Buffer.concat [ prefix, prefix[-2...], plaintext, mdc.header ]
-    computed = SHA1 bufs
-    throw new Error "MDC mismatch" unless bufeq_secure computed, mdc.digest
+    mdc.compute { prefix, plaintext }
+    throw new Error "MDC mismatch" unless mdc.check()
 
     plaintext
+
+  #------
+
+  encrypt : ({cipher, plaintext, prefixrandom }, cb) ->
+    mdc = new MDC {}
+    mdc_buf = mdc.compute { plaintext, prefix : prefixrandom }
+    plaintext = Buffer.concat [ plaintext, MDC.header, mdc_buf ]
+    @ciphertext = encrypt { cipher, plaintext, prefixrandom }
+    cb null
+
+  #------
+
+  write_unframed : (cb) ->
+    err = ret = null
+    ret = Buffer.concat [ uint_to_buffer(8, C.versions.SEIPD), @ciphertext ]
+    cb err, ret
+
+  #------
+
+  write : (cb) ->
+    ret = err = null
+    await @write_unframed defer err, unframed
+    unless err?
+      ret = @frame_packet C.packet_tags.SEIPD, unframed
+    cb err, ret
 
 #=================================================================================
 
 # 5.14.  Modification Detection Code Packet (Tag 19)
 class MDC extends Packet
-  constructor : ({@digest, @header}) ->
-
+  @header : new Buffer [ (0xc0 | C.packet_tags.MDC ), SHA1.output_length ]
+  header  : MDC.header
+  constructor : ({@digest}) ->
   @parse : (buf) -> (new MDC_Parser buf).parse()
+
+  compute : ({plaintext, prefix}) ->
+    @computed = SHA1 Buffer.concat [ prefix, prefix[-2...], plaintext, @header ]
+    @computed
+
+  check : () -> bufeq_secure @digest, @computed
+
 
 #=================================================================================
 
@@ -57,18 +116,17 @@ class MDC_Parser
   #----------
 
   constructor : (@buf) ->
-    @header = new Buffer [ (0xc0 | C.packet_tags.MDC ), SHA1.output_length ]
 
   #----------
 
   parse : () ->
-    hl = @header.length
+    hl = MDC.header.length
     len = SHA1.output_length + hl
     rem = @buf[0...(-len)]
     chunk = @buf[(-len)...]
-    throw new Error 'Missing MDC header' unless bufeq_fast chunk[0...hl], @header
+    throw new Error 'Missing MDC header' unless bufeq_fast chunk[0...hl], MDC.header
     digest = chunk[hl...]
-    [ new MDC({ digest, @header }), rem ]
+    [ new MDC({ digest }), rem ]
 
 #=================================================================================
 

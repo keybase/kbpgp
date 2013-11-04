@@ -40,6 +40,7 @@ $(BUILD_STAMP): \
 	lib/keybase/packet/p3skb.js \
 	lib/openpgp/armor.js \
 	lib/openpgp/buffer.js \
+	lib/openpgp/burner.js \
 	lib/openpgp/cfb.js \
 	lib/openpgp/ocfb.js \
 	lib/openpgp/s2k.js \

@@ -73,7 +73,6 @@ class Signature extends Packet
       sig
     ]
     results = Buffer.concat [ prefix, result2 ]
-    @_unframed = results
     cb null, results
 
   #---------------------
@@ -253,10 +252,10 @@ class ExpirationTime extends Time
 
 #------------
 
-class Exporatable extends SubPacket
+class Exportable extends SubPacket
   constructor : (@flag) ->
     super S.exportable_certificate
-  @parse : (slice) -> new Exporatable (slice.read_uint8() is 1)
+  @parse : (slice) -> new Exportable (slice.read_uint8() is 1)
   _v_to_buffer : () -> uint_to_buffer 8, @flag
 
 #------------
@@ -408,6 +407,12 @@ class KeyFlags extends Preference
     super S.key_flags, v
   @parse : (slice) -> Preference.parse slice, KeyFlags
   export_to_option : -> [ "flags" , @v[0] ]
+  all_flags : () ->
+    ret = 0
+    ret |= e for e in @v
+    ret
+  has_flags : (f) ->
+    return (@all_flags() & f) is f
 
 #------------
 

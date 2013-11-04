@@ -107,6 +107,10 @@ class Message
     esk_packets = []
     err = null
 
+    # Handle the case that the Session Key is encrypted N times, and we
+    # only have the key decrypt one of them.  This is the case when you send
+    # one email to many people, all encrypted with their corresponding public
+    # keys.  It might not come up, but we may as well handle it.
     key_ids = while @packets.length and (p = @packets[0].to_esk_packet())
       esk_packets.push p
       @packets.shift()
@@ -117,7 +121,7 @@ class Message
       await @key_fetch.fetch key_ids, [ konst.ops.decrypt ], defer err, obj, index
       unless err?
         packet = esk_packets[index]
-        await obj.key.decrypt_and_unpad packet.ekey.y, defer err, sesskey
+        await obj.key.decrypt_and_unpad packet.ekey.mpi(), defer err, sesskey
     else
       enc = false
 

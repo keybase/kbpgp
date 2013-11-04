@@ -173,15 +173,21 @@ class Pub
   @type : C.public_key_algorithms.RSA
   type : Pub.type
 
+  #----------------
+
   constructor : ({@n,@e}) ->
   encrypt : (p, cb) -> @mod_pow p, @e, cb
   verify :  (s, cb) -> @mod_pow s, @e, cb
+
+  #----------------
 
   serialize : () -> 
     Buffer.concat [
       @n.to_mpi_buffer()
       @e.to_mpi_buffer() 
     ]
+
+  #----------------
 
   @alloc : (raw) ->
     orig_len = raw.length
@@ -200,6 +206,10 @@ class Pub
       @hash()[0...K.kid.len]
     ]
   ekid : () -> Buffer.concat [ new Buffer([K.kid.version, @type ] ), @hash() ]
+
+  #----------------
+
+  mod_pow : (x,d,cb) -> cb x.modPow(d,@n)
 
   #----------------
 
@@ -334,8 +344,8 @@ class Pair
     err = ret = null
     await eme_pkcs1_encode data, @pub.n.mpi_byte_length(), defer err, m
     unless err?
-      await @encrypt m, defer sig
-      ret = sig.to_mpi_buffer()
+      await @encrypt m, defer ct
+      ret = ct.to_mpi_buffer()
     cb err, ret
 
   #----------------
@@ -411,18 +421,22 @@ class Pair
   #----------------
 
   @parse_output : (buf) -> (Output.parse buf)
+  export_output : (args) -> new Output args
 
   #----------------
 
 #=======================================================================
 
 class Output
-  constructor : (@y) ->
+  constructor : ({@y_mpi, @y_buf}) ->
   @parse : (buf) ->
     [err, ret, raw, n] = bn.mpi_from_buffer buf
     throw err if err?
     throw new Error "junk at the end of input" unless raw.length is 0
-    new Output ret
+    new Output { y_mpi : ret }
+  mpi : () -> @y_mpi
+
+  output : () -> (@y_buf or @y_mpi.to_mpi_buffer())
 
 #=======================================================================
 

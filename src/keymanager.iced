@@ -149,7 +149,7 @@ class PgpEngine extends Engine
   #--------
   
   _v_self_sign_primary : ({asp}, cb) ->
-    await @primary._pgp.self_sign_key { lifespan : @primary.lifespan, uidp : @userid_packet() }, defer err, @self_sig
+    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, uidp : @userid_packet() }, defer err, @self_sig
     cb err
 
   #--------
@@ -169,10 +169,10 @@ class PgpEngine extends Engine
   #--------
 
   _export_keys_to_binary : (opts) ->
-    packets = [ @primary._pgp.export_framed(opts), @userid_packet().write(), @self_sig ]
+    packets = [ @key(@primary).export_framed(opts), @userid_packet().write(), @self_sig ]
     opts.subkey = true
     for subkey in @subkeys
-      packets.push subkey._pgp.export_framed(opts), subkey._pgp_sig
+      packets.push @key(subkey).export_framed(opts), subkey._pgp_sig
     Buffer.concat packets
 
   #--------
@@ -194,9 +194,21 @@ class PgpEngine extends Engine
 
   find_key : (key_id) ->
     for k in @_all_keys()
-      if bufeq_secure k._pgp.get_key_id(), key_id
+      if bufeq_secure @key(k).get_key_id(), key_id
         return k 
     return null
+
+  #--------
+
+  # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
+  find_best_key : (flags) ->
+    mat = null
+    for k in @subkeys when not mat?
+      if @key(k).fulfills_flags flags then mat = @key(k)
+    if not mat?
+      k = @key(@primary)
+      if k.fulfills_flags flags then mat = k
+    mat
 
 #=================================================================
 
@@ -390,6 +402,7 @@ class KeyManager
   #--------
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
+  find_best_pgp_key : (flags) -> @pgp.find_best_key flags
 
   export_pgp_keys_to_keyring : () -> @pgp.export_keys_to_keyring @
   
