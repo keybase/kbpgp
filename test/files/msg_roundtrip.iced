@@ -174,8 +174,11 @@ exports.encrypt = (T,cb) ->
 #===============================================================
 
 exports.sign = (T,cb) ->
-  signing_key = new Buffer data.keys.ids[1], 'hex'
-  await burn { literals, signing_key }, defer err, text
+  key_id = new Buffer data.keys.ids[1], 'hex'
+  flags = C.openpgp.key_flags.sign_data
+  await ring.find_best_key { key_id, flags}, defer err, signing_key
+  T.no_error err
+  await burn { literals, signing_key }, defer err, ctext
   T.no_error err
   proc = new Message ring
   await proc.parse_and_process ctext, defer err, out
