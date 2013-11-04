@@ -16,6 +16,7 @@
 triplesec = require 'triplesec'
 {export_key_pgp,get_cipher} = require '../symmetric'
 {scrub_buffer} = triplesec.util
+{WordArray} = triplesec
 C = require('../const').openpgp
 {SHA512} = require '../hash'
 
@@ -77,8 +78,6 @@ class Burner
   _compress : (cb) ->
     inflated = @collect_packets()
     pkt = new Compressed { algo : C.compression.zlib, inflated }
-    console.log "compressing this guy ->"
-    console.log inflated
     await pkt.write defer err, opkt
     unless err?
       @packets.push opkt
@@ -102,8 +101,8 @@ class Burner
   #------------
 
   _encrypt_session_key : (cb) ->
-    payload = export_key_pgp @_cipher_algo, @_session_key
-    k = @encrypt_key.key
+    payload = export_key_pgp @_cipher_algo, @_session_key.to_buffer()
+    k = @encryption_key.key
     await k.pad_and_encrypt payload, defer err, y
     unless err?
       ekey = k.export_output y
@@ -149,7 +148,7 @@ class Burner
     if @signing_key
       await @_sign esc defer()
     await @_compress esc defer()
-    if @encrypt_key
+    if @encryption_key
       await @_encrypt esc defer()
     output = Buffer.concat @packets
     cb null, output

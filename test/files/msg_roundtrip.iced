@@ -4,11 +4,15 @@ armor = require '../../lib/openpgp/armor'
 C = require '../../lib/const'
 {Message} = require '../../lib/openpgp/processor'
 util = require 'util'
-{katch,ASP} = require '../../lib/util'
+{unix_time,katch,ASP} = require '../../lib/util'
 {KeyManager} = require '../../lib/keymanager'
 {import_key_pgp} = require '../../lib/symmetric'
 {decrypt} = require '../../lib/openpgp/ocfb'
 {PgpKeyRing} = require '../../lib/keyring'
+{Literal} = require '../../lib/openpgp/packet/literal'
+{burn} = require '../../lib/openpgp/burner'
+
+#===============================================================================
 
 data = {
   msg : """
@@ -47,178 +51,142 @@ The red-breast whistles from a garden-croft;
 And gathering swallows twitter in the skies.
 """,
   keys : {
-    decryption: {
-      passphrase : "catsdogs",
-      key : """-----BEGIN PGP PRIVATE KEY BLOCK-----
-Version: GnuPG/MacGPG2 v2.0.20 (Darwin)
-Comment: GPGTools - http://gpgtools.org
+    passphrase : "urnsrock",
+    ids : [  "69B0017B1C3D9917", "F4317C265F08C3A2" ],
+    blocks :  [ """
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-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
-ObMKV7f7yqGEQNpyrXlHl4qGSzkvgxQ6IzTA1g==
-=DRiu
------END PGP PRIVATE KEY BLOCK-----"""
-    },
-    verify : {
-      key : """-----BEGIN PGP PUBLIC KEY BLOCK-----
-Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
-Comment: GPGTools - http://gpgtools.org
+lQH+BFJ3A/QBBACukT3BRAH6vVn3KULmWutg5BMzutXyNfd1N53BA+7qAow8HW9Q
+IVt1QD4Lw0X31PNvnlr01QinzJ0vK5TiZQtlJIOnjJ3iJ3vlMiPQwe26UkN7g4WZ
+kmD/ceGioJa6iM9B2cN6IM/cGO33g7zi+f20I8z7lcvJp2Zt2hHQysSoDQARAQAB
+/gMDAtVo6Z0kF21hYDSYOTEoTzS0U9hphymRV5qzfYMyM1cT+Swtj2uUR/chfoH5
+m9C3sUb9ykwW7LAsbD2AGgjuGQJRQbvudQR+CApk85uNutq8soLTUNqs7hjE6s7y
+qOBBYzubuq2JNc1Dl4wJz5CUV6j8ZTa1qLHVVbFeVLOMbXKygjpGZPtNSImmrB5d
+MwcsaeWV8YHlhHzdWllKYzcz9jb7sVOMFxlZiTlOhFAbp675OxHl0qKUFdvSA4m1
+dYxacp8x7cwrWvQo6WpWHbdGlDYngTmziAf2MjzL1JNRkUTg738Ya8UC7Gzmwbku
+DIdswHfpQk3FsickwE06c/lm4EBK180fAxn0h7Pb5JsANW04w5szVIiD9/t9GyK5
+8VWdpix3m9V79pqT00GM5qjjr6Al20ygoC9NWoi50mj99vf8NxoYdHjwcSD3l50w
+9c60ULBPXjq099IijQWtVkQc14KcOiFze/3SE6Zo+f5DtCpKb2huIEtlYXRzIChK
+b2hubnkpIDxqb2huLmtlYXRzQGdtYWlsLmNvbT6IvgQTAQIAKAUCUncD9AIbAwUJ
+OGQJAAYLCQgHAwIGFQgCCQoLBBYCAwECHgECF4AACgkQabABexw9mReQHAP+MyeG
+OHi+qRHmCOejziLBl4DZwBeOiEGo/5SJUfl0E76kkG5TAD15pWZbpd4LcBYH2xQe
+cAXbdZEdUYpuGCuBeHTQxD+cVAmq1aguCMT54K13V/h8VNGkF4suWrpeMomWcD7O
+5Dtqw9OvW/EV10Bk4KnjtnK7HIVP3f9ddbp+NjadAf4EUncD9AEEAK4xy2sVg5mq
+QY5gDBYy1uPtFCd3+8iZGVChRApwLnba2kJx1buO9MqgXZ0wmoEJzLgfN5dVDfAQ
+ypfltBJgzCXsxbUFCW6m5NV+GjKhIsF4AtMfCfymIsughig55ySw9rurpKmHKEDe
+FDsMzKAcpEnaK/4+VY27nlwNFboW5MbFABEBAAH+AwMC1WjpnSQXbWFgPHyfO1zk
+Pt44CsEJ5DlvoMIwg8x662EN+zYY3e8MTKcKgtT5qTsZer3puBe7WHDc6YzzCGJq
+9XsBNkwnvxt9s3PCHqCkDll0JV6JLP32R7hGnYVFDj9HbMsc6HC9Rp29Rm2nX7L3
+NUrSZEMS6Za7KSURMffxIUJqjm9aq9spRUmL9i2IM3ah5XQdrl7s9dJmDdEKG9un
+hcgab9DVEMSoL60QH+YpZf2SKFMq0TJIA7g9WYn6MgHuzNhlFlMC2GBPgu+tvY2z
+FUNpL44gmk1wPXpcO2BKlnUNsmfc/5Mz1nsWfFcFaUiipmM75niodXOKZxtmlee7
+1Vz4enh7m7SKUHiFsQKnPU3egT49OdPonaAaTW7GyhOEj6onW297A7oaZE3zExcB
+Rdv2SxgLLMhK6SxADNnTgKwaUcbXX7lWeGtoabtTn6BR9Z/Ljof1JNQc3MqYqLaw
+maHbIcP9kZHPAf2ouO2IpQQYAQIADwUCUncD9AIbDAUJOGQJAAAKCRBpsAF7HD2Z
+F7ncA/40tgyKkAQLVO6CUiIqq6Vrmyn/sEEqv7CoaH2lRosAaOVBR0AuUUos26ZB
+adQQqGYWu6c8XPIOMUVpeMFbBKBkiJvHh2DNlCE3XhbUF0guwZ/GYihFzf4iRZA8
+g75kAuLgjcwnMyBzzDLAjyUlgKLBFT9dubmmVk9YWdvEOiB+2g==
+=kzrG
+-----END PGP PRIVATE KEY BLOCK-----
+""", """
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-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
-nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
-=UGvW
------END PGP PUBLIC KEY BLOCK-----
-"""
-    }
-  }
-}
+lQH+BFJ3BJYBBADi3DxAFfX6ZNfwHmzgdrgwwaBdYQ1hWusclf2lVRu7Pj0Ha2OK
+vsNBH/yRIRNjv+YAGXGoNwEmYVyFllNUbXYZwJKA+GmoC4ZMtCAT6sS2/6AM1syi
+/FxGGvJYzBU0HAgb8KeUmNCBe9WBQQsmWrygjfig1RvhT55Ca0Y+fpcnfwARAQAB
+/gMDAkqm8JYGqR9OYAnwLxwv9rH0YKH6JY68Kvy+cnGiDqi2LRW1GC8IyVa/qbxt
+Ak2RVlTRy2fYfTMxpZpawpSUOkIi5t8ZOJVcc8lGOYWPF0M2G3Xad7zERBPzNy1Y
+aE6UiFNkQSVF04eBBw6AbVAvkMlLewbrznoHhmaWWBtNrig0AD+AnmAkvbZKzBjU
+5QmAmlQgjegdWjmt1mS6/uLWXZ2vCir54LidFVeO3Tn7ZZNLoKlQfHz0lkH6NRfe
+QIRnSOqwzLqWePqNGKyjn16bBSRQC8sdmLanIC7om86DDoFxu66nGvC5WbixC4La
+Mdu4WqKF3yyGYmfdFsHDQF9t2D3BxThe5y+BrUv2SK6cRxcrTCWITibsDU51SBcW
+hw5EYlP/HrrS702urC7IJLQ5k39KpA1S+G0KzEm50glJuW8OkbNUIDnWsRIYAEuF
+/6wW35HGrGOOqYQBei81Bu5gBKDdNpsQLIuD8X++nY3WtCtXaWxsaWFtIFdvcmRz
+d29ydGggKEJpbGx5KSA8d3c3MEBnbWFpbC5jb20+iL4EEwECACgFAlJ3BJYCGwMF
+CThkCQAGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheAAAoJEPQxfCZfCMOiWhYD/2Fi
+CaiDG1qcNt/dOQ9uRkRuKJUX260PhWB+QzVSLy5v8HaAaefGEQhnCWu/OLSjQyku
+fVTjydTqn9kNtPAumXOd20x5i3dRzvTUAEEtjVtR1wAfSdcKgpGYwakbMTGAe/QS
+gfjTyV2aMfSrrSRLI4hSYqmbkk2zixmKNa4cFuzGnQH9BFJ3BJYBBADFc2tuLtBX
+FgOXQgarKa3EMM3I6QdmbDde15Tr7Cm8jb+JGl5lT3gMqLb5gRkbdIrDEFblhTbG
+A+ZeUyWe2bf3EeV6h7v4uYVmXDI+B4ej4qy1kyb2hezheDgkd94qG5/ccjBqT/rg
+gZwGn+nSB3tOxVxJwvQUVJ2icRfaDUnqSQARAQAB/gMDAkqm8JYGqR9OYAO4FR6T
+RpHtyJWgE8ycC50IdlKTJBnnj1IcSbbFZfHg/z97NIATq+UMZrd+kuvb9o4DiV5h
+f4XKB+WAe8ZWT48XNyw2JZnuE65JINkpkBFgZPPBmkaR9bz3Zk94sagaVPo2z3FU
+uwrr1KPcKQU/hslGyr9yu/B06UQ419ZaeXyrTUaVmi4fBDAYTT6+gdH+Ae8GCgMF
++p+AZM22vi4bSlTg88YCEZ/g5F9D0Uatz1XxpcAE88CwbWZJ2kPyVa23bQqJdttf
+RDXUk3EBmO8rbvHSGaubjexCALsR7ve9qYIkUGgMo2c8akvIrNai8v/fEU+hKUbY
+7MDSvfDzLziwONHo9FmZNKWaunFiN0xr6TIV//u+nPQH5FXZGVlGV+oJIRCBQNKa
+yr6vUm5Y6CGDazMH9roPCFfKASyJhgXNsnWiFmd0qcR9fDoOzM/ytM7j+NFPw0io
++zvizUF/LjaUfPhh2tuIpQQYAQIADwUCUncElgIbDAUJOGQJAAAKCRD0MXwmXwjD
+olo1A/9gvmuwrKuqepO9/5gRei8vM1S3JmWjtRIRaf+RL3BNVQC9YUBDQ1Q/kLTO
+bgfb9tUj1ukZ/e5y5hIC0y9zKJmJ7yFPucnRwQ9fTdx3vibCm86sv9PPs2aA2SwP
+puPX3hq9W6Ojdj8mG9DksKH5C9f2bCeNL8aa0gHa6ZrzMof5uQ==
+=ieHK
+-----END PGP PRIVATE KEY BLOCK-----
+"""] } }
 
 #===============================================================
 
 load_keyring = (T,cb) ->
   ring = new PgpKeyRing()
   asp = new ASP {}
-  await KeyManager.import_from_armored_pgp { raw : data.keys.decryption.key, asp }, defer err, dkm
-  T.no_error err
-  T.waypoint "imported decryption key"
-  await dkm.unlock_pgp { passphrase : data.keys.decryption.passphrase }, defer err
-  T.no_error err
-  T.waypoint "unlocked decryption key"
-  await KeyManager.import_from_armored_pgp { raw : data.keys.verify.key, asp }, defer err, vkm
-  T.no_error err
-  T.waypoint "imported verification key"
-  ring.add_key_manager vkm
-  ring.add_key_manager dkm
+  for b in data.keys.blocks
+    await KeyManager.import_from_armored_pgp { raw : b, asp }, defer err, km
+    T.no_error err
+    T.waypoint "imported decryption key"
+    await km.unlock_pgp { passphrase : data.keys.passphrase }, defer err
+    T.no_error err
+    T.waypoint "unlocked decryption key"
+    ring.add_key_manager km
   cb ring
 
 #===============================================================
 
-ring = null
+ring = literals = null
 exports.init = (T,cb) ->
   await load_keyring T, defer tmp
   ring = tmp
+  literals = [ new Literal { 
+    data : new Buffer(data.msg)
+    format : C.openpgp.literal_formats.utf8 
+    date : unix_time()
+  }]
   cb()
 
 #===============================================================
 
 exports.encrypt = (T,cb) ->
+  key_id = new Buffer data.keys.ids[0], 'hex'
+  flags = C.openpgp.key_flags.encrypt_comm
+  await ring.find_best_key { key_id, flags}, defer err, encryption_key
+  T.no_error err
+  await burn { literals, encryption_key }, defer err, ctext
+  T.no_error err
+  proc = new Message ring
+  await proc.parse_and_process ctext, defer err, out
+  T.no_error err
+  T.assert (not out[0].signed_with?), "wasn't signed"
+  T.equal data.msg, out[0].toString(), "message came back right"
   cb()
 
 #===============================================================
 
 exports.sign = (T,cb) ->
+  signing_key = new Buffer data.keys.ids[1], 'hex'
+  await burn { literals, signing_key }, defer err, text
+  T.no_error err
+  proc = new Message ring
+  await proc.parse_and_process ctext, defer err, out
+  T.no_error err
+  T.assert (out[0].signed_with?), "was signed!"
+  T.equal data.msg, out[0].toString(), "message came back right"
   cb()
 
 #===============================================================
 
 exports.encrypt_and_sign = (T,cb) ->
   cb()
-  
+
 #===============================================================
