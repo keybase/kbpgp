@@ -2,7 +2,7 @@
 C = require('./const').openpgp
 {nbs} = require './bn'
 {buffer_to_ui8a,bufeq_secure} = require './util'
-{prng} = require 'triplesec'
+{SRF} = require './rand'
 
 #====================================================================
 
@@ -69,6 +69,18 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hasher) ->
 
 #====================================================================
 
+eme_random = (n, cb) ->
+  bytes = []
+  while bytes.length < n
+    diff = n - bytes.length
+    await SRF().random_bytes diff, defer b
+    for i in [0...diff]
+      c = b.readUInt8(i)
+      bytes.push c if c isnt 0
+  cb new Buffer bytes
+
+#--------------
+
 # See
 # 13.1.1. EME-PKCS1-v1_5-ENCODE
 exports.eme_pkcs1_encode = (v, len, cb) ->
@@ -77,13 +89,14 @@ exports.eme_pkcs1_encode = (v, len, cb) ->
     err = new Error "cannot encrypt message -- it's too long!"
   else
     n_randos = len - 3 - v.length
-    await prng.generate n_randos, defer PS
-    ret = Buffer.concat [ 
+    await eme_random n_randos, defer PS
+    buf = Buffer.concat [ 
       new Buffer( [0x00, 0x02] ),
       PS,
       new Buffer( [0x00] ),
       v
     ]
+    ret = nbs(buffer_to_ui8a(buf), 256)
   cb err, ret
 
 #====================================================================

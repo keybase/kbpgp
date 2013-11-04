@@ -68,11 +68,17 @@ class StrongRandomFountain
 
   #---------
 
-  random_bytes : (nbytes, cb) ->
+  random_word_array : (nbytes, cb) ->
     await @lock.acquire defer()
     await prng.generate nbytes, defer tmp
     @lock.release()
     cb tmp
+
+  #---------
+
+  random_bytes : (nbytes, cb) ->
+    await @random_word_array nbytes, defer tmp
+    cb tmp.to_buffer()
 
   #---------
 

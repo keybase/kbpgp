@@ -17,6 +17,7 @@ triplesec = require 'triplesec'
 {export_key_pgp,get_cipher} = require '../symmetric'
 {scrub_buffer} = triplesec.util
 {WordArray} = triplesec
+{PKESK} = require './packet/sess'
 C = require('../const').openpgp
 {SHA512} = require '../hash'
 
@@ -88,7 +89,7 @@ class Burner
   _make_session_key : (cb) ->
     @_cipher_algo = C.symmetric_key_algorithms.AES256
     @_cipher_info = get_cipher @_cipher_algo
-    await SRF().random_bytes (@_cipher_info.key_size >> 3), defer @_session_key
+    await SRF().random_bytes @_cipher_info.key_size, defer @_session_key
     @_cipher = new @_cipher_info.klass WordArray.from_buffer @_session_key
     cb null
 
@@ -101,15 +102,15 @@ class Burner
   #------------
 
   _encrypt_session_key : (cb) ->
-    payload = export_key_pgp @_cipher_algo, @_session_key.to_buffer()
+    payload = export_key_pgp @_cipher_algo, @_session_key
     k = @encryption_key.key
     await k.pad_and_encrypt payload, defer err, y
     unless err?
       ekey = k.export_output y
-      pkt = new PKSESK { 
+      pkt = new PKESK { 
         crypto_type : k.type,
-        key_id : @encrypt_key.get_key_id(),
-        ekey : { y }
+        key_id : @encryption_key.get_key_id(),
+        ekey : ekey
       } 
       await pkt.write defer err, @_pkesk
     cb err
