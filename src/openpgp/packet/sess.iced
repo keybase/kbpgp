@@ -58,7 +58,8 @@ class SEIPD extends Packet
     eng = new Decryptor { cipher, ciphertext : @ciphertext }
     err = eng.check()
     throw err if err?
-    [ mdc, plaintext ] = MDC.parse eng.dec()
+    pt = eng.dec()
+    [ mdc, plaintext ] = MDC.parse pt
     prefix = eng.get_prefix()
 
     # check that the hash matches what we fetched out of the message
@@ -72,7 +73,7 @@ class SEIPD extends Packet
   encrypt : ({cipher, plaintext, prefixrandom }, cb) ->
     mdc = new MDC {}
     mdc_buf = mdc.compute { plaintext, prefix : prefixrandom }
-    plaintext = Buffer.concat [ plaintext, mdc_buf ]
+    plaintext = Buffer.concat [ plaintext, MDC.header, mdc_buf ]
     @ciphertext = encrypt { cipher, plaintext, prefixrandom }
     cb null
 

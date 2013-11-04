@@ -165,7 +165,9 @@ class Encryptor extends Base
       @_enc()
       @_emit_sb sb
 
-    @compact()
+    ret = @compact()
+    n_wanted = plaintext.length + @block_size + 2
+    ret[0...n_wanted]
 
 #===============================================================================
 
