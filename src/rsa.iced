@@ -350,13 +350,13 @@ class Pair
 
   #----------------
 
+  # @param {Output} ciphertext A ciphertext in RSA::Output form
+  # 
   decrypt_and_unpad : (ciphertext, cb) ->
     err = ret = null
-    [err, ciphertext] = bn.mpi_from_buffer ciphertext if Buffer.isBuffer ciphertext
-    unless err?
-      await @decrypt ciphertext, defer p
-      b = p.to_padded_octets @pub.n
-      [err, ret] = eme_pkcs1_decode b
+    await @decrypt ciphertext.y(), defer p
+    b = p.to_padded_octets @pub.n
+    [err, ret] = eme_pkcs1_decode b
     cb err, ret
 
   #----------------
@@ -434,7 +434,7 @@ class Output
     throw err if err?
     throw new Error "junk at the end of input" unless raw.length is 0
     new Output { y_mpi : ret }
-  mpi : () -> @y_mpi
+  y : () -> @y_mpi
 
   output : () -> (@y_buf or @y_mpi.to_mpi_buffer())
 
