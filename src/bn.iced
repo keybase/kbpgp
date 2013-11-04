@@ -45,9 +45,8 @@ mpi_from_buffer = (raw) ->
     if raw.length < n_bytes
       err = new Error "MPI said #{n_bytes} bytes but only got #{raw.length}"
     else
-      a = buffer_to_ui8a raw[0...n_bytes]
       raw = raw[n_bytes...]
-      i = nbi()
+      i = nbi().fromBuffer raw[0...n_bytes]
       # the last 'true' is for 'unsigned', our hack to jsbn.js to 
       # workaround the bugginess of their sign bit manipulation.
       i.fromString a, 256, true

@@ -18,10 +18,13 @@
     "type": "git",
     "url": "git://github.com/keybase/kbpgp.git"
   },
+  "directories" : {
+    "lib" : "lib/"
+  },
   "dependencies" : {
     "purepack" : ">=1",
     "triplesec" : "keybase/triplesec#header_v3",
-    "bn" : "keybase/bn"
+    "bn" : "keybase/bn#node_native_bridge"
   },
   "devDependencies" : {
     "browserify" : "*",

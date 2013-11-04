@@ -14,8 +14,7 @@ class BaseX
       @lookup[a] = i
 
   encode: (buffer) ->
-    num = nbi()
-    num.fromString (buffer_to_ui8a buffer), 256, true
+    num = nbi().fromBuffer buffer
     chars = while num.compareTo(BigInteger.ZERO) > 0
       [q,r] = num.divideAndRemainder @basebn
       c = @alphabet[r.intValue()]
