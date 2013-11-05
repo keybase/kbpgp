@@ -1,4 +1,4 @@
-{nbi,BigInteger} = require 'bn'
+{BigInteger} = require 'bn'
 {prng} = require 'triplesec'
 native_rng = prng.native_rng
 {Lock} = require './lock'
@@ -26,7 +26,7 @@ class MediumRandomFountain
   # @param {BigInteger} n the modulus
   random_zn : (n) ->
     loop
-      i = nbi().random_nbit n.bitLength(), @
+      i = BigInteger.random_nbit n.bitLength(), @
       return i if i.compareTo(BigInteger.ONE) > 0 and i.compareTo(n) < 0
 
 #==================================================
@@ -101,7 +101,7 @@ class StrongRandomFountain
     nbytes = (nbits >> 3) + 1
     await prng.generate nbytes, defer tmp
     @buf = tmp.to_buffer()
-    ret = nbi().random_nbit nbits, @
+    ret = BigInteger.random_nbit nbits, @
     @lock.release()
     cb ret
 
