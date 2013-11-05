@@ -146,7 +146,8 @@ exports.kb =
   kid : 
     version : 1
     trailer : 0x0a
-    len : 20
+    algo : 8
+    len : 32
 
 exports.ops = 
   encrypt : 0x1

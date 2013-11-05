@@ -198,17 +198,6 @@ class Pub
 
   #----------------
 
-  hash : () -> SHA512 @serialize()
-  kid : () -> Buffer.concat [ @fingerprint(), new Buffer([K.kid.trailer]) ]
-  fingerprint : () -> 
-    Buffer.concat [
-      new Buffer([K.kid.version, @type ] ),
-      @hash()[0...K.kid.len]
-    ]
-  ekid : () -> Buffer.concat [ new Buffer([K.kid.version, @type ] ), @hash() ]
-
-  #----------------
-
   mod_pow : (x,d,cb) -> cb x.modPow(d,@n)
 
   #----------------
@@ -230,10 +219,9 @@ class Pair
 
   #----------------
 
-  hash : () -> @pub.hash()
-  kid : () -> @pub.kid()
-  ekid : () -> @pub.ekid()
-  fingerprint : () -> @pub.fingerprint()
+  serialize : () -> @pub.serialize()
+  hash : () -> SHA512 @serialize()
+  ekid : () ->  Buffer.concat [ new Buffer([K.kid.version, @type]), @hash() ]
   can_sign : () -> @priv?
   can_decrypt : () -> @priv?
 
