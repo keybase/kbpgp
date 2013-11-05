@@ -11,6 +11,7 @@
 {OnePassSignature} = require './packet/one_pass_sig'
 {Signature,CreationTime,Issuer} = require './packet/signature'
 {Compressed} = require './packet/compressed'
+{Literal} = require './packet/literal'
 {unix_time} = require '../util'
 {SRF} = require '../rand'
 triplesec = require 'triplesec'
@@ -160,7 +161,17 @@ exports.Burner = Burner
 
 #==========================================================================================
 
-exports.burn = ({literals, signing_key, encryption_key}, cb) ->
+exports.make_simple_literals = make_simple_literals = (msg) ->
+  return [ new Literal { 
+    data : new Buffer(msg)
+    format : C.literal_formats.utf8 
+    date : unix_time()
+  }]
+
+#==========================================================================================
+
+exports.burn = ({msg, literals, signing_key, encryption_key}, cb) ->
+  literals = make_simple_literals msg if msg? and not literals?
   b = new Burner { literals, signing_key, encryption_key }
   await b.burn defer err, out
   b.scrub()
