@@ -45,8 +45,8 @@ mpi_from_buffer = (raw) ->
     if raw.length < n_bytes
       err = new Error "MPI said #{n_bytes} bytes but only got #{raw.length}"
     else
-      raw = raw[n_bytes...]
       i = nbi().fromBuffer raw[0...n_bytes]
+      raw = raw[n_bytes...]
   [err, i, raw, (n_bytes + 2) ]
 
 #================================================================
