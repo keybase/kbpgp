@@ -27,6 +27,7 @@ exports.decode_pgp_secret_key_1 = (T,cb) ->
     await p.key.sanity_check defer err
     T.waypoint "opened key #{i}"
     T.no_error err
+    throw err if err?
     T.waypoint "sanity checked key #{i}"
   T.equal n, 2, "need 2 keys"
   cb()

@@ -94,7 +94,7 @@ _MR_inner = ({s, r, p, p1}) ->
 
 _MR_small_check = ({p}) ->
   if p.compareTo(BigInteger.ZERO) <= 0 then false
-  else if p.compareTo(nbv(7) <= 0) then (p.intValue() in [2,3,5,7])
+  else if p.compareTo(nbv(7)) <= 0 then (p.intValue() in [2,3,5,7])
   else if not p.testBit(0) then false
   else true
 
