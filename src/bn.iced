@@ -47,9 +47,6 @@ mpi_from_buffer = (raw) ->
     else
       raw = raw[n_bytes...]
       i = nbi().fromBuffer raw[0...n_bytes]
-      # the last 'true' is for 'unsigned', our hack to jsbn.js to 
-      # workaround the bugginess of their sign bit manipulation.
-      i.fromString a, 256, true
   [err, i, raw, (n_bytes + 2) ]
 
 #================================================================
