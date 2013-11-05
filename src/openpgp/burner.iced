@@ -21,6 +21,7 @@ triplesec = require 'triplesec'
 {SEIPD,PKESK} = require './packet/sess'
 C = require('../const').openpgp
 {SHA512} = require '../hash'
+{encode} = require './armor'
 
 #==========================================================================================
 
@@ -170,11 +171,12 @@ exports.make_simple_literals = make_simple_literals = (msg) ->
 
 #==========================================================================================
 
-exports.burn = ({msg, literals, signing_key, encryption_key}, cb) ->
+exports.burn = ({msg, literals, signing_key, encryption_key, armor}, cb) ->
   literals = make_simple_literals msg if msg? and not literals?
   b = new Burner { literals, signing_key, encryption_key }
   await b.burn defer err, out
   b.scrub()
+  out = encode(C.message_types.generic, out) if out? and not err? and armor
   cb err, out
 
 #==========================================================================================

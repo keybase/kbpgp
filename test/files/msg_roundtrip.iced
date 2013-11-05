@@ -190,6 +190,43 @@ exports.sign = (T,cb) ->
 #===============================================================
 
 exports.encrypt_and_sign = (T,cb) ->
+  key_id = new Buffer data.keys.ids[0], 'hex'
+  flags = C.openpgp.key_flags.encrypt_comm
+  await ring.find_best_key { key_id, flags}, defer err, encryption_key
+  key_id = new Buffer data.keys.ids[1], 'hex'
+  flags = C.openpgp.key_flags.sign_data
+  await ring.find_best_key { key_id, flags}, defer err, signing_key
+  T.no_error err
+  await burn { literals, encryption_key, signing_key }, defer err, ctext
+  T.no_error err
+  proc = new Message ring
+  await proc.parse_and_process ctext, defer err, out
+  T.no_error err
+  T.assert (out[0].signed_with?), "was signed!"
+  T.equal data.msg, out[0].toString(), "message came back right"
   cb()
+
+#===============================================================
+
+exports.encrypt_and_sign_armor = (T,cb) ->
+  key_id = new Buffer data.keys.ids[0], 'hex'
+  flags = C.openpgp.key_flags.encrypt_comm
+  await ring.find_best_key { key_id, flags}, defer err, encryption_key
+  key_id = new Buffer data.keys.ids[1], 'hex'
+  flags = C.openpgp.key_flags.sign_data
+  await ring.find_best_key { key_id, flags}, defer err, signing_key
+  T.no_error err
+  await burn { literals, encryption_key, signing_key, armor : true }, defer err, actext
+  T.no_error err
+  [err,msg] = armor.decode actext
+  T.no_error err
+  proc = new Message ring
+  await proc.parse_and_process msg.body, defer err, out
+  T.no_error err
+  T.assert (out[0].signed_with?), "was signed!"
+  T.equal data.msg, out[0].toString(), "message came back right"
+  cb()
+
+#===============================================================
 
 #===============================================================
