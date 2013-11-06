@@ -327,8 +327,15 @@ class KeyMaterial extends Packet
 
   #-------------------
 
-  fulfills_flags : (flags) ->
-    (@signed or @self_sig)?.sig?.subpacket_index?.hashed?[C.sig_subpacket.key_flags].has_flags flags
+  get_flags_subpacket : () -> (@signed or @self_sig)?.sig?.subpacket_index?.hashed?[C.sig_subpacket.key_flags]
+
+  #-------------------
+
+  get_flags : () -> @get_flags_subpacket()?.all_flags() or 0
+
+  #-------------------
+
+  fulfills_flags : (flags) -> @get_flags_subpacket()?.has_flags flags
 
 #=================================================================================
 

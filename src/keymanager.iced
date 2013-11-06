@@ -48,11 +48,20 @@ class Engine
 
   #--------
 
+  get_all_key_materials : () ->
+    [[@key(@primary), true]].concat ([ @key(k), false ] for k in @subkeys)
+
+  #--------
+
   sign_subkeys : ({asp}, cb) -> 
     err = null
     for subkey in @subkeys when not err?
       await @_v_sign_subkey {asp, subkey}, defer err
     cb err
+
+  #--------
+
+  get_subkey_materials : () -> (@key(k) for k in @subkeys)
 
   #--------
 
@@ -381,8 +390,9 @@ class KeyManager
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
     err = null
-    msg = @armored_pgp_public unless regen
-    msg = @pgp.export_keys({private : false}) unless msg?
+    unless (err = @_assert_signed())?
+      msg = @armored_pgp_public unless regen
+      msg = @pgp.export_keys({private : false}) unless msg?
     cb err, msg
 
   #-----
@@ -403,6 +413,19 @@ class KeyManager
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
   find_best_pgp_key : (flags) -> @pgp.find_best_key flags
+
+  #--------
+
+  # Returns the underlying crypto key that's the primary key.
+  # @return {RSA::Pair} an RSA keypair (or DSA eventually)
+  get_primary_keypair : -> @primary.key
+
+  #--------
+
+  # Get all of the subkey material for each of the PGP subkeys  
+  get_all_pgp_key_materials : -> @pgp.get_all_key_materials()
+
+  #--------
 
   export_pgp_keys_to_keyring : () -> @pgp.export_keys_to_keyring @
   
