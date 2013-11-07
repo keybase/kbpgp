@@ -227,6 +227,10 @@ class Pair
 
   #----------------
 
+  eq : (k2) -> (@type is k2.type) and (bufeq_secure @serialize(), k2.serialize())
+
+  #----------------
+
   can_perform : (ops) ->
     for op in ops
       if op is konst.ops.sign and not @can_sign() then return false

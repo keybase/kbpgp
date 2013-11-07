@@ -86,6 +86,20 @@ class Engine
 
   #--------
 
+  check_eq : (eng2) ->
+    err = null
+    if not @primary.key.eq(eng2.primary.key)
+      err = new Error "Primary keys don't match"
+    else if @subkeys.length isnt eng2.subkeys.length
+      err = new Error "different # of subkeys"
+    else
+      for key, i in @subkeys when not @err?
+        if not key.key.eq(eng2.subkeys[i].key)
+          err = new Error "subkey #{i} doesn't match"
+    err
+
+  #--------
+
   merge_private : (eng2) ->
     err = null
     if not @key(eng2.primary).has_private()
@@ -332,6 +346,11 @@ class KeyManager
     await KeyManager.import_from_armored_pgp { raw, asp }, defer err, b2
     err = @pgp.merge_private b2.pgp unless err?
     cb err
+
+  #------------
+
+  # Given a second keymanager, check that the PGP keys all match.
+  check_pgp_public_eq : (km2) -> @pgp.check_eq km2.pgp
 
   #------------
  
