@@ -163,6 +163,24 @@ exports.obj_extract  = obj_extract = (o, keys) ->
 
 #=========================================================
 
+exports.base64u = 
+
+  encode : (b) ->
+    b.toString('base64')
+      .replace(/\+/g, '-')      # Convert '+' to '-'
+      .replace(/\//g, '_')      # Convert '/' to '_'
+      .replace(///=+$///, '' )  # Remove ending '='
+
+  decode : (b) ->
+    b = (b + Array(5 - b.length % 4).join('='))
+      .replace(/\-/g, '+') # Convert '-' to '+'
+      .replace(/\_/g, '/') # Convert '_' to '/'
+    new Buffer(b, 'base64');
+
+  verify : (b) -> /^[A-Za-z0-9\-_]+$/.test b
+
+#=========================================================
+
 exports.athrow = (err, cb) -> cb err
 exports.asynicfy = (args, cb) -> cb args...
    

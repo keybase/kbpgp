@@ -223,6 +223,11 @@ class PgpEngine extends Engine
 
   #--------
 
+  get_key_id : () -> @key(@primary).get_key_id()
+  get_fingerprint : () -> @key(@primary).get_fingerprint()
+
+  #--------
+
   # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
   find_best_key : (flags) ->
     mat = null
@@ -447,6 +452,9 @@ class KeyManager
   #--------
 
   export_pgp_keys_to_keyring : () -> @pgp.export_keys_to_keyring @
+
+  get_pgp_key_id : () -> @pgp.get_key_id()
+  get_pgp_fingerprint : () -> @pgp.get_fingerprint()
   
   # /Public Interface
   #========================

@@ -9,3 +9,4 @@ for m in mods
 exports.ASP = require('./util').ASP
 exports.rand = require('./rand')
 exports.const = require './const'
+exports.util = require('./util')
