@@ -1,3 +1,6 @@
+
+#---------------------------------------
+
 mods = [ 
  require("./keymanager"),
  require("./basex"),
@@ -6,7 +9,15 @@ mods = [
 for m in mods
   for k,v of m
     exports[k] = v
-exports.ASP = require('./util').ASP
-exports.rand = require('./rand')
-exports.const = require './const'
-exports.util = require('./util')
+
+#---------------------------------------
+
+exports.ASP       = require('./util').ASP
+exports.rand      = require('./rand')
+exports.const     = require './const'
+exports.util      = require('./util')
+exports.processor = require('./processor')
+exports.armor     = require('./openpgp/armor')
+
+#---------------------------------------
+
