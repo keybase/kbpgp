@@ -81,11 +81,16 @@ exports.bufferify = bufferify = (s) ->
 
 #=========================================================
 
-exports.katch = (fn) ->
+exports.katch = katch = (fn) ->
   ret = err = null
   try ret = fn()
   catch e then err = e
   [err, ret]
+
+#=========================================================
+
+exports.akatch = (fn, cb) ->
+  asynicfy (katch fn), cb
 
 #=========================================================
 
@@ -182,7 +187,7 @@ exports.base64u =
 #=========================================================
 
 exports.athrow = (err, cb) -> cb err
-exports.asynicfy = (args, cb) -> cb args...
+exports.asynicfy = asyncify = (args, cb) -> cb args...
    
 #=========================================================
 
