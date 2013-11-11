@@ -51,6 +51,8 @@ exports.ASP = class ASP
 
   progress_hook : () -> @_progress_hook
 
+  @make : (asp) -> asp or (new ASP {})
+
 #=========================================================
 
 exports.bufeq_fast = (x,y) ->

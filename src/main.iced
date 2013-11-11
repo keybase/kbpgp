@@ -16,7 +16,7 @@ exports.ASP       = require('./util').ASP
 exports.rand      = require('./rand')
 exports.const     = require './const'
 exports.util      = require('./util')
-exports.processor = require('./processor')
+exports.processor = require('./openpgp/processor')
 exports.armor     = require('./openpgp/armor')
 
 #---------------------------------------

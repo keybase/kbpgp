@@ -2,7 +2,7 @@
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
-{katch,bufeq_secure,unix_time,bufferify} = require './util'
+{ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
 {UserIds,Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
@@ -254,6 +254,7 @@ class KeyManager
   # Generate a new key bunlde from scratch.  Make the given number
   # of subkeys.
   @generate : ({asp, nsubs, userid, nbits }, cb) ->
+    asp = ASP.make asp
     userids = new UserIds { keybase : userid, openpgp : userid }
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
@@ -284,6 +285,7 @@ class KeyManager
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   # Also works for an armored PGP PRIVATE KEY BLOCK
   @import_from_armored_pgp : ({raw, asp, userid}, cb) ->
+    asp = ASP.make asp
     ret = null
     [err,msg] = decode raw
     unless err?
@@ -296,6 +298,7 @@ class KeyManager
   #--------------
 
   @import_from_p3skb : ({raw, asp}, cb) ->
+    asp = ASP.make asp
     km = null
     [err, p3skb] = katch () -> P3SKB.alloc unbox read_base64 raw
     unless err?
@@ -307,6 +310,7 @@ class KeyManager
   #--------------
 
   unlock_p3skb : ({asp, tsenc}, cb) ->
+    asp = ASP.make asp
     await @p3skb.unlock { tsenc, asp }, defer err
     unless err?
       msg = new Message { body : @p3skb.priv.data, type : C.message_types.private_key }
@@ -327,6 +331,7 @@ class KeyManager
 
   # Import from a dearmored/decoded PGP message.
   @import_from_pgp_message : ({msg, asp, userid}, cb) ->
+    asp = ASP.make asp
     bundle = null
     unless err?
       [err,packets] = parse msg.body
@@ -348,6 +353,7 @@ class KeyManager
   # add the private portions with this call.  And again, verify
   # signatures.  And check that the public portions agree.
   merge_pgp_private : ({raw, asp}, cb) ->
+    asp = ASP.make asp
     await KeyManager.import_from_armored_pgp { raw, asp }, defer err, b2
     err = @pgp.merge_private b2.pgp unless err?
     cb err
@@ -379,6 +385,7 @@ class KeyManager
   # Open the private MPIs of the secret key, and check for sanity.
   # Use the given triplesec.Encryptor / password object.
   unlock_keybase : ({tsenc, asp}, cb) ->
+    asp = ASP.make asp
     await @keybase.unlock_keys { tsenc, asp }, defer err
     cb err
 
@@ -388,6 +395,7 @@ class KeyManager
   #   1. The PGP public key block
   #   2. The PGP private key block (Public and private keys, triplesec'ed)
   export_private_to_server : ({tsenc, asp}, cb) ->
+    asp = ASP.make asp
     err = ret = null
     unless (err = @_assert_signed())?
       p3skb = @pgp.export_to_p3skb()
@@ -401,6 +409,7 @@ class KeyManager
   # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
   # We'll need to reencrypt with a derived key
   export_pgp_private_to_client : ({passphrase, asp, regen}, cb) ->
+    asp = ASP.make asp
     err = msg = null
     passphrase = bufferify passphrase if passphrase?
     if not regen? and (msg = @armored_pgp_private) then #noop
@@ -413,6 +422,7 @@ class KeyManager
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
+    asp = ASP.make asp
     err = null
     unless (err = @_assert_signed())?
       msg = @armored_pgp_public unless regen
@@ -426,10 +436,11 @@ class KeyManager
   #-----
 
   sign : ({asp}, cb) ->
-    asp?.section "sign"
-    asp?.progress { what : "sign PGP" , total : 1, i : 0 }
+    asp = ASP.make asp
+    asp.section "sign"
+    asp.progress { what : "sign PGP" , total : 1, i : 0 }
     await @sign_pgp     { asp }, defer err
-    asp?.progress { what : "sign PGP" , total : 1, i : 1 }
+    asp.progress { what : "sign PGP" , total : 1, i : 1 }
     @_signed = true unless err?
     cb err
 
