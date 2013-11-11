@@ -63,7 +63,7 @@ exports.bufeq_fast = (x,y) ->
 
 #-----
 
-exports.bufeq_secure = (x,y) ->
+exports.bufeq_secure = bufeq_secure = (x,y) ->
   ret = true
   if x.length isnt y.length
     ret = false
@@ -73,6 +73,11 @@ exports.bufeq_secure = (x,y) ->
       check += (x.readUInt8(i) ^ y.readUInt8(i))
     ret = (check is 0)
   ret
+
+#-----
+
+exports.streq_secure = (x,y) ->
+  bufeq_secure (bufferify x), (bufferify y)
 
 #=========================================================
 
@@ -92,7 +97,7 @@ exports.katch = katch = (fn) ->
 #=========================================================
 
 exports.akatch = (fn, cb) ->
-  asynicfy (katch fn), cb
+  asyncify (katch fn), cb
 
 #=========================================================
 
@@ -189,7 +194,7 @@ exports.base64u =
 #=========================================================
 
 exports.athrow = (err, cb) -> cb err
-exports.asynicfy = asyncify = (args, cb) -> cb args...
+exports.asyncify = asyncify = (args, cb) -> cb args...
    
 #=========================================================
 

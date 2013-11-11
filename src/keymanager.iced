@@ -455,6 +455,8 @@ class KeyManager
   fetch : (keys, flags, cb) ->
     err = key = null
     pki = @get_pgp_key_id()
+    console.log keys
+    console.log pki
     ff = 0
     (ff |= flag for flag in flags)
     if not (pki in keys) then err = new Error "No keys match the given fingerprint"
