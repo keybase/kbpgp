@@ -1,4 +1,5 @@
 {Canceler} = require 'iced-error'
+C = require './const'
 
 #=========================================================
 
@@ -190,6 +191,16 @@ exports.base64u =
     new Buffer(b, 'base64');
 
   verify : (b) -> /^[A-Za-z0-9\-_]+$/.test b
+
+#=========================================================
+
+exports.ops_to_keyflags = ops_to_keyflags = (ops) ->
+  out = 0
+  if (ops & C.ops.encrypt) then out |= C.openpgp.key_flags.encrypt_comm
+  if (ops & C.ops.decrypt) then out |= C.openpgp.key_flags.encrypt_comm
+  if (ops & C.ops.verify)  then out |= C.openpgp.key_flags.sign_data
+  if (ops & C.ops.sign)    then out |= C.openpgp.key_flags.sign_data
+  return out
 
 #=========================================================
 
