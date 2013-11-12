@@ -237,6 +237,29 @@ class PgpEngine extends Engine
       k = @key(@primary)
       if k.fulfills_flags flags then mat = k
     mat
+    
+  #--------
+
+  #
+  # So this class fits the KeyFetcher template.
+  #
+  # @param {Array<String>} key_ids A list of PGP Key Ids, as an array of strings
+  # @param {Array<Number>} flags an Array of flags that can be flattened into one
+  # @param {callback} cb Callback with `err, key`
+  fetch : (key_ids, flags, cb) -> 
+
+    err = key = null
+    key = null
+    ff = 0
+    (ff |= flag for flag in flags)
+
+    for kid in key_ids when not key?
+      key = @find_key kid
+
+    err = if not key then new Error "No keys match the given fingerprint"
+    else if not @key(key).fulfills_flags ff then new Error "We don't have a key for the requested PGP ops"
+
+    cb err, key
 
 #=================================================================
 
@@ -449,22 +472,11 @@ class KeyManager
   #
   # So this class fits the KeyFetcher template.
   #
-  # @param {Array<String>} keys A list of PGP Key Ids, as an array of strings
+  # @param {Array<String>} key_ids A list of PGP Key Ids, as an array of strings
   # @param {Array<Number>} flags an Array of flags that can be flattened into one
   # @param {callback} cb Callback with `err, key`
-  fetch : (keys, flags, cb) ->
-    err = key = null
-    pki = @get_pgp_key_id()
-    console.log keys
-    console.log pki
-    ff = 0
-    (ff |= flag for flag in flags)
-    if not (pki in keys) then err = new Error "No keys match the given fingerprint"
-    else if not (key = @find_best_pgp_key ff)?
-      err = new Error "We don't have a key for the requested PGP ops"
-    cb err, key
+  fetch : (key_ids, flags, cb) -> @pgp.fetch key_ids, flags, cb
 
-  #--------
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
   find_best_pgp_key : (flags) -> @pgp.find_best_key flags
