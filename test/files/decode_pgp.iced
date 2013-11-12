@@ -177,7 +177,7 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
   asp = new ASP {}
   await KeyManager.import_from_armored_pgp { asp, raw, userid }, defer err, b1
   T.no_error err
-  await b1.sign_pgp {asp}, defer err
+  await b1.sign {asp}, defer err
   T.no_error err
   await b1.export_pgp_public {asp, regen : true}, defer err, raw
   T.no_error err

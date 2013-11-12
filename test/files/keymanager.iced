@@ -39,7 +39,8 @@ exports.step1_generate = (T,cb) ->
 exports.step2_salt_triplesec = (T, cb) ->
   tsenc = new Encryptor { key : master_passphrase, version : 3 }
   len = 12
-  await tsenc.resalt { extra_keymaterial : len}, defer keys
+  await tsenc.resalt { extra_keymaterial : len}, defer err, keys
+  T.no_error err
   openpgp_pass = base91.encode keys.extra[0...len]
   T.waypoint "new OpenPGP password: #{openpgp_pass}"
   cb()
