@@ -28,12 +28,11 @@ class KeyMaterial extends Packet
   # @param {string|Buffer} passphrase The passphrase used to lock the key
   # @param {S2K} s2k the encryption engine used to lock the secret parts of the key
   # @param {Object} opts a list of options
+  # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
-  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts}) ->
+  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts, @flags}) ->
     @uidp = new UserID @userid if @userid?
     super()
-    F = C.key_flags
-    @KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
 
   #--------------------------
 
@@ -180,7 +179,7 @@ class KeyMaterial extends Packet
       key : @key,
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
-        new S.KeyFlags([C.key_flags.certify_keys | @KEY_FLAGS_STD])
+        new S.KeyFlags([@flags])
         new S.KeyExpirationTime(lifespan.expire_in)
         new S.PreferredSymmetricAlgorithms([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
         new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
@@ -245,7 +244,7 @@ class KeyMaterial extends Packet
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
         new S.KeyExpirationTime(lifespan.expire_in)
-        new S.KeyFlags([@KEY_FLAGS_STD])
+        new S.KeyFlags([@flags])
       ],
       unhashed_subpackets : [
         new S.Issuer(@get_key_id()),

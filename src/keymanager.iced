@@ -161,7 +161,8 @@ class PgpEngine extends Engine
       key._pgp = new opkts.KeyMaterial { 
         key : key.key, 
         timestamp : key.lifespan.generated, 
-        userid : @userids.get_openpgp() }
+        userid : @userids.get_openpgp(),
+        flags : key.flags }
 
   #--------
   
@@ -230,13 +231,12 @@ class PgpEngine extends Engine
 
   # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
   find_best_key : (flags) ->
-    mat = null
-    for k in @subkeys when not mat?
-      if @key(k).fulfills_flags flags then mat = @key(k)
-    if not mat?
-      k = @key(@primary)
-      if k.fulfills_flags flags then mat = k
-    mat
+    wrapper = null
+    check = (k) => @key(k).fulfills_flags(flags) or ((k.flags & flags) is flags)
+    for k in @subkeys when not wrapper?
+      if check(k) then wrapper = k
+    if not wrapper? and check(@primary) then wrapper = @primary
+    return (if wrapper? then @key(wrapper) else null)
     
   #--------
 
@@ -276,21 +276,44 @@ class KeyManager
 
   # Generate a new key bunlde from scratch.  Make the given number
   # of subkeys.
-  @generate : ({asp, nsubs, userid, nbits }, cb) ->
+  #
+  # @param {ASP} asp A standard Async Package.
+  # @param {Array<number>} sub_flags An array of flags to use for the subkeys, one for
+  #    each subkey.  For instance, if you want one subkey for signing and one for encryption,
+  #    then you should pass the different flags here.
+  # @param {number} nsubs The number of subkeys to create, all with the standard panel
+  #    of keyflags.  If you want to specify the keyflags for each subkey, then you should
+  #    use the sub_flags above, which take precedence.
+  # @param {number} primary_flags The flags to use for the primary, which defaults to nearly all of them
+  # @param {string} userid The userID to bake into the key
+  # @param {number} nbits The number of bits to use for all keys.  If left unspecified, then assume
+  #   defaults of 4096 for the master, and 2048 for the subkeys
+  @generate : ({asp, sub_flags, nsubs, primay_flags, userid, nbits }, cb) ->
     asp = ASP.make asp
+
+    F = C.key_flags
+    KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
+    KEY_FLAGS_PRIMARY = KEY_FLAGS_STD | F.certify_keys
+
+    primary_flags = KEY_FLAGS_PRIMARY unless primary_flags?
+    sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if not sub_flags? and nsubs?
+
     userids = new UserIds { keybase : userid, openpgp : userid }
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
     asp.section "primary"
     await RSA.generate { asp, nbits: (nbits or K.key_defaults.primary.nbits) }, esc defer key
+
     lifespan = new Lifespan { generated, expire_in : K.key_defaults.primary.expire_in }
-    primary = new Primary { key, lifespan }
+    primary = new Primary { key, lifespan, flags : primary_flags }
+
     subkeys = []
     lifespan = new Lifespan { generated, expire_in : K.key_defaults.sub.expire_in }
-    for i in [0...nsubs]
+    for flags in sub_flags
       asp.section "subkey #{i+1}"
       await RSA.generate { asp, nbits: (nbits or K.key_defaults.sub.nbits) }, esc defer key
-      subkeys.push new Subkey { key, desc : "subkey #{i}", primary, lifespan }
+      subkeys.push new Subkey { key, desc : "subkey #{i}", primary, lifespan, flags }
+
     bundle = new KeyManager { primary, subkeys, userids }
 
     cb null, bundle
