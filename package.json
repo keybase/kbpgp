@@ -24,7 +24,7 @@
   "dependencies" : {
     "purepack" : ">=1",
     "triplesec" : "keybase/triplesec#header_v3",
-    "bn" : "keybase/bn#node_native_bridge"
+    "bn" : "keybase/bn"
   },
   "devDependencies" : {
     "browserify" : "*",
