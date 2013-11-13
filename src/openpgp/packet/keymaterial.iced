@@ -31,6 +31,7 @@ class KeyMaterial extends Packet
   # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
   constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts, @flags}) ->
+    console.log "create w/ flags #{@flags}"
     @uidp = new UserID @userid if @userid?
     super()
 
@@ -244,7 +245,7 @@ class KeyMaterial extends Packet
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
         new S.KeyExpirationTime(lifespan.expire_in)
-        new S.KeyFlags([@flags])
+        new S.KeyFlags([subkey.flags])
       ],
       unhashed_subpackets : [
         new S.Issuer(@get_key_id()),
