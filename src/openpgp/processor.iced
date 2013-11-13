@@ -216,6 +216,12 @@ class Message
 
     unless err?
       sig.close.key = obj.key
+
+      # Include more information on the key, depending on what was included 
+      # by the given KeyFetcher.  It might be things like the corresponding UID,
+      # etc.
+      sig.keyfetch_obj = obj
+      
       await sig.close.verify sig.payload, defer err
 
     unless err?
