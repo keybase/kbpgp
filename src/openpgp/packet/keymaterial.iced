@@ -31,7 +31,6 @@ class KeyMaterial extends Packet
   # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
   constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts, @flags}) ->
-    console.log "create w/ flags #{@flags}"
     @uidp = new UserID @userid if @userid?
     super()
 

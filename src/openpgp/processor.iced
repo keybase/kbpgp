@@ -7,6 +7,7 @@ C = konst.openpgp
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
 util = require 'util'
+armor = require './armor'
 
 #==========================================================================================
 
@@ -221,7 +222,7 @@ class Message
       # by the given KeyFetcher.  It might be things like the corresponding UID,
       # etc.
       sig.keyfetch_obj = obj
-      
+
       await sig.close.verify sig.payload, defer err
 
     unless err?
@@ -267,5 +268,27 @@ class Message
 
 exports.KeyBlock = KeyBlock
 exports.Message = Message
+
+#==========================================================================================
+
+# A convenience wrapper function for handling incoming armored PGP messages.
+# We will decode, parse and process them, hoping to open any decryption and
+# verify any signatures.
+#
+# @param {string} armored The armored PGP generic message.
+# @param {KeyFetcher} keyfetch A KeyFetch object that is called to get keys
+#    for decyrption and signature verification.
+# @param {callback} cb Callback with an `err, Array<Literals>` pair. On success,
+#    we will get a series of PGP literal packets, some of which might be signed.
+#
+exports.do_message = do_message = ({armored, keyfetch}, cb) ->
+  [err,msg] = armor.decode armored
+  literals = null
+  if not err? and (msg.type isnt C.message_types.generic)
+    err = new Error "Needed a 'generic' PGP message, but got something else"
+  unless err?
+    proc = new Message keyfetch
+    await proc.parse_and_process msg.body, defer err, literals
+  cb err, literals
 
 #==========================================================================================

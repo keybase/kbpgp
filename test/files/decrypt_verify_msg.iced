@@ -2,7 +2,7 @@
 {parse} = require '../../lib/openpgp/parser'
 armor = require '../../lib/openpgp/armor'
 C = require '../../lib/const'
-{Message} = require '../../lib/openpgp/processor'
+{do_message,Message} = require '../../lib/openpgp/processor'
 util = require 'util'
 {katch,ASP} = require '../../lib/util'
 {KeyManager} = require '../../lib/keymanager'
@@ -346,4 +346,13 @@ exports.process_msg_2 = (T,cb) ->
   cb()
 
 #===============================================================
+
+exports.process_msg_3 = (T,cb) ->
+  await do_message { armored : data.msgs[2] , keyfetch : ring }, defer err, literals
+  T.no_error err
+  ind = literals[0].toString().indexOf '"devDependencies" : {'
+  T.assert (ind > 0), "found some text we expected"
+  T.assert literals[0].signed_with?, "was signed"
+  cb()
+
 #===============================================================
