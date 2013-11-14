@@ -28,11 +28,14 @@ class KeyBlock
 
   _extract_keys : () ->
     err = null
-    for p,i in @packets when (p.is_key_material() and not err?)
-      if not p.is_primary() then @subkeys.push p
-      else if @primary? then err = new Error "cannot have 2 primary keys"
-      else @primary = p
-    err = new Error "No primary key found in keyblock" unless @primary?
+    if not @packets.length
+      err = new Error "No packets; cannot extract a key"
+    else if not (@primary = @packets.shift()).is_primary() 
+      err = new Error "First packet must be the primary key"
+    else
+      for p,i in @packets when (p.is_key_material() and not err?)
+        if not p.is_primary() then @subkeys.push p
+        else err = new Error "cannot have 2 primary keys"
     err
 
   #--------------------
@@ -73,6 +76,8 @@ class KeyBlock
   #--------------------
 
   _verify_sigs : (cb) ->
+    # Note that we've already shifted off packet 0, 
+    # which ought to be the primary key
     start = 0
     for p,i in @packets
       if p.is_signature()

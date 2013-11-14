@@ -20,7 +20,7 @@ class UserID extends Packet
 
   #--------------------------
 
-  utf8  : () -> @userid
+  utf8  : () -> @userid.toString('utf8')
   write : () -> @frame_packet C.packet_tags.userid, @userid
 
   #--------------------------
@@ -51,8 +51,7 @@ class UserID extends Packet
       (\((.*?)\)\s+)?  # The optional comment
       <(.*)?>$         # finally the key...
       ///
-    s = if Buffer.isBuffer @openpgp then @openpgp.toString('utf8') else @openpgp
-    if (m = s.match x)?
+    if (m = @utf8().match x)?
       @components = 
         username : m[1]
         comment : m[3]

@@ -124,12 +124,10 @@ class Signature extends Packet
     @data_packets = switch @type
       when T.binary_doc then data_packets
       when T.issuer, T.personal, T.casual, T.positive 
-        primary = data_packets[0]
-        if primary.equal @primary
-          data_packets
-        else
-          err = new Error "Internal error; got confused on primary != @primary"
-          []
+        # We need to use the primary key maybe several times,
+        # so we unshift it onto the front of all sequences of data
+        # packets.
+        [ @primary ].concat data_packets
       when T.subkey_binding, T.primary_binding
         packets = []        
         if data_packets.length isnt 1
