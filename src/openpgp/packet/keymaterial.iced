@@ -30,8 +30,9 @@ class KeyMaterial extends Packet
   # @param {Object} opts a list of options
   # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
-  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts, @flags}) ->
-    @uidp = new UserID @userid if @userid?
+  constructor : ({@key, @timestamp, userid, @passphrase, @skm, @opts, @flags}) ->
+    @userids = []
+    @userids.push new UserID userid if userid?
     super()
 
   #--------------------------
@@ -158,20 +159,18 @@ class KeyMaterial extends Packet
   #--------------------------
 
   self_sign_key : ({uidp, lifespan}, cb) ->
-    err = sig = null
+    err = null
     if @key.can_sign()
-      await @_self_sign_key { uidp, lifespan }, defer err, sig
-    else if (sig = @self_sig.sig )?
-      sig = sig.replay()
+      for userid in @userids
+        await @_self_sign_key { userid, lifespan }, defer err, userid.sig
     else
       err = new Error "Cannot sign key --- don't have a private key"
-    cb err, sig
+    cb err
 
   #--------------------------
 
-  _self_sign_key : ( {uidp, lifespan}, cb) ->
-    uidp = @uidp unless uidp?
-    payload = Buffer.concat [ @to_signature_payload(), uidp.to_signature_payload() ]
+  _self_sign_key : ( {userid, lifespan}, cb) ->
+    payload = Buffer.concat [ @to_signature_payload(), userid.to_signature_payload() ]
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
     sigpkt = new Signature { 

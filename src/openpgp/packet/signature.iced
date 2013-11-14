@@ -117,7 +117,7 @@ class Signature extends Packet
     err = null
     T = C.sig_types
 
-    primary = subkey = null
+    subkey = null
 
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
@@ -164,7 +164,7 @@ class Signature extends Packet
           # Mark what the key was self-signed to do 
           options = @_export_hashed_subpackets()
           userid = @data_packets[1]?.get_userid()
-          primary.self_sig = { @type, options, userid, sig }
+          @primary.self_sig = { @type, options, userid, sig }
         when T.subkey_binding
           subkey.signed = { @primary, sig } unless subkey.signed?
           subkey.signed.primary_of_subkey = true

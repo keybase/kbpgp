@@ -385,12 +385,11 @@ class KeyManager
       kb = new KeyBlock packets
       await kb.process defer err
     unless err?
-      userids = new UserID { openpgp : kb.userid }
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
         armored_pgp_public : msg.raw(),
-        userids }
+        userids : kb.userids }
     cb err, bundle
 
   #------------
