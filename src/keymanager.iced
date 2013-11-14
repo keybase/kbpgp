@@ -3,7 +3,7 @@ K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
-{UserIds,Lifespan,Subkey,Primary} = require './keywrapper'
+{UserId,Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
 {parse} = require './openpgp/parser'
@@ -298,7 +298,7 @@ class KeyManager
     primary_flags = KEY_FLAGS_PRIMARY unless primary_flags?
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if not sub_flags? and nsubs?
 
-    userids = new UserIds { openpgp : userid }
+    userids = new UserId { openpgp : userid }
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
     asp.section "primary"
@@ -385,7 +385,7 @@ class KeyManager
       kb = new KeyBlock packets
       await kb.process defer err
     unless err?
-      userids = new UserIds { openpgp : kb.userid }
+      userids = new UserId { openpgp : kb.userid }
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
@@ -550,7 +550,7 @@ class KeyManager
 #=================================================================
 
 exports.KeyManager = KeyManager
-exports.UserIds = UserIds
+exports.UserId = UserId
 
 #=================================================================
 
