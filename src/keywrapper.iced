@@ -36,14 +36,28 @@ class Primary extends KeyWrapper
 
 #=================================================================
 
-class UserIds
-  constructor : ({@openpgp, @keybase}) ->
-  get_keybase : () -> @keybase
+class UserId
+  constructor : ({@openpgp, @components}) ->
+    @_parse() unless @components?
+
   get_openpgp : () -> @openpgp 
+
+  _parse : () ->
+    x = ///
+      ^([^(<]*)        # The beginning name of the user (no comment or key)
+      \s+              # Separation before the key or comment
+      (\((.*?)\)\s+)?  # The optional comment
+      <(.*)?>$         # finally the key...
+      ///
+
+  @make : (components) ->
+    comment = if (c = components.comment)? then "(#{c}) " else ""
+    openpgp = "#{components.username} #{commment}#{components.email}"
+    new Userid { openpgp, components }
 
 #=================================================================
 
 exports.Lifespan = Lifespan
 exports.Subkey = Subkey
 exports.Primary = Primary
-exports.UserIds = UserIds
+exports.UserId = UserId

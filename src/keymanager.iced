@@ -298,7 +298,7 @@ class KeyManager
     primary_flags = KEY_FLAGS_PRIMARY unless primary_flags?
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if not sub_flags? and nsubs?
 
-    userids = new UserIds { keybase : userid, openpgp : userid }
+    userids = new UserIds { openpgp : userid }
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
     asp.section "primary"
@@ -330,7 +330,7 @@ class KeyManager
  
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   # Also works for an armored PGP PRIVATE KEY BLOCK
-  @import_from_armored_pgp : ({raw, asp, userid}, cb) ->
+  @import_from_armored_pgp : ({raw, asp}, cb) ->
     asp = ASP.make asp
     ret = null
     [err,msg] = decode raw
@@ -338,7 +338,7 @@ class KeyManager
       if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
         err = new Error "Wanted a public or private key; got: #{msg.type}"
     unless err?
-      await KeyManager.import_from_pgp_message { msg, asp, userid }, defer err, ret
+      await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret
     cb err, ret
 
   #--------------
@@ -376,7 +376,7 @@ class KeyManager
   #--------------
 
   # Import from a dearmored/decoded PGP message.
-  @import_from_pgp_message : ({msg, asp, userid}, cb) ->
+  @import_from_pgp_message : ({msg, asp}, cb) ->
     asp = ASP.make asp
     bundle = null
     unless err?
@@ -385,7 +385,7 @@ class KeyManager
       kb = new KeyBlock packets
       await kb.process defer err
     unless err?
-      userids = new UserIds { openpgp : kb.userid, keybase : userid }
+      userids = new UserIds { openpgp : kb.userid }
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
