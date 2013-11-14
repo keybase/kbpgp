@@ -58,8 +58,8 @@ class UserId
 
   @make : (components) ->
     comment = if (c = components.comment)? then "(#{c}) " else ""
-    openpgp = "#{components.username} #{commment}#{components.email}"
-    new Userid { openpgp, components }
+    openpgp = "#{components.username} #{comment}<#{components.email}>"
+    new UserId { openpgp, components }
 
 #=================================================================
 
