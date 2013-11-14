@@ -298,7 +298,7 @@ class KeyManager
     primary_flags = KEY_FLAGS_PRIMARY unless primary_flags?
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if not sub_flags? and nsubs?
 
-    userids = new UserId { openpgp : userid }
+    userids = new opkts.UserID userid
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
     asp.section "primary"
@@ -385,7 +385,7 @@ class KeyManager
       kb = new KeyBlock packets
       await kb.process defer err
     unless err?
-      userids = new UserId { openpgp : kb.userid }
+      userids = new UserID { openpgp : kb.userid }
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 

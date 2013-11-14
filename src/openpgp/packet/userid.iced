@@ -13,8 +13,9 @@ triplesec = require 'triplesec'
 class UserID extends Packet
 
   # @param {Buffer} userid The utf8-buffer withstring reprensentation of the UserID
-  constructor : (userid) -> 
+  constructor : (userid, @components = null) -> 
     @userid = bufferify userid
+    @_parse() unless @compontents?
     super()
 
   #--------------------------
@@ -42,7 +43,34 @@ class UserID extends Packet
     ]
     
   #--------------------------
-  
+
+  _parse : () ->
+    x = ///
+      ^([^(<]*?)       # The beginning name of the user (no comment or key)
+      \s+              # Separation before the key or comment
+      (\((.*?)\)\s+)?  # The optional comment
+      <(.*)?>$         # finally the key...
+      ///
+    s = if Buffer.isBuffer @openpgp then @openpgp.toString('utf8') else @openpgp
+    if (m = s.match x)?
+      @components = 
+        username : m[1]
+        comment : m[3]
+        email : m[4]
+
+  #--------------------------
+
+  get_username : () -> @components?.username
+  get_comment  : () -> @components?.comment
+  get_email    : () -> @components?.email
+
+  #--------------------------
+
+  @make : (components) ->
+    comment = if (c = components.comment)? then "(#{c}) " else ""
+    openpgp = "#{components.username} #{comment}<#{components.email}>"
+    new UserId { openpgp, components }
+
 #=================================================================================
 
 exports.UserID = UserID
