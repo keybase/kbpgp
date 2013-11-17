@@ -214,6 +214,11 @@ class Signature extends Packet
           ret = new Error "Key expired #{now - expiration}s ago"
     return ret
 
+  #-----------------
+
+  get_key_flags : () ->
+    @subpacket_index?.hashed?.[C.sig_subpacket.key_flags]?.all_flags() or 0
+
 #===========================================================
 
 class SubPacket
@@ -422,8 +427,6 @@ class KeyFlags extends Preference
     ret = 0
     ret |= e for e in @v
     ret
-  has_flags : (f) ->
-    return (@all_flags() & f) is f
 
 #------------
 

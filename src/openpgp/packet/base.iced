@@ -53,8 +53,20 @@ class Packet
 
   #----------------------
 
-  push_sig : (packetsig) ->
-    @_psc.push packetsig
+  push_sig : (packetsig) -> @_psc.push packetsig
+  get_psc : () -> @_psc
+
+  #----------------------
+  
+  get_data_signer  : () -> @get_psc().get_data_signer()
+  get_data_signers : () -> @get_psc().get_data_signers()
+
+  #----------------------
+
+  # KeyMaterial packets do something else here, but for everyone
+  # else, the answer is nothing doing...
+  get_signed_userids : () -> []
+  is_self_signed : () -> false
 
 #==================================================================================================
 

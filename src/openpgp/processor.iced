@@ -45,9 +45,9 @@ class KeyBlock
   #--------------------
 
   _check_primary : () ->
-    err = if not @primary.self_sig?.type
+    err = if not @primary.is_self_signed()
       new Error "no valid primary key self-signature"
-    else if not (@userids = @primary.signed_userids)?
+    else if (@userids = @primary.get_signed_userids()).length is 0
       new Error "no valid Userid signed into key"
     else null
 

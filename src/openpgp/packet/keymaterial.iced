@@ -286,11 +286,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   is_signed_subkey_of : (primary) ->
-    # See Issue #19
-    ((not @primary_flag) and 
-     @signed? and 
-     @signed.primary_of_subkey and
-     @signed.primary.equal(primary))
+    ((not @primary_flag) and @get_psc().is_signed_subkey_of primary)
 
   #--------------------------
 
@@ -334,17 +330,13 @@ class KeyMaterial extends Packet
 
   #-------------------
 
-  get_sig : () -> (@subkey_signed or @self_signed_userids[0])
-
-  get_flags_subpacket : () -> @get_sig()?.sig?.subpacket_index?.hashed?[C.sig_subpacket.key_flags]
-
-  #-------------------
-
-  get_flags : () -> @get_flags_subpacket()?.all_flags() or 0
+  get_all_key_flags : ()      -> @_psc.get_all_key_flags()
+  fulfills_flags    : (flags) -> (@get_all_key_flags & flags) is flags
 
   #-------------------
 
-  fulfills_flags : (flags) -> @get_flags_subpacket()?.has_flags flags
+  get_signed_userids : () -> @get_psc().get_signed_userids()
+  is_self_signed     : () -> @get_psc().is_self_signed()
 
 #=================================================================================
 
