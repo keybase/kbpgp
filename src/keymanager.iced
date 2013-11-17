@@ -166,14 +166,13 @@ class PgpEngine extends Engine
   #--------
   
   _v_self_sign_primary : ({asp}, cb) ->
-    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids }, defer err, @self_sig
+    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids }, defer err
     cb err
 
   #--------
   
   _v_sign_subkey : ({asp, subkey}, cb) ->
-    await @primary._pgp.sign_subkey { subkey : subkey._pgp, lifespan : subkey.lifespan }, defer err, sig
-    subkey._pgp_sig = sig
+    await @key(@primary).sign_subkey { subkey : @key(subkey), lifespan : subkey.lifespan }, defer err
     cb err
 
   #--------

@@ -157,10 +157,11 @@ class KeyMaterial extends Packet
 
   self_sign_key : ({userids, lifespan}, cb) ->
     err = null
-    if not @key.can_sign()
+    if @key.can_sign()
+      for userid in userids when not err?
+        await @_self_sign_key { userid, lifespan }, defer err
+    else if not @is_self_signed()
       err = new Error "Cannot sign key --- don't have a private key"
-    for userid in userids when not err?
-      await @_self_sign_key { userid, lifespan }, defer err
     cb err
 
   #--------------------------
@@ -187,7 +188,7 @@ class KeyMaterial extends Packet
       ]}
       
     await sigpkt.write payload, defer err, sig
-    userids.sig = sig
+    userid.sig = sig
     @push_sig new packetsigs.SelfSig { userid, type, sig, options : @flags }
     cb err, sig
 
