@@ -298,7 +298,7 @@ class KeyManager
     primary_flags = KEY_FLAGS_PRIMARY unless primary_flags?
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if not sub_flags? and nsubs?
 
-    userids = new opkts.UserID userid
+    userids = [ new opkts.UserID userid ]
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
     asp.section "primary"

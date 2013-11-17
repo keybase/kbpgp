@@ -30,10 +30,10 @@ class KeyBlock
     err = null
     if not @packets.length
       err = new Error "No packets; cannot extract a key"
-    else if not (@primary = @packets.shift()).is_primary() 
+    else if not (@primary = @packets[0]).is_primary() 
       err = new Error "First packet must be the primary key"
     else
-      for p,i in @packets when (p.is_key_material() and not err?)
+      for p,i in @packets[1...] when (p.is_key_material() and not err?)
         if not p.is_primary() then @subkeys.push p
         else err = new Error "cannot have 2 primary keys"
     err
@@ -76,10 +76,9 @@ class KeyBlock
   #--------------------
 
   _verify_sigs : (cb) ->
-    # Note that we've already shifted off packet 0, 
-    # which ought to be the primary key
-    start = 0
-    for p,i in @packets
+    # No sense in processing packet 1, since it's the primary key!
+    start = 1
+    for p,i in @packets when i >= start
       if p.is_signature()
         p.key = @primary.key
         p.primary = @primary
