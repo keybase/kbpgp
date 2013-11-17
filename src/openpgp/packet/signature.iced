@@ -123,11 +123,18 @@ class Signature extends Packet
     # right expected number of packets.
     @data_packets = switch @type
       when T.binary_doc then data_packets
+
       when T.issuer, T.personal, T.casual, T.positive 
-        # We need to use the primary key maybe several times,
-        # so we unshift it onto the front of all sequences of data
-        # packets.
-        [ @primary ].concat data_packets
+
+        if data_packets.length isnt 1
+          err = new Error "Only expecting one UserID-style packet in a self-sig"
+          []
+        else
+          # We need to use the primary key maybe several times,
+          # so we unshift it onto the front of all sequences of data
+          # packets.
+          [ @primary ].concat data_packets
+
       when T.subkey_binding, T.primary_binding
         packets = []        
         if data_packets.length isnt 1
@@ -138,6 +145,7 @@ class Signature extends Packet
           subkey = data_packets[0]
           packets = [ @primary, subkey ]
         packets
+
       else 
         err = new Error "cannot verify sigtype #{@type}"
         []
@@ -157,20 +165,24 @@ class Signature extends Packet
     sig = @
     unless err?
       switch @type
+
         when T.binary_doc
           for d in @data_packets
             d.signed_with = @
+
         when T.issuer, T.personal, T.casual, T.positive 
           # Mark what the key was self-signed to do 
           options = @_export_hashed_subpackets()
-          userid = @data_packets[1]?.get_userid()
-          @primary.self_sig = { @type, options, userid, sig }
+          # Ignore UserAttribute packets for now...
+          if (userid = @data_packets[1].to_userid())?
+            @primary.sigs.by_self.push { @type, options, userid, sig }
+
         when T.subkey_binding
-          subkey.signed = { @primary, sig } unless subkey.signed?
-          subkey.signed.primary_of_subkey = true
+          (subkey.sigs.by_primary[k] = v for k,v of { @primary, sig, primary_of_subkey : true })
+
         when T.primary_binding
-          subkey.signed = { @primary } unless subkey.signed?
-          subkey.signed.subkey_of_primary = true
+          (subkey.sigs.by_primary[k] = v for k,v of { @primary, subkey_of_primary : true })
+
     cb err
 
   #-----------------

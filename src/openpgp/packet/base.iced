@@ -27,14 +27,11 @@ class Packet
   #----------------------
 
   is_signature : () -> false
-
-  #----------------------
-
   is_key_material : () -> false
 
   #----------------------
 
-  get_userid : () -> null
+  to_userid : () -> null
 
   #----------------------
 

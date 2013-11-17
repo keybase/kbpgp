@@ -33,6 +33,15 @@ class KeyMaterial extends Packet
   constructor : ({@key, @timestamp, userid, @passphrase, @skm, @opts, @flags}) ->
     @userids = []
     @userids.push new UserID userid if userid?
+
+    # Ways in which this key can be signed.  It can be signed by itself
+    # (if it's a primary) or it can be signed by the primary (if it's a subkey).
+    # There can be several by-primary signatures, one for each UserID.
+    @sigs = {
+      by_self    : []
+      by_primary :  {}
+    }
+
     super()
 
   #--------------------------
@@ -325,7 +334,9 @@ class KeyMaterial extends Packet
 
   #-------------------
 
-  get_flags_subpacket : () -> (@signed or @self_sig)?.sig?.subpacket_index?.hashed?[C.sig_subpacket.key_flags]
+  get_sig : () -> (@subkey_signed or @self_signed_userids[0])
+
+  get_flags_subpacket : () -> @get_sig()?.sig?.subpacket_index?.hashed?[C.sig_subpacket.key_flags]
 
   #-------------------
 

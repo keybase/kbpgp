@@ -29,7 +29,7 @@ class UserID extends Packet
 
   #--------------------------
 
-  get_userid : () -> @utf8()
+  to_userid : () -> @
 
   #--------------------------
 
