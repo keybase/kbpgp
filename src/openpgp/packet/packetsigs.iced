@@ -56,7 +56,7 @@ class Collection
   # of the given primary.  We're only checking that the primary has signed the
   # subkey (a **down**ward signature).  We're not checking the upward signature.
   #  
-  # See Issue #19 for furthet details...
+  # See Issue #19 for further details...
   #
   is_signed_subkey_of : (primary) ->
     for skb in @lookup.subkey_binding

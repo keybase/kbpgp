@@ -9,13 +9,13 @@ RSA = require('../../rsa').Pair
 {bufferify,unix_time,bufeq_secure,katch,make_time_packet,uint_to_buffer} = require '../../util'
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
-{UserID} = require './userid'
 S = require './signature'
 {Signature} = S
 {encode} = require '../armor'
 {S2K} = require '../s2k'
 symmetric = require '../../symmetric'
 util = require 'util'
+packetsigs = require './packetsigs'
 
 #=================================================================================
 
@@ -24,24 +24,12 @@ class KeyMaterial extends Packet
   # 
   # @param {Pair} key a Keypair that can be used for signing, etc.
   # @param {number} timestamp Uint32 saying what time the key was born
-  # @param {string|Buffer} userid The userid that the key is bound to
   # @param {string|Buffer} passphrase The passphrase used to lock the key
   # @param {S2K} s2k the encryption engine used to lock the secret parts of the key
   # @param {Object} opts a list of options
   # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
-  constructor : ({@key, @timestamp, userid, @passphrase, @skm, @opts, @flags}) ->
-    @userids = []
-    @userids.push new UserID userid if userid?
-
-    # Ways in which this key can be signed.  It can be signed by itself
-    # (if it's a primary) or it can be signed by the primary (if it's a subkey).
-    # There can be several by-primary signatures, one for each UserID.
-    @sigs = {
-      by_self    : []
-      by_primary :  {}
-    }
-
+  constructor : ({@key, @timestamp, @passphrase, @skm, @opts, @flags}) ->
     super()
 
   #--------------------------
@@ -167,13 +155,12 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  self_sign_key : ({uidp, lifespan}, cb) ->
+  self_sign_key : ({userids, lifespan}, cb) ->
     err = null
-    if @key.can_sign()
-      for userid in @userids
-        await @_self_sign_key { userid, lifespan }, defer err, userid.sig
-    else
+    if not @key.can_sign()
       err = new Error "Cannot sign key --- don't have a private key"
+    for userid in userids when not err?
+      await @_self_sign_key { userid, lifespan }, defer err
     cb err
 
   #--------------------------
@@ -182,8 +169,9 @@ class KeyMaterial extends Packet
     payload = Buffer.concat [ @to_signature_payload(), userid.to_signature_payload() ]
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
+    type = C.sig_types.issuer
     sigpkt = new Signature { 
-      type : C.sig_types.issuer,
+      type : type,
       key : @key,
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
@@ -199,6 +187,8 @@ class KeyMaterial extends Packet
       ]}
       
     await sigpkt.write payload, defer err, sig
+    userids.sig = sig
+    @push_sig new packetsigs.SelfSig { userid, type, sig, options : @flags }
     cb err, sig
 
   #--------------------------

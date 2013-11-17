@@ -161,19 +161,12 @@ class PgpEngine extends Engine
       key._pgp = new opkts.KeyMaterial { 
         key : key.key, 
         timestamp : key.lifespan.generated, 
-        userid : @userids.get_openpgp(),
         flags : key.flags }
 
   #--------
   
-  userid_packet : () ->
-    @_uidp = new opkts.UserID @userids.get_openpgp() unless @_uidp?
-    @_uidp
-
-  #--------
-  
   _v_self_sign_primary : ({asp}, cb) ->
-    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, uidp : @userid_packet() }, defer err, @self_sig
+    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids }, defer err, @self_sig
     cb err
 
   #--------
