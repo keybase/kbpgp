@@ -168,7 +168,7 @@ class Message
     if is_enc
       await @_find_encrypted_data esc defer edat
       await @_decrypt_with_session_key sesskey, edat, esc defer plaintext
-G1      await @_parse plaintext, esc defer packets
+      await @_parse plaintext, esc defer packets
       @packets = packets.concat @packets
     cb err 
 

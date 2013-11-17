@@ -55,6 +55,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/one_pass_sig.js \
 	lib/openpgp/packet/compressed.js \
 	lib/openpgp/packet/literal.js \
+	lib/openpgp/packet/packetsigs.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/cast5.js \

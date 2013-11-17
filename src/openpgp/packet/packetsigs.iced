@@ -7,30 +7,28 @@
 
 class Base
   constructor : ({@sig}) ->
-  type : () -> "none"
+  typ : () -> "none"
 
 #===================================================
 
 class SelfSig extends Base
-  constructor : ({@userid, @type, sig, @options}) ->
-    super { sig }
-    type : () -> "self_sig"
+  constructor : ({@userid, @type, sig, @options}) -> super { sig }
+  typ : () -> "self_sig"
 
 #===================================================
 
 class SubkeyBinding extends Base
-  @DIRECTIONS = [ UP, DOWN ]
-  constructor : ({@primary, sig, @direction}) ->
-    super { sig }
-    type : () -> "subkey_binding"
-    is_down : () -> (@direction is SubkeyBinding.DOWN)
+  UP   : 1
+  DOWN : 2
+  constructor : ({@primary, sig, @direction}) -> super { sig }
+  typ : () -> "subkey_binding"
+  is_down : () -> (@direction is SubkeyBinding.DOWN)
 
 #===================================================
 
 class Data extends Base
-  constructor : ({@key, sig}) ->
-    super {sig}
-    type : () -> "data"
+  constructor : ({@key, sig}) -> super {sig}
+  typ : () -> "data"
 
 #===================================================
 
@@ -49,7 +47,7 @@ class Collection
 
   push : (ps) ->
     @all.push ps
-    @lookup[ps.type()].push ps
+    @lookup[ps.typ()].push ps
 
   #-------------------
 
@@ -62,7 +60,7 @@ class Collection
   #
   is_signed_subkey_of : (primary) ->
     for skb in @lookup.subkey_binding
-      if (skb.primary.equal primary) and skb.is_down())
+      if skb.primary.equal(primary) and skb.is_down()
         return true
     return false
 

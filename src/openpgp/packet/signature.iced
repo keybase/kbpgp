@@ -7,6 +7,7 @@ S = C.sig_subpacket
 {alloc_or_throw,SHA512,SHA1} = require '../../hash'
 asymmetric = require '../../asymmetric'
 util = require 'util'
+packetsigs = require './packetsigs'
 
 #===========================================================
 
@@ -179,10 +180,10 @@ class Signature extends Packet
             @primary.push_sig new packetsigs.SelfSig { @type, options, userid, sig }
 
         when T.subkey_binding
-          subkey.push_sig new SKB { primary, sig, direction : SKB.DIRECTIONS.DOWN }
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN }
 
         when T.primary_binding
-          subkey.push_sig new SKB { primary, sig, direction : SKB.DIRECTIONS.UP }
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.UP }
 
     cb err
 
@@ -217,7 +218,7 @@ class Signature extends Packet
   #-----------------
 
   get_key_flags : () ->
-    @subpacket_index?.hashed?.[C.sig_subpacket.key_flags]?.all_flags() or 0
+    @subpacket_index?.hashed?[C.sig_subpacket.key_flags]?.all_flags() or 0
 
 #===========================================================
 
