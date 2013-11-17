@@ -185,7 +185,9 @@ class PgpEngine extends Engine
   #--------
 
   _export_keys_to_binary : (opts) ->
-    packets = [ @key(@primary).export_framed(opts), @userid_packet().write(), @self_sig ]
+    packets = [ @key(@primary).export_framed(opts) ]
+    for userid in @userid
+      packets.push userid.write(), userid.write_sig()
     opts.subkey = true
     for subkey in @subkeys
       packets.push @key(subkey).export_framed(opts), subkey._pgp_sig

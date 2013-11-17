@@ -188,8 +188,18 @@ class KeyMaterial extends Packet
       ]}
       
     await sigpkt.write payload, defer err, sig
-    userid.sig = sig
-    @push_sig new packetsigs.SelfSig { userid, type, sig, options : @flags }
+    ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
+
+    # XXX - this isn't right!  What do we do with the raw signature output,
+    # rather than the parsed output? URg
+    #
+    # FIX ME
+    #
+    # We might want to look it up directly, or via the UserID packet, so push the
+    # signature onto both.
+    userid.push_sig ps
+    @push_sig ps
+
     cb err, sig
 
   #--------------------------
