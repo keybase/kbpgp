@@ -164,24 +164,25 @@ class Signature extends Packet
     # Now mark the object that was vouched for
     sig = @
     unless err?
+      SKB = packetsigs.SubkeyBinding
       switch @type
 
         when T.binary_doc
           for d in @data_packets
-            d.signed_with = @
+            d.push_sig new packetsigs.Data { sig }
 
         when T.issuer, T.personal, T.casual, T.positive 
           # Mark what the key was self-signed to do 
           options = @_export_hashed_subpackets()
           # Ignore UserAttribute packets for now...
           if (userid = @data_packets[1].to_userid())?
-            @primary.sigs.by_self.push { @type, options, userid, sig }
+            @primary.push_sig new packetsigs.SelfSig { @type, options, userid, sig }
 
         when T.subkey_binding
-          (subkey.sigs.by_primary[k] = v for k,v of { @primary, sig, primary_of_subkey : true })
+          subkey.push_sig new SKB { primary, sig, direction : SKB.DIRECTIONS.DOWN }
 
         when T.primary_binding
-          (subkey.sigs.by_primary[k] = v for k,v of { @primary, subkey_of_primary : true })
+          subkey.push_sig new SKB { primary, sig, direction : SKB.DIRECTIONS.UP }
 
     cb err
 

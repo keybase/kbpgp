@@ -168,7 +168,7 @@ class Message
     if is_enc
       await @_find_encrypted_data esc defer edat
       await @_decrypt_with_session_key sesskey, edat, esc defer plaintext
-      await @_parse plaintext, esc defer packets
+G1      await @_parse plaintext, esc defer packets
       @packets = packets.concat @packets
     cb err 
 
@@ -228,11 +228,9 @@ class Message
       # etc.
       sig.close.keyfetch_obj = obj
 
+      # If this succeeds, then we'll go through and mark each
+      # packet in sig.payload with the successful sig.close.
       await sig.close.verify sig.payload, defer err
-
-    unless err?
-      for p in sig.payload
-        p.add_signed_by sig.close
 
     cb err
 

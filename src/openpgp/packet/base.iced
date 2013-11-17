@@ -1,5 +1,6 @@
 util = require '../util'
 C = require('../../const').openpgp
+packetsigs = require './packetsigs'
 
 #==================================================================================================
 
@@ -8,7 +9,7 @@ class Packet
   #----------------------
 
   constructor : () ->
-    @signed_by = []
+    @_psc = new packetsigs.Collection()
 
   #----------------------
    
@@ -52,9 +53,8 @@ class Packet
 
   #----------------------
 
-  add_signed_by : (sig) ->
-    @signed_by = [] unless @signed_by
-    @signed_by.push sig
+  push_sig : (packetsig) ->
+    @_psc.push packetsig
 
 #==================================================================================================
 
