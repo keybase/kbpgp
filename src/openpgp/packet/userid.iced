@@ -67,8 +67,8 @@ class UserID extends Packet
 
   @make : (components) ->
     comment = if (c = components.comment)? then "(#{c}) " else ""
-    openpgp = "#{components.username} #{comment}<#{components.email}>"
-    new UserId { openpgp, components }
+    userid = "#{components.username} #{comment}<#{components.email}>"
+    new UserID userid, components
 
   #--------------------------
 
