@@ -23,6 +23,8 @@ class Signature extends Packet
     @unhashed_subpackets = [] unless @unhashed_subpackets?
     @subpacket_index = @_make_subpacket_index()
 
+    @_framed_output = null # sometimes we store the framed output here 
+
   #---------------------
 
   get_key_id : () ->
@@ -81,8 +83,17 @@ class Signature extends Packet
   write : (data, cb) ->
     await @write_unframed data, defer err, unframed
     unless err?
-      ret = @frame_packet C.packet_tags.signature, unframed
+      @_framed_output = ret = @frame_packet C.packet_tags.signature, unframed
     cb err, ret
+
+  #-----------------
+
+  # This is why we store the framed_output inside the packet after we write it
+  # (see above in write).  Sometimes, in the case of public keys, we don't have the
+  # capacity to regenerate signatures, so we just need to replay what we fetched.  But
+  # other times, we want to rewrite the output. Through this mechanism we can handle both 
+  # cases.
+  get_framed_output : () -> @_framed_output or @replay()
 
   #-----------------
   
@@ -177,7 +188,9 @@ class Signature extends Packet
           options = @_export_hashed_subpackets()
           # Ignore UserAttribute packets for now...
           if (userid = @data_packets[1].to_userid())?
-            @primary.push_sig new packetsigs.SelfSig { @type, options, userid, sig }
+            ps = new packetsigs.SelfSig { @type, options, userid, sig }
+            @primary.push_sig ps
+            userid.push_sig ps
 
         when T.subkey_binding
           subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN }

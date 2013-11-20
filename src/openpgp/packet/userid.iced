@@ -70,6 +70,11 @@ class UserID extends Packet
     openpgp = "#{components.username} #{comment}<#{components.email}>"
     new UserId { openpgp, components }
 
+  #--------------------------
+
+  get_framed_signature_output : () ->
+    @get_psc()?.get_self_sig()?.sig?.get_framed_output()
+
 #=================================================================================
 
 exports.UserID = UserID

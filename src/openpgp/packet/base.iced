@@ -66,6 +66,7 @@ class Packet
   # KeyMaterial packets do something else here, but for everyone
   # else, the answer is nothing doing...
   get_signed_userids : () -> []
+  get_subkey_binding : () -> null
   is_self_signed : () -> false
 
 #==================================================================================================

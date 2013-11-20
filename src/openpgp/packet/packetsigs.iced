@@ -80,6 +80,10 @@ class Collection
 
   #-------------------
 
+  get_self_sig : () -> if @lookup.self_sig.length then @lookup.self_sig[0] else null
+
+  #-------------------
+
   # Was there at least one signed-self userid on the key?
   is_self_signed : () -> @get_signed_userids().length > 0
 
@@ -87,6 +91,10 @@ class Collection
 
   get_data_signer  : () -> if @lookup.data.length > 0 then @lookup.data[0] else null
   get_data_signers : () -> @lookup.data
+
+  #-------------------
+
+  get_subkey_binding : () -> if @lookup.subkey_binding.length then @lookup.subkey_binding[0] else null
 
 #===================================================
 

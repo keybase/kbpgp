@@ -157,11 +157,11 @@ class KeyMaterial extends Packet
 
   self_sign_key : ({userids, lifespan}, cb) ->
     err = null
-    if @key.can_sign()
-      for userid in userids when not err?
+    for userid in userids when not err?
+      if @key.can_sign()
         await @_self_sign_key { userid, lifespan }, defer err
-    else if not @is_self_signed()
-      err = new Error "Cannot sign key --- don't have a private key"
+      else if not (userid.get_framed_signature_output())?
+        err = new Error "Cannot sign key --- don't have a private key, and can't replay"
     cb err
 
   #--------------------------
@@ -171,7 +171,7 @@ class KeyMaterial extends Packet
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
     type = C.sig_types.issuer
-    sigpkt = new Signature { 
+    sig = new Signature { 
       type : type,
       key : @key,
       hashed_subpackets : [
@@ -186,18 +186,12 @@ class KeyMaterial extends Packet
       unhashed_subpackets : [
         new S.Issuer(@get_key_id())
       ]}
-      
-    await sigpkt.write payload, defer err, sig
-    ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
+     
+    # We just store the output in the signature object itself 
+    await sig.write payload, defer err
 
-    # XXX - this isn't right!  What do we do with the raw signature output,
-    # rather than the parsed output? URg
-    #
-    # FIX ME
-    #
-    # We might want to look it up directly, or via the UserID packet, so push the
-    # signature onto both.
-    userid.push_sig ps
+    ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
+    userid.push_sig 
     @push_sig ps
 
     cb err, sig
@@ -208,10 +202,8 @@ class KeyMaterial extends Packet
     err = sig = null
     if @key.can_sign() and subkey.key.can_sign()
       await @_sign_subkey { subkey, lifespan }, defer err, sig
-    else if (sig = subkey.signed.sig)?
-      sig = sig.replay()
-    else
-      err = new Error "Cannot sign key --- don't have private key"
+    else if not (subkey.get_subkey_binding()?.sig?.get_framed_output())
+      err = new Error "Cannot sign key --- don't have private key and can't replay"
     cb err, sig
 
   #--------------------------
@@ -221,6 +213,10 @@ class KeyMaterial extends Packet
     await subkey._sign_primary_with_subkey { primary : @, lifespan }, defer err, primary_binding
     unless err?
       await @_sign_subkey_with_primary { subkey, lifespan, primary_binding }, defer err, sig
+    unless err?
+      SKB = packetsigs.SubkeyBinding
+      ps = new SKB { primary : @, sig, direction : SKB.DOWN } 
+      subkey.push_sig ps
     cb err, sig 
 
   #--------------------------
@@ -288,6 +284,9 @@ class KeyMaterial extends Packet
 
   is_signed_subkey_of : (primary) ->
     ((not @primary_flag) and @get_psc().is_signed_subkey_of primary)
+
+  get_subkey_binding : () ->
+    if @opts.subkey then @get_psc().get_subkey_binding() else null
 
   #--------------------------
 
