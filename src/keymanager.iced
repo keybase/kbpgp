@@ -38,8 +38,9 @@ class Engine
   #---------
   
   _allocate_key_packets : () ->
-    for key in @_all_keys()
-      @_v_allocate_key_packet key
+    @_v_allocate_key_packet @primary, { subkey : false }
+    for key in @subkeys
+      @_v_allocate_key_packet key, { subkey : true }
 
   #--------
 
@@ -156,12 +157,13 @@ class PgpEngine extends Engine
   
   #--------
   
-  _v_allocate_key_packet : (key) ->
+  _v_allocate_key_packet : (key, opts) ->
     unless key._pgp?
       key._pgp = new opkts.KeyMaterial { 
         key : key.key, 
         timestamp : key.lifespan.generated, 
-        flags : key.flags }
+        flags : key.flags,
+        opts }
 
   #--------
   

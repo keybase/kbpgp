@@ -30,6 +30,7 @@ class KeyMaterial extends Packet
   # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
   constructor : ({@key, @timestamp, @passphrase, @skm, @opts, @flags}) ->
+    @opts or= {}
     super()
 
   #--------------------------
@@ -191,7 +192,7 @@ class KeyMaterial extends Packet
     await sig.write payload, defer err
 
     ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
-    userid.push_sig 
+    userid.push_sig ps
     @push_sig ps
 
     cb err, sig
@@ -201,10 +202,10 @@ class KeyMaterial extends Packet
   sign_subkey : ({subkey, lifespan}, cb) ->
     err = sig = null
     if @key.can_sign() and subkey.key.can_sign()
-      await @_sign_subkey { subkey, lifespan }, defer err, sig
+      await @_sign_subkey { subkey, lifespan }, defer err
     else if not (subkey.get_subkey_binding()?.sig?.get_framed_output())
       err = new Error "Cannot sign key --- don't have private key and can't replay"
-    cb err, sig
+    cb err
 
   #--------------------------
 
@@ -217,13 +218,13 @@ class KeyMaterial extends Packet
       SKB = packetsigs.SubkeyBinding
       ps = new SKB { primary : @, sig, direction : SKB.DOWN } 
       subkey.push_sig ps
-    cb err, sig 
+    cb err
 
   #--------------------------
 
   _sign_primary_with_subkey : ({primary, lifespan}, cb) ->
     payload = Buffer.concat [ primary.to_signature_payload(), @to_signature_payload() ]
-    sigpkt = new Signature {
+    sig = new Signature {
       type : C.sig_types.primary_binding
       key : @key
       hashed_subpackets : [
@@ -236,14 +237,14 @@ class KeyMaterial extends Packet
     # We put these as signature subpackets, so we don't want to frame them;
     # they already come with framing as a result of their placement in
     # the signature.  This is a bit of a hack, but it's OK for now.
-    await sigpkt.write_unframed payload, defer err, sig
-    cb err, sig
+    await sig.write_unframed payload, defer err, sig_unframed
+    cb err, sig_unframed
 
   #--------------------------
 
   _sign_subkey_with_primary : ({subkey, lifespan, primary_binding}, cb) ->
     payload = Buffer.concat [ @to_signature_payload(), subkey.to_signature_payload() ]
-    sigpkt = new Signature {
+    sig = new Signature {
       type : C.sig_types.subkey_binding
       key : @key
       hashed_subpackets : [
@@ -256,7 +257,7 @@ class KeyMaterial extends Packet
         new S.EmbeddedSignature { rawsig : primary_binding }
       ]}
       
-    await sigpkt.write payload, defer err, sig
+    await sig.write payload, defer err
     cb err, sig
 
   #--------------------------

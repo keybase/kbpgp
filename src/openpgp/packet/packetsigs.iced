@@ -18,8 +18,8 @@ class SelfSig extends Base
 #===================================================
 
 class SubkeyBinding extends Base
-  UP   : 1
-  DOWN : 2
+  @UP   : 1
+  @DOWN : 2
   constructor : ({@primary, sig, @direction}) -> super { sig }
   typ : () -> "subkey_binding"
   is_down : () -> (@direction is SubkeyBinding.DOWN)
