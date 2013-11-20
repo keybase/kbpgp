@@ -1,5 +1,6 @@
 {Canceler} = require 'iced-error'
 C = require './const'
+assert = require 'assert'
 
 #=========================================================
 
@@ -201,6 +202,16 @@ exports.ops_to_keyflags = ops_to_keyflags = (ops) ->
   if (ops & C.ops.verify)  then out |= C.openpgp.key_flags.sign_data
   if (ops & C.ops.sign)    then out |= C.openpgp.key_flags.sign_data
   return out
+
+#=========================================================
+
+exports.assert_no_nulls  = assert_no_nulls = (v) ->
+  ok = true
+  (ok = false for e in v when not e?)
+  unless ok
+    console.error "Found 1 or more nulls in vector: "
+    console.error v
+    assert false
 
 #=========================================================
 

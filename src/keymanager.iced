@@ -2,7 +2,7 @@
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
-{ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
+{assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
 {UserId,Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
@@ -190,7 +190,8 @@ class PgpEngine extends Engine
       packets.push userid.write(), userid.get_framed_signature_output()
     opts.subkey = true
     for subkey in @subkeys
-      packets.push @key(subkey).export_framed(opts), subkey._pgp_sig
+      packets.push @key(subkey).export_framed(opts), @key(subkey).get_subkey_binding_signature_output()
+    assert_no_nulls packets
     Buffer.concat packets
 
   #--------

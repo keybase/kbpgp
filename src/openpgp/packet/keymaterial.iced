@@ -287,6 +287,8 @@ class KeyMaterial extends Packet
 
   get_subkey_binding : () ->
     if @opts.subkey then @get_psc().get_subkey_binding() else null
+  get_subkey_binding_signature_output : () ->
+    @get_subkey_binding()?.sig?.get_framed_output()
 
   #--------------------------
 
