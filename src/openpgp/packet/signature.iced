@@ -184,11 +184,9 @@ class Signature extends Packet
             d.push_sig new packetsigs.Data { sig }
 
         when T.issuer, T.personal, T.casual, T.positive 
-          # Mark what the key was self-signed to do 
-          options = @_export_hashed_subpackets()
           # Ignore UserAttribute packets for now...
           if (userid = @data_packets[1].to_userid())?
-            ps = new packetsigs.SelfSig { @type, options, userid, sig }
+            ps = new packetsigs.SelfSig { @type, userid, sig }
             @primary.push_sig ps
             userid.push_sig ps
 
@@ -204,15 +202,6 @@ class Signature extends Packet
 
   is_signature : () -> true
  
-  #-----------------
-
-  _export_hashed_subpackets : () ->
-    ret = {}
-    for p in @hashed_subpackets
-      if (pair = p.export_to_option())?
-        ret[pair[0]] = pair[1]
-    ret
-
   #-----------------
 
   _check_key_sig_expiration : () ->
@@ -436,7 +425,6 @@ class KeyFlags extends Preference
   constructor : (v) ->
     super S.key_flags, v
   @parse : (slice) -> Preference.parse slice, KeyFlags
-  export_to_option : -> [ "flags" , @v[0] ]
   all_flags : () ->
     ret = 0
     ret |= e for e in @v

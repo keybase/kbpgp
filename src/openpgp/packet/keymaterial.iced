@@ -334,7 +334,7 @@ class KeyMaterial extends Packet
   #-------------------
 
   get_all_key_flags : ()      -> @_psc.get_all_key_flags()
-  fulfills_flags    : (flags) -> (@get_all_key_flags & flags) is flags
+  fulfills_flags    : (flags) -> (@get_all_key_flags() & flags) is flags
 
   #-------------------
 

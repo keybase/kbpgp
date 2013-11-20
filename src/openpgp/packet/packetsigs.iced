@@ -8,6 +8,7 @@
 class Base
   constructor : ({@sig}) ->
   typ : () -> "none"
+  get_key_flags : () -> @sig.get_key_flags()
 
 #===================================================
 
