@@ -157,7 +157,7 @@ exports.ops =
 
 exports.header =
   version : "Keybase OpenPGP JS 0.0.1"
-  comment : "https://keybase.io/decrypt"
+  comment : "https://keybase.io/crypto"
 
 config = 
   default_key_expire_in: 24*60*60*365*2
