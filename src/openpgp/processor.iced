@@ -3,7 +3,7 @@
 {OPS} = require '../keyfetch'
 konst = require '../const'
 C = konst.openpgp
-{bufeq_secure} = require '../util'
+{Warnings,bufeq_secure} = require '../util'
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
 util = require 'util'
@@ -19,6 +19,7 @@ class KeyBlock
     @subkeys = []
     @primary = null
     @userids = []
+    @warnings = new Warnings()
 
   #--------------------
 
@@ -76,24 +77,29 @@ class KeyBlock
 
   _verify_sigs : (cb) ->
     # No sense in processing packet 1, since it's the primary key!
-    start = 1
     err = null
-    for p,i in @packets when i >= start and not err?
-      if not p.is_signature() then # noop
+    working_set = []
+    n_sigs = 0
+    for p,i in @packets[1...] when not err?
+      if not p.is_signature() 
+        if n_sigs > 0
+          n_sigs = 0
+          working_set = []
+        working_set.push p
       else if not bufeq_secure((iid = p.get_issuer_key_id()), (pid = @primary.get_key_id()))
-        console.log "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
+        n_sigs++
+        @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
       else
+        n_sigs++
         p.key = @primary.key
         p.primary = @primary
-        data_packets = @packets[start...i]
-        await p.verify data_packets, defer tmp
+        await p.verify working_set, defer tmp
         if tmp?
           console.log "Error in signature verification: #{tmp.toString()}"
           err = tmp
           # discard the signature, see the above comment...
         else
           @verified_signatures.push p
-        start = i + 1
     cb err
 
   #--------------------

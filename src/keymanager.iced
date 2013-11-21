@@ -329,26 +329,28 @@ class KeyManager
   # Also works for an armored PGP PRIVATE KEY BLOCK
   @import_from_armored_pgp : ({raw, asp}, cb) ->
     asp = ASP.make asp
+    warnings = null
     ret = null
     [err,msg] = decode raw
     unless err?
       if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
         err = new Error "Wanted a public or private key; got: #{msg.type}"
     unless err?
-      await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret
-    cb err, ret
+      await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret, warnings
+    cb err, ret, warnings
 
   #--------------
 
   @import_from_p3skb : ({raw, asp}, cb) ->
     asp = ASP.make asp
     km = null
+    warnings = null
     [err, p3skb] = katch () -> P3SKB.alloc unbox read_base64 raw
     unless err?
       msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
-      await KeyManager.import_from_pgp_message {msg, asp}, defer err, km
+      await KeyManager.import_from_pgp_message {msg, asp}, defer err, km, warnings
       km.p3skb = p3skb if km?
-    cb err, km
+    cb err, km, warnings
 
   #--------------
 
@@ -376,18 +378,20 @@ class KeyManager
   @import_from_pgp_message : ({msg, asp}, cb) ->
     asp = ASP.make asp
     bundle = null
+    warnings = null
     unless err?
       [err,packets] = parse msg.body
     unless err?
       kb = new KeyBlock packets
       await kb.process defer err
+      warnings = kb.warnings
     unless err?
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
         armored_pgp_public : msg.raw(),
         userids : kb.userids }
-    cb err, bundle
+    cb err, bundle, warnings
 
   #------------
 

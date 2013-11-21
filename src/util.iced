@@ -57,6 +57,13 @@ exports.ASP = class ASP
 
 #=========================================================
 
+exports.Warnings = class Warnings
+  constructor : () -> @_w = []
+  push : (args...) -> @_w.push args...
+  warnings : () -> @_w
+
+#=========================================================
+
 exports.bufeq_fast = (x,y) ->
   return true if not x? and not y?
   return false if not x? or not y?
