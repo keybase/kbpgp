@@ -57,6 +57,8 @@ exports.ASP = class ASP
 
 #=========================================================
 
+# See Issue #29
+# https://github.com/keybase/kbpgp/issues/29
 exports.Warnings = class Warnings
   constructor : () -> @_w = []
   push : (args...) -> @_w.push args...
