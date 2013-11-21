@@ -138,8 +138,8 @@ class Signature extends Packet
 
       when T.issuer, T.personal, T.casual, T.positive 
 
-        if data_packets.length isnt 1
-          err = new Error "Only expecting one UserID-style packet in a self-sig"
+        if (n = data_packets.length) isnt 1
+          err = new Error "Only expecting one UserID-style packet in a self-sig (got #{n})"
           []
         else
           # We need to use the primary key maybe several times,
@@ -226,6 +226,11 @@ class Signature extends Packet
 
   get_key_flags : () ->
     @subpacket_index?.hashed?[C.sig_subpacket.key_flags]?.all_flags() or 0
+
+  #-----------------
+
+  get_issuer_key_id : () ->
+    @subpacket_index?.unhashed[C.sig_subpacket.issuer]?.id
 
 #===========================================================
 

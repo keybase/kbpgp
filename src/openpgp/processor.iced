@@ -67,7 +67,6 @@ class KeyBlock
   #--------------------
 
   process : (cb) ->
-
     err = @_extract_keys()
     await @_verify_sigs defer err unless err?
     err = @_check_keys() unless err?
@@ -78,8 +77,12 @@ class KeyBlock
   _verify_sigs : (cb) ->
     # No sense in processing packet 1, since it's the primary key!
     start = 1
-    for p,i in @packets when i >= start
-      if p.is_signature()
+    err = null
+    for p,i in @packets when i >= start and not err?
+      if not p.is_signature() then # noop
+      else if not bufeq_secure((iid = p.get_issuer_key_id()), (pid = @primary.get_key_id()))
+        console.log "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
+      else
         p.key = @primary.key
         p.primary = @primary
         data_packets = @packets[start...i]

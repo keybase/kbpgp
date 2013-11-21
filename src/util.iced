@@ -58,6 +58,8 @@ exports.ASP = class ASP
 #=========================================================
 
 exports.bufeq_fast = (x,y) ->
+  return true if not x? and not y?
+  return false if not x? or not y?
   return false unless x.length is y.length
   for i in [0...x.length]
     return false unless x.readUInt8(i) is y.readUInt8(i)
@@ -66,15 +68,15 @@ exports.bufeq_fast = (x,y) ->
 #-----
 
 exports.bufeq_secure = bufeq_secure = (x,y) ->
-  ret = true
-  if x.length isnt y.length
-    ret = false
+  ret = if not x? and not y? then true
+  else if not x? or not y? then false
+  else if x.length isnt y.length then false
   else
     check = 0
     for i in [0...x.length]
       check += (x.readUInt8(i) ^ y.readUInt8(i))
-    ret = (check is 0)
-  ret
+    (check is 0)
+  return ret
 
 #-----
 
