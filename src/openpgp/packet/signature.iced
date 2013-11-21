@@ -204,18 +204,23 @@ class Signature extends Packet
  
   #-----------------
 
+  # See Issue #28
+  #   https://github.com/keybase/kbpgp/issues/28
   _check_key_sig_expiration : () ->
-    ret = null
+    err = null
     T = C.sig_types
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
       creation = @subpacket_index.hashed[S.creation_time]
       expiration = @subpacket_index.hashed[S.key_expiration_time]
+      now = unix_time()
       if creation? and expiration?
-        now = unix_time()
         expiration = creation.time + expiration.time
-        if (now > expiration) and expiration.time isnt 0
-          ret = new Error "Key expired #{now - expiration}s ago"
-    return ret
+        if (now > expiration) and expiration isnt 0
+          err = new Error "Key expired #{now - expiration}s ago"
+      if not err? and (expiration = @subpacket_index.hashed[S.expiration_time])? and
+           (now > expiration.time) and expiration.time isnt 0
+        err = new Error "Signature expired #{now - expiration.time}s ago"
+    return err
 
   #-----------------
 
@@ -523,7 +528,7 @@ class Parser
     end = @slice.clamp (len - 1)
     klass = switch type
       when S.creation_time then CreationTime
-      when S.expiration_time then SigExpirationTime
+      when S.expiration_time then ExpirationTime
       when S.exportable_certificate then Exportable
       when S.trust_signature then Trust
       when S.regular_expression then RegularExpression
