@@ -3,7 +3,7 @@
 {OPS} = require '../keyfetch'
 konst = require '../const'
 C = konst.openpgp
-{bufeq_secure} = require '../util'
+{Warnings,bufeq_secure} = require '../util'
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
 util = require 'util'
@@ -18,21 +18,25 @@ class KeyBlock
     @verified_signatures = []
     @subkeys = []
     @primary = null
-    @userid = null
+    @userids = []
+    @warnings = new Warnings()
 
   #--------------------
 
-  to_obj : () -> return { @subkeys, @primary, @userid }
+  to_obj : () -> return { @subkeys, @primary, @userids }
 
   #--------------------
 
   _extract_keys : () ->
     err = null
-    for p,i in @packets when (p.is_key_material() and not err?)
-      if not p.is_primary() then @subkeys.push p
-      else if @primary? then err = new Error "cannot have 2 primary keys"
-      else @primary = p
-    err = new Error "No primary key found in keyblock" unless @primary?
+    if not @packets.length
+      err = new Error "No packets; cannot extract a key"
+    else if not (@primary = @packets[0]).is_primary() 
+      err = new Error "First packet must be the primary key"
+    else
+      for p,i in @packets[1...] when (p.is_key_material() and not err?)
+        if not p.is_primary() then @subkeys.push p
+        else err = new Error "cannot have 2 primary keys"
     err
 
   #--------------------
@@ -42,9 +46,9 @@ class KeyBlock
   #--------------------
 
   _check_primary : () ->
-    err = if not @primary.self_sig?.type
+    err = if not @primary.is_self_signed()
       new Error "no valid primary key self-signature"
-    else if not (@userid = @primary.self_sig.userid)?
+    else if (@userids = @primary.get_signed_userids()).length is 0
       new Error "no valid Userid signed into key"
     else null
 
@@ -64,7 +68,6 @@ class KeyBlock
   #--------------------
 
   process : (cb) ->
-
     err = @_extract_keys()
     await @_verify_sigs defer err unless err?
     err = @_check_keys() unless err?
@@ -73,20 +76,30 @@ class KeyBlock
   #--------------------
 
   _verify_sigs : (cb) ->
-    start = 0
-    for p,i in @packets
-      if p.is_signature()
+    # No sense in processing packet 1, since it's the primary key!
+    err = null
+    working_set = []
+    n_sigs = 0
+    for p,i in @packets[1...] when not err?
+      if not p.is_signature() 
+        if n_sigs > 0
+          n_sigs = 0
+          working_set = []
+        working_set.push p
+      else if not bufeq_secure((iid = p.get_issuer_key_id()), (pid = @primary.get_key_id()))
+        n_sigs++
+        @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
+      else
+        n_sigs++
         p.key = @primary.key
         p.primary = @primary
-        data_packets = @packets[start...i]
-        await p.verify data_packets, defer tmp
+        await p.verify working_set, defer tmp
         if tmp?
           console.log "Error in signature verification: #{tmp.toString()}"
           err = tmp
           # discard the signature, see the above comment...
         else
           @verified_signatures.push p
-        start = i + 1
     cb err
 
   #--------------------
@@ -223,11 +236,9 @@ class Message
       # etc.
       sig.close.keyfetch_obj = obj
 
+      # If this succeeds, then we'll go through and mark each
+      # packet in sig.payload with the successful sig.close.
       await sig.close.verify sig.payload, defer err
-
-    unless err?
-      for p in sig.payload
-        p.add_signed_by sig.close
 
     cb err
 

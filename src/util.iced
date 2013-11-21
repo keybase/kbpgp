@@ -1,5 +1,6 @@
 {Canceler} = require 'iced-error'
 C = require './const'
+assert = require 'assert'
 
 #=========================================================
 
@@ -56,7 +57,18 @@ exports.ASP = class ASP
 
 #=========================================================
 
+# See Issue #29
+# https://github.com/keybase/kbpgp/issues/29
+exports.Warnings = class Warnings
+  constructor : () -> @_w = []
+  push : (args...) -> @_w.push args...
+  warnings : () -> @_w
+
+#=========================================================
+
 exports.bufeq_fast = (x,y) ->
+  return true if not x? and not y?
+  return false if not x? or not y?
   return false unless x.length is y.length
   for i in [0...x.length]
     return false unless x.readUInt8(i) is y.readUInt8(i)
@@ -65,15 +77,15 @@ exports.bufeq_fast = (x,y) ->
 #-----
 
 exports.bufeq_secure = bufeq_secure = (x,y) ->
-  ret = true
-  if x.length isnt y.length
-    ret = false
+  ret = if not x? and not y? then true
+  else if not x? or not y? then false
+  else if x.length isnt y.length then false
   else
     check = 0
     for i in [0...x.length]
       check += (x.readUInt8(i) ^ y.readUInt8(i))
-    ret = (check is 0)
-  ret
+    (check is 0)
+  return ret
 
 #-----
 
@@ -201,6 +213,16 @@ exports.ops_to_keyflags = ops_to_keyflags = (ops) ->
   if (ops & C.ops.verify)  then out |= C.openpgp.key_flags.sign_data
   if (ops & C.ops.sign)    then out |= C.openpgp.key_flags.sign_data
   return out
+
+#=========================================================
+
+exports.assert_no_nulls  = assert_no_nulls = (v) ->
+  ok = true
+  (ok = false for e in v when not e?)
+  unless ok
+    console.error "Found 1 or more nulls in vector: "
+    console.error v
+    assert false
 
 #=========================================================
 

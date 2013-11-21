@@ -314,7 +314,7 @@ exports.process_msg_0 = (T,cb) ->
   T.no_error err
   ind = literals[0].toString().indexOf 'Buffer "cats1122", "utf8"'
   T.assert (ind > 0), "found some text we expected"
-  T.assert literals[0].signed_with?, "was signed"
+  T.assert literals[0].get_data_signer(), "was signed"
   cb()
 
 #===============================================================
@@ -328,7 +328,7 @@ exports.process_msg_1 = (T,cb) ->
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
   T.assert (ind > 0), "found some text we expected"
-  T.assert not literals[0].signed_with?, "was not signed"
+  T.assert not literals[0].get_data_signer(), "was not signed"
   cb()
 
 #===============================================================
@@ -342,7 +342,7 @@ exports.process_msg_2 = (T,cb) ->
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
   T.assert (ind > 0), "found some text we expected"
-  T.assert literals[0].signed_with?, "was signed"
+  T.assert literals[0].get_data_signer(), "was signed"
   cb()
 
 #===============================================================
@@ -352,7 +352,7 @@ exports.process_msg_3 = (T,cb) ->
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
   T.assert (ind > 0), "found some text we expected"
-  T.assert literals[0].signed_with?, "was signed"
+  T.assert literals[0].get_data_signer(), "was signed"
   cb()
 
 #===============================================================

@@ -7,6 +7,7 @@ S = C.sig_subpacket
 {alloc_or_throw,SHA512,SHA1} = require '../../hash'
 asymmetric = require '../../asymmetric'
 util = require 'util'
+packetsigs = require './packetsigs'
 
 #===========================================================
 
@@ -21,6 +22,8 @@ class Signature extends Packet
     @hashed_subpackets = [] unless @hashed_subpackets?
     @unhashed_subpackets = [] unless @unhashed_subpackets?
     @subpacket_index = @_make_subpacket_index()
+
+    @_framed_output = null # sometimes we store the framed output here 
 
   #---------------------
 
@@ -80,8 +83,17 @@ class Signature extends Packet
   write : (data, cb) ->
     await @write_unframed data, defer err, unframed
     unless err?
-      ret = @frame_packet C.packet_tags.signature, unframed
+      @_framed_output = ret = @frame_packet C.packet_tags.signature, unframed
     cb err, ret
+
+  #-----------------
+
+  # This is why we store the framed_output inside the packet after we write it
+  # (see above in write).  Sometimes, in the case of public keys, we don't have the
+  # capacity to regenerate signatures, so we just need to replay what we fetched.  But
+  # other times, we want to rewrite the output. Through this mechanism we can handle both 
+  # cases.
+  get_framed_output : () -> @_framed_output or @replay()
 
   #-----------------
   
@@ -117,19 +129,24 @@ class Signature extends Packet
     err = null
     T = C.sig_types
 
-    primary = subkey = null
+    subkey = null
 
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
     @data_packets = switch @type
       when T.binary_doc then data_packets
+
       when T.issuer, T.personal, T.casual, T.positive 
-        primary = data_packets[0]
-        if primary.equal @primary
-          data_packets
-        else
-          err = new Error "Internal error; got confused on primary != @primary"
+
+        if (n = data_packets.length) isnt 1
+          err = new Error "Only expecting one UserID-style packet in a self-sig (got #{n})"
           []
+        else
+          # We need to use the primary key maybe several times,
+          # so we unshift it onto the front of all sequences of data
+          # packets.
+          [ @primary ].concat data_packets
+
       when T.subkey_binding, T.primary_binding
         packets = []        
         if data_packets.length isnt 1
@@ -140,6 +157,7 @@ class Signature extends Packet
           subkey = data_packets[0]
           packets = [ @primary, subkey ]
         packets
+
       else 
         err = new Error "cannot verify sigtype #{@type}"
         []
@@ -158,21 +176,26 @@ class Signature extends Packet
     # Now mark the object that was vouched for
     sig = @
     unless err?
+      SKB = packetsigs.SubkeyBinding
       switch @type
+
         when T.binary_doc
           for d in @data_packets
-            d.signed_with = @
+            d.push_sig new packetsigs.Data { sig }
+
         when T.issuer, T.personal, T.casual, T.positive 
-          # Mark what the key was self-signed to do 
-          options = @_export_hashed_subpackets()
-          userid = @data_packets[1]?.get_userid()
-          primary.self_sig = { @type, options, userid, sig }
+          # Ignore UserAttribute packets for now...
+          if (userid = @data_packets[1].to_userid())?
+            ps = new packetsigs.SelfSig { @type, userid, sig }
+            @primary.push_sig ps
+            userid.push_sig ps
+
         when T.subkey_binding
-          subkey.signed = { @primary, sig } unless subkey.signed?
-          subkey.signed.primary_of_subkey = true
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN }
+
         when T.primary_binding
-          subkey.signed = { @primary } unless subkey.signed?
-          subkey.signed.subkey_of_primary = true
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.UP }
+
     cb err
 
   #-----------------
@@ -181,27 +204,33 @@ class Signature extends Packet
  
   #-----------------
 
-  _export_hashed_subpackets : () ->
-    ret = {}
-    for p in @hashed_subpackets
-      if (pair = p.export_to_option())?
-        ret[pair[0]] = pair[1]
-    ret
-
-  #-----------------
-
+  # See Issue #28
+  #   https://github.com/keybase/kbpgp/issues/28
   _check_key_sig_expiration : () ->
-    ret = null
+    err = null
     T = C.sig_types
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
       creation = @subpacket_index.hashed[S.creation_time]
       expiration = @subpacket_index.hashed[S.key_expiration_time]
+      now = unix_time()
       if creation? and expiration?
-        now = unix_time()
         expiration = creation.time + expiration.time
-        if (now > expiration) and expiration.time isnt 0
-          ret = new Error "Key expired #{now - expiration}s ago"
-    return ret
+        if (now > expiration) and expiration isnt 0
+          err = new Error "Key expired #{now - expiration}s ago"
+      if not err? and (expiration = @subpacket_index.hashed[S.expiration_time])? and
+           (now > expiration.time) and expiration.time isnt 0
+        err = new Error "Signature expired #{now - expiration.time}s ago"
+    return err
+
+  #-----------------
+
+  get_key_flags : () ->
+    @subpacket_index?.hashed?[C.sig_subpacket.key_flags]?.all_flags() or 0
+
+  #-----------------
+
+  get_issuer_key_id : () ->
+    @subpacket_index?.unhashed[C.sig_subpacket.issuer]?.id
 
 #===========================================================
 
@@ -406,13 +435,10 @@ class KeyFlags extends Preference
   constructor : (v) ->
     super S.key_flags, v
   @parse : (slice) -> Preference.parse slice, KeyFlags
-  export_to_option : -> [ "flags" , @v[0] ]
   all_flags : () ->
     ret = 0
     ret |= e for e in @v
     ret
-  has_flags : (f) ->
-    return (@all_flags() & f) is f
 
 #------------
 
@@ -507,7 +533,7 @@ class Parser
     end = @slice.clamp (len - 1)
     klass = switch type
       when S.creation_time then CreationTime
-      when S.expiration_time then SigExpirationTime
+      when S.expiration_time then ExpirationTime
       when S.exportable_certificate then Exportable
       when S.trust_signature then Trust
       when S.regular_expression then RegularExpression

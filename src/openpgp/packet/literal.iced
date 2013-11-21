@@ -10,6 +10,7 @@ asymmetric = require '../../asymmetric'
 class Literal extends Packet
 
   constructor : ( { @format, @filename, @date, @data} ) ->
+    super()
 
   @parse : (slice) -> (new LiteralParser slice).parse()
 

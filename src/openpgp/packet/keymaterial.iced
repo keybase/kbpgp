@@ -9,13 +9,13 @@ RSA = require('../../rsa').Pair
 {bufferify,unix_time,bufeq_secure,katch,make_time_packet,uint_to_buffer} = require '../../util'
 {decrypt,encrypt} = require '../cfb'
 {Packet} = require './base'
-{UserID} = require './userid'
 S = require './signature'
 {Signature} = S
 {encode} = require '../armor'
 {S2K} = require '../s2k'
 symmetric = require '../../symmetric'
 util = require 'util'
+packetsigs = require './packetsigs'
 
 #=================================================================================
 
@@ -24,14 +24,13 @@ class KeyMaterial extends Packet
   # 
   # @param {Pair} key a Keypair that can be used for signing, etc.
   # @param {number} timestamp Uint32 saying what time the key was born
-  # @param {string|Buffer} userid The userid that the key is bound to
   # @param {string|Buffer} passphrase The passphrase used to lock the key
   # @param {S2K} s2k the encryption engine used to lock the secret parts of the key
   # @param {Object} opts a list of options
   # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
-  constructor : ({@key, @timestamp, @userid, @passphrase, @skm, @opts, @flags}) ->
-    @uidp = new UserID @userid if @userid?
+  constructor : ({@key, @timestamp, @passphrase, @skm, @opts, @flags}) ->
+    @opts or= {}
     super()
 
   #--------------------------
@@ -157,25 +156,24 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  self_sign_key : ({uidp, lifespan}, cb) ->
-    err = sig = null
-    if @key.can_sign()
-      await @_self_sign_key { uidp, lifespan }, defer err, sig
-    else if (sig = @self_sig.sig )?
-      sig = sig.replay()
-    else
-      err = new Error "Cannot sign key --- don't have a private key"
-    cb err, sig
+  self_sign_key : ({userids, lifespan}, cb) ->
+    err = null
+    for userid in userids when not err?
+      if @key.can_sign()
+        await @_self_sign_key { userid, lifespan }, defer err
+      else if not (userid.get_framed_signature_output())?
+        err = new Error "Cannot sign key --- don't have a private key, and can't replay"
+    cb err
 
   #--------------------------
 
-  _self_sign_key : ( {uidp, lifespan}, cb) ->
-    uidp = @uidp unless uidp?
-    payload = Buffer.concat [ @to_signature_payload(), uidp.to_signature_payload() ]
+  _self_sign_key : ( {userid, lifespan}, cb) ->
+    payload = Buffer.concat [ @to_signature_payload(), userid.to_signature_payload() ]
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
-    sigpkt = new Signature { 
-      type : C.sig_types.issuer,
+    type = C.sig_types.issuer
+    sig = new Signature { 
+      type : type,
       key : @key,
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
@@ -189,8 +187,14 @@ class KeyMaterial extends Packet
       unhashed_subpackets : [
         new S.Issuer(@get_key_id())
       ]}
-      
-    await sigpkt.write payload, defer err, sig
+     
+    # We just store the output in the signature object itself 
+    await sig.write payload, defer err
+
+    ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
+    userid.push_sig ps
+    @push_sig ps
+
     cb err, sig
 
   #--------------------------
@@ -198,12 +202,10 @@ class KeyMaterial extends Packet
   sign_subkey : ({subkey, lifespan}, cb) ->
     err = sig = null
     if @key.can_sign() and subkey.key.can_sign()
-      await @_sign_subkey { subkey, lifespan }, defer err, sig
-    else if (sig = subkey.signed.sig)?
-      sig = sig.replay()
-    else
-      err = new Error "Cannot sign key --- don't have private key"
-    cb err, sig
+      await @_sign_subkey { subkey, lifespan }, defer err
+    else if not (subkey.get_subkey_binding()?.sig?.get_framed_output())
+      err = new Error "Cannot sign key --- don't have private key and can't replay"
+    cb err
 
   #--------------------------
 
@@ -212,13 +214,17 @@ class KeyMaterial extends Packet
     await subkey._sign_primary_with_subkey { primary : @, lifespan }, defer err, primary_binding
     unless err?
       await @_sign_subkey_with_primary { subkey, lifespan, primary_binding }, defer err, sig
-    cb err, sig 
+    unless err?
+      SKB = packetsigs.SubkeyBinding
+      ps = new SKB { primary : @, sig, direction : SKB.DOWN } 
+      subkey.push_sig ps
+    cb err
 
   #--------------------------
 
   _sign_primary_with_subkey : ({primary, lifespan}, cb) ->
     payload = Buffer.concat [ primary.to_signature_payload(), @to_signature_payload() ]
-    sigpkt = new Signature {
+    sig = new Signature {
       type : C.sig_types.primary_binding
       key : @key
       hashed_subpackets : [
@@ -231,14 +237,14 @@ class KeyMaterial extends Packet
     # We put these as signature subpackets, so we don't want to frame them;
     # they already come with framing as a result of their placement in
     # the signature.  This is a bit of a hack, but it's OK for now.
-    await sigpkt.write_unframed payload, defer err, sig
-    cb err, sig
+    await sig.write_unframed payload, defer err, sig_unframed
+    cb err, sig_unframed
 
   #--------------------------
 
   _sign_subkey_with_primary : ({subkey, lifespan, primary_binding}, cb) ->
     payload = Buffer.concat [ @to_signature_payload(), subkey.to_signature_payload() ]
-    sigpkt = new Signature {
+    sig = new Signature {
       type : C.sig_types.subkey_binding
       key : @key
       hashed_subpackets : [
@@ -251,7 +257,7 @@ class KeyMaterial extends Packet
         new S.EmbeddedSignature { rawsig : primary_binding }
       ]}
       
-    await sigpkt.write payload, defer err, sig
+    await sig.write payload, defer err
     cb err, sig
 
   #--------------------------
@@ -278,11 +284,12 @@ class KeyMaterial extends Packet
   #--------------------------
 
   is_signed_subkey_of : (primary) ->
-    # See Issue #19
-    ((not @primary_flag) and 
-     @signed? and 
-     @signed.primary_of_subkey and
-     @signed.primary.equal(primary))
+    ((not @primary_flag) and @get_psc().is_signed_subkey_of primary)
+
+  get_subkey_binding : () ->
+    if @opts.subkey then @get_psc().get_subkey_binding() else null
+  get_subkey_binding_signature_output : () ->
+    @get_subkey_binding()?.sig?.get_framed_output()
 
   #--------------------------
 
@@ -326,15 +333,13 @@ class KeyMaterial extends Packet
 
   #-------------------
 
-  get_flags_subpacket : () -> (@signed or @self_sig)?.sig?.subpacket_index?.hashed?[C.sig_subpacket.key_flags]
+  get_all_key_flags : ()      -> @_psc.get_all_key_flags()
+  fulfills_flags    : (flags) -> (@get_all_key_flags() & flags) is flags
 
   #-------------------
 
-  get_flags : () -> @get_flags_subpacket()?.all_flags() or 0
-
-  #-------------------
-
-  fulfills_flags : (flags) -> @get_flags_subpacket()?.has_flags flags
+  get_signed_userids : () -> @get_psc().get_signed_userids()
+  is_self_signed     : () -> @get_psc().is_self_signed()
 
 #=================================================================================
 

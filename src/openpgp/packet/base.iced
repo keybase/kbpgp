@@ -1,5 +1,6 @@
 util = require '../util'
 C = require('../../const').openpgp
+packetsigs = require './packetsigs'
 
 #==================================================================================================
 
@@ -8,7 +9,7 @@ class Packet
   #----------------------
 
   constructor : () ->
-    @signed_by = []
+    @_psc = new packetsigs.Collection()
 
   #----------------------
    
@@ -27,14 +28,11 @@ class Packet
   #----------------------
 
   is_signature : () -> false
-
-  #----------------------
-
   is_key_material : () -> false
 
   #----------------------
 
-  get_userid : () -> null
+  to_userid : () -> null
 
   #----------------------
 
@@ -55,9 +53,21 @@ class Packet
 
   #----------------------
 
-  add_signed_by : (sig) ->
-    @signed_by = [] unless @signed_by
-    @signed_by.push sig
+  push_sig : (packetsig) -> @_psc.push packetsig
+  get_psc : () -> @_psc
+
+  #----------------------
+  
+  get_data_signer  : () -> @get_psc().get_data_signer()
+  get_data_signers : () -> @get_psc().get_data_signers()
+
+  #----------------------
+
+  # KeyMaterial packets do something else here, but for everyone
+  # else, the answer is nothing doing...
+  get_signed_userids : () -> []
+  get_subkey_binding : () -> null
+  is_self_signed : () -> false
 
 #==================================================================================================
 

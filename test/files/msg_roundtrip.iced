@@ -167,7 +167,7 @@ exports.encrypt = (T,cb) ->
   proc = new Message ring
   await proc.parse_and_process ctext, defer err, out
   T.no_error err
-  T.assert (not out[0].signed_with?), "wasn't signed"
+  T.assert (not out[0].get_data_signer()?), "wasn't signed"
   T.equal data.msg, out[0].toString(), "message came back right"
   cb()
 
@@ -183,7 +183,7 @@ exports.sign = (T,cb) ->
   proc = new Message ring
   await proc.parse_and_process ctext, defer err, out
   T.no_error err
-  T.assert (out[0].signed_with?), "was signed!"
+  T.assert (out[0].get_data_signer()?), "was signed!"
   T.equal data.msg, out[0].toString(), "message came back right"
   cb()
 
@@ -202,7 +202,7 @@ exports.encrypt_and_sign = (T,cb) ->
   proc = new Message ring
   await proc.parse_and_process ctext, defer err, out
   T.no_error err
-  T.assert (out[0].signed_with?), "was signed!"
+  T.assert (out[0].get_data_signer()?), "was signed!"
   T.equal data.msg, out[0].toString(), "message came back right"
   cb()
 
@@ -223,7 +223,7 @@ exports.encrypt_and_sign_armor = (T,cb) ->
   proc = new Message ring
   await proc.parse_and_process msg.body, defer err, out
   T.no_error err
-  T.assert (out[0].signed_with?), "was signed!"
+  T.assert (out[0].get_data_signer()?), "was signed!"
   T.equal data.msg, out[0].toString(), "message came back right"
   cb()
 

@@ -36,34 +36,6 @@ class Primary extends KeyWrapper
 
 #=================================================================
 
-class UserId
-  constructor : ({@openpgp, @components}) ->
-    @_parse() unless @components?
-
-  get_openpgp : () -> @openpgp 
-
-  _parse : () ->
-    x = ///
-      ^([^(<]*?)       # The beginning name of the user (no comment or key)
-      \s+              # Separation before the key or comment
-      (\((.*?)\)\s+)?  # The optional comment
-      <(.*)?>$         # finally the key...
-      ///
-    s = if Buffer.isBuffer @openpgp then @openpgp.toString('utf8') else @openpgp
-    if (m = s.match x)?
-      @components = 
-        username : m[1]
-        comment : m[3]
-        email : m[4]
-
-  @make : (components) ->
-    comment = if (c = components.comment)? then "(#{c}) " else ""
-    openpgp = "#{components.username} #{comment}<#{components.email}>"
-    new UserId { openpgp, components }
-
-#=================================================================
-
 exports.Lifespan = Lifespan
 exports.Subkey = Subkey
 exports.Primary = Primary
-exports.UserId = UserId

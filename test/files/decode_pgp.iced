@@ -187,3 +187,107 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
   T.equal b1.subkeys[0].ekid().toString('hex'), b2.subkeys[0].ekid().toString('hex'), "subkeys match"
   cb()
 
+#============================================================================
+
+exports.public_key_with_multiple_signers = (T,cb) ->
+
+  raw = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+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
+Dx7ro+5buf2cPmeiYlJdKQ==
+=58Xp
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+  await KeyManager.import_from_armored_pgp { raw},  defer err, kb, warnings
+  T.no_error err
+  T.assert kb, "kb came back ok"
+  v = warnings.warnings()
+  expected_warnings = [
+    "Skipping signature by another issuer: fbc07d6a97016cb3 != 63847b4b83930f0c"
+    "Skipping signature by another issuer: 47484e50656d16c7 != 63847b4b83930f0c"
+  ]
+  T.equal v, expected_warnings, "warnings were right"
+  cb()
+

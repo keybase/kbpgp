@@ -2,7 +2,7 @@
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
-{ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
+{assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
 {UserId,Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
@@ -38,8 +38,9 @@ class Engine
   #---------
   
   _allocate_key_packets : () ->
-    for key in @_all_keys()
-      @_v_allocate_key_packet key
+    @_v_allocate_key_packet @primary, { subkey : false }
+    for key in @subkeys
+      @_v_allocate_key_packet key, { subkey : true }
 
   #--------
 
@@ -156,31 +157,24 @@ class PgpEngine extends Engine
   
   #--------
   
-  _v_allocate_key_packet : (key) ->
+  _v_allocate_key_packet : (key, opts) ->
     unless key._pgp?
       key._pgp = new opkts.KeyMaterial { 
         key : key.key, 
         timestamp : key.lifespan.generated, 
-        userid : @userids.get_openpgp(),
-        flags : key.flags }
-
-  #--------
-  
-  userid_packet : () ->
-    @_uidp = new opkts.UserID @userids.get_openpgp() unless @_uidp?
-    @_uidp
+        flags : key.flags,
+        opts }
 
   #--------
   
   _v_self_sign_primary : ({asp}, cb) ->
-    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, uidp : @userid_packet() }, defer err, @self_sig
+    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids }, defer err
     cb err
 
   #--------
   
   _v_sign_subkey : ({asp, subkey}, cb) ->
-    await @primary._pgp.sign_subkey { subkey : subkey._pgp, lifespan : subkey.lifespan }, defer err, sig
-    subkey._pgp_sig = sig
+    await @key(@primary).sign_subkey { subkey : @key(subkey), lifespan : subkey.lifespan }, defer err
     cb err
 
   #--------
@@ -193,10 +187,13 @@ class PgpEngine extends Engine
   #--------
 
   _export_keys_to_binary : (opts) ->
-    packets = [ @key(@primary).export_framed(opts), @userid_packet().write(), @self_sig ]
+    packets = [ @key(@primary).export_framed(opts) ]
+    for userid in @userids
+      packets.push userid.write(), userid.get_framed_signature_output()
     opts.subkey = true
     for subkey in @subkeys
-      packets.push @key(subkey).export_framed(opts), subkey._pgp_sig
+      packets.push @key(subkey).export_framed(opts), @key(subkey).get_subkey_binding_signature_output()
+    assert_no_nulls packets
     Buffer.concat packets
 
   #--------
@@ -298,7 +295,7 @@ class KeyManager
     primary_flags = KEY_FLAGS_PRIMARY unless primary_flags?
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if not sub_flags? and nsubs?
 
-    userids = new UserId { openpgp : userid }
+    userids = [ new opkts.UserID userid ]
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
     asp.section "primary"
@@ -332,26 +329,28 @@ class KeyManager
   # Also works for an armored PGP PRIVATE KEY BLOCK
   @import_from_armored_pgp : ({raw, asp}, cb) ->
     asp = ASP.make asp
+    warnings = null
     ret = null
     [err,msg] = decode raw
     unless err?
       if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
         err = new Error "Wanted a public or private key; got: #{msg.type}"
     unless err?
-      await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret
-    cb err, ret
+      await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret, warnings
+    cb err, ret, warnings
 
   #--------------
 
   @import_from_p3skb : ({raw, asp}, cb) ->
     asp = ASP.make asp
     km = null
+    warnings = null
     [err, p3skb] = katch () -> P3SKB.alloc unbox read_base64 raw
     unless err?
       msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
-      await KeyManager.import_from_pgp_message {msg, asp}, defer err, km
+      await KeyManager.import_from_pgp_message {msg, asp}, defer err, km, warnings
       km.p3skb = p3skb if km?
-    cb err, km
+    cb err, km, warnings
 
   #--------------
 
@@ -379,19 +378,20 @@ class KeyManager
   @import_from_pgp_message : ({msg, asp}, cb) ->
     asp = ASP.make asp
     bundle = null
+    warnings = null
     unless err?
       [err,packets] = parse msg.body
     unless err?
       kb = new KeyBlock packets
       await kb.process defer err
+      warnings = kb.warnings
     unless err?
-      userids = new UserId { openpgp : kb.userid }
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
         armored_pgp_public : msg.raw(),
-        userids }
-    cb err, bundle
+        userids : kb.userids }
+    cb err, bundle, warnings
 
   #------------
 
