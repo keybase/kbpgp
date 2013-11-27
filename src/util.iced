@@ -149,35 +149,47 @@ exports.unix_time = () -> Math.floor(Date.now()/1000)
 
 #=========================================================
 
-exports.json_stringify_sorted = (o, sort_fn) ->
+exports.json_stringify_sorted = (o, opts) ->
+    # opts: 
+    #  sort_fn: a comparison function for sorting keys
+    #  spaces:  null for compressed JS;
+    #           number for number of spaces
+    #           string for literal
+    opts     = opts or {}
+    sort_fn  = opts.sort_fn or null
+    spaces   = opts.spaces  or null
+    lb       = if opts.spaces? then "\n" else ""
+    if (typeof spaces) is "number"
+      spaces = (" " for i in [0...spaces]).join ""
 
-  # ---------------------------------------------------------
-  # this function should only be called on an object which
-  # has been pulled from a JSON parse; There is no error checking
-  # and no other JS objects (functions, etc.) in there
-  # ---------------------------------------------------------
-  json_safe = (os) ->
-    if Array.isArray os
-      s = "[" + (json_safe(v) for v in os).join(',') + "]"
-    else if (typeof os) is "object"
-      if not os
-        s = JSON.stringify os
+    space_it = (depth) ->
+      if not spaces? then return ""
+      return "\n" + (spaces for i in [0...depth]).join ""
+
+    json_safe = (os, depth) ->
+      # this inner function should only be called on an object
+      # which has been pull from a JSON parse; no error checking
+      if Array.isArray os
+        s = "[" + (json_safe(v,depth+1) for v in os).join(',') + "]"
+      else if (typeof os) is "object"
+        if not os
+          s = JSON.stringify os
+        else
+          sp   = space_it(depth)
+          spp  = space_it(depth+1)
+          keys = (k for k of os)
+          keys.sort sort_fn
+          s = "{" + ( spp + JSON.stringify(k) + ":" + json_safe(os[k],depth+1) for k in keys).join(',') + sp + "}"
       else
-        keys = (k for k of os)
-        keys.sort(sort_fn)
-        s = "{" + (JSON.stringify(k) + ":" + json_safe(os[k]) for k in keys).join(',') + "}"
-    else
-      s = JSON.stringify os
-    return s
-  # end json_safe function
-  # ----------------------
+        s = JSON.stringify os
+      return s
 
-  str = JSON.stringify o
-  if str is undefined
-    return str
-  else
-    o2 = JSON.parse str
-    return json_safe o2
+    str = JSON.stringify o
+    if str is undefined
+      return str
+    else
+      o2 = JSON.parse str
+      return json_safe o2, 0
 
 #=========================================================
 
