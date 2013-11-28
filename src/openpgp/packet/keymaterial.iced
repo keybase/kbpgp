@@ -31,6 +31,7 @@ class KeyMaterial extends Packet
   # @option opts {bool} subkey True if this is a subkey
   constructor : ({@key, @timestamp, @passphrase, @skm, @opts, @flags}) ->
     @opts or= {}
+    @flags or= 0
     super()
 
   #--------------------------
@@ -80,6 +81,10 @@ class KeyMaterial extends Packet
       new Buffer([ @key.type ]),
       pub
     )
+
+  #--------------------------
+
+  add_flags : (v) -> @flags |= v
 
   #--------------------------
   
@@ -336,11 +341,18 @@ class KeyMaterial extends Packet
 
   get_all_key_flags : ()      -> @_psc.get_all_key_flags()
   fulfills_flags    : (flags) -> (@get_all_key_flags() & flags) is flags
+  add_flags         : (v)     -> @flags |= v
 
   #-------------------
 
   get_signed_userids : () -> @get_psc().get_signed_userids()
   is_self_signed     : () -> @get_psc().is_self_signed()
+
+  #-------------------
+
+  push_sig : (packetsig) ->
+    @add_flags packetsig.sig.get_key_flags()
+    super packetsig
 
 #=================================================================================
 

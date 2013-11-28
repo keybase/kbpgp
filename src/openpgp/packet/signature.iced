@@ -8,6 +8,7 @@ S = C.sig_subpacket
 asymmetric = require '../../asymmetric'
 util = require 'util'
 packetsigs = require './packetsigs'
+assert = require 'assert'
 
 #===========================================================
 
@@ -260,6 +261,10 @@ class Time extends SubPacket
 class Preference extends SubPacket
   constructor : (type, @v) -> 
     super type
+    # No 'undefined' or null values allowed...
+    for e in @v
+      assert e?
+
   @parse : (slice, klass) -> 
     v = (c for c in slice.consume_rest_to_buffer())
     new klass v
