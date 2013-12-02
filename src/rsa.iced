@@ -231,11 +231,13 @@ class Pair
 
   #----------------
 
-  can_perform : (ops) ->
-    for op in ops
-      if op is konst.ops.sign and not @can_sign() then return false
-      else if op is konst.ops.decrypt and not @can_decrypt() then return false
-    return true
+  # @param {number} ops_mask A Mask of all of the ops requested of this key,
+  #    whose individual bits are on kbpgp.const.ops
+  #   
+  can_perform : (ops_mask) ->
+    if (ops_mask & konst.ops.sign) and not @can_sign() then false
+    else if (ops_mask & konst.ops.decrypt) and not @can_decrypt() then false
+    else true
 
   #----------------
 

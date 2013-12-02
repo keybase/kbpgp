@@ -2,7 +2,7 @@
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
-{assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
+{ops_to_keyflags,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
 {UserId,Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
@@ -242,20 +242,20 @@ class PgpEngine extends Engine
   # So this class fits the KeyFetcher template.
   #
   # @param {Array<String>} key_ids A list of PGP Key Ids, as an array of strings
-  # @param {Array<Number>} flags an Array of flags that can be flattened into one
+  # @param {Number} op_mask A bitmask of Ops that we need to perform with this key,
+  #    taken from kbpgp.const.ops
   # @param {callback} cb Callback with `err, key`
-  fetch : (key_ids, flags, cb) -> 
+  fetch : (key_ids, op_mask, cb) -> 
+    flags = ops_to_keyflags op_mask
 
     err = key = null
     key = null
-    ff = 0
-    (ff |= flag for flag in flags)
 
     for kid in key_ids when not key?
       key = @find_key kid
 
     err = if not key then new Error "No keys match the given fingerprint"
-    else if not @key(key).fulfills_flags ff then new Error "We don't have a key for the requested PGP ops"
+    else if not @key(key).fulfills_flags flags then new Error "We don't have a key for the requested PGP ops"
 
     cb err, key
 

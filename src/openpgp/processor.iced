@@ -132,7 +132,7 @@ class Message
 
     if key_ids.length 
       enc = true      
-      await @key_fetch.fetch key_ids, [ konst.ops.decrypt ], defer err, obj, index
+      await @key_fetch.fetch key_ids, konst.ops.decrypt, defer err, obj, index
       unless err?
         packet = esk_packets[index]
         await obj.key.decrypt_and_unpad packet.ekey, defer err, sesskey
@@ -226,7 +226,7 @@ class Message
       err = new Error "signature mismatch: #{a.toString('hex')}} != #{b.toString('hex')}"
 
     unless err?
-      await @key_fetch.fetch [ a ], [ konst.ops.verify ], defer err, obj
+      await @key_fetch.fetch [ a ], konst.ops.verify, defer err, obj
 
     unless err?
       sig.close.key = obj.key
