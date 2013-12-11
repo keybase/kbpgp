@@ -158,6 +158,8 @@ verifyCheckSum = (data, checksum) -> (getCheckSum(data) is checksum)
 exports.Message = class Message 
   constructor : ({@body, @type, @comment, @version}) ->
     @lines = []
+    @pre = []
+    @post = []
   raw : -> @lines.join '\n'
 
 #=========================================================================
@@ -224,35 +226,46 @@ class Parser
       else throw new Error "Unknown messasge type: #{@type}"
 
   unframe : () ->
-    rxx_b = /-{5}BEGIN PGP (.*?)-{5}/
-    rxx_e = /-{5}END PGP (.*?)-{5}/m
+    rxx_b = /^(.*)-{5}BEGIN PGP (.*?)-{5}/
+    rxx_e = /-{5}END PGP (.*?)-{5}(.*)$/m
     rxx = rxx_b
     payload = []
     stage = 0
     type = null
     ret = null
     go = true
+    pre = []
+    post = []
     while @lines.length and go
       line = @lines.shift()
-      @ret.lines.push line
       switch stage
         when 0
           if (m = line.match rxx_b)
-            @type = m[1]
+            pre.push m[1]
+            @type = m[2]
             stage++
+            @ret.lines.push line
+          else
+            pre.push line
         when 1
+          @ret.lines.push line
           if (m = line.match rxx_e)
             if m[1] isnt @type
               throw new Error "type mismatch -- begin #{type} w/ end #{m[1]}"
             stage++
+            post.push m[2]
             go = false
           else
             payload.push line
         when 2
+          post = post.concat @lines
           go = false
     if stage is 0 then throw new Error "no header found"
     else if stage is 1 then throw new Error "no tailer found"
-    else @payload = payload
+    else 
+      @payload = payload
+      @ret.pre = pre.join("\n")
+      @ret.post = pre.join("\n")
 
 #=========================================================================
 
