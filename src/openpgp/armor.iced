@@ -156,8 +156,9 @@ verifyCheckSum = (data, checksum) -> (getCheckSum(data) is checksum)
 #=========================================================================
 
 exports.Message = class Message 
-  constructor : ({@body, @type, @comment, @version, @pre, @post, @raw_type}) ->
+  constructor : ({@body, @type, @comment, @version, @pre, @post}) ->
     @lines = []
+    @fields = {}
   raw : -> @lines.join '\n'
 
 #=========================================================================
@@ -202,6 +203,7 @@ class Parser
     @ret.body = new Buffer dat, 'base64'
 
   check_checksum : () ->
+    @ret.fields.checksum = @checksum
     if @checksum? and not verifyCheckSum @ret.body, @checksum
       throw new Error "checksum mismatch"
 
@@ -222,7 +224,7 @@ class Parser
       when "PRIVATE KEY BLOCK" then mt.private_key
       when "MESSAGE" then mt.generic
       else throw new Error "Unknown messasge type: #{@type}"
-    @ret.raw_type = @type
+    @ret.fields.type = @type
 
   unframe : () ->
     rxx_b = /^(.*)(-{5}BEGIN PGP (.*?)-{5}.*$)/

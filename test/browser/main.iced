@@ -1,5 +1,6 @@
 
 mods =  
+  decoder : require '../files/decoder.iced'
   userid : require '../files/userid.iced'
   msg_roundtrip : require '../files/msg_roundtrip.iced'
   decrypt_verify_msg : require '../files/decrypt_verify_msg.iced'
