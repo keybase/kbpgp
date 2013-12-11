@@ -162,7 +162,7 @@ exports.encrypt = (T,cb) ->
   flags = C.openpgp.key_flags.encrypt_comm
   await ring.find_best_key { key_id, flags}, defer err, encryption_key
   T.no_error err
-  await burn { literals, encryption_key }, defer err, ctext
+  await burn { literals, encryption_key }, defer err, armored, ctext
   T.no_error err
   proc = new Message ring
   await proc.parse_and_process ctext, defer err, out
@@ -178,7 +178,7 @@ exports.sign = (T,cb) ->
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags}, defer err, signing_key
   T.no_error err
-  await burn { literals, signing_key }, defer err, ctext
+  await burn { literals, signing_key }, defer err, armored, ctext
   T.no_error err
   proc = new Message ring
   await proc.parse_and_process ctext, defer err, out
@@ -197,7 +197,7 @@ exports.encrypt_and_sign = (T,cb) ->
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags}, defer err, signing_key
   T.no_error err
-  await burn { literals, encryption_key, signing_key }, defer err, ctext
+  await burn { literals, encryption_key, signing_key }, defer err, armored, ctext
   T.no_error err
   proc = new Message ring
   await proc.parse_and_process ctext, defer err, out
@@ -216,7 +216,7 @@ exports.encrypt_and_sign_armor = (T,cb) ->
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags}, defer err, signing_key
   T.no_error err
-  await burn { literals, encryption_key, signing_key, armor : true }, defer err, actext
+  await burn { literals, encryption_key, signing_key }, defer err, actext, ctext
   T.no_error err
   [err,msg] = armor.decode actext
   T.no_error err

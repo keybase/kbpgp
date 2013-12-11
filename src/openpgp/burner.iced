@@ -171,12 +171,12 @@ exports.make_simple_literals = make_simple_literals = (msg) ->
 
 #==========================================================================================
 
-exports.burn = ({msg, literals, signing_key, encryption_key, armor}, cb) ->
+exports.burn = ({msg, literals, signing_key, encryption_key}, cb) ->
   literals = make_simple_literals msg if msg? and not literals?
   b = new Burner { literals, signing_key, encryption_key }
-  await b.burn defer err, out
+  await b.burn defer err, raw
   b.scrub()
-  out = encode(C.message_types.generic, out) if out? and not err? and armor
-  cb err, out
+  aout = encode(C.message_types.generic, raw) if raw? and not err?
+  cb err, aout, raw
 
 #==========================================================================================
