@@ -239,10 +239,6 @@ class PgpEngine extends Engine
     
   #--------
 
-  find_signing_key : () ->
-    @find_best_key C.key_flags.sign_data
-
-  #--------
 
   #
   # So this class fits the KeyFetcher template.
@@ -510,6 +506,7 @@ class KeyManager
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
   find_best_pgp_key : (flags) -> @pgp.find_best_key flags
+  find_signing_pgp_key : () -> @find_best_pgp_key C.key_flags.sign_data
 
   #--------
 

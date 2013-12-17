@@ -10,7 +10,7 @@ exports.SignatureEngine = class SignatureEngine
   get_km      : -> @km
   box         : (args, cb) -> burn args, cb
   unbox       : (msg, cb) -> 
-    eng = new processor.Message km
+    eng = new processor.Message @km
     eng.parse_and_process msg.body, cb
 
 #-----------------------------
