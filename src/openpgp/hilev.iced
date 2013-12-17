@@ -1,5 +1,5 @@
 
-{burn} = require './burn'
+{burn} = require './burner'
 processor = require './processor'
 
 #-----------------------------
