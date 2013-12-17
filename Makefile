@@ -22,6 +22,7 @@ $(BUILD_STAMP): \
 	lib/asymmetric.js \
 	lib/basex.js \
 	lib/symmetric.js \
+	lib/hilev.js \
 	lib/pad.js \
 	lib/keymanager.js \
 	lib/keywrapper.js \
