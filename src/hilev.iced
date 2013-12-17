@@ -1,10 +1,17 @@
 
 {burn} = require './burn'
+processor = require './processor'
 
+#-----------------------------
 
-class HiLevel
+exports.SignatureEngine = class SignatureEngine
 
-  cryptify : (args, cb) -> burn args, cb
+  constructor : ({@km}) ->
+  get_km      : -> @km
+  box         : (args, cb) -> burn args, cb
+  unbox       : (msg, cb) -> 
+    eng = new processor.Message km
+    eng.parse_and_process msg.body, cb
 
-  uncryptify
+#-----------------------------
 

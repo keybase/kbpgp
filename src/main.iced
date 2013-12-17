@@ -5,6 +5,7 @@ mods = [
  require("./keymanager"),
  require("./basex"),
  require("./openpgp/burner")
+ require("./openpgp/hilev")
 ]
 for m in mods
   for k,v of m

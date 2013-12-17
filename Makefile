@@ -22,7 +22,6 @@ $(BUILD_STAMP): \
 	lib/asymmetric.js \
 	lib/basex.js \
 	lib/symmetric.js \
-	lib/hilev.js \
 	lib/pad.js \
 	lib/keymanager.js \
 	lib/keywrapper.js \
@@ -60,6 +59,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/cast5.js \
+	lib/openpgp/hilev.js \
 	lib/keyring.js 
 	date > $@
 
