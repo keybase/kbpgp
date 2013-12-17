@@ -3,7 +3,7 @@ K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
-{ops_to_keyflag} = require './openpgp/util'
+{ops_to_keyflags} = require './openpgp/util'
 {UserId,Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
