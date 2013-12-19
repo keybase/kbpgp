@@ -74,6 +74,9 @@ test-browser: $(TEST_STAMP) $(BUILD_STAMP)
 test/browser/test.js: test/browser/main.iced $(BUILD_STAMP)
 	$(BROWSERIFY) -t icsify $< > $@
 
+test/benchmark/keybase.js: bench/main.js $(BUILD_STAMP)
+	$(BROWSERIFY) -s keybase $< > $@
+
 $(TEST_STAMP): test/browser/test.js
 	date > $@
 
