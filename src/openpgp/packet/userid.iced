@@ -7,6 +7,7 @@ triplesec = require 'triplesec'
 {bufferify,uint_to_buffer} = require '../../util'
 {encrypt} = require '../cfb'
 {Packet} = require './base'
+{parse} = require('pgp-utils').userid
 
 #=================================================================================
 
@@ -44,18 +45,8 @@ class UserID extends Packet
     
   #--------------------------
 
-  _parse : () ->
-    x = ///
-      ^([^(<]*?)       # The beginning name of the user (no comment or key)
-      \s+              # Separation before the key or comment
-      (\((.*?)\)\s+)?  # The optional comment
-      <(.*)?>$         # finally the key...
-      ///
-    if (m = @utf8().match x)?
-      @components = 
-        username : m[1]
-        comment : m[3]
-        email : m[4]
+  _parse : () -> 
+    @components = c if (c = parse @utf8())?
 
   #--------------------------
 
