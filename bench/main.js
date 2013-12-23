@@ -1,2 +1,2 @@
-
-exports.rsa = require('../lib/rsa');
+exports.RSA = require('../lib/rsa').RSA;
+exports.ASP = require('../lib/util').ASP;

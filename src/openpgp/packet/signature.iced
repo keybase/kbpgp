@@ -424,7 +424,8 @@ class PrimaryUserId extends SubPacket
   constructor : (@flag) ->
     super S.primary_user_id
   @parse : (slice) -> new PrimaryUserId (slice.read_uint8() is 1)
-  _v_to_buffer : () -> uint_to_buffer(8, @flag)
+  _v_to_buffer : () -> 
+    uint_to_buffer(8, if @flag then 1 else 0)
 
 #------------
 
