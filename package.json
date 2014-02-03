@@ -25,11 +25,11 @@
     "deep-equal" : "*",
     "purepack" : ">=1",
     "triplesec" : ">=3.0.0",
-    "bn" : "keybase/bn",
-    "pgp-utils" : ">=0.0.3"
+    "bn" : "~0.0.1",
+    "pgp-utils" : ">=0.0.8"
   },
   "devDependencies" : {
-    "browserify" : "*",
+    "browserify" : "~3.1.0",
     "colors" : "*",
     "iced-test" : ">=0.0.7",
     "iced-coffee-script" : "*",
