@@ -22,7 +22,7 @@
     "lib" : "lib/"
   },
   "dependencies" : {
-    "deep-equal" : "~0.1.1",
+    "deep-equal" : "~0.1.0",
     "purepack" : ">=1",
     "triplesec" : ">=3.0.3",
     "bn" : "~0.0.1",
