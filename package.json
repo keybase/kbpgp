@@ -22,9 +22,9 @@
     "lib" : "lib/"
   },
   "dependencies" : {
-    "deep-equal" : "*",
+    "deep-equal" : "~0.1.1",
     "purepack" : ">=1",
-    "triplesec" : ">=3.0.0",
+    "triplesec" : ">=3.0.3",
     "bn" : "~0.0.1",
     "pgp-utils" : ">=0.0.8"
   },
