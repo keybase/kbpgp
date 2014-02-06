@@ -3,7 +3,7 @@
   "description":  "Keybase's PGP Implementation",
   "keywords":     ["crypto", "pgp", "keybase" ],
   "author":       "Maxwell Krohn",
-  "version":      "0.0.1",
+  "version":      "0.0.2",
   "licenses":     [{
     "type":       "MIT",
     "url":        ""
@@ -24,7 +24,7 @@
   "dependencies" : {
     "deep-equal" : "*",
     "purepack" : ">=1",
-    "triplesec" : ">=3.0.0",
+    "triplesec" : ">=3.0.4",
     "bn" : "~0.0.1",
     "pgp-utils" : ">=0.0.8"
   },
@@ -32,7 +32,7 @@
     "browserify" : "~3.1.0",
     "colors" : "*",
     "iced-test" : ">=0.0.7",
-    "iced-coffee-script" : "*",
+    "iced-coffee-script" : "~1.7.1",
     "optimist" : "*",
     "deep-equal" : "*",
     "icsify" : "*",

@@ -344,6 +344,7 @@ class KeyManager
 
   #--------------
 
+  # @param {string} raw A string that has the base64-encoded P3SKB format
   @import_from_p3skb : ({raw, asp}, cb) ->
     asp = ASP.make asp
     km = null
