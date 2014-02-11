@@ -10,6 +10,7 @@ exports.encode = (type, data) ->
   type = switch type
     when mt.public_key  then "PUBLIC KEY BLOCK"
     when mt.private_key then "PRIVATE KEY BLOCK"
+    when mt.signature   then "SIGNATURE"
     when mt.generic     then "MESSAGE"
     else
       throw new Error "Cannot encode tag type #{type}"

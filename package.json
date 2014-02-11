@@ -22,11 +22,11 @@
     "lib" : "lib/"
   },
   "dependencies" : {
-    "deep-equal" : "*",
+    "deep-equal" : "~0.1.0",
     "purepack" : ">=1",
     "triplesec" : ">=3.0.4",
     "bn" : "~0.0.1",
-    "pgp-utils" : ">=0.0.8"
+    "pgp-utils" : ">=0.0.9"
   },
   "devDependencies" : {
     "browserify" : "~3.1.0",
