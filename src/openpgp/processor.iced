@@ -3,11 +3,12 @@
 {OPS} = require '../keyfetch'
 konst = require '../const'
 C = konst.openpgp
-{Warnings,bufeq_secure} = require '../util'
+{athrow,Warnings,bufeq_secure} = require '../util'
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
 util = require 'util'
 armor = require './armor'
+{Literal} = require("./packet/literal")
 
 #==========================================================================================
 
@@ -269,9 +270,15 @@ class Message
   #---------
 
   verify_clearsign : (packets, clearsign, cb) ->
-    @packets = packets
     esc = make_esc cb, "Message:process"
-    cb null
+    if (packets.length isnt 0) or (sig = packets[0]).tag isnt C.packet_tags.signature
+      athrow (new Error "For a clearsign signature, expected only one packet of type 'signature'"), esc defer()
+    dp = new Literal { data : new Buffer(clearsign.lines.join("\n\r"), "utf8") }      
+    await @key_fetch.fetch [ sig.get_key_id() ], konst.ops.verify, esc defer obj
+    sig.keyfetch_obj = obj
+    await sig.verify dp, esc defer()
+    literals = [ dp ]
+    cb null, literals
 
   #---------
 

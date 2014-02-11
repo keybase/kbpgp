@@ -310,7 +310,7 @@ exports.process_msg_0 = (T,cb) ->
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
   proc = new Message ring
-  await proc.parse_and_process msg.body, defer err, literals
+  await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf 'Buffer "cats1122", "utf8"'
   T.assert (ind > 0), "found some text we expected"
@@ -324,7 +324,7 @@ exports.process_msg_1 = (T,cb) ->
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
   proc = new Message ring
-  await proc.parse_and_process msg.body, defer err, literals
+  await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
   T.assert (ind > 0), "found some text we expected"
@@ -338,7 +338,7 @@ exports.process_msg_2 = (T,cb) ->
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
   proc = new Message ring
-  await proc.parse_and_process msg.body, defer err, literals
+  await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
   T.assert (ind > 0), "found some text we expected"

@@ -165,7 +165,7 @@ exports.encrypt = (T,cb) ->
   await burn { literals, encryption_key }, defer err, armored, ctext
   T.no_error err
   proc = new Message ring
-  await proc.parse_and_process ctext, defer err, out
+  await proc.parse_and_process { body : ctext}, defer err, out
   T.no_error err
   T.assert (not out[0].get_data_signer()?), "wasn't signed"
   T.equal data.msg, out[0].toString(), "message came back right"
@@ -181,7 +181,7 @@ exports.sign = (T,cb) ->
   await burn { literals, signing_key }, defer err, armored, ctext
   T.no_error err
   proc = new Message ring
-  await proc.parse_and_process ctext, defer err, out
+  await proc.parse_and_process {body :ctext}, defer err, out
   T.no_error err
   T.assert (out[0].get_data_signer()?), "was signed!"
   T.equal data.msg, out[0].toString(), "message came back right"
@@ -200,7 +200,7 @@ exports.encrypt_and_sign = (T,cb) ->
   await burn { literals, encryption_key, signing_key }, defer err, armored, ctext
   T.no_error err
   proc = new Message ring
-  await proc.parse_and_process ctext, defer err, out
+  await proc.parse_and_process {body : ctext}, defer err, out
   T.no_error err
   T.assert (out[0].get_data_signer()?), "was signed!"
   T.equal data.msg, out[0].toString(), "message came back right"
@@ -221,7 +221,7 @@ exports.encrypt_and_sign_armor = (T,cb) ->
   [err,msg] = armor.decode actext
   T.no_error err
   proc = new Message ring
-  await proc.parse_and_process msg.body, defer err, out
+  await proc.parse_and_process msg, defer err, out
   T.no_error err
   T.assert (out[0].get_data_signer()?), "was signed!"
   T.equal data.msg, out[0].toString(), "message came back right"
