@@ -8,7 +8,7 @@ util = require '../lib/util'
 {Literal} = require '../lib/openpgp/packet/literal'
 {PgpKeyRing} = require '../lib/keyring'
 {KeyManager} = require '../lib/keymanager'
-{burn} = require '../lib/openpgp/burner'
+{clear_sign} = require '../lib/openpgp/clearsign'
 C = require '../lib/const'
 {unix_time} = require '../lib/util'
 
@@ -19,9 +19,7 @@ iced.catchExceptions()
 argv = require('optimist')
        .alias("m", "msg")
        .alias("k","keyfile")
-       .alias("s", "sign")
-       .alias("e", "encrypt")
-       .usage("$0 -m <msg> -k <keyfile> -p <passphrase> -s -e")
+       .usage("$0 -m <msg> -k <keyfile> -p <passphrase>")
        .alias("p","passphrase").argv
 
 #=================================================================
@@ -65,18 +63,6 @@ class Runner
     cb null
 
   #----------
-  
-  from_pgp : (cb) ->
-    esc = make_esc cb, "process"
-    await @read_msg esc defer()
-    proc = new Message @ring
-    await proc.parse_and_process @msg.body, esc defer literals
-    console.log literals
-    for l in literals
-      console.log l.toString()
-    cb null
-
-  #----------
 
   read_input : (cb) ->
     await fs.readFile @argv.msg, defer err, msg
@@ -87,29 +73,18 @@ class Runner
   to_pgp : (cb) ->
     esc = make_esc cb, "to_pgp/burn"
     await @read_input esc defer msg
-    encyption_key = signing_key = null
-    if @argv.e? 
-      await @ring.find_best_key {
-        key_id : (new Buffer(@argv.e, 'hex')), 
-        flags : C.openpgp.key_flags.encrypt_comm
-        }, esc defer encryption_key
-    if @argv.s?
-      await @ring.find_best_key {
-        key_id : (new Buffer(@argv.s, 'hex')), 
-        flags : C.openpgp.key_flags.sign_data
-      }, esc defer signing_key
-    literals = [ 
-      new Literal { data : msg, format : C.openpgp.literal_formats.utf8, date : unix_time() } 
-    ]
-    await burn { literals, signing_key, encryption_key }, esc defer raw
-    out = armor.encode C.openpgp.message_types.generic, raw
+    signing_key = null
+    await @ring.find_best_key {
+      key_id : (new Buffer(@argv.s, 'hex')), 
+      flags : C.openpgp.key_flags.sign_data
+    }, esc defer signing_key
+    await clearnsign { msg, signing_key }, esc defer out
     console.log out
     cb null
 
   #----------
   
-  need_private_keys : () -> (not @do_to_pgp()) or @argv.s?
-  do_to_pgp : () -> @argv.s? or @argv.e?
+  need_private_keys : () -> true
 
   #----------
   
@@ -131,10 +106,7 @@ class Runner
     esc = make_esc cb, "run"
     await @parse_args esc defer()
     await @read_keys esc defer()
-    if @do_to_pgp()
-      await @to_pgp esc defer()
-    else
-      await @from_pgp esc defer()
+    await @to_pgp esc defer()
     cb null
 
 #=================================================================

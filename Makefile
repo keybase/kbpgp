@@ -42,6 +42,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/buffer.js \
 	lib/openpgp/burner.js \
 	lib/openpgp/cfb.js \
+	lib/openpgp/clearsign.js \
 	lib/openpgp/ocfb.js \
 	lib/openpgp/s2k.js \
 	lib/openpgp/util.js \

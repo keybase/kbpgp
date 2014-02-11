@@ -75,7 +75,7 @@ class ClearSigner
 # @param {openpgp.packet.KeyMaterial} signing_key the key to find
 # @param {Callback<error,String,Buffer>} cb with the error (if there was one)
 #    the string of the PGP message, and finally the raw signature.
-exports.clear_sign = ({msg, signing_key}, cb) ->
+exports.clearsign = ({msg, signing_key}, cb) ->
   b = new ClearSigner { msg, signing_key }
   await b.run defer err, raw
   if not err? and raw?
