@@ -26,7 +26,7 @@
     "purepack" : ">=1",
     "triplesec" : ">=3.0.4",
     "bn" : "~0.0.1",
-    "pgp-utils" : ">=0.0.9"
+    "pgp-utils" : ">=0.0.10"
   },
   "devDependencies" : {
     "browserify" : "~3.1.0",

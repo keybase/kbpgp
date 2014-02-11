@@ -55,6 +55,7 @@ exports.openpgp = openpgp =
     public_key : 4
     private_key : 5
     signature : 8
+    clearsign : 9
   s2k :
     plain : 0
     salt : 1

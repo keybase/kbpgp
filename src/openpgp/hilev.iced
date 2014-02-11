@@ -24,7 +24,7 @@ exports.SignatureEngine = class SignatureEngine
 
   unbox       : (msg, cb) -> 
     eng = new processor.Message @km
-    eng.parse_and_process msg.body, cb
+    eng.parse_and_process { body : msg.body }, cb
 
 #-----------------------------
 

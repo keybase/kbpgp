@@ -268,12 +268,21 @@ class Message
 
   #---------
 
-  parse_and_process : (raw, cb) ->
-    await @_parse raw, defer err, packets
-    await @process packets, defer err, literals unless err?
-    cb err, literals
+  verify_clearsign : (packets, clearsign, cb) ->
+    @packets = packets
+    esc = make_esc cb, "Message:process"
+    cb null
 
   #---------
+
+  parse_and_process : ({body, clearsign}, cb) ->
+    await @_parse body, defer err, packets
+    unless err?
+      if clearsign?
+        await @verify_clearsign packets, clearsign, defer err, literals
+      else
+        await @process packets, defer err, literals
+    cb err, literals
 
 #==========================================================================================
 
@@ -289,17 +298,20 @@ exports.Message = Message
 # @param {string} armored The armored PGP generic message.
 # @param {KeyFetcher} keyfetch A KeyFetch object that is called to get keys
 #    for decyrption and signature verification.
-# @param {callback} cb Callback with an `err, Array<Literals>` pair. On success,
+# @param {callback} cb Callback with an `err, Array<Literals>` pairs. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
+#    
 #
 exports.do_message = do_message = ({armored, keyfetch}, cb) ->
   [err,msg] = armor.decode armored
   literals = null
-  if not err? and (msg.type isnt C.message_types.generic)
-    err = new Error "Needed a 'generic' PGP message, but got something else"
   unless err?
     proc = new Message keyfetch
-    await proc.parse_and_process msg.body, defer err, literals
+    switch msg.type
+      when C.message_types.generic, C.message_types.clearsign
+        await proc.parse_and_process msg, defer err, literals
+      else
+        err = new Error "Needed a 'generic' PGP message, but got something else"
   cb err, literals
 
 #==========================================================================================

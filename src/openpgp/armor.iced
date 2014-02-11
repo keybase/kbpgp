@@ -25,6 +25,9 @@ class Parser extends armor.Parser
     @ret.type = switch @type
       when "PUBLIC KEY BLOCK" then mt.public_key
       when "PRIVATE KEY BLOCK" then mt.private_key
+      when "SIGNED MESSAGE"
+        if @ret.clearsign then mt.clearsign
+        else throw new Error "Signed message, but not clear-signed"
       when "MESSAGE" then mt.generic
       else throw new Error "Unknown messasge type: #{@type}"
     @ret.fields.type = @type
