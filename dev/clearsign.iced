@@ -4,7 +4,7 @@ fs = require 'fs'
 {make_esc} = require 'iced-error'
 armor = require '../lib/openpgp/armor'
 util = require '../lib/util'
-{Message} = require '../lib/openpgp/processor'
+{do_message,Message} = require '../lib/openpgp/processor'
 {Literal} = require '../lib/openpgp/packet/literal'
 {PgpKeyRing} = require '../lib/keyring'
 {KeyManager} = require '../lib/keymanager'
@@ -69,6 +69,14 @@ class Runner
     cb err, msg
 
   #----------
+
+  verify : (cb) ->
+    esc = make_esc cb, "verify"
+    await @read_input esc defer msg
+    await do_message { armored : msg, keyfetch : @ring }, esc defer()
+    cb null
+
+  #----------
   
   to_pgp : (cb) ->
     esc = make_esc cb, "to_pgp/burn"
@@ -106,7 +114,7 @@ class Runner
     esc = make_esc cb, "run"
     await @parse_args esc defer()
     await @read_keys esc defer()
-    await @to_pgp esc defer()
+    await @verify esc defer()
     cb null
 
 #=================================================================

@@ -50,6 +50,8 @@ And full-grown lambs loud bleat from hilly bourn;
 Hedge-crickets sing; and now with treble soft
 The red-breast whistles from a garden-croft;
 And gathering swallows twitter in the skies.
+
+
 """,
   keys : {
     passphrase : "urnsrock",
@@ -166,6 +168,8 @@ exports.generate_clear_sign = (T,cb) ->
   msg = new Buffer data.msg, 'utf8'
   await clearsign { signing_key, msg }, defer err, outmsg
   T.no_error err
+  console.log outmsg
+  process.exit 0
   cb()
 
 #===============================================================

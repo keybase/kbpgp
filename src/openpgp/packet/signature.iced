@@ -135,7 +135,7 @@ class Signature extends Packet
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
     @data_packets = switch @type
-      when T.binary_doc then data_packets
+      when T.binary_doc, T.canonical_text then data_packets
 
       when T.issuer, T.personal, T.casual, T.positive 
 

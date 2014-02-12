@@ -373,7 +373,11 @@ class Pair
       [err, hd1] = emsa_pkcs1_decode b, hasher
       unless err?
         hd2 = hasher data
-        err = new Error "hash mismatch" unless bufeq_secure hd1, hd2
+        unless bufeq_secure hd1, hd2
+          console.log "fuuuuuck"
+          console.log hd1
+          console.log hd2
+          err = new Error "hash mismatch"
     cb err
 
   #----------------

@@ -3,7 +3,7 @@
 {OPS} = require '../keyfetch'
 konst = require '../const'
 C = konst.openpgp
-{athrow,Warnings,bufeq_secure} = require '../util'
+{unix_time,athrow,Warnings,bufeq_secure} = require '../util'
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
 util = require 'util'
@@ -267,17 +267,23 @@ class Message
 
   verify_clearsign : (packets, clearsign, cb) ->
     esc = make_esc cb, "Message:process"
-    if (packets.length isnt 0) or (sig = packets[0]).tag isnt C.packet_tags.signature
-      athrow (new Error "For a clearsign signature, expected only one packet of type 'signature'"), esc defer()
+    console.log packets
+    if (packets.length isnt 1) or (sig = packets[0]).tag isnt C.packet_tags.signature
+      err = new Error "For a clearsign signature, expected only one packet of type 'signature'"
+      await athrow err, esc defer()
+    console.log "shhiitasss"
+    console.log clearsign.lines
+    data = new Buffer clearsign.lines.join("\r\n"), "utf8"
+    console.log data
     dp = new Literal { 
-      data : new Buffer(clearsign.lines.join("\n\r"), "utf8"),
-      format : C.openpgp.literal_formats.utf8,
+      data : data,
+      format : C.literal_formats.utf8,
       date : unix_time()
     }
     await @key_fetch.fetch [ sig.get_key_id() ], konst.ops.verify, esc defer obj
     sig.key = obj.key
     sig.hasher = hashmod[clearsign.headers.hash]
-    await sig.verify dp, esc defer()
+    await sig.verify [dp], esc defer()
     literals = [ dp ]
     cb null, literals
 
