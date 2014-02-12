@@ -160,14 +160,20 @@ exports.init = (T,cb) ->
 
 #===============================================================
 
-exports.generate_clear_sign = (T,cb) ->
+# Also test various new-line scenarios.
+exports.clear_sign_1 = (T,cb) -> clear_sign data.msg, T, cb
+exports.clear_sign_2 = (T,cb) -> clear_sign "foo\nbar", T, cb
+exports.clear_sign_3 = (T,cb) -> clear_sign "foo\nbar\n\n\n", T, cb
+exports.clear_sign_4 = (T,cb) -> clear_sign "foo", T, cb
+exports.clear_sign_5 = (T,cb) -> clear_sign "foo\n\n\n\nbar", T, cb
+
+clear_sign = (msg, T,cb) ->
   key_id = new Buffer data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags }, defer err, signing_key
   T.no_error err
-  msg = new Buffer data.msg, 'utf8'
+  msg = new Buffer msg, 'utf8'
   await clearsign.sign { signing_key, msg }, defer err, outmsg
-  console.log outmsg
   T.no_error err
   await do_message { keyfetch : ring, armored : outmsg }, defer err, literals
   T.no_error err
