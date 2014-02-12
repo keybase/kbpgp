@@ -127,7 +127,7 @@ class ClearSigner
   #------------
 
   _encode : (cb) ->
-    hdr = clearsign_header C, @_clearsign.show, @hasher_name()
+    hdr = clearsign_header C, @_cleartext.show, @hasher_name()
     body = encode(C.message_types.signature, @_sig_output)
     cb null, (hdr+body)
 
@@ -137,7 +137,7 @@ class ClearSigner
     esc = make_esc cb, "ClearSigner::run"
     await @_fix_msg esc defer()
     await @_sign_msg esc defer signature
-    await @_enocde esc defer encoded
+    await @_encode esc defer encoded
     cb null, encoded, signature
 
 #==========================================================================================
@@ -206,7 +206,7 @@ class Verifier
 # @param {openpgp.packet.KeyMaterial} signing_key the key to find
 # @param {Callback<error,String,Buffer>} cb with the error (if there was one)
 #    the string of the PGP message, and finally the raw signature.
-exports.clearsign = ({msg, signing_key}, cb) ->
+exports.sign = ({msg, signing_key}, cb) ->
   b = new ClearSigner { msg, signing_key }
   await b.run defer err, encoded, signature
   b.scrub()

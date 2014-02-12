@@ -2,7 +2,7 @@
 {parse} = require '../../lib/openpgp/parser'
 armor = require '../../lib/openpgp/armor'
 C = require '../../lib/const'
-{Message} = require '../../lib/openpgp/processor'
+{do_message,Message} = require '../../lib/openpgp/processor'
 util = require 'util'
 {unix_time,katch,ASP} = require '../../lib/util'
 {KeyManager} = require '../../lib/keymanager'
@@ -11,7 +11,7 @@ util = require 'util'
 {PgpKeyRing} = require '../../lib/keyring'
 {Literal} = require '../../lib/openpgp/packet/literal'
 {burn} = require '../../lib/openpgp/burner'
-{clearsign} = require '../../lib/openpgp/clearsign'
+clearsign = require '../../lib/openpgp/clearsign'
 
 #===============================================================================
 
@@ -166,10 +166,11 @@ exports.generate_clear_sign = (T,cb) ->
   await ring.find_best_key { key_id, flags }, defer err, signing_key
   T.no_error err
   msg = new Buffer data.msg, 'utf8'
-  await clearsign { signing_key, msg }, defer err, outmsg
-  T.no_error err
+  await clearsign.sign { signing_key, msg }, defer err, outmsg
   console.log outmsg
-  process.exit 0
+  T.no_error err
+  await do_message { keyfetch : ring, armored : outmsg }, defer err, literals
+  T.no_error err
   cb()
 
 #===============================================================
