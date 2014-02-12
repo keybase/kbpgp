@@ -1,41 +1,44 @@
 {
-  "name":         "kbpgp",
-  "description":  "Keybase's PGP Implementation",
-  "keywords":     ["crypto", "pgp", "keybase" ],
-  "author":       "Maxwell Krohn",
-  "version":      "0.0.2",
-  "licenses":     [{
-    "type":       "MIT",
-    "url":        ""
-  }],
-  "main" :        "./lib/main.js",
-  "directories"  : {
-    "lib" : "lib"
+  "name": "kbpgp",
+  "description": "Keybase's PGP Implementation",
+  "keywords": [
+    "crypto",
+    "pgp",
+    "keybase"
+  ],
+  "author": "Maxwell Krohn",
+  "version": "0.0.3",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": ""
+    }
+  ],
+  "main": "./lib/main.js",
+  "directories": {
+    "lib": "lib/"
   },
-  "homepage":     "http://github.com/keybase/kbpgp",
-  "bugs":         "https://github.com/keybase/kbpgp/issues",
-  "repository":   {
+  "homepage": "http://github.com/keybase/kbpgp",
+  "bugs": "https://github.com/keybase/kbpgp/issues",
+  "repository": {
     "type": "git",
     "url": "git://github.com/keybase/kbpgp.git"
   },
-  "directories" : {
-    "lib" : "lib/"
+  "dependencies": {
+    "deep-equal": "~0.1.0",
+    "purepack": ">=1",
+    "triplesec": ">=3.0.4",
+    "bn": "~0.0.1",
+    "pgp-utils": ">=0.0.11"
   },
-  "dependencies" : {
-    "deep-equal" : "~0.1.0",
-    "purepack" : ">=1",
-    "triplesec" : ">=3.0.4",
-    "bn" : "~0.0.1",
-    "pgp-utils" : ">=0.0.11"
-  },
-  "devDependencies" : {
-    "browserify" : "~3.1.0",
-    "colors" : "*",
-    "iced-test" : ">=0.0.7",
-    "iced-coffee-script" : "~1.7.1",
-    "optimist" : "*",
-    "deep-equal" : "*",
-    "icsify" : "*",
-    "iced-error" : ">=0.0.6"
+  "devDependencies": {
+    "browserify": "~3.1.0",
+    "colors": "*",
+    "iced-test": ">=0.0.7",
+    "iced-coffee-script": "~1.7.1",
+    "optimist": "*",
+    "deep-equal": "*",
+    "icsify": "*",
+    "iced-error": ">=0.0.6"
   }
 }
