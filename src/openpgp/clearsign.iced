@@ -75,8 +75,10 @@ exports.clearsign_to_sign = clearsign_to_sign = (lines, warnings) ->
 
 exports.input_to_cleartext_sign = input_to_cleartext_sign = (lines) ->
   tmp = (whitespace_strip(line) for line in lines)
-  if tmp.length and tmp[-1...][0] is '' then tmp.pop()
-  tmp.join("\r\n")
+  # tmp.pop() if tmp.length and tmp[-1...][0] is ''
+  foo = tmp.join("\r\n")
+  console.log new Buffer foo, 'utf8'
+  return foo
 
 #==========================================================================================
 
