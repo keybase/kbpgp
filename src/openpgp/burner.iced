@@ -22,6 +22,7 @@ triplesec = require 'triplesec'
 C = require('../const').openpgp
 {SHA512} = require '../hash'
 {encode} = require './armor'
+clearsign = require './clearsign'
 
 #==========================================================================================
 
@@ -168,6 +169,10 @@ exports.make_simple_literals = make_simple_literals = (msg) ->
     format : C.literal_formats.utf8 
     date : unix_time()
   }]
+
+#==========================================================================================
+
+exports.clearsign = clearsign.sign
 
 #==========================================================================================
 
