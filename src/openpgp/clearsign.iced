@@ -31,7 +31,7 @@ class ClearSigner
 
   #------------
 
-  _fix_msg = (cb) ->
+  _fix_msg : (cb) ->
     m = @msg.toString('utf8')
     parts = m.split /\n\r?/
     parts.push '' unless parts[-1...][0] is ''
@@ -58,7 +58,7 @@ class ClearSigner
 
   #------------
 
-  hasher_name : () -> @sig.hasher.name
+  hasher_name : () -> @sig.hasher.algname
 
   #------------
 

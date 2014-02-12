@@ -11,6 +11,7 @@ util = require 'util'
 {PgpKeyRing} = require '../../lib/keyring'
 {Literal} = require '../../lib/openpgp/packet/literal'
 {burn} = require '../../lib/openpgp/burner'
+{clearsign} = require '../../lib/openpgp/clearsign'
 
 #===============================================================================
 
@@ -153,6 +154,20 @@ exports.init = (T,cb) ->
     format : C.openpgp.literal_formats.utf8 
     date : unix_time()
   }]
+  cb()
+
+#===============================================================
+
+exports.generate_clear_sign = (T,cb) ->
+  key_id = new Buffer data.keys.ids[1], 'hex'
+  flags = C.openpgp.key_flags.sign_data
+  await ring.find_best_key { key_id, flags }, defer err, signing_key
+  T.no_error err
+  msg = new Buffer data.msg, 'utf8'
+  await clearsign { signing_key, msg }, defer err, outmsg
+  T.no_error err
+  console.log outmsg
+  #process.exit 0
   cb()
 
 #===============================================================

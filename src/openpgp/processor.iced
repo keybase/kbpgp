@@ -273,7 +273,11 @@ class Message
     esc = make_esc cb, "Message:process"
     if (packets.length isnt 0) or (sig = packets[0]).tag isnt C.packet_tags.signature
       athrow (new Error "For a clearsign signature, expected only one packet of type 'signature'"), esc defer()
-    dp = new Literal { data : new Buffer(clearsign.lines.join("\n\r"), "utf8") }      
+    dp = new Literal { 
+      data : new Buffer(clearsign.lines.join("\n\r"), "utf8"),
+      format : C.openpgp.literal_formats.utf8,
+      date : unix_time()
+    }
     await @key_fetch.fetch [ sig.get_key_id() ], konst.ops.verify, esc defer obj
     sig.keyfetch_obj = obj
     await sig.verify dp, esc defer()
