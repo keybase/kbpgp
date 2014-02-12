@@ -233,11 +233,6 @@ class Message
     unless err?
       sig.close.key = obj.key
 
-      # Include more information on the key, depending on what was included 
-      # by the given KeyFetcher.  It might be things like the corresponding UID,
-      # etc.
-      sig.close.keyfetch_obj = obj
-
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
       await sig.close.verify sig.payload, defer err
@@ -280,7 +275,7 @@ class Message
       date : unix_time()
     }
     await @key_fetch.fetch [ sig.get_key_id() ], konst.ops.verify, esc defer obj
-    sig.keyfetch_obj = obj
+    sig.key = obj.key
     sig.hasher = hashmod[clearsign.headers.hash]
     await sig.verify dp, esc defer()
     literals = [ dp ]

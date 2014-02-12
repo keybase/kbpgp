@@ -166,8 +166,6 @@ exports.generate_clear_sign = (T,cb) ->
   msg = new Buffer data.msg, 'utf8'
   await clearsign { signing_key, msg }, defer err, outmsg
   T.no_error err
-  console.log outmsg
-  process.exit 0
   cb()
 
 #===============================================================
