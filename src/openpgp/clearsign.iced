@@ -74,16 +74,13 @@ exports.clearsign_to_sign = clearsign_to_sign = (lines, warnings) ->
 #==========================================================================================
 
 exports.input_to_cleartext_sign = input_to_cleartext_sign = (lines) ->
-  console.log lines
   tmp = (whitespace_strip(line) for line in lines)
   num_trailing_newlines = 0
   for t in tmp by -1
     if t is '' then num_trailing_newlines++
     else break
   if num_trailing_newlines > 0 then tmp.pop()
-  foo = tmp.join("\r\n")
-  console.log new Buffer foo, 'utf8'
-  return foo
+  return tmp.join("\r\n")
 
 #==========================================================================================
 
