@@ -9,6 +9,7 @@ C = konst.openpgp
 util = require 'util'
 armor = require './armor'
 {Literal} = require("./packet/literal")
+hashmod = require '../hash'
 
 #==========================================================================================
 
@@ -280,6 +281,7 @@ class Message
     }
     await @key_fetch.fetch [ sig.get_key_id() ], konst.ops.verify, esc defer obj
     sig.keyfetch_obj = obj
+    sig.hasher = hashmod[clearsign.headers.hash]
     await sig.verify dp, esc defer()
     literals = [ dp ]
     cb null, literals

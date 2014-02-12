@@ -167,7 +167,7 @@ exports.generate_clear_sign = (T,cb) ->
   await clearsign { signing_key, msg }, defer err, outmsg
   T.no_error err
   console.log outmsg
-  #process.exit 0
+  process.exit 0
   cb()
 
 #===============================================================

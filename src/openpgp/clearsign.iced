@@ -34,9 +34,11 @@ class ClearSigner
   _fix_msg : (cb) ->
     m = @msg.toString('utf8')
     parts = m.split /\n\r?/
-    parts.push '' unless parts[-1...][0] is ''
+    unless parts[-1...][0] is ''
+      parts.push ''
+      @msg += "\n"
     txt = parts.join("\n\r")
-    @msg = new Buffer txt, 'utf8'
+    @fixed_msg = new Buffer txt, 'utf8'
     cb null
 
   #------------
@@ -48,7 +50,7 @@ class ClearSigner
       hashed_subpackets : [ new CreationTime(unix_time()) ]
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
     }
-    await @sig.write @msg, defer err, fp
+    await @sig.write @fixed_msg, defer err, fp
     @packets.push fp unless err?
     cb err
 
@@ -79,7 +81,7 @@ exports.clearsign = ({msg, signing_key}, cb) ->
   b = new ClearSigner { msg, signing_key }
   await b.run defer err, raw
   if not err? and raw?
-    hdr = clearsign_header C, msg, b.hasher_name()
+    hdr = clearsign_header C, b.msg, b.hasher_name()
     body = encode(C.message_types.signature, raw)
   cb err, (hdr + body), raw
 
