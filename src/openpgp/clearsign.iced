@@ -19,6 +19,7 @@ hashmod = require '../hash'
 {SHA512} = hashmod
 {encode} = require './armor'
 {clearsign_header} = require('pgp-utils').armor
+{Literal} = require "./packet/literal"
 
 #==========================================================================================
 
@@ -79,7 +80,7 @@ exports.input_to_cleartext_sign = input_to_cleartext_sign = (lines) ->
 
 #==========================================================================================
 
-exports.whitespace_strip = trailing_whitespace_strip = (line) ->
+exports.whitespace_strip = whitespace_strip = (line) ->
   line = line.replace /\r/g, ''
   if (m = line.match /^(.*?)([ \t]*)$/) then m[1] else line
 
@@ -153,8 +154,8 @@ class Verifier
   _find_signature : (cb) ->
     err = if (n = @packets.length) isnt 1 
       new Error "Expected one signature packet; got #{n}"
-    else if (@_sig = packets[0]).tag isnt C.packet_tags.signature 
-      new Error "Expected a signature packet; but got type=#{packets[0].tag}"
+    else if (@_sig = @packets[0]).tag isnt C.packet_tags.signature 
+      new Error "Expected a signature packet; but got type=#{@packets[0].tag}"
     else
       null
     cb null
@@ -176,7 +177,7 @@ class Verifier
     await @key_fetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, obj
     unless err?
       @_sig.key = obj.key
-      @_sig.hasher = hashmod[@clearsign.headers.has]
+      @_sig.hasher = hashmod[@clearsign.headers.hash]
     cb err
 
   #-----------------------
@@ -188,6 +189,7 @@ class Verifier
   #-----------------------
 
   run : (cb) ->
+    esc = make_esc cb, "Verifier::run"
     await @_find_signature esc defer()
     await @_reformat_text esc defer()
     await @_fetch_key esc defer()
@@ -208,7 +210,7 @@ exports.clearsign = ({msg, signing_key}, cb) ->
 
 #==========================================================================================
 
-exports.verify = ({pakcets, clearsign, key_fetch}) ->
+exports.verify = ({packets, clearsign, key_fetch}, cb) ->
   v = new Verifier { packets, clearsign, key_fetch }
   await v.run defer err, literal
   cb err, literal

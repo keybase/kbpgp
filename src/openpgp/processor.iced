@@ -8,9 +8,8 @@ C = konst.openpgp
 {import_key_pgp} = require '../symmetric'
 util = require 'util'
 armor = require './armor'
-{Literal} = require("./packet/literal")
 hashmod = require '../hash'
-clearsign = require './clearsign'
+verify_clearsign = require('./clearsign').verify
 
 #==========================================================================================
 
@@ -267,11 +266,11 @@ class Message
   #---------
 
   verify_clearsign : (packets, clearsign, cb) ->
-    await clearsign.verify { packets, clearsign, @key_fetch }, defer err, literal
+    await verify_clearsign { packets, clearsign, @key_fetch }, defer err, literal
     cb err, [ literal ]
 
   #---------
-  
+
   trash : (cb) ->
     esc = make_esc cb, "Message:process"
     console.log packets
