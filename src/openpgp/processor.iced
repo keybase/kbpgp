@@ -10,6 +10,7 @@ util = require 'util'
 armor = require './armor'
 {Literal} = require("./packet/literal")
 hashmod = require '../hash'
+clearsign = require './clearsign'
 
 #==========================================================================================
 
@@ -266,6 +267,12 @@ class Message
   #---------
 
   verify_clearsign : (packets, clearsign, cb) ->
+    await clearsign.verify { packets, clearsign, @key_fetch }, defer err, literal
+    cb err, [ literal ]
+
+  #---------
+  
+  trash : (cb) ->
     esc = make_esc cb, "Message:process"
     console.log packets
     if (packets.length isnt 1) or (sig = packets[0]).tag isnt C.packet_tags.signature
