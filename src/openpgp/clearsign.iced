@@ -182,6 +182,7 @@ class Verifier
     unless err?
       @_sig.key = obj.key
       @_sig.hasher = hashmod[@clearsign.headers.hash]
+      @_sig.keyfetch_obj = obj
     cb err
 
   #-----------------------

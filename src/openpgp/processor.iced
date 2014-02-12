@@ -233,6 +233,9 @@ class Message
     unless err?
       sig.close.key = obj.key
 
+      # This is used by the front-end in keybase, though nowhere else in kbpgpg
+      sig.close.keyfetch_obj = obj
+
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
       await sig.close.verify sig.payload, defer err
@@ -268,30 +271,6 @@ class Message
   verify_clearsign : (packets, clearsign, cb) ->
     await verify_clearsign { packets, clearsign, @key_fetch }, defer err, literal
     cb err, [ literal ]
-
-  #---------
-
-  trash : (cb) ->
-    esc = make_esc cb, "Message:process"
-    console.log packets
-    if (packets.length isnt 1) or (sig = packets[0]).tag isnt C.packet_tags.signature
-      err = new Error "For a clearsign signature, expected only one packet of type 'signature'"
-      await athrow err, esc defer()
-    console.log "shhiitasss"
-    console.log clearsign.lines
-    data = new Buffer clearsign.lines.join("\r\n"), "utf8"
-    console.log data
-    dp = new Literal { 
-      data : data,
-      format : C.literal_formats.utf8,
-      date : unix_time()
-    }
-    await @key_fetch.fetch [ sig.get_key_id() ], konst.ops.verify, esc defer obj
-    sig.key = obj.key
-    sig.hasher = hashmod[clearsign.headers.hash]
-    await sig.verify [dp], esc defer()
-    literals = [ dp ]
-    cb null, literals
 
   #---------
 
