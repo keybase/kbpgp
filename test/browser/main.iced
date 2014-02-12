@@ -1,5 +1,6 @@
 
 mods =  
+  verify_clearsign_sigs : require '../files/verify_clearsign_sigs.iced'
   decoder : require '../files/decoder.iced'
   userid : require '../files/userid.iced'
   msg_roundtrip : require '../files/msg_roundtrip.iced'
