@@ -179,8 +179,7 @@ class Signature extends Packet
     unless err?
       SKB = packetsigs.SubkeyBinding
       switch @type
-
-        when T.binary_doc
+        when T.binary_doc, T.canonical_text
           for d in @data_packets
             d.push_sig new packetsigs.Data { sig }
 
