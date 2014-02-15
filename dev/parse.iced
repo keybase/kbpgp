@@ -8,7 +8,7 @@ util = require 'util'
 
 await fs.readFile process.argv[2], defer err, res
 throw err if err
-[err,msg] = armor.decode res
+[err,msg] = armor.decode res.toString('utf8')
 throw err if err
 switch msg.type
   when C.openpgp.message_types.public_key then console.log "Got a public key..."

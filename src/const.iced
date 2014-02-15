@@ -94,6 +94,7 @@ exports.openpgp = openpgp =
   signatures :
     key : 0x99
     userid : 0xb4
+    user_attribute : 0xd1
   key_flags : 
     certify_keys : 0x1
     sign_data : 0x2

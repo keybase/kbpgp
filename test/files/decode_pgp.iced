@@ -6,6 +6,7 @@ C = require '../../lib/const'
 util = require 'util'
 {ASP} = require '../../lib/util'
 {KeyManager} = require '../../lib/keymanager'
+{keys} = require('../data/keys.iced')
 
 #============================================================================
 
@@ -289,5 +290,13 @@ Dx7ro+5buf2cPmeiYlJdKQ==
     "Skipping signature by another issuer: 47484e50656d16c7 != 63847b4b83930f0c"
   ]
   T.equal v, expected_warnings, "warnings were right"
+  cb()
+
+#============================================================================
+
+
+exports.public_key_with_pic = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : keys.with_pic_1 } , defer err, km
+  T.no_error err
   cb()
 

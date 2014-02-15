@@ -32,7 +32,7 @@ class UserAttribute extends Packet
     # RFC 4880 5.12 We can treat the user attribute packet as a userID
     # packet, but with opaque data.
     Buffer.concat [
-      new Buffer([ C.signatures.user_attribue ]),
+      new Buffer([ C.signatures.user_attribute ]),
       uint_to_buffer(32, @data.length),
       @data
     ]
