@@ -27,6 +27,10 @@ class UserAttribute extends Packet
 
   #--------------------------
 
+  to_user_attribute : () -> @
+
+  #--------------------------
+
   to_signature_payload : () ->
 
     # RFC 4880 5.12 We can treat the user attribute packet as a userID

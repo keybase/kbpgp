@@ -149,7 +149,7 @@ class PgpEngine extends Engine
 
   #--------
   
-  constructor : ({primary, subkeys, userids}) ->
+  constructor : ({primary, subkeys, userids, @user_attributes}) ->
     super { primary, subkeys, userids }
 
   #--------
@@ -265,8 +265,8 @@ class PgpEngine extends Engine
 
 class KeyManager
 
-  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private}) ->
-    @pgp = new PgpEngine { @primary, @subkeys, @userids }
+  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private, @user_attributes}) ->
+    @pgp = new PgpEngine { @primary, @subkeys, @userids, @user_attributes }
     @engines = [ @pgp ]
     @_signed = false
     @p3skb = null
@@ -394,6 +394,7 @@ class KeyManager
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
         armored_pgp_public : msg.raw(),
+        user_attributes : kb.user_attributes,
         userids : kb.userids }
     cb err, bundle, warnings
 

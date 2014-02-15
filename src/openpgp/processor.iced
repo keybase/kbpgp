@@ -21,6 +21,7 @@ class KeyBlock
     @subkeys = []
     @primary = null
     @userids = []
+    @user_attributes = []
     @warnings = new Warnings()
 
   #--------------------
@@ -52,7 +53,9 @@ class KeyBlock
       new Error "no valid primary key self-signature"
     else if (@userids = @primary.get_signed_userids()).length is 0
       new Error "no valid Userid signed into key"
-    else null
+    else 
+      @user_attributes = @primary.get_signed_user_attributes()
+      null
 
   #--------------------
 

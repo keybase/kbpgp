@@ -184,11 +184,14 @@ class Signature extends Packet
             d.push_sig new packetsigs.Data { sig }
 
         when T.issuer, T.personal, T.casual, T.positive 
-          # Ignore UserAttribute packets for now...
+          ps = null
           if (userid = @data_packets[1].to_userid())?
             ps = new packetsigs.SelfSig { @type, userid, sig }
-            @primary.push_sig ps
             userid.push_sig ps
+          else if (user_attribute = @data_packets[1].to_user_attribute())?
+            ps = new packetsigs.SelfSig { @type, user_attribute, sig }
+            user_attribute.push_sig ps
+          @primary.push_sig ps if ps
 
         when T.subkey_binding
           subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN }

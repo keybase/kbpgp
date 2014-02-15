@@ -339,14 +339,15 @@ class KeyMaterial extends Packet
 
   #-------------------
 
-  get_all_key_flags : ()      -> @_psc.get_all_key_flags()
-  fulfills_flags    : (flags) -> (@get_all_key_flags() & flags) is flags
-  add_flags         : (v)     -> @flags |= v
+  get_all_key_flags  : ()      -> @_psc.get_all_key_flags()
+  fulfills_flags     : (flags) -> (@get_all_key_flags() & flags) is flags
+  add_flags          : (v)     -> @flags |= v
 
   #-------------------
 
-  get_signed_userids : () -> @get_psc().get_signed_userids()
-  is_self_signed     : () -> @get_psc().is_self_signed()
+  get_signed_userids         : () -> @get_psc().get_signed_userids()
+  get_signed_user_attributes : () -> @get_psc().get_signed_user_attributes()
+  is_self_signed             : () -> @get_psc().is_self_signed()
 
   #-------------------
 

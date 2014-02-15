@@ -33,6 +33,7 @@ class Packet
   #----------------------
 
   to_userid : () -> null
+  to_user_attribute : () -> null
 
   #----------------------
 

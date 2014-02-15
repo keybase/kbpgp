@@ -13,7 +13,7 @@ class Base
 #===================================================
 
 class SelfSig extends Base
-  constructor : ({@userid, @type, sig, @options}) -> super { sig }
+  constructor : ({@userid, @user_attribute, @type, sig, @options}) -> super { sig }
   typ : () -> "self_sig"
 
 #===================================================
@@ -78,6 +78,7 @@ class Collection
 
   # Return all self-signed UID packets. Only useful for primary keys.
   get_signed_userids : () -> (u for p in @lookup.self_sig when (u = p.userid)?)
+  get_signed_user_attributes: () -> (u for p in @lookup.self_sig when (u = p.user_attribute)?)
 
   #-------------------
 
