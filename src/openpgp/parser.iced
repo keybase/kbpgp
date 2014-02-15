@@ -6,6 +6,7 @@ C = require('../const').openpgp
 {Signature} = require './packet/signature'
 {SEIPD,PKESK} = require './packet/sess'
 {UserID} = require './packet/userid'
+{UserAttribute} = require './packet/user_attribute'
 {Compressed} = require './packet/compressed'
 {Generic} = require './packet/generic'
 {OnePassSignature} = require './packet/one_pass_sig'
@@ -55,18 +56,19 @@ class PacketParser
     sb = @body
     raw = sb.peek_rest_to_buffer()
     packet = switch @tag
-      when pt.PKESK         then PKESK.parse sb
-      when pt.one_pass_sig  then OnePassSignature.parse sb
-      when pt.secret_key    then KeyMaterial.parse_private_key sb, { subkey : false }
-      when pt.secret_subkey then KeyMaterial.parse_private_key sb, { subkey : true }
-      when pt.public_key    then KeyMaterial.parse_public_key sb,  { subkey : false }
-      when pt.public_subkey then KeyMaterial.parse_public_key sb,  { subkey : true }
-      when pt.signature     then Signature.parse sb
-      when pt.userid        then UserID.parse sb
-      when pt.SEIPD         then SEIPD.parse sb
-      when pt.literal       then Literal.parse sb
-      when pt.compressed    then Compressed.parse sb
-      else                  new Generic @tag, sb # throw new Error "Unknown packet tag: #{@tag}"
+      when pt.PKESK          then PKESK.parse sb
+      when pt.one_pass_sig   then OnePassSignature.parse sb
+      when pt.secret_key     then KeyMaterial.parse_private_key sb, { subkey : false }
+      when pt.secret_subkey  then KeyMaterial.parse_private_key sb, { subkey : true }
+      when pt.public_key     then KeyMaterial.parse_public_key sb,  { subkey : false }
+      when pt.public_subkey  then KeyMaterial.parse_public_key sb,  { subkey : true }
+      when pt.signature      then Signature.parse sb
+      when pt.userid         then UserID.parse sb
+      when pt.user_attribute then UserAttribute.parse sb
+      when pt.SEIPD          then SEIPD.parse sb
+      when pt.literal        then Literal.parse sb
+      when pt.compressed     then Compressed.parse sb
+      else                   new Generic @tag, sb # throw new Error "Unknown packet tag: #{@tag}"
     packet.set { @tag, @real_packet_len, @header_len, raw }
     packet
 

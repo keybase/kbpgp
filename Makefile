@@ -48,15 +48,16 @@ $(BUILD_STAMP): \
 	lib/openpgp/util.js \
 	lib/openpgp/packet/all.js \
 	lib/openpgp/packet/base.js \
-	lib/openpgp/packet/userid.js \
-	lib/openpgp/packet/keymaterial.js \
-	lib/openpgp/packet/signature.js \
-	lib/openpgp/packet/sess.js \
-	lib/openpgp/packet/generic.js \
-	lib/openpgp/packet/one_pass_sig.js \
 	lib/openpgp/packet/compressed.js \
+	lib/openpgp/packet/generic.js \
 	lib/openpgp/packet/literal.js \
+	lib/openpgp/packet/keymaterial.js \
+	lib/openpgp/packet/one_pass_sig.js \
 	lib/openpgp/packet/packetsigs.js \
+	lib/openpgp/packet/sess.js \
+	lib/openpgp/packet/signature.js \
+	lib/openpgp/packet/userid.js \
+	lib/openpgp/packet/user_attribute.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/cast5.js \

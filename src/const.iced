@@ -76,6 +76,7 @@ exports.openpgp = openpgp =
     literal : 11
     public_subkey : 14
     userid : 13
+    user_attribute : 17
     SEIPD : 18
     MDC : 19
   literal_formats :
