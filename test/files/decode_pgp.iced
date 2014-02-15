@@ -294,10 +294,11 @@ Dx7ro+5buf2cPmeiYlJdKQ==
 
 #============================================================================
 
-
 exports.public_key_with_pic = (T,cb) ->
   await KeyManager.import_from_armored_pgp { raw : keys.with_pic_1 } , defer err, km
   T.no_error err
   T.equal km.user_attributes?.length, 1, "We got a picture out, as expected"
   T.assert km.user_attributes?[0]?.data?, "..with actual picture data"
   cb()
+
+#============================================================================
