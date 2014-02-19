@@ -61,10 +61,10 @@ mpi_to_padded_octets = (bn, base) ->
 
 # Shift a buffer right by nbits
 buffer_shift_right = (buf, nbits) ->
-  l = buf.length
   nbytes = (nbits >> 3)
   rem = nbits % 8
   buf = buf[0...(buf.length - nbytes)]
+  l = buf.length
   mask = (1 << rem) - 1
   for i in [(l-1)..0]
     c = (buf.readUInt8(i) >> rem)
