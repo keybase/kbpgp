@@ -47,7 +47,7 @@ class Pub
     u1 = hi.multiply(w).mod(@q)
     u2 = r.multiply(w).mod(@q)
     v = @g.modPow(u1, @p).multiply(@y.modPow(u2, @p)).mod(@p).mod(@q)
-    if not v.equals(s)
+    if not v.equals(r)
       err = new Error "hash mismatch"
     cb err
 

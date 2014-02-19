@@ -383,16 +383,12 @@ class KeyManager
     asp = ASP.make asp
     bundle = null
     warnings = null
-    console.log "Fuck 1 #{err}" 
     unless err?
       [err,packets] = parse msg.body
-    console.log "Fuck 2 #{err}" 
-    console.log packets
     unless err?
       kb = new KeyBlock packets
       await kb.process defer err
       warnings = kb.warnings
-    console.log "Fuck 3 #{err}" 
     unless err?
       bundle = new KeyManager { 
         primary : KeyManager._wrap_pgp(Primary, kb.primary), 
@@ -400,7 +396,6 @@ class KeyManager
         armored_pgp_public : msg.raw(),
         user_attributes : kb.user_attributes,
         userids : kb.userids }
-    console.log "Fuck 4 #{err}" 
     cb err, bundle, warnings
 
   #------------

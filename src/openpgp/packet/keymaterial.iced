@@ -126,11 +126,7 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  get_key_id : () -> 
-    ret = @get_fingerprint()[12...20]
-    console.log "shhhit asss"
-    console.log ret
-    return ret
+  get_key_id : () -> @get_fingerprint()[12...20]
   get_short_key_id : () -> @get_key_id()[-4...].toString('hex').toUpperCase()
 
   #--------------------------

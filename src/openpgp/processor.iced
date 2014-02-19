@@ -85,7 +85,6 @@ class KeyBlock
     err = null
     working_set = []
     n_sigs = 0
-    console.log "fuuuckin"
     for p,i in @packets[1...] when not err?
       if not p.is_signature() 
         if n_sigs > 0
@@ -99,9 +98,7 @@ class KeyBlock
         n_sigs++
         p.key = @primary.key
         p.primary = @primary
-        console.log "trying to verify!"
         await p.verify working_set, defer tmp
-        console.log tmp
         if tmp?
           console.log "Error in signature verification: #{tmp.toString()}"
           err = tmp
