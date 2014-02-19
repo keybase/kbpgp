@@ -1,6 +1,5 @@
 
-{bi_from_left_n_bits,buffer_shift_right} = require '../../lib/bn'
-{nbi} = require 'bn'
+{nbi,bn_from_left_n_bits,buffer_shift_right} = require '../../lib/bn'
 {bufeq_fast} = require '../../lib/util'
 
 #==========================================================
@@ -51,7 +50,7 @@ exports.test_mpi_from_left_n_bits = (T,cb) ->
       buf = new Buffer ri, 'hex'
       i1 = nbi().fromBuffer buf
       i2 = i1.shiftRight shift
-      i3 = bi_from_left_n_bits(buf, nbits - shift)
+      i3 = bn_from_left_n_bits(buf, nbits - shift)
       T.assert i2.equals(i3), "int #{j}, shift #{shift}"
   cb()
 

@@ -1,20 +1,22 @@
 bn = require './bn'
-{nbv,nbi,BigInteger} = bn
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
-{SHA512} = require './hash'
-{eme_pkcs1_encode,eme_pkcs1_decode,emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
-{SRF,MRF} = require './rand'
 
 #=================================================================
 
 class Pub
 
-  @type : C.public_key_algorithms.RSA
+  @type : C.public_key_algorithms.DSA
   type : Pub.type
+
+  #----------------
+
+  # The serialization order of the parameters in the public key
+  @ORDER : [ 'p', 'q', 'g', 'y' ]
+  ORDER : Pub.ORDER
 
   #----------------
 
@@ -23,20 +25,16 @@ class Pub
   #----------------
 
   serialize : () -> 
-    Buffer.concat [
-      @n.to_mpi_buffer()
-      @e.to_mpi_buffer() 
-    ]
+    Buffer.concat( @[e].to_mpi_buffer() for e in @ORDER )
 
   #----------------
 
   @alloc : (raw) ->
     orig_len = raw.length
-    order = [ 'p', 'q', 'g', 'y' ]
     d = {}
     err = null
-    for o in order when not err?
-      [err, d.o, raw ] = bn.mpi_from_buffer raw
+    for o in Pub.ORDER when not err?
+      [err, d[o], raw ] = bn.mpi_from_buffer raw
     if err then [ err, null ]
     else [ null, new Pub(d), (orig_len - raw.length) ]
 
@@ -44,10 +42,10 @@ class Pub
 
   verify : ([r, s], h, cb) ->
     err = null
-    hi = bi_from_left_n_bits h, @q.bitLength()
+    hi = bn.bn_from_left_n_bits h, @q.bitLength()
     w = s.modInverse @q
     u1 = hi.multiply(w).mod(@q)
-    u2 = r.multiply(w).moq(@q)
+    u2 = r.multiply(w).mod(@q)
     v = @g.modPow(u1, @p).multiply(@y.modPow(u2, @p)).mod(@p).mod(@q)
     if not v.equals(s)
       err = new Error "hash mismatch"
@@ -57,10 +55,25 @@ class Pub
 
 class Pair
 
+  #--------------------
+
+  @type : C.public_key_algorithms.DSA
+  type : Pair.type
+
+  #--------------------
+  
+  constructor : ({ @pub, @priv }) ->
+
+  #--------------------
+  
   @parse : (pub_raw) -> 
     [err, key, len] = Pub.alloc pub_raw
     key = new Pair { pub : key } if key?
     [err, key, len ]
+
+  #----------------
+
+  serialize : () -> @pub.serialize()
 
   #----------------
 
@@ -71,7 +84,7 @@ class Pair
     if sig.length isnt 2
       err = new Error "Expected 2 Bigints in the signature"
     else
-      await @verify sig, hash, defer err, v
+      await @pub.verify sig, hash, defer err, v
     cb err
 
   #----------------

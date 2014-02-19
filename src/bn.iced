@@ -76,7 +76,7 @@ buffer_shift_right = (buf, nbits) ->
 
 #================================================================
 
-bi_from_left_n_bits = (raw, bits) ->
+bn_from_left_n_bits = (raw, bits) ->
   rem = bits % 8
   bytes = (bits >> 3) + (if rem then 1 else 0)
   buf = raw[0...bytes]
@@ -91,11 +91,16 @@ exports.nbs = nbs
 exports.mpi_from_buffer = mpi_from_buffer
 exports.mpi_to_padded_octets = mpi_to_padded_octets
 exports.buffer_shift_right = buffer_shift_right
-exports.bi_from_left_n_bits = bi_from_left_n_bits
+exports.bn_from_left_n_bits = bn_from_left_n_bits
 
 # Monkey-patch the BigInteger prototyp, for convenience...
 BigInteger.prototype.to_mpi_buffer = () -> toMPI @
 BigInteger.prototype.mpi_byte_length = () -> mpi_byte_length @
 BigInteger.prototype.to_padded_octets = (base) -> mpi_to_padded_octets @, base
+
+exports.BigInteger = BigInteger
+exports.nbi = nbi
+exports.nbv = nbv
+exports.nbits = nbits
 
 #================================================================

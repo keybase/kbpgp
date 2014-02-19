@@ -13,6 +13,7 @@ lib/%.js: src/%.iced
 
 $(BUILD_STAMP): \
 	lib/const.js \
+	lib/dsa.js \
 	lib/main.js \
 	lib/primegen.js \
 	lib/primes.js \
