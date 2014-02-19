@@ -59,10 +59,28 @@ mpi_to_padded_octets = (bn, base) ->
 
 #================================================================
 
+# Shift a buffer right by nbits
+buffer_shift_right = (buf, nbits) ->
+  l = buf.length
+  nbytes = (nbits >> 3)
+  rem = nbits % 8
+  buf = buf[0...(buf.length - nbytes)]
+  mask = (1 << rem) - 1
+  for i in [(l-1)..0]
+    c = (buf.readUInt8(i) >> rem)
+    if i > 0
+      nxt = buf.readUInt8(i-1) & mask
+      c |= (nxt << (8 - rem))
+    buf.writeUInt8(c, i)
+  buf
+
+#================================================================
+
 exports.toMPI = toMPI
 exports.nbs = nbs
 exports.mpi_from_buffer = mpi_from_buffer
 exports.mpi_to_padded_octets = mpi_to_padded_octets
+exports.buffer_shift_right = buffer_shift_right
 
 # Monkey-patch the BigInteger prototyp, for convenience...
 BigInteger.prototype.to_mpi_buffer = () -> toMPI @
@@ -70,4 +88,3 @@ BigInteger.prototype.mpi_byte_length = () -> mpi_byte_length @
 BigInteger.prototype.to_padded_octets = (base) -> mpi_to_padded_octets @, base
 
 #================================================================
-

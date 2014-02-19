@@ -1,11 +1,11 @@
 {random_prime,nbs} = require './primegen'
-{nbv,nbi,BigInteger} = require 'bn'
+bn = require './bn'
+{nbv,nbi,BigInteger} = bn
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
-bn = require './bn'
 {SHA512} = require './hash'
 {eme_pkcs1_encode,eme_pkcs1_decode,emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
 {SRF,MRF} = require './rand'
@@ -195,10 +195,6 @@ class Pub
     [err, e, raw] = bn.mpi_from_buffer raw unless err?
     if err then [ err, null ]
     else [ null, new Pub({n, e}), (orig_len - raw.length) ]
-
-  #----------------
-
-  mod_pow : (x,d,cb) -> cb x.modPow(d,@n)
 
   #----------------
 

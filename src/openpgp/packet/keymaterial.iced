@@ -3,6 +3,7 @@ C = require('../../const').openpgp
 triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 RSA = require('../../rsa').Pair
+DSA = require('../../dsa').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
 {calc_checksum} = require '../util'
@@ -384,6 +385,7 @@ class Parser
     A = C.public_key_algorithms
     [err, key, len ] = switch @algorithm
       when A.RSA, A.RSA_ENCRYPT_ONLY, A.RSA_SIGN_ONLY then RSA.parse @slice.peek_rest_to_buffer()
+      when A.DSA then DSA.parse @slice.peek_rest_to_buffer()
       else throw new Error "Can only deal with RSA right now"
     throw err if err?
     @slice.advance len
