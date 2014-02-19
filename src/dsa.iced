@@ -22,10 +22,6 @@ class Pub
 
   #----------------
 
-  verify : ([r,s], cb) ->
-
-  #----------------
-
   serialize : () -> 
     Buffer.concat [
       @n.to_mpi_buffer()
@@ -44,6 +40,19 @@ class Pub
     if err then [ err, null ]
     else [ null, new Pub(d), (orig_len - raw.length) ]
 
+  #----------------
+
+  verify : ([r, s], h, cb) ->
+    err = null
+    hi = bi_from_left_n_bits h, @q.bitLength()
+    w = s.modInverse @q
+    u1 = hi.multiply(w).mod(@q)
+    u2 = r.multiply(w).moq(@q)
+    v = @g.modPow(u1, @p).multiply(@y.modPow(u2, @p)).mod(@p).mod(@q)
+    if not v.equals(s)
+      err = new Error "hash mismatch"
+    cb err
+
 #=================================================================
 
 class Pair
@@ -59,7 +68,11 @@ class Pair
     err = null
     [err, sig] = Pair.read_sig_from_buf(sig) if Buffer.isBuffer(sig)
     hash = hasher data
-    await @verify sig, defer v
+    if sig.length isnt 2
+      err = new Error "Expected 2 Bigints in the signature"
+    else
+      await @verify sig, hash, defer err, v
+    cb err
 
   #----------------
 
