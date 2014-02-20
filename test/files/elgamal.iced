@@ -62,9 +62,16 @@ X0uqWT6kHA/R7W9wiqmX
 exports.decrypt_msgs = (T, cb) ->
   o = planck
   await KeyManager.import_from_armored_pgp { raw : o.key }, defer err, km
+  T.waypoint "key import"
   T.no_error err
-  await km.unlock_pgp { o }, defer err
+  await km.unlock_pgp o, defer err
   T.no_error err
+  T.waypoint "key unlock"
+  key = km.find_crypt_pgp_key()
+  T.assert key?, "found a key'"
+  for msg in o.encrypted
+    await do_message { armored : msg, keyfetch : km }, defer err, out
+    T.no_error err
   cb()
 
 #=================================================================

@@ -129,10 +129,10 @@ class Output
   
   @parse : (buf) ->
     c_mpis = for i in [0...2] 
-      [err, ret, raw, n] = bn.mpi_from_buffer buf
+      [err, ret, buf, n] = bn.mpi_from_buffer buf
       throw err if err?
       ret
-    throw new Error "junk at the end of input" unless raw.length is 0
+    throw new Error "junk at the end of input" unless buf.length is 0
     new Output { c_mpis }
 
   #----------------------

@@ -252,14 +252,15 @@ class PgpEngine extends Engine
 
     err = key = null
     key = null
+    ret_i = null
 
-    for kid in key_ids when not key?
+    for kid,i in key_ids when not key?
       key = @find_key kid
+      ret_i = i if key?
 
     err = if not key then new Error "No keys match the given fingerprint"
     else if not @key(key).fulfills_flags flags then new Error "We don't have a key for the requested PGP ops"
-
-    cb err, key
+    cb err, key, ret_i
 
 #=================================================================
 
@@ -385,7 +386,6 @@ class KeyManager
     warnings = null
     unless err?
       [err,packets] = parse msg.body
-    throw err if err?
     unless err?
       kb = new KeyBlock packets
       await kb.process defer err
@@ -506,10 +506,10 @@ class KeyManager
   # @param {callback} cb Callback with `err, key`
   fetch : (key_ids, flags, cb) -> @pgp.fetch key_ids, flags, cb
 
-
   find_pgp_key : (key_id) -> @pgp.find_key key_id
   find_best_pgp_key : (flags) -> @pgp.find_best_key flags
   find_signing_pgp_key : () -> @find_best_pgp_key C.key_flags.sign_data
+  find_crypt_pgp_key : () -> @find_best_pgp_key C.key_flags.encrypt_comm
 
   #--------
 

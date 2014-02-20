@@ -135,7 +135,7 @@ class Message
       p.get_key_id()
 
     if key_ids.length 
-      enc = true      
+      enc = true
       await @key_fetch.fetch key_ids, konst.ops.decrypt, defer err, obj, index
       unless err?
         packet = esk_packets[index]
