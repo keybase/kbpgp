@@ -515,7 +515,7 @@ class Parser
     o.public_key_class = asymmetric.get_class @slice.read_uint8()
     o.hash = alloc_or_throw @slice.read_uint8()
     o.signed_hash_value_hash = @slice.read_uint16()
-    o.sig = @public_key_class.parse_sig @slice
+    o.sig = o.public_key_class.parse_sig @slice
     new Signature o
 
   parse_v4 : () ->
