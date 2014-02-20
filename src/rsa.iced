@@ -280,7 +280,7 @@ class Pair extends BaseKeyPair
     await eme_pkcs1_encode data, @pub.n.mpi_byte_length(), defer err, m
     unless err?
       await @encrypt m, defer ct
-      ret = ct.to_mpi_buffer()
+      ret = @export_output { y_buf : ct.to_mpi_buffer() }
     cb err, ret
 
   #----------------

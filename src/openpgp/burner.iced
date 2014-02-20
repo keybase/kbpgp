@@ -107,9 +107,8 @@ class Burner
   _encrypt_session_key : (cb) ->
     payload = export_key_pgp @_cipher_algo, @_session_key
     k = @encryption_key.key
-    await k.pad_and_encrypt payload, defer err, y_buf
+    await k.pad_and_encrypt payload, defer err, ekey
     unless err?
-      ekey = k.export_output { y_buf }
       pkt = new PKESK { 
         crypto_type : k.type,
         key_id : @encryption_key.get_key_id(),
