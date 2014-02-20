@@ -108,7 +108,7 @@ class Pair extends BaseKeyPair
   decrypt_and_unpad : (ciphertext, cb) ->
     err = ret = null
     await @priv.decrypt ciphertext.c(), defer m
-    b = m.to_padded_octects @pub.p
+    b = m.to_padded_octets @pub.p
     [err, ret] = eme_pkcs1_decode b
     cb err, ret
 

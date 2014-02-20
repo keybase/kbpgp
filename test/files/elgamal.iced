@@ -36,7 +36,9 @@ ZbLGiqgjXIjfEuNACFhveec=
 =66In
 -----END PGP PRIVATE KEY BLOCK-----
 """,
-  encrypted : [ """
+  encrypted : [
+    {
+      ciphertext : """
 -----BEGIN PGP MESSAGE----- 
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
 Comment: GPGTools - https://gpgtools.org
@@ -53,7 +55,9 @@ xGF/s+kzNRDrRQAD9xiCjpJaPrNP3FR5mM1m2AcXzOutycvJV8MNicOfqMaq5W1a
 X0uqWT6kHA/R7W9wiqmX
 =nrqo
 -----END PGP MESSAGE-----
-"""
+""",
+      plaintext :  "My unavailing attempts to somehow reintegrate the action quantum into classical theory extended over several years and caused me much trouble.\n"
+    }        
   ]
 }
 
@@ -70,8 +74,10 @@ exports.decrypt_msgs = (T, cb) ->
   key = km.find_crypt_pgp_key()
   T.assert key?, "found a key'"
   for msg in o.encrypted
-    await do_message { armored : msg, keyfetch : km }, defer err, out
+    await do_message { armored : msg.ciphertext, keyfetch : km }, defer err, out
     T.no_error err
+    T.equal out.length, 1, "got 1 literal data packet"
+    T.equal out[0].data.toString('utf8'), msg.plaintext, "plaintext came out ok"
   cb()
 
 #=================================================================
