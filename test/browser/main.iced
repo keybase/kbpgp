@@ -1,5 +1,6 @@
 
 mods =  
+  elgamal : require '../files/elgamal.iced'
   dsa : require '../files/dsa.iced'
   buffer_shfit_right : require '../files/buffer_shift_right.iced' 
   verify_clearsign_sigs : require '../files/verify_clearsign_sigs.iced'
