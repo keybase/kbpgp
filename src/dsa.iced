@@ -1,9 +1,41 @@
 bn = require './bn'
+{nbv,BigInteger} = bn
+{SRF,MRF} = require './rand'
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
+
+#=================================================================
+
+class Priv
+
+  #----------------
+
+  constructor : ( {@x,@pub} ) ->
+
+  #----------------
+
+  serialize : () -> @x.to_mpi_buffer()
+
+  #----------------
+
+  @alloc : (raw, pub) ->
+    orig = raw.length
+    [ err, x, raw ] = bn.mpi_from_buffer raw
+    if err? then [err, null]
+    else [ null, new Priv { x, pub}, (orig - raw.length) ]
+
+  #----------------
+
+  sign : (h, cb) ->
+    hi = bn.bn_from_left_n_bits h, q.bitLength()
+    await SRF().random_zn @q.subtract(nbv(2)), defer k
+    k = k.add BigInteger.ONE
+    r = @g.modPow(k, @p).mod(@q)
+    s = (k.modInverse(@q).multiply(hi.add(@x.multiply(r)))).mod(@q)
+    cb [r,s]
 
 #=================================================================
 
@@ -74,6 +106,17 @@ class Pair
 
   serialize : () -> @pub.serialize()
 
+  #----------------
+
+
+  pad_and_sign : (data, {hasher}, cb) ->
+    # XXX use the DSA recommendations for which hash to use
+    hasher or= SHA512
+    hashed_data = hasher data
+    await @sign hashed_data, defer [r,s]
+    out = Buffer.concat [ r.to_mpi_buffer(), s.to_mpi_buffer() ]
+    cb out
+    
   #----------------
 
   verify_unpad_and_check_hash : (sig, data, hasher, cb) ->
