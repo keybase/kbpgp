@@ -5,6 +5,7 @@ konst = require './const'
 C = konst.openpgp
 K = konst.kb
 {BaseKeyPair} = require './basekeypair'
+{SRF,MRF} = require './rand'
 
 #=================================================================
 
@@ -75,7 +76,7 @@ class Priv
     {p,q,g} = @pub
     hi = @pub.trunc_hash(h)
     await SRF().random_zn q.subtract(bn.nbv(2)), defer k
-    k = k.add(BigInteger.ONE)
+    k = k.add(bn.BigInteger.ONE)
     r = g.modPow(k,p).mod(q)
     s = (k.modInverse(q).multiply(hi.add(@x.multiply(r)))).mod(q)
     cb [r,s]
@@ -121,6 +122,14 @@ class Pair extends BaseKeyPair
     else
       await @pub.verify sig, hash, defer err, v
     cb err
+
+  #----------------
+
+  pad_and_sign : (data, {hasher}, cb) ->
+    hasher or= SHA512
+    h = hasher data
+    await @priv.sign h, defer sig
+    cb Buffer.concat(s.to_mpi_buffer() for s in sig)
 
   #----------------
 

@@ -1,5 +1,6 @@
 {KeyManager} = require '../../lib/keymanager'
 {do_message,Processor} = require '../../lib/openpgp/processor'
+{burn} = require '../../lib/openpgp/burner'
 
 #=================================================================
 
@@ -55,8 +56,8 @@ exports.verify_sigs = (T,cb) ->
     lit = literals[0]
     signer = lit.get_data_signer()
     T.assert signer?, "we were signed"
-    console.log signer
-    console.log lit.data.toString()
+    fp3 = signer.sig.keyfetch_obj._pgp.get_fingerprint().toString('hex').toUpperCase()
+    T.equal fp, fp3, "the literal data packet was signed with the right key"
   cb()
 
 #=================================================================
@@ -82,11 +83,26 @@ CgsEFgIDAQIeAQIXgAAKCRA350+UAcLjmJWYAKCYHsrgY+k3bQ7ov2XHf9SjX7qU
 twCfebPu3y0/Ll7OdCw5fcXuzbCUbjY=
 =s2F5
 -----END PGP PRIVATE KEY BLOCK-----
-"""
+""",
+  msg : """
+We have just won the most terrible war in history, yet here is 
+a Frenchman who misses his target 6 out of 7 times at point-blank
+range. Of course this fellow must be punished for the careless 
+use of a dangerous weapon and for poor marksmanship. I suggest 
+that he be locked up for eight years, with intensive training 
+in a shooting gallery."""
+
 }
 
 exports.dsa_round_trip = (T,cb) ->
   await KeyManager.import_from_armored_pgp { raw : gbc.key }, defer err, km
+  T.no_error err
+  await km.unlock_pgp { passphrase : 'abcd' }, defer err
+  T.no_error err
+  key = km.find_signing_pgp_key()
+  await burn { msg : gbc.msg, signing_key : key }, defer err, asc
+  T.no_error err
+  await do_message { armormed : asc, keyfetch : km }, defer esc 
   T.no_error err
   cb()
 

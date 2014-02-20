@@ -28,7 +28,7 @@
     "deep-equal": "~0.1.0",
     "purepack": ">=1",
     "triplesec": ">=3.0.4",
-    "bn": "~0.0.1",
+    "bn": ">=0.0.2",
     "pgp-utils": ">=0.0.13"
   },
   "devDependencies": {
