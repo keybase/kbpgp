@@ -3,6 +3,7 @@ C = konst.openpgp
 K = konst.kb
 {SHA512} = require './hash'
 bn = require './bn'
+{bufeq_secure} = require('pgp-utils').util
 
 #============================================================
 
