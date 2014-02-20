@@ -137,7 +137,7 @@ class Signature extends Packet
     @data_packets = switch @type
       when T.binary_doc, T.canonical_text then data_packets
 
-      when T.issuer, T.personal, T.casual, T.positive 
+      when T.issuer, T.personal, T.casual, T.positive, T.certificate_revocation
 
         if (n = data_packets.length) isnt 1
           err = new Error "Only expecting one UserID-style packet in a self-sig (got #{n})"
@@ -466,7 +466,7 @@ class ReasonForRevocation extends SubPacket
     reason = slice.consume_rest_to_buffer()
     return new ReasonForRevocation flag, reason
   _v_to_buffer : () ->
-    Buffet.concat [ uint_to_buffer(8, @flag), @reason ]
+    Buffer.concat [ uint_to_buffer(8, @flag), @reason ]
 
 #------------
 
