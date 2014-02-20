@@ -60,9 +60,15 @@ class Pub
 
 class Priv
 
+  #-------------------
+
   constructor : ({@x,@pub}) ->
 
+  #-------------------
+
   serialize : () -> @x.to_mpi_buffer()
+
+  #-------------------
 
   sign : (h, cb) ->
     err = null
@@ -72,7 +78,9 @@ class Priv
     k = k.add(BigInteger.ONE)
     r = g.modPow(k,p).mod(q)
     s = (k.modInverse(q).multiply(hi.add(@x.multiply(r)))).mod(q)
-    cb([r,s])
+    cb [r,s]
+
+  #-------------------
 
   @alloc : (raw,pub) ->
     orig = raw.length
