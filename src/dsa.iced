@@ -4,6 +4,7 @@ bn = require './bn'
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
+{BaseKeyPair} = require './basekeypair'
 
 #=================================================================
 
@@ -40,9 +41,13 @@ class Pub
 
   #----------------
 
+  trunc_hash : (h) -> bn.bn_from_left_n_bits h, @q.bitLength()
+
+  #----------------
+
   verify : ([r, s], h, cb) ->
     err = null
-    hi = bn.bn_from_left_n_bits h, @q.bitLength()
+    hi = @trunc_hash(h)
     w = s.modInverse @q
     u1 = hi.multiply(w).mod(@q)
     u2 = r.multiply(w).mod(@q)
@@ -53,7 +58,38 @@ class Pub
 
 #=================================================================
 
-class Pair
+class Priv
+
+  constructor : ({@x,@pub}) ->
+
+  serialize : () -> @x.to_mpi_buffer()
+
+  sign : (h, cb) ->
+    err = null
+    {p,q,g} = @pub
+    hi = @pub.trunc_hash(h)
+    await SRF().random_zn q.subtract(bn.nbv(2)), defer k
+    k = k.add(BigInteger.ONE)
+    r = g.modPow(k,p).mod(q)
+    s = (k.modInverse(q).multiply(hi.add(@x.multiply(r)))).mod(q)
+    cb([r,s])
+
+  @alloc : (raw,pub) ->
+    orig = raw.length
+    [err, x, raw] = bn.mpi_from_buffer raw
+    if err? then [ err, null ]
+    else [ null, new Priv {x, pub}, (orig - raw.length) ]
+
+#=================================================================
+
+class Pair extends BaseKeyPair
+
+  #--------------------
+
+  @Pub : Pub
+  Pub : Pub
+  @Priv : Priv
+  Priv : Priv
 
   #--------------------
 
@@ -62,18 +98,9 @@ class Pair
 
   #--------------------
   
-  constructor : ({ @pub, @priv }) ->
-
-  #--------------------
-  
-  @parse : (pub_raw) -> 
-    [err, key, len] = Pub.alloc pub_raw
-    key = new Pair { pub : key } if key?
-    [err, key, len ]
-
-  #----------------
-
-  serialize : () -> @pub.serialize()
+  constructor : ({ pub, priv }) -> super { pub, priv }
+  @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
+  can_encrypt : () -> false
 
   #----------------
 

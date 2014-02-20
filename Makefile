@@ -12,6 +12,7 @@ lib/%.js: src/%.iced
 	$(ICED) -I browserify -c -o `dirname $@` $<
 
 $(BUILD_STAMP): \
+        lib/basekeypair.js \
 	lib/const.js \
 	lib/dsa.js \
 	lib/main.js \

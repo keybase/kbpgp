@@ -9,6 +9,7 @@ K = konst.kb
 {SHA512} = require './hash'
 {eme_pkcs1_encode,eme_pkcs1_decode,emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
 {SRF,MRF} = require './rand'
+{BaseKeyPair} = require './basekeypair'
 
 #=======================================================================
 
@@ -202,59 +203,27 @@ class Pub
 
 #=======================================================================
 
-class Pair
+class Pair extends BaseKeyPair
 
   @type : C.public_key_algorithms.RSA
   type : Pair.type
 
   #----------------
 
-  constructor : ({@priv, @pub}) ->
-    @pub.parent = @
-    @priv.parent = @ if @priv?
+  @Pub : Pub
+  Pub : Pub
+  @Priv : Priv
+  Priv : Priv
 
   #----------------
 
-  serialize : () -> @pub.serialize()
-  hash : () -> SHA512 @serialize()
-  ekid : () ->  Buffer.concat [ new Buffer([K.kid.version, @type]), @hash() ]
-  can_sign : () -> @priv?
-  can_decrypt : () -> @priv?
+  constructor : ({priv, pub}) ->
+    super { priv, pub }
 
   #----------------
 
-  eq : (k2) -> (@type is k2.type) and (bufeq_secure @serialize(), k2.serialize())
-
-  #----------------
-
-  # @param {number} ops_mask A Mask of all of the ops requested of this key,
-  #    whose individual bits are on kbpgp.const.ops
-  #   
-  can_perform : (ops_mask) ->
-    if (ops_mask & konst.ops.sign) and not @can_sign() then false
-    else if (ops_mask & konst.ops.decrypt) and not @can_decrypt() then false
-    else true
-
-  #----------------
-
-  @parse : (pub_raw) ->
-    [err, key, len ] = Pub.alloc pub_raw
-    key = new Pair { pub : key } if key?
-    [err, key, len]
-
-  #----------------
-
-  add_priv : (priv_raw) ->
-    [err, @priv, len] = Priv.alloc priv_raw
-    [err, len]
-
-  #----------------
-
-  @alloc : ({pub, priv}) ->
-    [err, pub  ] = Pub.alloc  pub
-    [err, priv ] = Priv.alloc priv, pub if not err? and priv?
-    if err? then [ err, null ]
-    else [ null, new Pair { priv, pub }]
+  @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
+  @alloc : ({pub, priv}) -> BaseKeyPair.alloc { pub, priv }
 
   #----------------
 
@@ -271,12 +240,6 @@ class Pair
       await @verify y1, defer y2
       err = new Error "Sign/verify failed" unless y0.compareTo(y2) is 0
     cb err
-
-  #----------------
-
-  read_priv : (raw_priv) ->
-    [err,@priv] = Priv.alloc raw_priv, @pub
-    err
 
   #----------------
 
