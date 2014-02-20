@@ -58,6 +58,31 @@ X0uqWT6kHA/R7W9wiqmX
 """,
       plaintext :  "My unavailing attempts to somehow reintegrate the action quantum into classical theory extended over several years and caused me much trouble.\n"
     }        
+  ],
+  signcrypted : [
+    {
+      ciphertext : """
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+
+hQEOA6GRDo3EkelYEAP9Eu7momivfWhIXFtkbM9ZmGBiLNP9Doq+jy7IPFMvKanK
+7dv6Dv4RFcT+3WiphiWdgUXQwawyLL/2r1DYWw5CJ15RMUfnSVVQJw2k+2fxOyug
+cJAXuIYVZ6AYU27NESlBje4cYaXk2kvdbYZ5wHRNGixlnyOmPCxsYDiHSKLHcHME
+ALlyvqxpi01ZYW6ZKE58pvs45fj95l7KHZmIqCgzEEKvKk/w2Si0699bs05ldPAw
+uO3d2MQP6VsxhzgiAE5B6B/fXpnK5aUuoRmAhJvnVoM2ZAguZTgLLhR2Ma+7cvMd
+Da9o3Hzz/T2UBf0qRQ3X9O66WNKe4Xipp++p/V/WJ6u10sB4AWm/Bw16rweXQGpN
+/TAVQBfdbACLPuOme3Bv9IZs5q5Ou5UB90kPcyIEyvtE0gujtgU4S1Pdby5Gh2qI
+g3qImF1c6q67r16MVLtjt59L81/hpFARGpxI02nKecLXPIXhItsQXf8e7PjVRNLt
+mH1vSFZuUunqJI2+6LmjKLSFfPZt0osEyxKQ3tY/F/jBsR3f1pU5U5Ms9FojqtB4
+e0X6VqyJrw8xauQJWNfQ1CC1T4Vl/DhX7ObCRwdpaCfh2i+1RyROxMfmvMTSCyQb
+Lv972c/jTKdnsTfxWp7zroX1kzzsUUhjV91GnWAtZzKcOyDXlqUZqObVObMD8wpA
+CcZLYRrvnqrtjVDtBpbliNOMc+BE2zCot1ZGUFyqkw6pskUxxRXf4xfa0eys2HjG
+2DhxByChz0SGgnRO
+=haPD
+-----END PGP MESSAGE-----
+""",
+      plaintext :  "A scientific truth does not triumph by convincing its opponents and making them see the light, but rather because its opponents eventually die and a new generation grows up that is familiar with it.\n"
+    }
   ]
 }
 
@@ -73,11 +98,24 @@ exports.decrypt_msgs = (T, cb) ->
   T.waypoint "key unlock"
   key = km.find_crypt_pgp_key()
   T.assert key?, "found a key'"
-  for msg in o.encrypted
+  for msg,i in o.encrypted
     await do_message { armored : msg.ciphertext, keyfetch : km }, defer err, out
     T.no_error err
     T.equal out.length, 1, "got 1 literal data packet"
-    T.equal out[0].data.toString('utf8'), msg.plaintext, "plaintext came out ok"
+    lit = out[0]
+    T.equal lit.data.toString('utf8'), msg.plaintext, "plaintext came out ok"
+    signer = lit.get_data_signer()
+    T.assert not(signer?), "we not were signed"
+    T.waypoint "decrypted msg #{i}"
+  for msg,i in o.signcrypted
+    await do_message { armored : msg.ciphertext, keyfetch : km }, defer err, out
+    T.no_error err
+    T.equal out.length, 1, "got 1 literal data packet"
+    lit = out[0]
+    T.equal lit.data.toString('utf8'), msg.plaintext, "plaintext came out ok"
+    T.waypoint "decrypted/verified msg #{i}"
+    signer = lit.get_data_signer()
+    T.assert signer?, "we were signed"
   cb()
 
 #=================================================================
