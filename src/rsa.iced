@@ -13,7 +13,8 @@ K = konst.kb
 
 #=======================================================================
 
-class Priv
+class Priv extends BaseKey
+
   constructor : ({@p,@q,@d,@dmp1,@dmq1,@u,@pub}) ->
 
   #--------------------
@@ -23,13 +24,8 @@ class Priv
 
   #--------------------
 
-  serialize : () -> 
-    Buffer.concat [
-      @d.to_mpi_buffer()
-      @p.to_mpi_buffer()
-      @q.to_mpi_buffer()
-      @u.to_mpi_buffer()
-    ]
+  @ORDER : [ 'd', 'p', 'q', 'u' ]
+  ORDER : Priv.ORDER
 
   #--------------------
 
@@ -39,16 +35,7 @@ class Priv
 
   #--------------------
 
-  @alloc : (raw, pub) ->
-    orig_len = raw.length
-    err = null
-    mpis = []
-    for i in [0...4] when not err?
-      [err, mpis[i], raw] = bn.mpi_from_buffer raw
-    if err then [ err, null ]
-    else 
-      [d,p,q,u] = mpis
-      [ null, new Priv({p,d,q,u,pub}) , (orig_len - raw.length) ]
+  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
 
   #--------------------
 

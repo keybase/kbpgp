@@ -10,9 +10,8 @@ exports.BaseKey = class BaseKey
 
   #----------------
 
-  @alloc : (klass, raw) ->
+  @alloc : (klass, raw, d = {}) ->
     orig_len = raw.length
-    d = {}
     err = null
     for o in klass.ORDER when not err?
       [err, d[o], raw ] = bn.mpi_from_buffer raw

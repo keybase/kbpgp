@@ -47,7 +47,13 @@ class Pub extends BaseKey
 
 #=================================================================
 
-class Priv
+class Priv extends BaseKey
+
+  #-------------------
+
+  # The serialization order of the parameters in the public key
+  @ORDER : [ 'x' ]
+  ORDER : Priv.ORDER
 
   #-------------------
 
@@ -55,7 +61,7 @@ class Priv
 
   #-------------------
 
-  serialize : () -> @x.to_mpi_buffer()
+  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
 
   #-------------------
 
@@ -68,14 +74,6 @@ class Priv
     r = g.modPow(k,p).mod(q)
     s = (k.modInverse(q).multiply(hi.add(@x.multiply(r)))).mod(q)
     cb [r,s]
-
-  #-------------------
-
-  @alloc : (raw,pub) ->
-    orig = raw.length
-    [err, x, raw] = bn.mpi_from_buffer raw
-    if err? then [ err, null ]
-    else [ null, new Priv {x, pub}, (orig - raw.length) ]
 
 #=================================================================
 

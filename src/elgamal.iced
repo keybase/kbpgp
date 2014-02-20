@@ -4,12 +4,12 @@ bn = require './bn'
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
-{BaseKeyPair} = require './basekeypair'
+{BaseKeyPair,BaseKey} = require './basekeypair'
 {SRF,MRF} = require './rand'
 
 #=================================================================
 
-class Pub
+class Pub extends BaseKey
 
   @type : C.public_key_algorithms.ELGAMAL
   type : Pub.type
@@ -26,7 +26,13 @@ class Pub
 
 #=================================================================
 
-class Priv
+class Priv extends BaseKey
+
+  #----------------
+
+  # The serialization order of the parameters in the public key
+  @ORDER : [ 'x' ]
+  ORDER : Pub.ORDER
 
   #-------------------
 
