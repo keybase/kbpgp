@@ -4,12 +4,12 @@ bn = require './bn'
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
-{BaseKeyPair} = require './basekeypair'
+{BaseKey,BaseKeyPair} = require './basekeypair'
 {SRF,MRF} = require './rand'
 
 #=================================================================
 
-class Pub
+class Pub extends BaseKey
 
   @type : C.public_key_algorithms.DSA
   type : Pub.type
@@ -26,19 +26,7 @@ class Pub
 
   #----------------
 
-  serialize : () -> 
-    Buffer.concat( @[e].to_mpi_buffer() for e in @ORDER )
-
-  #----------------
-
-  @alloc : (raw) ->
-    orig_len = raw.length
-    d = {}
-    err = null
-    for o in Pub.ORDER when not err?
-      [err, d[o], raw ] = bn.mpi_from_buffer raw
-    if err then [ err, null ]
-    else [ null, new Pub(d), (orig_len - raw.length) ]
+  @alloc : (raw) -> BaseKey.alloc Pub, raw
 
   #----------------
 

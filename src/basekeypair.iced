@@ -2,6 +2,29 @@ konst = require './const'
 C = konst.openpgp
 K = konst.kb
 {SHA512} = require './hash'
+bn = require './bn'
+
+#============================================================
+
+exports.BaseKey = class BaseKey
+
+  #----------------
+
+  @alloc : (klass, raw) ->
+    orig_len = raw.length
+    d = {}
+    err = null
+    for o in klass.ORDER when not err?
+      [err, d[o], raw ] = bn.mpi_from_buffer raw
+    if err then [ err, null ]
+    else [ null, new klass(d), (orig_len - raw.length) ]
+
+  #----------------
+
+  serialize : () -> 
+    Buffer.concat( @[e].to_mpi_buffer() for e in @ORDER )
+
+  #----------------
 
 #============================================================
 

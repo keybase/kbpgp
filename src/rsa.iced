@@ -9,7 +9,7 @@ K = konst.kb
 {SHA512} = require './hash'
 {eme_pkcs1_encode,eme_pkcs1_decode,emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
 {SRF,MRF} = require './rand'
-{BaseKeyPair} = require './basekeypair'
+{BaseKey,BaseKeyPair} = require './basekeypair'
 
 #=======================================================================
 
@@ -170,9 +170,17 @@ class Priv
 
 #=======================================================================
 
-class Pub
+class Pub extends BaseKey
+
+  #----------------
+
   @type : C.public_key_algorithms.RSA
   type : Pub.type
+
+  #----------------
+
+  @ORDER : [ 'n', 'e' ]
+  ORDER : Pub.ORDER
 
   #----------------
 
@@ -182,20 +190,7 @@ class Pub
 
   #----------------
 
-  serialize : () -> 
-    Buffer.concat [
-      @n.to_mpi_buffer()
-      @e.to_mpi_buffer() 
-    ]
-
-  #----------------
-
-  @alloc : (raw) ->
-    orig_len = raw.length
-    [err, n, raw] = bn.mpi_from_buffer raw
-    [err, e, raw] = bn.mpi_from_buffer raw unless err?
-    if err then [ err, null ]
-    else [ null, new Pub({n, e}), (orig_len - raw.length) ]
+  @alloc : (raw) -> BaseKey.alloc Pub, raw
 
   #----------------
 
