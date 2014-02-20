@@ -6,40 +6,12 @@ bn = require './bn'
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
+{BaseKey,BaseKeyPair} = require './basekeypair'
+{SRF,MRF} = require './rand'
 
 #=================================================================
 
-class Priv
-
-  #----------------
-
-  constructor : ( {@x,@pub} ) ->
-
-  #----------------
-
-  serialize : () -> @x.to_mpi_buffer()
-
-  #----------------
-
-  @alloc : (raw, pub) ->
-    orig = raw.length
-    [ err, x, raw ] = bn.mpi_from_buffer raw
-    if err? then [err, null]
-    else [ null, new Priv { x, pub}, (orig - raw.length) ]
-
-  #----------------
-
-  sign : (h, cb) ->
-    hi = bn.bn_from_left_n_bits h, q.bitLength()
-    await SRF().random_zn @q.subtract(nbv(2)), defer k
-    k = k.add BigInteger.ONE
-    r = @g.modPow(k, @p).mod(@q)
-    s = (k.modInverse(@q).multiply(hi.add(@x.multiply(r)))).mod(@q)
-    cb [r,s]
-
-#=================================================================
-
-class Pub
+class Pub extends BaseKey
 
   @type : C.public_key_algorithms.DSA
   type : Pub.type
@@ -56,35 +28,64 @@ class Pub
 
   #----------------
 
-  serialize : () -> 
-    Buffer.concat( @[e].to_mpi_buffer() for e in @ORDER )
+  @alloc : (raw) -> BaseKey.alloc Pub, raw
 
   #----------------
 
-  @alloc : (raw) ->
-    orig_len = raw.length
-    d = {}
-    err = null
-    for o in Pub.ORDER when not err?
-      [err, d[o], raw ] = bn.mpi_from_buffer raw
-    if err then [ err, null ]
-    else [ null, new Pub(d), (orig_len - raw.length) ]
+  trunc_hash : (h) -> bn.bn_from_left_n_bits h, @q.bitLength()
 
   #----------------
 
   verify : ([r, s], h, cb) ->
     err = null
-    hi = bn.bn_from_left_n_bits h, @q.bitLength()
+    hi = @trunc_hash(h)
     w = s.modInverse @q
     u1 = hi.multiply(w).mod(@q)
     u2 = r.multiply(w).mod(@q)
     v = @g.modPow(u1, @p).multiply(@y.modPow(u2, @p)).mod(@p).mod(@q)
-    err = new Error "hash mismatch" if not v.equals(r)
+    err = new Error "verification failed" unless v.equals(r)
     cb err
 
 #=================================================================
 
-class Pair
+class Priv extends BaseKey
+
+  #-------------------
+
+  # The serialization order of the parameters in the public key
+  @ORDER : [ 'x' ]
+  ORDER : Priv.ORDER
+
+  #-------------------
+
+  constructor : ({@x,@pub}) ->
+
+  #-------------------
+
+  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
+
+  #-------------------
+
+  sign : (h, cb) ->
+    err = null
+    {p,q,g} = @pub
+    hi = @pub.trunc_hash(h)
+    await SRF().random_zn q.subtract(bn.nbv(2)), defer k
+    k = k.add(bn.BigInteger.ONE)
+    r = g.modPow(k,p).mod(q)
+    s = (k.modInverse(q).multiply(hi.add(@x.multiply(r)))).mod(q)
+    cb [r,s]
+
+#=================================================================
+
+class Pair extends BaseKeyPair
+
+  #--------------------
+
+  @Pub : Pub
+  Pub : Pub
+  @Priv : Priv
+  Priv : Priv
 
   #--------------------
 
@@ -93,30 +94,10 @@ class Pair
 
   #--------------------
   
-  constructor : ({ @pub, @priv }) ->
+  constructor : ({ pub, priv }) -> super { pub, priv }
+  @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
+  can_encrypt : () -> false
 
-  #--------------------
-  
-  @parse : (pub_raw) -> 
-    [err, key, len] = Pub.alloc pub_raw
-    key = new Pair { pub : key } if key?
-    [err, key, len ]
-
-  #----------------
-
-  serialize : () -> @pub.serialize()
-
-  #----------------
-
-
-  pad_and_sign : (data, {hasher}, cb) ->
-    # XXX use the DSA recommendations for which hash to use
-    hasher or= SHA512
-    hashed_data = hasher data
-    await @sign hashed_data, defer [r,s]
-    out = Buffer.concat [ r.to_mpi_buffer(), s.to_mpi_buffer() ]
-    cb out
-    
   #----------------
 
   verify_unpad_and_check_hash : (sig, data, hasher, cb) ->
@@ -131,6 +112,15 @@ class Pair
 
   #----------------
 
+  pad_and_sign : (data, {hasher}, cb) ->
+    # XXX use the DSA recommendations for which hash to use
+    hasher or= SHA512
+    h = hasher data
+    await @priv.sign h, defer sig
+    cb Buffer.concat(s.to_mpi_buffer() for s in sig)
+
+  #----------------
+
   # Parse a signature out of a packet
   #
   # @param {SlicerBuffer} slice The input slice
@@ -138,7 +128,7 @@ class Pair
   # @throw {Error} an Error if there was an overrun of the packet.
   @parse_sig : (slice) -> 
     buf = slice.peek_rest_to_buffer()
-    [err, ret, n] = @read_sig_from_buf buf
+    [err, ret, n] = Pair.read_sig_from_buf buf
     throw err if err?
     slice.advance n
     return ret
@@ -162,8 +152,6 @@ class Pair
       x
     n = orig_len - buf.length
     return [err, ret, n]
-
-  #----------------
 
 #=================================================================
 

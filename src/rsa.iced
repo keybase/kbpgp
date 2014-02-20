@@ -9,10 +9,12 @@ K = konst.kb
 {SHA512} = require './hash'
 {eme_pkcs1_encode,eme_pkcs1_decode,emsa_pkcs1_decode,emsa_pkcs1_encode} = require './pad'
 {SRF,MRF} = require './rand'
+{BaseKey,BaseKeyPair} = require './basekeypair'
 
 #=======================================================================
 
-class Priv
+class Priv extends BaseKey
+
   constructor : ({@p,@q,@d,@dmp1,@dmq1,@u,@pub}) ->
 
   #--------------------
@@ -22,13 +24,8 @@ class Priv
 
   #--------------------
 
-  serialize : () -> 
-    Buffer.concat [
-      @d.to_mpi_buffer()
-      @p.to_mpi_buffer()
-      @q.to_mpi_buffer()
-      @u.to_mpi_buffer()
-    ]
+  @ORDER : [ 'd', 'p', 'q', 'u' ]
+  ORDER : Priv.ORDER
 
   #--------------------
 
@@ -38,16 +35,7 @@ class Priv
 
   #--------------------
 
-  @alloc : (raw, pub) ->
-    orig_len = raw.length
-    err = null
-    mpis = []
-    for i in [0...4] when not err?
-      [err, mpis[i], raw] = bn.mpi_from_buffer raw
-    if err then [ err, null ]
-    else 
-      [d,p,q,u] = mpis
-      [ null, new Priv({p,d,q,u,pub}) , (orig_len - raw.length) ]
+  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
 
   #--------------------
 
@@ -169,9 +157,17 @@ class Priv
 
 #=======================================================================
 
-class Pub
+class Pub extends BaseKey
+
+  #----------------
+
   @type : C.public_key_algorithms.RSA
   type : Pub.type
+
+  #----------------
+
+  @ORDER : [ 'n', 'e' ]
+  ORDER : Pub.ORDER
 
   #----------------
 
@@ -181,20 +177,7 @@ class Pub
 
   #----------------
 
-  serialize : () -> 
-    Buffer.concat [
-      @n.to_mpi_buffer()
-      @e.to_mpi_buffer() 
-    ]
-
-  #----------------
-
-  @alloc : (raw) ->
-    orig_len = raw.length
-    [err, n, raw] = bn.mpi_from_buffer raw
-    [err, e, raw] = bn.mpi_from_buffer raw unless err?
-    if err then [ err, null ]
-    else [ null, new Pub({n, e}), (orig_len - raw.length) ]
+  @alloc : (raw) -> BaseKey.alloc Pub, raw
 
   #----------------
 
@@ -202,59 +185,27 @@ class Pub
 
 #=======================================================================
 
-class Pair
+class Pair extends BaseKeyPair
 
   @type : C.public_key_algorithms.RSA
   type : Pair.type
 
   #----------------
 
-  constructor : ({@priv, @pub}) ->
-    @pub.parent = @
-    @priv.parent = @ if @priv?
+  @Pub : Pub
+  Pub : Pub
+  @Priv : Priv
+  Priv : Priv
 
   #----------------
 
-  serialize : () -> @pub.serialize()
-  hash : () -> SHA512 @serialize()
-  ekid : () ->  Buffer.concat [ new Buffer([K.kid.version, @type]), @hash() ]
-  can_sign : () -> @priv?
-  can_decrypt : () -> @priv?
+  constructor : ({priv, pub}) ->
+    super { priv, pub }
 
   #----------------
 
-  eq : (k2) -> (@type is k2.type) and (bufeq_secure @serialize(), k2.serialize())
-
-  #----------------
-
-  # @param {number} ops_mask A Mask of all of the ops requested of this key,
-  #    whose individual bits are on kbpgp.const.ops
-  #   
-  can_perform : (ops_mask) ->
-    if (ops_mask & konst.ops.sign) and not @can_sign() then false
-    else if (ops_mask & konst.ops.decrypt) and not @can_decrypt() then false
-    else true
-
-  #----------------
-
-  @parse : (pub_raw) ->
-    [err, key, len ] = Pub.alloc pub_raw
-    key = new Pair { pub : key } if key?
-    [err, key, len]
-
-  #----------------
-
-  add_priv : (priv_raw) ->
-    [err, @priv, len] = Priv.alloc priv_raw
-    [err, len]
-
-  #----------------
-
-  @alloc : ({pub, priv}) ->
-    [err, pub  ] = Pub.alloc  pub
-    [err, priv ] = Priv.alloc priv, pub if not err? and priv?
-    if err? then [ err, null ]
-    else [ null, new Pair { priv, pub }]
+  @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
+  @alloc : ({pub, priv}) -> BaseKeyPair.alloc { pub, priv }
 
   #----------------
 
@@ -271,12 +222,6 @@ class Pair
       await @verify y1, defer y2
       err = new Error "Sign/verify failed" unless y0.compareTo(y2) is 0
     cb err
-
-  #----------------
-
-  read_priv : (raw_priv) ->
-    [err,@priv] = Priv.alloc raw_priv, @pub
-    err
 
   #----------------
 

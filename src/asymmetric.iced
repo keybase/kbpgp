@@ -9,3 +9,5 @@ exports.get_class = (n) ->
     when C.ELGAMAL then throw new Error "no support yet for ElGamal"
     when C.DSA then DSA
     else throw new Error "unknown public key system: #{n}"
+
+#============================================================
