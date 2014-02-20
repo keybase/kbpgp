@@ -1,4 +1,5 @@
 {KeyManager} = require '../../lib/keymanager'
+{do_message,Processor} = require '../../lib/openpgp/processor'
 
 #=================================================================
 
@@ -41,7 +42,51 @@ q85awd3aY9dgbP7Q0Pnnxdvqf/wA
 #=================================================================
 
 exports.verify_sigs = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : dlg.key }, defer err
+  await KeyManager.import_from_armored_pgp { raw : dlg.key }, defer err, km
+  T.no_error err
+  fp = km.get_pgp_fingerprint().toString('hex').toUpperCase()
+  T.assert fp, "a fingerprint came back"
+  fp2 = "91D6582E37E81A9A7F19D2F57184D2B91FF57997"
+  T.equal fp, fp2, "the right fingerprint"
+  for sig in dlg.sigs
+    await do_message { armored : sig, keyfetch : km }, defer err, literals
+    T.no_error err
+    T.equal literals.length, 1, "only got 1 literal packet back"
+    lit = literals[0]
+    signer = lit.get_data_signer()
+    T.assert signer?, "we were signed"
+    console.log signer
+    console.log lit.data.toString()
+  cb()
+
+#=================================================================
+
+gbc = {
+  key : """
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+lQHhBFMFX/YRBACKwOOj7dkyHb8J3qDOvS0ZEcgiZnFCaLCh07GWV/S/HEelVaDF
+BIVdn2Ho/j80HWkRMJAFqNBoEfqqz1n6MFxZNgUlWOOSdUIkOq2qcZhqQqcvwqJU
+FxKKO7gKI037HBYlgmgD2/LGAWGZQDHDciDqcy+SEwvFB+y/x9bSSCornwCgnVzp
+C77KgeXIS26JtbMeNd7x+xkD/3NjzK0jF3v7fASE2Eik+VlGiXkk8IuV32LYAtkd
+Qyjw+Xqx6T3gtOEPOJWd0MlOdb75J/EMJYN+10yMCIFgMTUexL4uVRKMRBy3JBwW
+kHApO+LG/2g5ZHupaqBixfcpya5N1T+sNNlPQ1pvCTANakp1ELR2BAb6g5PGuQab
+scboA/9LsjYMdTqXQVCj9ck0+kSFxeBygobDqQIwd4BW2fMRzRg7kFZdICtzYSSi
+2z9iHmzC+OiokPKHnVSYRKSZ5cHe/ke2SunptKzpFhWxKO5FYRODX3txvEMUUst+
+FE1f/+dnLQyxY5BB1fRcpUlUtRZ453lObMm0aY652bgyW/6CSP4DAwJVX0fqCIms
+8WC03phNbtqDYUIajoX+e+p8wBBUNRZo4JSV8s7OTI+MMTR0MO38+9B+cM9KKmbG
+A0Clx7Q3R2VvcmdlcyBCZW5qYW1pbiBDbGVtZW5jZWF1IChwdyBpcyAnYWJjZCcp
+IDxnYmNAZ292LmZyPohoBBMRAgAoBQJTBV/2AhsDBQkSzAMABgsJCAcDAgYVCAIJ
+CgsEFgIDAQIeAQIXgAAKCRA350+UAcLjmJWYAKCYHsrgY+k3bQ7ov2XHf9SjX7qU
+twCfebPu3y0/Ll7OdCw5fcXuzbCUbjY=
+=s2F5
+-----END PGP PRIVATE KEY BLOCK-----
+"""
+}
+
+exports.dsa_round_trip = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : gbc.key }, defer err, km
   T.no_error err
   cb()
 
