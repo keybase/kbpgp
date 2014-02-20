@@ -385,6 +385,7 @@ class KeyManager
     warnings = null
     unless err?
       [err,packets] = parse msg.body
+    throw err if err?
     unless err?
       kb = new KeyBlock packets
       await kb.process defer err

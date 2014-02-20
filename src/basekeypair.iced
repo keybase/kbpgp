@@ -67,6 +67,7 @@ exports.BaseKeyPair = class BaseKeyPair
   #----------------
 
   add_priv : (priv_raw) ->
+    console.log "add priv motherucuer!"
     [err, @priv, len] = Priv.alloc priv_raw
     [err, len]
 

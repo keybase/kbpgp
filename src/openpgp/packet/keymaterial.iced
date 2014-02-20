@@ -4,6 +4,7 @@ triplesec = require 'triplesec'
 {SHA1,SHA256} = triplesec.hash
 RSA = require('../../rsa').Pair
 DSA = require('../../dsa').Pair
+ElGamal = require('../../elgamal').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
 {calc_checksum} = require '../util'
@@ -133,7 +134,7 @@ class KeyMaterial extends Packet
 
   # TODO --- support Other signature systems like DSA?
   # See Issue #23: https://github.com/keybase/kbpgp/issues/23
-  get_klass : () -> RSA
+  get_klass : () -> @key.constructor
 
   #--------------------------
 
@@ -383,10 +384,12 @@ class Parser
   parse_public_key_mpis: () ->
     @algorithm = @slice.read_uint8()
     A = C.public_key_algorithms
-    [err, key, len ] = switch @algorithm
-      when A.RSA, A.RSA_ENCRYPT_ONLY, A.RSA_SIGN_ONLY then RSA.parse @slice.peek_rest_to_buffer()
-      when A.DSA then DSA.parse @slice.peek_rest_to_buffer()
-      else throw new Error "Can only deal with RSA right now"
+    klass = switch @algorithm 
+      when A.RSA, A.RSA_ENCRYPT_ONLY, A.RSA_SIGN_ONLY then RSA
+      when A.DSA then DSA
+      when A.ELGAMAL then ElGamal
+      else throw new Error "Unknown key type: #{@algorithm}"
+    [err, key, len] = klass.parse @slice.peek_rest_to_buffer()
     throw err if err?
     @slice.advance len
     key

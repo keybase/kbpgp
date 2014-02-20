@@ -27,6 +27,11 @@ class Pub extends BaseKey
 
   #----------------
 
+  @alloc : (raw) -> 
+    BaseKey.alloc Pub, raw
+
+  #----------------
+
   encrypt : (m, cb) ->
     {g,y,p} = @pub
     await SRF().random_zn p.subtract(bn.nbv(2)), defer k
@@ -37,15 +42,6 @@ class Pub extends BaseKey
     ]
     cb c
 
-  #----------------
-
-  decrypt : (c, cb) ->
-    p = @pub.p
-    ret = c[0].modPow(@x,p).modInverse(p).multiply(c[1]).mod(p)
-    cb ret
-
-  #----------------
-
 #=================================================================
 
 class Priv extends BaseKey
@@ -54,7 +50,7 @@ class Priv extends BaseKey
 
   # The serialization order of the parameters in the public key
   @ORDER : [ 'x' ]
-  ORDER : Pub.ORDER
+  ORDER : Priv.ORDER
 
   #-------------------
 
@@ -63,6 +59,14 @@ class Priv extends BaseKey
   #-------------------
 
   serialize : () -> @x.to_mpi_buffer()
+  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
+
+  #----------------
+
+  decrypt : (c, cb) ->
+    p = @pub.p
+    ret = c[0].modPow(@x,p).modInverse(p).multiply(c[1]).mod(p)
+    cb ret
 
 #=================================================================
 
@@ -83,8 +87,10 @@ class Pair extends BaseKeyPair
   #--------------------
   
   constructor : ({ pub, priv }) -> super { pub, priv }
-  @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
   can_sign : () -> false
+  @parse : (pub_raw) -> 
+    ret = BaseKeyPair.parse Pair, pub_raw
+    return ret
 
   #----------------
 
