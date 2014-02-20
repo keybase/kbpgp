@@ -83,14 +83,20 @@ CcZLYRrvnqrtjVDtBpbliNOMc+BE2zCot1ZGUFyqkw6pskUxxRXf4xfa0eys2HjG
 """,
       plaintext :  "A scientific truth does not triumph by convincing its opponents and making them see the light, but rather because its opponents eventually die and a new generation grows up that is familiar with it.\n"
     }
+  ],
+  quotes : [
+    "Something something foo foo bar bar should be better no time."
   ]
 }
+
+km = null
 
 #=================================================================
 
 exports.decrypt_msgs = (T, cb) ->
   o = planck
-  await KeyManager.import_from_armored_pgp { raw : o.key }, defer err, km
+  await KeyManager.import_from_armored_pgp { raw : o.key }, defer err, tmp
+  km = tmp
   T.waypoint "key import"
   T.no_error err
   await km.unlock_pgp o, defer err
@@ -116,6 +122,24 @@ exports.decrypt_msgs = (T, cb) ->
     T.waypoint "decrypted/verified msg #{i}"
     signer = lit.get_data_signer()
     T.assert signer?, "we were signed"
+  cb()
+
+#=================================================================
+
+exports.elgamal_round_trip = (T,cb) ->
+  o = planck
+  opts = 
+    msg : o.quotes[0]
+    signing_key : km.find_signing_pgp_key()
+    encryption_key : km.find_crypt_pgp_key()
+  await burn opts, defer err, asc
+  T.no_error err
+  await do_message { armored : asc, keyfetch : km }, defer err, out
+  T.no_error err
+  lit = out[0]
+  T.assert lit?, "got one out packet"
+  T.equal lit.data.toString('utf8'), o.quotes[0], "got equality"
+  T.assert lit.get_data_signer()?, "message was signed"
   cb()
 
 #=================================================================

@@ -33,12 +33,11 @@ class Pub extends BaseKey
   #----------------
 
   encrypt : (m, cb) ->
-    {g,y,p} = @pub
-    await SRF().random_zn p.subtract(bn.nbv(2)), defer k
-    k = k.add(nb.BigInteger.ONE)
+    await SRF().random_zn @p.subtract(bn.nbv(2)), defer k
+    k = k.add(bn.BigInteger.ONE)
     c = [
-      g.modPow(k, p),
-      y.modPow(k, p).multiply(m).mod(p)
+      @g.modPow(k, @p),
+      @y.modPow(k, @p).multiply(m).mod(@p)
     ]
     cb c
 
@@ -98,9 +97,8 @@ class Pair extends BaseKeyPair
     err = ret = null
     await eme_pkcs1_encode data, @pub.p.mpi_byte_length(), defer err, m
     unless err?
-      await @pub.encrypt m, defer c
-      c_mpis = (i.to_mpi_buffer() for i in c)
-      ret = @export_output { c_mpis } 
+      await @pub.encrypt m, defer c_mpis
+      ret = @export_output { c_mpis }
     cb err, ret
 
   #----------------
