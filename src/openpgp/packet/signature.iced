@@ -12,6 +12,34 @@ assert = require 'assert'
 
 #===========================================================
 
+class Signature_v3 extends Packet
+
+  #---------------------
+
+  constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
+                   @signed_hash_value_hash, @time, @sig, @type,
+                   @version } ) ->
+    @hasher = SHA512 unless @hasher?
+    @_framed_output = null # sometimes we store the framed output here 
+
+  #---------------------
+
+  get_key_id : () -> @key_id
+
+  #---------------------
+
+  gen_prefix : () ->
+    Buffer.concat [
+      new Buffer [ C.versions.signature.V3, @type ],
+      uint_to_buffer(32, @time),
+      @key_id,
+      new Buffer [ @key.type, @hasher.type ] 
+    ]
+
+  #---------------------
+
+#===========================================================
+
 class Signature extends Packet
 
   #---------------------
@@ -44,7 +72,7 @@ class Signature extends Packet
  
   #---------------------
 
-  prepare_payload_v4 : (data) -> 
+  prepare_payload : (data) -> 
     flatsp = Buffer.concat( s.to_buffer() for s in @hashed_subpackets )
 
     prefix = Buffer.concat [ 
@@ -68,7 +96,7 @@ class Signature extends Packet
   write_unframed : (data, cb) ->
     uhsp = Buffer.concat( s.to_buffer() for s in @unhashed_subpackets )
 
-    { prefix, payload, hvalue } = @prepare_payload_v4 data
+    { prefix, payload, hvalue } = @prepare_payload data
     await @key.pad_and_sign payload, { @hasher }, defer sig
     result2 = Buffer.concat [
       uint_to_buffer(16, uhsp.length),
@@ -111,18 +139,6 @@ class Signature extends Packet
   #-----------------
 
   verify : (data_packets, cb) ->
-    switch @version
-      when C.versions.signatures.V4 
-        await verify_v4 data_packets, defer err
-      when C.versions.signatures.V3
-        await verify_v3 data_packets, defer err
-      else
-        err = new Error "cannot verify signature v#{@version}"
-    cb err
-
-  #-----------------
-
-  verify_v4 : (data_packets, cb) ->
     await @_verify data_packets, defer err
     for p in @unhashed_subpackets when (not err? and (s = p.to_sig())?)
       if s.type isnt C.sig_types.primary_binding 
@@ -179,7 +195,7 @@ class Signature extends Packet
     unless err?
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
-      { payload } = @prepare_payload_v4 data
+      { payload } = @prepare_payload data
       await @key.verify_unpad_and_check_hash @sig, payload, @hasher, defer err
 
     # Now make sure that the signature wasn't expired
@@ -529,7 +545,7 @@ class Parser
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
     o.version = 3
-    new Signature o
+    new Signature_v3 o
 
   parse_v4 : () ->
     o = {}
