@@ -1,3 +1,9 @@
+## 0.0.10 (2014-2-21)
+
+Bugifxes:
+
+  - Upgrade to pgp-utils v0.0.14 to close keybase/node-client#106
+
 ## 0.0.9 (2014-2-21)
 
 Bugfixes:
