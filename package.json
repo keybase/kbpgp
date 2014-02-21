@@ -8,12 +8,7 @@
   ],
   "author": "Maxwell Krohn",
   "version": "0.0.8",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": ""
-    }
-  ],
+  "license": "BSD-3-Clause",
   "main": "./lib/main.js",
   "directories": {
     "lib": "lib/"
