@@ -1,4 +1,4 @@
-
+# 
 {Packet} = require './base'
 C = require('../../const').openpgp
 S = C.sig_subpacket
@@ -18,7 +18,7 @@ class Signature extends Packet
 
   constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
                    @signed_hash_value_hash, @hashed_subpackets, @time, @sig, @type,
-                   @unhashed_subpackets } ) ->
+                   @unhashed_subpackets, @version } ) ->
     @hasher = SHA512 unless @hasher?
     @hashed_subpackets = [] unless @hashed_subpackets?
     @unhashed_subpackets = [] unless @unhashed_subpackets?
@@ -44,7 +44,7 @@ class Signature extends Packet
  
   #---------------------
 
-  prepare_payload : (data) -> 
+  prepare_payload_v4 : (data) -> 
     flatsp = Buffer.concat( s.to_buffer() for s in @hashed_subpackets )
 
     prefix = Buffer.concat [ 
@@ -68,7 +68,7 @@ class Signature extends Packet
   write_unframed : (data, cb) ->
     uhsp = Buffer.concat( s.to_buffer() for s in @unhashed_subpackets )
 
-    { prefix, payload, hvalue } = @prepare_payload data
+    { prefix, payload, hvalue } = @prepare_payload_v4 data
     await @key.pad_and_sign payload, { @hasher }, defer sig
     result2 = Buffer.concat [
       uint_to_buffer(16, uhsp.length),
@@ -111,6 +111,18 @@ class Signature extends Packet
   #-----------------
 
   verify : (data_packets, cb) ->
+    switch @version
+      when C.versions.signatures.V4 
+        await verify_v4 data_packets, defer err
+      when C.versions.signatures.V3
+        await verify_v3 data_packets, defer err
+      else
+        err = new Error "cannot verify signature v#{@version}"
+    cb err
+
+  #-----------------
+
+  verify_v4 : (data_packets, cb) ->
     await @_verify data_packets, defer err
     for p in @unhashed_subpackets when (not err? and (s = p.to_sig())?)
       if s.type isnt C.sig_types.primary_binding 
@@ -167,7 +179,7 @@ class Signature extends Packet
     unless err?
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
-      { payload } = @prepare_payload data
+      { payload } = @prepare_payload_v4 data
       await @key.verify_unpad_and_check_hash @sig, payload, @hasher, defer err
 
     # Now make sure that the signature wasn't expired
@@ -513,9 +525,10 @@ class Parser
     o.sig_data = @slice.peek_rest_to_buffer()
     o.key_id = @slice.read_buffer 8
     o.public_key_class = asymmetric.get_class @slice.read_uint8()
-    o.hash = alloc_or_throw @slice.read_uint8()
+    o.hasher = alloc_or_throw @slice.read_uint8()
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
+    o.version = 3
     new Signature o
 
   parse_v4 : () ->
@@ -532,6 +545,7 @@ class Parser
     o.unhashed_subpackets = (@parse_subpacket() while @slice.i < end)
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
+    o.version = 4
     new Signature o
 
   parse_subpacket : () ->
