@@ -9,6 +9,7 @@ asymmetric = require '../../asymmetric'
 util = require 'util'
 packetsigs = require './packetsigs'
 assert = require 'assert'
+{SlicerBuffer} = require '../buffer'
 
 #===========================================================
 
@@ -28,6 +29,7 @@ class Signature_v3 extends Packet
 
   #---------------------
 
+  # For writing out these packets, which we'll likely never do.
   gen_prefix : () ->
     Buffer.concat [
       new Buffer [ C.versions.signature.V3, @type ],
@@ -35,6 +37,31 @@ class Signature_v3 extends Packet
       @key_id,
       new Buffer [ @key.type, @hasher.type ] 
     ]
+
+  #---------------------
+
+  prepare_payload : (data_packets) ->
+    console.log data_packets
+    console.log data_packets[0].data.toString('utf8')
+    bufs = [
+      new Buffer [ @type ]
+      uint_to_buffer(32, @time)
+    ].concat (dp.to_signature_payload() for dp in data_packets)
+    console.log bufs
+    Buffer.concat bufs
+
+  #---------------------
+
+  verify : (data_packets, cb) ->
+    payload = @prepare_payload data_packets
+    hash = @hasher payload
+    s = new SlicerBuffer hash
+    v = s.read_uint16()
+    if (v isnt (b = @signed_hash_value_hash))
+      err = new Error "quick hash check failed: #{v} != #{b}"
+    else
+      await @key.verify_unpad_and_check_hash { hash, @hasher, @sig }, defer err
+    cb err
 
   #---------------------
 
@@ -196,7 +223,7 @@ class Signature extends Packet
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
-      await @key.verify_unpad_and_check_hash @sig, payload, @hasher, defer err
+      await @key.verify_unpad_and_check_hash { @sig, data : payload, @hasher }, defer err
 
     # Now make sure that the signature wasn't expired
     unless err?
@@ -537,7 +564,7 @@ class Parser
     throw new error "Bad one-octet length" unless @slice.read_uint8() is 5
     o = {}
     o.type = @slice.read_uint8()
-    o.time = new Date (@slice.read_uint32() * 1000)
+    o.time = @slice.read_uint32()
     o.sig_data = @slice.peek_rest_to_buffer()
     o.key_id = @slice.read_buffer 8
     o.public_key_class = asymmetric.get_class @slice.read_uint8()

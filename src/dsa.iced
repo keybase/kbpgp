@@ -100,10 +100,10 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  verify_unpad_and_check_hash : (sig, data, hasher, cb) ->
+  verify_unpad_and_check_hash : ({sig, data, hasher, hash}, cb) ->
     err = null
     [err, sig] = Pair.read_sig_from_buf(sig) if Buffer.isBuffer(sig)
-    hash = hasher data
+    hash or= hasher data
     if sig.length isnt 2
       err = new Error "Expected 2 Bigints in the signature"
     else
