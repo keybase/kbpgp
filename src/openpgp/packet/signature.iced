@@ -41,13 +41,11 @@ class Signature_v3 extends Packet
   #---------------------
 
   prepare_payload : (data_packets) ->
-    console.log data_packets
-    console.log data_packets[0].data.toString('utf8')
-    bufs = [
-      new Buffer [ @type ]
+    bufs = (dp.to_signature_payload() for dp in data_packets)
+    bufs.push(
+      new Buffer([ @type ]),
       uint_to_buffer(32, @time)
-    ].concat (dp.to_signature_payload() for dp in data_packets)
-    console.log bufs
+    )
     Buffer.concat bufs
 
   #---------------------
