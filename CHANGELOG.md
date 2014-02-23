@@ -1,3 +1,9 @@
+## 0.0.11 (2014-2-22)
+
+Bugfixes:
+
+  - Finish support for v3 Signatures, and close #34
+
 ## 0.0.10 (2014-2-21)
 
 Bugifxes:
