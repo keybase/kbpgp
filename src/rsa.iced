@@ -305,7 +305,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  verify_unpad_and_check_hash : (sig, data, hasher, cb) ->
+  verify_unpad_and_check_hash : ({sig, data, hasher, hash}, cb) ->
     err = null
     [err, sig] = bn.mpi_from_buffer sig if Buffer.isBuffer sig
     unless err?
@@ -313,8 +313,8 @@ class Pair extends BaseKeyPair
       b = v.to_padded_octets @pub.n
       [err, hd1] = emsa_pkcs1_decode b, hasher
       unless err?
-        hd2 = hasher data
-        err = new Error "hash mismatch" unless bufeq_secure hd1, hd2
+        hash or= hasher data
+        err = new Error "hash mismatch" unless bufeq_secure hd1, hash
     cb err
 
   #----------------

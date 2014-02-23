@@ -46,7 +46,7 @@ verify = ({type, key, sig, body, progress_hook}, cb) ->
   else if type isnt hd.type then new Error "Unexpected sig type; wanted #{type}, got #{hd.type}"
   else null
   unless err?
-    await key.verify_unpad_and_check_hash sig.sig, payload, hasher, defer err
+    await key.verify_unpad_and_check_hash { sig : sig.sig, data : payload, hasher }, defer err
   cb err
 
 #==============

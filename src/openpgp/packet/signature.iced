@@ -1,4 +1,4 @@
-
+# 
 {Packet} = require './base'
 C = require('../../const').openpgp
 S = C.sig_subpacket
@@ -9,6 +9,59 @@ asymmetric = require '../../asymmetric'
 util = require 'util'
 packetsigs = require './packetsigs'
 assert = require 'assert'
+{SlicerBuffer} = require '../buffer'
+
+#===========================================================
+
+class Signature_v3 extends Packet
+
+  #---------------------
+
+  constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
+                   @signed_hash_value_hash, @time, @sig, @type,
+                   @version } ) ->
+    @hasher = SHA512 unless @hasher?
+    @_framed_output = null # sometimes we store the framed output here 
+
+  #---------------------
+
+  get_key_id : () -> @key_id
+
+  #---------------------
+
+  # For writing out these packets, which we'll likely never do.
+  gen_prefix : () ->
+    Buffer.concat [
+      new Buffer [ C.versions.signature.V3, @type ],
+      uint_to_buffer(32, @time),
+      @key_id,
+      new Buffer [ @key.type, @hasher.type ] 
+    ]
+
+  #---------------------
+
+  prepare_payload : (data_packets) ->
+    bufs = (dp.to_signature_payload() for dp in data_packets)
+    bufs.push(
+      new Buffer([ @type ]),
+      uint_to_buffer(32, @time)
+    )
+    Buffer.concat bufs
+
+  #---------------------
+
+  verify : (data_packets, cb) ->
+    payload = @prepare_payload data_packets
+    hash = @hasher payload
+    s = new SlicerBuffer hash
+    v = s.read_uint16()
+    if (v isnt (b = @signed_hash_value_hash))
+      err = new Error "quick hash check failed: #{v} != #{b}"
+    else
+      await @key.verify_unpad_and_check_hash { hash, @hasher, @sig }, defer err
+    cb err
+
+  #---------------------
 
 #===========================================================
 
@@ -18,7 +71,7 @@ class Signature extends Packet
 
   constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
                    @signed_hash_value_hash, @hashed_subpackets, @time, @sig, @type,
-                   @unhashed_subpackets } ) ->
+                   @unhashed_subpackets, @version } ) ->
     @hasher = SHA512 unless @hasher?
     @hashed_subpackets = [] unless @hashed_subpackets?
     @unhashed_subpackets = [] unless @unhashed_subpackets?
@@ -168,7 +221,7 @@ class Signature extends Packet
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
-      await @key.verify_unpad_and_check_hash @sig, payload, @hasher, defer err
+      await @key.verify_unpad_and_check_hash { @sig, data : payload, @hasher }, defer err
 
     # Now make sure that the signature wasn't expired
     unless err?
@@ -509,14 +562,15 @@ class Parser
     throw new error "Bad one-octet length" unless @slice.read_uint8() is 5
     o = {}
     o.type = @slice.read_uint8()
-    o.time = new Date (@slice.read_uint32() * 1000)
+    o.time = @slice.read_uint32()
     o.sig_data = @slice.peek_rest_to_buffer()
     o.key_id = @slice.read_buffer 8
     o.public_key_class = asymmetric.get_class @slice.read_uint8()
-    o.hash = alloc_or_throw @slice.read_uint8()
+    o.hasher = alloc_or_throw @slice.read_uint8()
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
-    new Signature o
+    o.version = 3
+    new Signature_v3 o
 
   parse_v4 : () ->
     o = {}
@@ -532,6 +586,7 @@ class Parser
     o.unhashed_subpackets = (@parse_subpacket() while @slice.i < end)
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
+    o.version = 4
     new Signature o
 
   parse_subpacket : () ->
