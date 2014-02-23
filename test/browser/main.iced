@@ -1,5 +1,6 @@
 
 mods =  
+  sig_v3 : require '../files/sig_v3.iced'
   elgamal : require '../files/elgamal.iced'
   dsa : require '../files/dsa.iced'
   buffer_shfit_right : require '../files/buffer_shift_right.iced' 
