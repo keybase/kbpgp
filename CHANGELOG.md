@@ -3,6 +3,12 @@
 Bugfixes:
 
   - Finish support for v3 Signatures, and close #34
+  - Fix bug in Revocation Key sub packets (type=12), in which we weren't reading in any bytes of the signature.
+
+Features
+
+  - Support signature type 0x1F ("signature directly on a key")
+  - Support signature type 0x28 ("Subkey revocation"). See keybase/keybase-issues#27
 
 ## 0.0.10 (2014-2-21)
 

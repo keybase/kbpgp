@@ -50,6 +50,7 @@ exports.openpgp = openpgp =
     positive : 0x13
     subkey_binding : 0x18
     primary_binding : 0x19
+    direct : 0x1f
     key_revocation : 0x20
     subkey_revocation : 0x28
     certificate_revocation : 0x30

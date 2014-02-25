@@ -201,7 +201,7 @@ class Signature extends Packet
           # packets.
           [ @primary ].concat data_packets
 
-      when T.subkey_binding, T.primary_binding
+      when T.subkey_binding, T.primary_binding, T.subkey_revocation
         packets = []        
         if data_packets.length isnt 1
           err =  new Error "Wrong number of data packets; expected only 1"
@@ -211,6 +211,9 @@ class Signature extends Packet
           subkey = data_packets[0]
           packets = [ @primary, subkey ]
         packets
+
+      when T.direct
+        [ @primary].concat data_packets
 
       else 
         err = new Error "cannot verify sigtype #{@type}"
@@ -620,8 +623,6 @@ class Parser
       when S.embedded_signature then EmbeddedSignature
       else throw new Error "Unknown signature subpacket: #{type}"
     ret = klass.parse @slice
-    console.log "parsed sub"
-    console.log ret
     @slice.unclamp end
     ret
 
