@@ -4,6 +4,7 @@ Bugfixes:
 
   - Finish support for v3 Signatures, and close #34
   - Fix bug in Revocation Key sub packets (type=12), in which we weren't reading in any bytes of the signature.
+  - Upgrade to PGP-utils v0.0.15 to handle null email addresses in UserIds
 
 Features
 
