@@ -347,7 +347,7 @@ class ExpirationTime extends Time
 class Exportable extends SubPacket
   constructor : (@flag) ->
     super S.exportable_certificate
-  @parse : (slice) -> new Exportable (slice.read_uint8() is 1)
+  @parse : (slice) -> new Exportable slice.read_uint8()
   _v_to_buffer : () -> uint_to_buffer 8, @flag
 
 #------------
@@ -377,7 +377,7 @@ class RegularExpression extends SubPacket
 class Revocable extends SubPacket
   constructor : (@flag) ->
     super S.revocable
-  @parse : (slice) -> new Revocable (slice.read_uint8() is 1)
+  @parse : (slice) -> new Revocable slice.read_uint8()
   _v_to_buffer : () -> uint_to_buffer 8, @flag
 
 #------------
