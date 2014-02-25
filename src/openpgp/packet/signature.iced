@@ -399,7 +399,7 @@ class RevocationKey extends SubPacket
   @parse : (slice) ->
     kc = slice.read_uint8()
     ka = slice.read_uint8()
-    fp = slice.read_buffer SHA1.output_size
+    fp = slice.read_buffer SHA1.output_length
     return new RevocationKey kc, ka, fp
   _v_to_buffer : () ->
     Buffer.concat [
@@ -620,6 +620,8 @@ class Parser
       when S.embedded_signature then EmbeddedSignature
       else throw new Error "Unknown signature subpacket: #{type}"
     ret = klass.parse @slice
+    console.log "parsed sub"
+    console.log ret
     @slice.unclamp end
     ret
 

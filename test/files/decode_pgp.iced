@@ -302,3 +302,11 @@ exports.public_key_with_pic = (T,cb) ->
   cb()
 
 #============================================================================
+
+exports.public_key_sneak= (T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : keys.sneak } , defer err, km
+  T.no_error err
+  throw err if err?
+  cb()
+
+#============================================================================
