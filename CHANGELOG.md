@@ -1,3 +1,11 @@
+## 0.0.12 (2014-2-28)
+
+Bugfixes:
+
+  - Ignore signatures that are expired, don't fail to accept key, so long as
+    there is a good signature.  (closes keybase/keybase-issues#59)
+  - More test for good and expired signatures within keys
+
 ## 0.0.11 (2014-2-25)
 
 Bugfixes:

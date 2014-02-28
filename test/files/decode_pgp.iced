@@ -303,6 +303,31 @@ exports.public_key_with_pic = (T,cb) ->
 
 #============================================================================
 
+exports.public_key_expired_uid = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : keys.expired_uid } , defer err, km, warnings
+  T.assert (err?), "should get an error"
+  T.equal err.message, "no valid primary key self-signature", "the right error"
+  cb()
+
+#============================================================================
+
+exports.public_key_expired_subkey = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : keys.expired_subkey } , defer err, km, warnings
+  T.assert (err?), "should get an error if no subkeys"
+  T.equal err.message, "Could not import subkey 0", "the right error"
+  cb()
+
+#============================================================================
+
+exports.public_key_expired_both = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : keys.expired_both } , defer err, km, warnings
+  T.assert (err?), "should get an error"
+  T.equal err.message, "no valid primary key self-signature", "the right error"
+  T.equal warnings.warnings().length, 2, "failed two checks"
+  cb()
+
+#============================================================================
+
 exports.public_keys_advanced = (T,cb) ->
   names = [ "sneak", "elitehaxor", "finn" ]
   for n in names
