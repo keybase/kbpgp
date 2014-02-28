@@ -100,7 +100,8 @@ class KeyBlock
         p.primary = @primary
         await p.verify working_set, defer tmp
         if tmp?
-          err = tmp
+          msg = "Signature failure in packet #{i}: #{tmp.message}"
+          @warnings.push msg
           # discard the signature, see the above comment...
         else
           @verified_signatures.push p

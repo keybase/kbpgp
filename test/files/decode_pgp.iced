@@ -304,13 +304,12 @@ exports.public_key_with_pic = (T,cb) ->
 #============================================================================
 
 exports.public_keys_advanced = (T,cb) ->
-  names = [ "sneak", "elitehaxor" ]
+  names = [ "sneak", "elitehaxor", "finn" ]
   for n in names
-    await KeyManager.import_from_armored_pgp { raw : keys[n] } , defer err, km
+    await KeyManager.import_from_armored_pgp { raw : keys[n] } , defer err, km, warnings
     T.no_error err
     T.assert km, "a key manager came back"
     T.waypoint "parsed #{n}"
-    throw err if err?
   cb()
 
 #============================================================================
