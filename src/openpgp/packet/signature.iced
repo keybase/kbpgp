@@ -171,7 +171,6 @@ class Signature extends Packet
       else if data_packets.length isnt 1 
         err = new Error "Needed 1 data packet for a primary_binding signature"
       else
-        console.log "subkey hash in packet!"
         subkey = data_packets[0]
         s.primary = @primary
         s.key = subkey.key
@@ -188,7 +187,6 @@ class Signature extends Packet
 
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
-    console.log @
     @data_packets = switch @type
       when T.binary_doc, T.canonical_text then data_packets
 
@@ -222,14 +220,11 @@ class Signature extends Packet
         []
 
     # Now actually check that the signature worked.
-    console.log "going in -->"
     unless err?
-      console.log @data_packets
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload } = @prepare_payload data
       await @key.verify_unpad_and_check_hash { @sig, data : payload, @hasher }, defer err
-    console.log "came out --> #{err}"
 
     # Now make sure that the signature wasn't expired
     unless err?
@@ -421,7 +416,6 @@ class RevocationKey extends SubPacket
 class Issuer extends SubPacket
   constructor : (@id) ->
     super S.issuer
-    console.log "issuer #{@id.toString('hex')}"
   @parse : (slice) -> new Issuer slice.read_buffer 8
   _v_to_buffer : () -> new Buffer @id
 
