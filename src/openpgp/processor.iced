@@ -67,7 +67,8 @@ class KeyBlock
       if k.is_signed_subkey_of @primary
         @subkeys.push k
       else 
-        err = new Error "Could not import subkey #{i}"
+        msg = "Subkey #{i} was invalid; discarding"
+        @warnings.push msg
     err
 
   #--------------------
