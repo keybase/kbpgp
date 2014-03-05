@@ -1,3 +1,10 @@
+## 0.0.13 (2014-03-05)
+
+Bugfixes:
+
+  - Address keybase/keybase-issues#101: loosen failure model on expired
+    subkeys.  Just warn and discard the key.
+
 ## 0.0.12 (2014-2-28)
 
 Bugfixes:
