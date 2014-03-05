@@ -164,18 +164,21 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  self_sign_key : ({userids, lifespan}, cb) ->
+  self_sign_key : ({userids, lifespan, raw_payload}, cb) ->
     err = null
+    sigs = []
     for userid in userids when not err?
+      sig = null
       if @key.can_sign()
-        await @_self_sign_key { userid, lifespan }, defer err
+        await @_self_sign_key { userid, lifespan, raw_payload }, defer err, sig
       else if not (userid.get_framed_signature_output())?
         err = new Error "Cannot sign key --- don't have a private key, and can't replay"
-    cb err
+      sigs.push sig
+    cb err, sig
 
   #--------------------------
 
-  _self_sign_key : ( {userid, lifespan}, cb) ->
+  _self_sign_key : ( {userid, lifespan, raw_payload}, cb) ->
     payload = Buffer.concat [ @to_signature_payload(), userid.to_signature_payload() ]
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
@@ -195,13 +198,18 @@ class KeyMaterial extends Packet
       unhashed_subpackets : [
         new S.Issuer(@get_key_id())
       ]}
-     
-    # We just store the output in the signature object itself 
-    await sig.write payload, defer err
+ 
+    # raw_payload is when we want to just output what would have been signed without actually
+    # signing it.  We need this for patching keys in the client.   
+    if raw_payload
+      sig = payload
+    else
+      # We just store the output in the signature object itself 
+      await sig.write payload, defer err
 
-    ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
-    userid.push_sig ps
-    @push_sig ps
+      ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
+      userid.push_sig ps
+      @push_sig ps
 
     cb err, sig
 

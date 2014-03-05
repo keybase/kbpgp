@@ -168,9 +168,9 @@ class PgpEngine extends Engine
 
   #--------
   
-  _v_self_sign_primary : ({asp}, cb) ->
-    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids }, defer err
-    cb err
+  _v_self_sign_primary : ({asp, raw_payload}, cb) ->
+    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids, raw_payload }, defer err, sigs
+    cb err, sigs
 
   #--------
   
