@@ -183,21 +183,25 @@ class KeyMaterial extends Packet
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
     type = C.sig_types.positive
+    
+    hsp = [
+      new S.CreationTime(lifespan.generated)
+      new S.KeyFlags([@flags])
+      new S.PreferredSymmetricAlgorithms([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
+      new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
+      new S.Features([C.features.modification_detection])
+      new S.KeyServerPreferences([C.key_server_preferences.no_modify])   
+    ]
+
+    if lifespan.expire_in
+      hsp.push new S.KeyExpirationTime(lifespan.expire_in)
+
     sig = new Signature { 
       type : type,
       key : @key,
-      hashed_subpackets : [
-        new S.CreationTime(lifespan.generated)
-        new S.KeyFlags([@flags])
-        new S.KeyExpirationTime(lifespan.expire_in)
-        new S.PreferredSymmetricAlgorithms([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
-        new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
-        new S.Features([C.features.modification_detection])
-        new S.KeyServerPreferences([C.key_server_preferences.no_modify])
-      ],
-      unhashed_subpackets : [
-        new S.Issuer(@get_key_id())
-      ]}
+      hashed_subpackets : hsp,
+      unhashed_subpackets : [ new S.Issuer(@get_key_id()) ]
+    }
  
     # raw_payload is when we want to just output what would have been signed without actually
     # signing it.  We need this for patching keys in the client.   
