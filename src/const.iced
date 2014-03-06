@@ -147,10 +147,10 @@ exports.kb =
     RSASSA_PSS : 4
   key_defaults:
     primary :
-      expire_in : 24*60*60*365*10
+      expire_in : 0
       nbits : 4096
     sub :
-      expire_in : 24*60*60*365
+      expire_in : 24*60*60*365*8
       nbits : 2048
   kid : 
     version : 1
@@ -169,6 +169,6 @@ exports.header =
   comment : "https://keybase.io/crypto"
 
 config = 
-  default_key_expire_in: 24*60*60*365*2
+  default_key_expire_in: 24*60*60*365*4
 
 (exports[k] = v for k,v of config)

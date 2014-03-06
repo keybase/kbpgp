@@ -5,7 +5,7 @@ C = require('./const')
 
 class Lifespan
   constructor : ( {@generated, @expire_in}) ->
-    @expire_in or= C.default_key_expire_in
+    @expire_in = C.default_key_expire_in unless @expire_in?
 
 #=================================================================
 
