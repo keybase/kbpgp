@@ -182,7 +182,7 @@ class KeyMaterial extends Packet
     payload = Buffer.concat [ @to_signature_payload(), userid.to_signature_payload() ]
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
-    type = C.sig_types.issuer
+    type = C.sig_types.positive
     sig = new Signature { 
       type : type,
       key : @key,
