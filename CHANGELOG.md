@@ -1,3 +1,10 @@
+## 0.0.14 (2014-03-06)
+
+Bugfixes:
+
+  - Fix some bugs in exporting classes via main
+  - Change the signature type of self-signed key to `positive` rather than `issuer`
+
 ## 0.0.13 (2014-03-05)
 
 Bugfixes:
