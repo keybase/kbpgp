@@ -4,7 +4,7 @@ C = require('./const').openpgp
 {make_esc} = require 'iced-error'
 {assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
 {ops_to_keyflags} = require './openpgp/util'
-{UserId,Lifespan,Subkey,Primary} = require './keywrapper'
+{Lifespan,Subkey,Primary} = require './keywrapper'
 
 {Message,encode,decode} = require './openpgp/armor'
 {parse} = require './openpgp/parser'
@@ -558,7 +558,7 @@ class KeyManager
 #=================================================================
 
 exports.KeyManager = KeyManager
-exports.UserId = UserId
+exports.opkts = opkts
 
 #=================================================================
 
