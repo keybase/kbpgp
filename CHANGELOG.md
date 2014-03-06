@@ -4,6 +4,7 @@ Bugfixes:
 
   - Fix some bugs in exporting classes via main
   - Change the signature type of self-signed key to `positive` rather than `issuer`
+  - Fixes to key expirations in generated keys
 
 ## 0.0.13 (2014-03-05)
 
