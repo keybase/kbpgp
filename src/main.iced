@@ -20,6 +20,7 @@ exports.util      = require('./util')
 exports.processor = require('./openpgp/processor')
 exports.armor     = require('./openpgp/armor')
 exports.keyring   = require('./keyring')
+exports.parser    = require('./openpgp/parser')
 
 #---------------------------------------
 

@@ -169,7 +169,7 @@ class KeyMaterial extends Packet
     sigs = []
     for userid in userids when not err?
       sig = null
-      if @key.can_sign()
+      if @key.can_sign() or raw_payload
         await @_self_sign_key { userid, lifespan, raw_payload }, defer err, sig
       else if not (userid.get_framed_signature_output())?
         err = new Error "Cannot sign key --- don't have a private key, and can't replay"
