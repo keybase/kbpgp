@@ -13,8 +13,11 @@ util = require 'util'
 {burn} = require '../../lib/openpgp/burner'
 clearsign = require '../../lib/openpgp/clearsign'
 
+#============================================================================
+
 ring = null
 km = null
+ctext = null
 
 #============================================================================
 
@@ -49,8 +52,21 @@ exports.encrypt = (T, cb) ->
     format : C.openpgp.literal_formats.utf8 
     date : unix_time()
   }]
-  await burn { literals, encryption_key }, defer err, armored, ctext
+  await burn { literals, encryption_key }, defer err, armored, tmp
+  ctext = tmp
   T.no_error err
+  cb()
+
+#============================================================================
+
+exports.decrypt = (T,cb) ->
+  await km.unlock_pgp { passphrase : 'aabb' }, defer err
+  T.no_error err
+  proc = new Message ring
+  await proc.parse_and_process { body : ctext }, defer err, out
+  T.no_error err
+  T.assert (not out[0].get_data_signer()?), "wasn't signed"
+  T.equal msg, out[0].toString(), "message came back right"
   cb()
 
 #============================================================================
