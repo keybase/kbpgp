@@ -55,10 +55,17 @@ class Signature_v3 extends Packet
     hash = @hasher payload
     s = new SlicerBuffer hash
     v = s.read_uint16()
+    T = C.sig_types
+    
     if (v isnt (b = @signed_hash_value_hash))
       err = new Error "quick hash check failed: #{v} != #{b}"
     else
       await @key.verify_unpad_and_check_hash { hash, @hasher, @sig }, defer err
+      # If it's binary or text data, so that the packets have all be signed
+      if not err? and @type in [ T.binary_doc, T.canonical_text ]
+        for d in data_packets
+          d.push_sig new packetsigs.Data { sig : @ }
+
     cb err
 
   #---------------------

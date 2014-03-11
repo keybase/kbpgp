@@ -1,3 +1,9 @@
+## 0.0.15 (2014-03-11)
+
+Bugfixes:
+
+  - keybase/keybase-issues#194: verify version 3 signatures on upload of key proof.
+
 ## 0.0.14 (2014-03-06)
 
 Bugfixes:
