@@ -25,7 +25,15 @@ class Signature_v3 extends Packet
 
   #---------------------
 
+  is_signature : () -> true
+ 
+  #---------------------
+
   get_key_id : () -> @key_id
+
+  #---------------------
+
+  get_issuer_key_id : () -> @key_id
 
   #---------------------
 

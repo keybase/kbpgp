@@ -1,3 +1,10 @@
+## 0.0.18 (2014-03-11)
+
+Bugfixes:
+
+ - Close keybase/keybase-issues#196: better support for v3 signatures mixed in 
+   with v4 signatures in public key blocks.
+
 ## 0.0.17 (2014-03-11)
 
 Bugfixes:
