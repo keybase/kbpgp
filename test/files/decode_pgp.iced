@@ -331,7 +331,7 @@ exports.public_key_expired_both = (T,cb) ->
 #============================================================================
 
 exports.public_keys_advanced = (T,cb) ->
-  names = [ "sneak", "elitehaxor", "gmax", "finn", "adam", "ry4an", "asymptotic", "dbellizzi", "fincham" ]
+  names = [ "sneak", "elitehaxor", "gmax", "finn", "adam", "ry4an", "asymptotic", "dbellizzi", "fincham", "thierry" ]
   for n in names
     await KeyManager.import_from_armored_pgp { raw : keys[n] } , defer err, km, warnings
     T.no_error err
