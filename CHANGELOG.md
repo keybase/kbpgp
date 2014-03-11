@@ -3,6 +3,7 @@
 Bugfixes:
 
  - Close keybase/keybase-issues#133: Parse (and ignore) experimental subpackets.
+ - Support MD5 via triplesec v3.0.7 (see keybase/keybase-issues#111 for problem key)
 
 ## 0.0.16 (2014-03-11)
 
