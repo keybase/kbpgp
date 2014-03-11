@@ -56,7 +56,7 @@ class Signature_v3 extends Packet
     s = new SlicerBuffer hash
     v = s.read_uint16()
     T = C.sig_types
-    
+
     if (v isnt (b = @signed_hash_value_hash))
       err = new Error "quick hash check failed: #{v} != #{b}"
     else
@@ -311,6 +311,15 @@ class SubPacket
     ]
   to_sig : () -> null
   export_to_option : () -> null
+
+#------------
+
+# Ignore for the most part
+class Experimental extends SubPacket
+  constructor : (@buf, @type) ->
+  @parse : (slice, type) ->
+    new Experimental slice.consume_rest_to_buffer(), type
+  _v_to_buffer : () -> @buf
 
 #------------
 
@@ -627,8 +636,10 @@ class Parser
       when S.features then Features
       when S.signature_target then SignatureTarget
       when S.embedded_signature then EmbeddedSignature
-      else throw new Error "Unknown signature subpacket: #{type}"
-    ret = klass.parse @slice
+      else 
+        if type >= S.experimental_low and type <= S.experimental_high then Experimental
+        else throw new Error "Unknown signature subpacket: #{type}"
+    ret = klass.parse @slice, type
     @slice.unclamp end
     ret
 

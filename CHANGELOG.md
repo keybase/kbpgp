@@ -1,3 +1,9 @@
+## 0.0.17 (2014-03-11)
+
+Bugfixes:
+
+ - Close keybase/keybase-issues#133: Parse (and ignore) experimental subpackets.
+
 ## 0.0.16 (2014-03-11)
 
 Bugfixes:

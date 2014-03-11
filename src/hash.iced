@@ -27,7 +27,7 @@ exports.alloc = alloc = (typ) ->
 
 exports.alloc_or_throw = alloc_or_throw = (typ) ->
   ret = alloc typ
-  throw new Error "unknonw hash type: #{typ}" unless ret
+  throw new Error "unknown hash type: #{typ}" unless ret
   ret
 
 #================================================================

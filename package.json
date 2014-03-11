@@ -22,7 +22,7 @@
   "dependencies": {
     "deep-equal": "~0.1.0",
     "purepack": ">=1",
-    "triplesec": ">=3.0.6",
+    "triplesec": ">=3.0.7",
     "bn": ">=0.0.2",
     "pgp-utils": ">=0.0.15"
   },

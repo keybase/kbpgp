@@ -12,6 +12,7 @@ exports.openpgp = openpgp =
     AES192 : 8
     AES256 : 9
   hash_algorithms :
+    MD5    : 1
     SHA1   : 2
     SHA256 : 8
     SHA384 : 9
@@ -41,6 +42,8 @@ exports.openpgp = openpgp =
     features : 30
     signature_target : 31
     embedded_signature : 32
+    experimental_low : 101
+    experimental_high : 110
   sig_types :  # See RFC 4880 5.2.1. Signature Types
     binary_doc : 0x00
     canonical_text : 0x01
