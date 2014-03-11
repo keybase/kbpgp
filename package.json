@@ -7,7 +7,7 @@
     "keybase"
   ],
   "author": "Maxwell Krohn",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "license": "BSD-3-Clause",
   "main": "./lib/main.js",
   "directories": {
