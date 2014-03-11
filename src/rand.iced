@@ -1,5 +1,5 @@
 {BigInteger} = require 'bn'
-{prng} = require 'triplesec'
+{WordArray,prng} = require 'triplesec'
 native_rng = prng.native_rng
 {Lock} = require './lock'
 
@@ -82,11 +82,17 @@ class StrongRandomFountain
 
   #---------
 
+  # See issue https://github.com/keybase/kbpgp/issues/37
   random_word_array : (nbytes, cb) ->
+    ret = new WordArray()
+    max_pull = 512 # see issue above
     await @lock.acquire defer()
-    await prng.generate nbytes, defer tmp
+    while (d = (nbytes - ret.sigBytes)) > 0
+      n = Math.min(max_pull, d)
+      await prng.generate n, defer b
+      ret = ret.concat b
     @lock.release()
-    cb tmp
+    cb ret
 
   #---------
 
@@ -97,10 +103,10 @@ class StrongRandomFountain
   #---------
 
   random_nbit : (nbits, cb) ->
-    await @lock.acquire defer()
     nbytes = (nbits >> 3) + 1
-    await prng.generate nbytes, defer tmp
-    @buf = tmp.to_buffer()
+    await @random_bytes nbytes, defer tmp
+    await @lock.acquire defer()
+    @buf = tmp
     ret = BigInteger.random_nbit nbits, @
     @lock.release()
     cb ret

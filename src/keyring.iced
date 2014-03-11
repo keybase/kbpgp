@@ -42,7 +42,7 @@ class PgpKeyRing extends KeyFetcher
   # See C.openpgp.key_flags for ideas of what the flags might be.
   find_best_key : ({key_id, flags}, cb) ->
     if not (km = @_kms[(kid = hexkid key_id)])?
-      err = new Error 'Could not find key for fingerprint #{kid}'
+      err = new Error "Could not find key for fingerprint #{kid}"
     else if not (key = km.find_best_pgp_key flags)?
       err = new Error "no matching key for flags: #{flags}"
     cb err, key
