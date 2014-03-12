@@ -1,3 +1,10 @@
+## 0.0.19 (2014-03-11)
+
+Bugfixes:
+
+ - Address keybase/keybase-issues#219: upgrade to pgp-utils v0.0.15
+   which has more robust message decoding
+
 ## 0.0.18 (2014-03-11)
 
 Bugfixes:
