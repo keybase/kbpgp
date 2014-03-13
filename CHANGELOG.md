@@ -1,8 +1,15 @@
-## 0.0.20
+## 0.0.21
 
 Features:
  
   - Figure out which keyid is primary
+
+## 0.0.20 (2014-03-11)
+
+Bugfixes:
+
+  - Fix broken handling of NotationData signature subpacket
+    See keybase/keybase-issues#133
 
 ## 0.0.19 (2014-03-11)
 

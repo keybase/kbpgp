@@ -1,5 +1,6 @@
 
 mods = 
+  get_primary_uid : require '../files/get_primary_uid.iced'
   sig_v3 : require '../files/sig_v3.iced'
   elgamal : require '../files/elgamal.iced'
   dsa : require '../files/dsa.iced'
