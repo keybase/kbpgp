@@ -37,6 +37,11 @@ class Signature_v3 extends Packet
 
   #---------------------
 
+  when_generated : () -> @time
+  time_of_primary_uid_sig : () -> null
+
+  #---------------------
+
   # For writing out these packets, which we'll likely never do.
   gen_prefix : () ->
     Buffer.concat [
@@ -276,6 +281,19 @@ class Signature extends Packet
 
   is_signature : () -> true
  
+  #-----------------
+
+  when_generated : () -> @subpacket_index.hashed[S.creation_time]?.time
+
+  #-----------------
+
+  time_primary_pair : () -> 
+    T = C.sig_types
+    if @type in [ T.issuer, T.personal, T.casual, T.positive ] 
+      [ @when_generated(), !!(@subpacket_index.hashed[S.primary_user_id]?.flag) ]
+    else
+      null
+      
   #-----------------
 
   # See Issue #28

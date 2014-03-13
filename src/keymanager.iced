@@ -498,6 +498,53 @@ class KeyManager
 
   #--------
 
+  # Take the vouched-for user IDs, and for each one, look up all of the signatures on
+  # the user ID.  For each signature, pull out what time it was signed, and whether it's marked
+  # primary.  Then go through this list and (1) deduplicate; and (2) figure out which userid
+  # was marked primary most recently, and mark that one primary.  This will change the underlying
+  # UserID objects, altering their most_recent_sig and primary fields.
+  get_userids_mark_primary : () ->
+    max = null
+    max_s = null
+    tab = {}
+
+    mymax = (a, b) ->
+      if not a? and not b? then null
+      else if not a? then b
+      else if not b? then a
+      else if a > b  then a
+      else b
+
+    for userid,i in @userids when userid?
+      s = userid.utf8()
+      pair = userid.time_primary_pair()
+      obj = { userid, pair, i }
+      do_insert = false
+
+      if (prev = tab[s])?
+        primary_time = mymax(prev.pair[1], pair[1])
+        if not(prev.pair[0]?) or (pair[0] and prev.pair[0] < pair[0])
+          do_insert = true
+      else
+        primary_time = pair[1]
+        do_insert = true
+
+      tab[s] = obj if do_insert
+
+      if primary_time? and ((not max?) or max < primary_time)
+        max_s = s
+        max = primary_time
+    if max_s? then tab[max_s].userid.primary = true
+    ret = []
+
+    for k,obj of tab
+      obj.userid.most_recent_sig = obj.pair[0]
+      ret.push obj.userid
+
+    return ret
+
+  #--------
+
   #
   # So this class fits the KeyFetcher template.
   #

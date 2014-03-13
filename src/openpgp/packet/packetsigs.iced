@@ -83,6 +83,7 @@ class Collection
   #-------------------
 
   get_self_sig : () -> if @lookup.self_sig.length then @lookup.self_sig[0] else null
+  get_self_sigs : () -> @lookup.self_sig
 
   #-------------------
 
