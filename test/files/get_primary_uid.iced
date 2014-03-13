@@ -1,7 +1,7 @@
 
 {KeyManager} = require '../../lib/keymanager'
 {keys} = require '../data/keys.iced'
-{createHash} = require 'crypto'
+{SHA256} = require '../../lib/hash'
 
 #============================================================================
 
@@ -18,7 +18,7 @@ test = (who, expected, T,cb) ->
       break
   h = null
   if primary?
-    h = createHash('SHA256').update(primary.utf8()).digest('hex')
+    h = SHA256(primary.userid).toString('hex')
   T.equal h, expected, "got the right primary UID"
   cb()
 
