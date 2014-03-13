@@ -1,23 +1,29 @@
+## 0.0.20
+
+Features:
+ 
+  - Figure out which keyid is primary
+
 ## 0.0.19 (2014-03-11)
 
 Bugfixes:
 
- - Address keybase/keybase-issues#219: upgrade to pgp-utils v0.0.15
-   which has more robust message decoding
+  - Address keybase/keybase-issues#219: upgrade to pgp-utils v0.0.15
+    which has more robust message decoding
 
 ## 0.0.18 (2014-03-11)
 
 Bugfixes:
 
- - Close keybase/keybase-issues#196: better support for v3 signatures mixed in 
-   with v4 signatures in public key blocks.
+  - Close keybase/keybase-issues#196: better support for v3 signatures mixed in 
+    with v4 signatures in public key blocks.
 
 ## 0.0.17 (2014-03-11)
 
 Bugfixes:
 
- - Close keybase/keybase-issues#133: Parse (and ignore) experimental subpackets.
- - Support MD5 via triplesec v3.0.7 (see keybase/keybase-issues#111 for problem key)
+  - Close keybase/keybase-issues#133: Parse (and ignore) experimental subpackets.
+  - Support MD5 via triplesec v3.0.7 (see keybase/keybase-issues#111 for problem key)
 
 ## 0.0.16 (2014-03-11)
 
