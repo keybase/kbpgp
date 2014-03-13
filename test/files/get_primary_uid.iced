@@ -23,5 +23,6 @@ test = (who, expected, T,cb) ->
   cb()
 
 exports.test_gmax = (T, cb) ->
+  # compare hashes to protect people's UIDs from spam scrapers
   await test "gmax", "c82219629a4dd0283fd3d0d1129cca58ac0c8d45d6d0b40c1acda50a8991fb28", T, defer()
   cb()
