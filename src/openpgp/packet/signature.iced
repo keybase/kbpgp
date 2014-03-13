@@ -461,7 +461,7 @@ class NotationData extends SubPacket
       uint_to_buffer(16, @name.length),
       uint_to_buffer(16, @value.length),
       new Buffer(@name),
-      new Buffer(@valeue)
+      new Buffer(@value)
     ]
 
 #------------
