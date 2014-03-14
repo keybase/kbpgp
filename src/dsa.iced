@@ -99,6 +99,13 @@ class Pair extends BaseKeyPair
   can_encrypt : () -> false
 
   #----------------
+  
+  # DSA keys are always game for verification
+  fulfills_flags : (flags) -> 
+    good_for = (C.key_flags.cerify_keys | C.key_flags.sign_data)
+    ((flags & good_for) is flags)
+
+  #----------------
 
   verify_unpad_and_check_hash : ({sig, data, hasher, hash}, cb) ->
     err = null

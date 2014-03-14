@@ -85,6 +85,13 @@ class Pair extends BaseKeyPair
 
   #--------------------
   
+  # ElGamal keys are always game for encryption
+  fulfills_flags : (flags) -> 
+    good_for = (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+    ((flags & good_for) is flags)
+
+  #--------------------
+  
   constructor : ({ pub, priv }) -> super { pub, priv }
   can_sign : () -> false
   @parse : (pub_raw) -> 

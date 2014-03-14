@@ -1,8 +1,13 @@
-## 0.0.21
+## 0.0.21 (2014-03-14)
 
 Features:
  
   - Figure out which keyid is primary
+
+Bugfixes:
+
+  - Be a bit more liberal when compute key flags; infer for ElGamal and DSA.
+    See keybase/keybase-issues#247
 
 ## 0.0.20 (2014-03-11)
 
