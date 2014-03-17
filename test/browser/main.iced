@@ -1,5 +1,6 @@
 
 mods = 
+  decode_pgp : require '../files/decode_pgp.iced'
   get_primary_uid : require '../files/get_primary_uid.iced'
   sig_v3 : require '../files/sig_v3.iced'
   elgamal : require '../files/elgamal.iced'
@@ -12,7 +13,6 @@ mods =
   msg_roundtrip : require '../files/msg_roundtrip.iced'
   decrypt_verify_msg : require '../files/decrypt_verify_msg.iced'
   keymanager : require '../files/keymanager.iced'
-  decode_pgp : require '../files/decode_pgp.iced'
   cast5 : require '../files/cast5.iced'
   basex : require '../files/basex.iced'
   cfb : require '../files/cfb.iced'

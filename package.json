@@ -20,11 +20,11 @@
     "url": "git://github.com/keybase/kbpgp.git"
   },
   "dependencies": {
-    "deep-equal": "~0.1.0",
-    "purepack": ">=1",
-    "triplesec": ">=3.0.7",
     "bn": ">=0.0.2",
-    "pgp-utils": ">=0.0.17"
+    "deep-equal": "~0.1.0",
+    "pgp-utils": ">=0.0.18",
+    "purepack": ">=1",
+    "triplesec": ">=3.0.7"
   },
   "devDependencies": {
     "browserify": "^3.32.0",
