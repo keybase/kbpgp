@@ -38,7 +38,8 @@ class KeyBlock
       err = new Error "First packet must be the primary key"
     else
       for p,i in @packets[1...] when (p.is_key_material() and not err?)
-        if not p.is_primary() then @subkeys.push p
+        if p.key.is_toxic() then @warnings.push "Ignoring toxic subkey (ElGamal Encrypt+Sign)"
+        else if not p.is_primary() then @subkeys.push p
         else err = new Error "cannot have 2 primary keys"
     err
 

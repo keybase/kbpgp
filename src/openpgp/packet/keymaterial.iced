@@ -5,6 +5,7 @@ triplesec = require 'triplesec'
 RSA = require('../../rsa').Pair
 DSA = require('../../dsa').Pair
 ElGamal = require('../../elgamal').Pair
+ElGamalSE = require('../../elgamalse').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
 {calc_checksum} = require '../util'
@@ -400,6 +401,7 @@ class Parser
       when A.RSA, A.RSA_ENCRYPT_ONLY, A.RSA_SIGN_ONLY then RSA
       when A.DSA then DSA
       when A.ELGAMAL then ElGamal
+      when A.ELGAMAL_SIGN_AND_ENCRYPT then ElGamalSE
       else throw new Error "Unknown key type: #{@algorithm}"
     [err, key, len] = klass.parse @slice.peek_rest_to_buffer()
     throw err if err?

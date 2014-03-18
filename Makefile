@@ -16,6 +16,7 @@ $(BUILD_STAMP): \
 	lib/const.js \
 	lib/dsa.js \
 	lib/elgamal.js \
+	lib/elgamalse.js \
 	lib/main.js \
 	lib/primegen.js \
 	lib/primes.js \

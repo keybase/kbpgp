@@ -6,6 +6,7 @@ exports.openpgp = openpgp =
     RSA_SIGN_ONLY : 3
     ELGAMAL : 16
     DSA : 17
+    ELGAMAL_SIGN_AND_ENCRYPT : 20
   symmetric_key_algorithms :
     CAST5 : 3
     AES128 : 7

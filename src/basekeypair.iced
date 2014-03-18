@@ -44,6 +44,7 @@ exports.BaseKeyPair = class BaseKeyPair
   can_sign : () -> @priv?
   can_decrypt : () -> @priv?
   fulfills_flags : (flags) -> false
+  is_toxic : () -> false
 
   #----------------
 
@@ -69,7 +70,6 @@ exports.BaseKeyPair = class BaseKeyPair
   #----------------
 
   add_priv : (priv_raw) ->
-    console.log "add priv motherucuer!"
     [err, @priv, len] = Priv.alloc priv_raw
     [err, len]
 
@@ -90,4 +90,3 @@ exports.BaseKeyPair = class BaseKeyPair
   #----------------
 
 #============================================================
-
