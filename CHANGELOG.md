@@ -1,3 +1,10 @@
+## 0.0.23 (2014-03-18)
+
+Bugfixes:
+ 
+  - Close #38 - Handle ElGamal encrypt and sign. Throw it away, don't puke
+    - Close keybase/keybase-issues#273 as well.
+
 ## 0.0.22 (2014-03-17)
 
 Bugfixes:
