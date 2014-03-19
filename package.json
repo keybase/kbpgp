@@ -25,7 +25,7 @@
     "pgp-utils": ">=0.0.18",
     "purepack": ">=1",
     "triplesec": ">=3.0.7",
-    "compressjs": "^1.0.1"
+    "keybase-compressjs": "1.0.1-a"
   },
   "devDependencies": {
     "browserify": "^3.32.0",
