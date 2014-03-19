@@ -1,3 +1,10 @@
+## 0.0.24 (2014-03-18)
+
+Bugfixes:
+
+  - Fix bug in parsing EmbeddedSignature subpackets.
+    Address keybase/keybase-issues#289
+
 ## 0.0.23 (2014-03-18)
 
 Bugfixes:
