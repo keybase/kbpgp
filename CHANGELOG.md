@@ -1,3 +1,9 @@
+## 0.0.24 (2014-03-19)
+
+Bugfixes:
+
+  - Close #36 -- bzip2 support for inflation.  Leave deflation out for now to save CPU...
+
 ## 0.0.23 (2014-03-18)
 
 Bugfixes:
