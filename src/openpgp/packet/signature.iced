@@ -590,7 +590,9 @@ class EmbeddedSignature extends SubPacket
   _v_to_buffer : () -> @rawsig
   to_sig : () -> @sig
   @parse : (slice) -> 
-    new EmbeddedSignature { sig : Signature.parse slice }
+    rawsig = slice.peek_rest_to_buffer()
+    sig = Signature.parse(slice)
+    new EmbeddedSignature { sig, rawsig }
 
 #===========================================================
 
