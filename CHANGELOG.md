@@ -1,3 +1,10 @@
+## 0.0.26 (2014-03-19)
+
+Bugfixes:
+
+  - Fix broken firefox, which was caused by keybase-compressjs@v1.0.1-a w/ console.assert
+    not being defined.
+
 ## 0.0.25 (2014-03-19)
 
 Bugfixes:
