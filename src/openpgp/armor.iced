@@ -1,6 +1,7 @@
 
 {katch,bufeq_fast,uint_to_buffer} = require '../util'
 C = require '../const'
+Ch = require '../header'
 {armor} = require('pgp-utils')
 
 #=========================================================================
@@ -14,7 +15,7 @@ exports.encode = (type, data) ->
     when mt.generic     then "MESSAGE"
     else
       throw new Error "Cannot encode tag type #{type}"
-  return armor.encode C, type, data
+  return armor.encode Ch, type, data
 
 #=========================================================================
 

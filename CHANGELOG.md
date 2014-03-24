@@ -1,3 +1,10 @@
+## 0.1.0  (2014-03-24)
+
+Nits:
+
+  - Better header comments
+  - Bump to v0.1.0, first minor release.
+
 ## 0.0.28 (2014-03-23)
 
 Bugfixes:
