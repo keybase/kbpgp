@@ -1,3 +1,7 @@
+## 0.1.1
+
+No change, npm failure.
+
 ## 0.1.0  (2014-03-24)
 
 Nits:
