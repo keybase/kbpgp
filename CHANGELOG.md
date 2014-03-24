@@ -1,3 +1,10 @@
+## 0.0.28 (2014-03-23)
+
+Bugfixes:
+
+  - Version lockdown in package.json
+  - Upgrade to keybase-compressjs@v1.0.1-c without test junk
+
 ## 0.0.27 (2014-03-19)
 
 Bugfixes:
