@@ -1,3 +1,34 @@
+## 0.1.1
+
+No change, npm failure.
+
+## 0.1.0  (2014-03-24)
+
+Nits:
+
+  - Better header comments
+  - Bump to v0.1.0, first minor release.
+
+## 0.0.28 (2014-03-23)
+
+Bugfixes:
+
+  - Version lockdown in package.json
+  - Upgrade to keybase-compressjs@v1.0.1-c without test junk
+
+## 0.0.27 (2014-03-19)
+
+Bugfixes:
+
+  - Fix broken firefox, which was caused by keybase-compressjs@v1.0.1-a w/ console.assert
+    not being defined.
+
+## 0.0.25 (2014-03-19)
+
+Bugfixes:
+
+  - Close #36 -- bzip2 support for inflation.  Leave deflation out for now to save CPU...
+
 ## 0.0.24 (2014-03-18)
 
 Bugfixes:

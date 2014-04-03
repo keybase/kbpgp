@@ -4,6 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 zlib = require 'zlib'
 {uint_to_buffer} = require '../../util'
+compressjs = require 'keybase-compressjs'
 
 #=================================================================================
 
@@ -14,6 +15,15 @@ fake_zip_inflate = (buf, cb) ->
 
 fix_zip_deflate = (buf, cb) ->
   await zlib.deflate buf, defer err, ret
+  cb err, ret
+
+bzip_inflate = (buf, cb) ->
+  err = null
+  try
+    ret = compressjs.Bzip2.decompressFile(buf)
+    ret = new Buffer(ret) if ret?
+  catch e
+    err = e
   cb err, ret
 
 #=================================================================================
@@ -39,6 +49,8 @@ class Compressed extends Packet
         await zlib.inflate @compressed, defer err, ret
       when C.compression.zip
         await fake_zip_inflate @compressed, defer err, ret
+      when C.compression.bzip
+        await bzip_inflate @compressed, defer err, ret
       else
         err = new Error "no known inflation -- algo: #{@algo}"
     cb err, ret

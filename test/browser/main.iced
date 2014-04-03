@@ -1,5 +1,6 @@
 
 mods = 
+  bzip2 : require '../files/bzip2.iced'
   decode_pgp : require '../files/decode_pgp.iced'
   get_primary_uid : require '../files/get_primary_uid.iced'
   sig_v3 : require '../files/sig_v3.iced'

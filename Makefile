@@ -33,6 +33,7 @@ $(BUILD_STAMP): \
 	lib/hash.js \
 	lib/rand.js \
 	lib/lock.js \
+	lib/header.js \
 	lib/keybase/encode.js \
 	lib/keybase/sign.js \
 	lib/keybase/packet/all.js \

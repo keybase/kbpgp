@@ -169,7 +169,7 @@ exports.ops =
   sign    : 0x8
 
 exports.header =
-  version : "Keybase OpenPGP JS 0.0.1"
+  version : "Keybase OpenPGP"
   comment : "https://keybase.io/crypto"
 
 config = 

@@ -15,6 +15,7 @@ triplesec = require 'triplesec'
 {WordArray} = triplesec
 konst = require '../const'
 C = konst.openpgp
+Ch = require '../header'
 hashmod = require '../hash'
 {SHA512} = hashmod
 {encode} = require './armor'
@@ -127,7 +128,7 @@ class ClearSigner
   #------------
 
   _encode : (cb) ->
-    hdr = clearsign_header C, @_cleartext.show, @hasher_name()
+    hdr = clearsign_header Ch, @_cleartext.show, @hasher_name()
     body = encode(C.message_types.signature, @_sig_output)
     cb null, (hdr+body)
 

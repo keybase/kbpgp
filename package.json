@@ -7,7 +7,7 @@
     "keybase"
   ],
   "author": "Maxwell Krohn",
-  "version": "0.0.24",
+  "version": "0.1.1",
   "license": "BSD-3-Clause",
   "main": "./lib/main.js",
   "directories": {
@@ -20,21 +20,21 @@
     "url": "git://github.com/keybase/kbpgp.git"
   },
   "dependencies": {
-    "bn": ">=0.0.2",
-    "deep-equal": "~0.1.0",
-    "pgp-utils": ">=0.0.18",
-    "purepack": ">=1",
-    "triplesec": ">=3.0.7"
+    "bn": "0.0.2",
+    "deep-equal": "0.2.1",
+    "pgp-utils": "0.0.18",
+    "purepack": "1.0.0",
+    "triplesec": "3.0.7",
+    "keybase-compressjs": "1.0.1-c"
   },
   "devDependencies": {
-    "browserify": "^3.32.0",
-    "colors": "*",
-    "iced-test": ">=0.0.7",
-    "iced-coffee-script": "~1.7.1",
-    "optimist": "*",
-    "deep-equal": "*",
-    "icsify": "~0.6.0",
-    "iced-error": ">=0.0.6",
+    "browserify": "3.32.1",
+    "colors": "0.6.2",
+    "iced-test": "0.0.10",
+    "iced-coffee-script": "1.7.1-b",
+    "optimist": "0.6.1",
+    "icsify": "0.6.0",
+    "iced-error": "0.0.8",
     "minimist": "0.0.8"
   }
 }
