@@ -230,7 +230,7 @@ class Message
   _verify_sig : (sig, cb) ->
     err = null
     if not bufeq_secure (a = sig.open.key_id), (b = sig.close.get_key_id())
-      err = new Error "signature mismatch: #{a.toString('hex')}} != #{b.toString('hex')}"
+      err = new Error "signature mismatch open v close: #{a?.toString('hex')}} != #{b?.toString('hex')}"
 
     unless err?
       await @key_fetch.fetch [ a ], konst.ops.verify, defer err, obj
