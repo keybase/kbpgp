@@ -1,3 +1,9 @@
+## 0.1.2
+
+Bugfixes:
+
+  - Do not crash on malformed signatures (with a null open or close key id)
+
 ## 0.1.1
 
 No change, npm failure.
