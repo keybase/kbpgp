@@ -1,3 +1,8 @@
+## 0.1.4 (2014-04-04)
+
+Bugfixes:
+
+  - Key ID can be either in hashed or unhashed sig subpackets, so look for it in either place.
 
 ## 0.1.3 (2014-04-03)
 

@@ -4,6 +4,7 @@ mods =
   decode_pgp : require '../files/decode_pgp.iced'
   get_primary_uid : require '../files/get_primary_uid.iced'
   sig_v3 : require '../files/sig_v3.iced'
+  sig_gocli : require '../files/sig_gocli.iced'
   elgamal : require '../files/elgamal.iced'
   dsa : require '../files/dsa.iced'
   rsa_8192 : require '../files/rsa_8192.iced'
