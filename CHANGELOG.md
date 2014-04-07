@@ -1,3 +1,19 @@
+## 0.1.5 (2014-04-07)
+
+Bugfixes:
+
+  - Support slightly relaxed header parsing for clearsign messages; Can have spaces in the
+    separator between Hash: and the text.
+  - MD5 is the default, so use that if nothing was specified.
+  - Don't crash on an unknown hash algorithm, raise an exception
+  - MD5 ASN headers included so that MD5 can work.
+  - Upgrade to pgp-utils@v0.0.20
+
+Test cases
+
+  - Integrate some of OpenPGP.Js's test cases, included as a result of
+     [their audit](https://github.com/openpgpjs/openpgpjs/wiki/Cure53-security-audit).
+
 ## 0.1.4 (2014-04-04)
 
 Bugfixes:
