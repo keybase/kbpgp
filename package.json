@@ -22,7 +22,7 @@
   "dependencies": {
     "bn": "0.0.2",
     "deep-equal": "0.2.1",
-    "pgp-utils": "0.0.18",
+    "pgp-utils": "0.0.20",
     "purepack": "1.0.0",
     "triplesec": "3.0.7",
     "keybase-compressjs": "1.0.1-c"
