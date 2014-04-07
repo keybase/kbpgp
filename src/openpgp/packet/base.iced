@@ -34,6 +34,7 @@ class Packet
 
   to_userid : () -> null
   to_user_attribute : () -> null
+  to_literal : () -> null
 
   #----------------------
 

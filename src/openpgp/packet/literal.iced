@@ -42,6 +42,8 @@ class Literal extends Packet
     ret = @frame_packet C.packet_tags.literal, raw unless err?
     cb err, ret
 
+  to_literal : () -> @
+
 #=================================================================================
 
 class LiteralParser 

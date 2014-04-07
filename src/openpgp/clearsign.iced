@@ -182,8 +182,12 @@ class Verifier
     await @key_fetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, obj
     unless err?
       @_sig.key = obj.key
-      @_sig.hasher = hashmod[@clearsign.headers.hash]
-      @_sig.keyfetch_obj = obj
+      # MD5 is the default
+      h = @clearsign.headers.hash or 'MD5'
+      if not (@_sig.hasher = hashmod[h])?
+        err = new Error "Unknown hash algorithm: #{h}"
+      else
+        @_sig.keyfetch_obj = obj
     cb err
 
   #-----------------------
@@ -194,8 +198,19 @@ class Verifier
 
   #-----------------------
 
+  _check_headers : (cb) ->
+    err = null
+    for k,v of @clearsign.headers 
+      if k isnt 'hash'
+        err = new Error "Unallowed header: #{k}"
+        break
+    cb err
+
+  #-----------------------
+
   run : (cb) ->
     esc = make_esc cb, "Verifier::run"
+    await @_check_headers esc defer()
     await @_find_signature esc defer()
     await @_reformat_text esc defer()
     await @_fetch_key esc defer()
