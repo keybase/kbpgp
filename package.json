@@ -24,7 +24,7 @@
     "deep-equal": "0.2.1",
     "pgp-utils": "0.0.20",
     "purepack": "1.0.0",
-    "triplesec": "3.0.7",
+    "triplesec": "3.0.8",
     "keybase-compressjs": "1.0.1-c"
   },
   "devDependencies": {
