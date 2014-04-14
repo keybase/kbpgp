@@ -1,5 +1,6 @@
 
 mods = 
+  sig_various_hashes : require '../files/sig_various_hashes.iced'
   openpgp_js_cure53_audit : require '../files/openpgp_js_cure53_audit.iced'
   bzip2 : require '../files/bzip2.iced'
   decode_pgp : require '../files/decode_pgp.iced'

@@ -1,3 +1,15 @@
+## 0.1.7 (2014-04-14)
+
+Bugfixes:
+
+  - Upgrade to Triplesec v3.0.10 for SHA384 and SHA224 bugfix
+
+## 0.1.6 (2014-04-13)
+
+Features:
+
+  - Upgrade to Triplesec v3.0.8 for SHA384
+
 ## 0.1.5 (2014-04-07)
 
 Bugfixes:
