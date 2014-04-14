@@ -1,0 +1,239 @@
+{KeyManager} = require '../../lib/keymanager'
+{do_message,Processor} = require '../../lib/openpgp/processor'
+
+#==================================================================
+
+key = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+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
+M3ORWFncu87+HH//p4VSw0MfvjIz
+=lhzE
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+#================================================================================
+
+sigs = [
+  {
+    sig : """
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+owEBSgG1/pANAwAJAZgKPw0B/gTfAcsaYgBTS9bpdGhpcyBpcyB3aXRoIFNIQTM4
+NAqJARwEAAEJAAYFAlNL1ukACgkQmAo/DQH+BN+31Qf/Wz3ZNNmA8ptd6uSxb38K
+F7dwO3Blt/GJ46bOm7kDZc1+kv3/lkJg1Gl7NDfEySfXAAIJXbPiZxALwMkuR5jj
+Wgif9qJgKfwSeMdjTBKKLtlRprwee6unSgTQ8zL2Q1BUGlqThWyTGj3kUWnoIA1w
+rnwFQL0SBSu8Fg7HKEIEc1hMoP3R0RvjVmkzmA80d5d8xK+j+qqAGTZY3uTsV7XJ
+VLVd31euXaOXXs+/ZPF6bRmC2hf73WIdC7MjtUO4VHRgAEGCprtRbPAVE5aX9LDY
+dPR6bmTn5B4yI7hFkZg+ga3uSBcU5ay7jd3sAUeI1g9rp4bg36RTAsdsCC+ikBtS
+qw==
+=ccex
+-----END PGP MESSAGE-----
+""",
+    which : "SHA384"
+  }, {
+    sig : """
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+owEBSgG1/pANAwALAZgKPw0B/gTfAcsaYgBTS9isdGhpcyBpcyB3aXRoIFNIQTIy
+NAqJARwEAAELAAYFAlNL2KwACgkQmAo/DQH+BN/Nggf/cFQvzcTwZ6R4F9zxqkVV
+kmSfgCpBqMoZlv5e4o/pcCnoNGxAqk6U1+BUSWyMuZO6q/0h4y9NeOZVqViGs6Ma
+JwwCjnrzQOc8BJEzJjCDjDkxelOkLRY2NzyJzwP6RUPIvF0GMIVOZIvSnmrCMdAY
+lcAmSlz9RPYcWSkaStONi/9H8t5Ecih54sPR9iD24/VBgxfR7VNKCyOR85pf1qnE
+Vt5VhPor4vTR4JzxLqysi8Lk+ghi4mzmAG4iPeSQCgJk1IhaFIIdY/2KxSN5QZIH
+vceDHXDE0fW3ekPLm8+n30kheTlcllG2YJUYYE2LSpLPq8WCn65E74Ixp1a8wxLn
+6g==
+=gxp2
+-----END PGP MESSAGE-----
+""",
+    which : "SHA224"
+  }, {
+    sig : """
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+owEBSgG1/pANAwAIAZgKPw0B/gTfAcsaYgBTS9pedGhpcyBpcyB3aXRoIFNIQTI1
+NgqJARwEAAEIAAYFAlNL2l4ACgkQmAo/DQH+BN8SxAgAjuJmx3EraPjJ86g+C7Ma
+jB0fovW2DsHKULdXiawzUiAPeBBP+gweReCnV9aIVgnxz5yDxxvQZKYxQ+0oD47f
+hlUN4orhyI5Pbmq+uj7dDVuzwG53W1doNNeyJggO8OtEBlmXtMbDuf6J23adorij
+hPRVkjLBKAmjz5ZN9TIznWcY12VMsbon9gJvzZ+8py7TlZlawxy02Q4/GnzvDje1
+qx+sGKqNdwN+wqWU5K+T/ofbLfvAH2kfiKqoCYVMHutUgUC5x3tWPEdeZKgkCAa1
+FhaSZ+DdsZJs77qAM0hIQfAP65F+8iJiBsRZ8XzD+wn2gZv7k8SR6WgbtvvDgJ6l
+xg==
+=jK3a
+-----END PGP MESSAGE-----
+""",
+    which : "SHA256"
+  }, {
+    sig : """
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+owEBSAG3/pANAwACAZgKPw0B/gTfAcsYYgBTS9qXdGhpcyBpcyB3aXRoIFNIQTEK
+iQEcBAABAgAGBQJTS9qXAAoJEJgKPw0B/gTf9FoH/1MO7IFFxBnpLdnWcolVhxT/
+R7ZvU2hUTllvhquDG3+3lRECJEcPhCmlfr0tw5CDQjCNOHwqbbiXbAVAq+I3S1J2
+EEzneoGzjFEdJiUBMHzbOo4UnIE4TUssiWxnCt5BYWKptjnZ5D416GoIxaSq0vZo
+IRw7QlFoIXMfQcsL8cROOhuEhmqtGHck0W/tarbO3ezbHxtcZxiWBXj6UesXlwyL
+4mxxLOreEsShBolKz+urofr7OM4ADlrqRYcDTsRCuX8JrhS1G4Uh7KOmW56k/ld2
+sR6yXPI2RbMiMyKMS9Z7pDq99d/Wn8VWahU1pN72rI6B65Qcxb4XWqeUFsRfsQU=
+=SqWv
+-----END PGP MESSAGE-----
+""",
+    which : "SHA1"
+  }, {
+    sig : """
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+owEBSgG1/pANAwAKAZgKPw0B/gTfAcsaYgBTS9rOdGhpcyBpcyB3aXRoIFNIQTUx
+MgqJARwEAAEKAAYFAlNL2s4ACgkQmAo/DQH+BN/sWQgAsoDbzGtMZKvCOmE8/Eiw
+mq3d/JbihGY77I7SM6HLOkxqlO6cXXTve3rzUuOPZTmJ/oSscUZPethrYgS/R+AJ
+Eb2Cndmzv65HT165Fo+JcN9hC5jJjQZRgqiJxii36OxTcna8mgcNytM0GGkATNEA
+SKdRp2uZI+plQogmDjYXip76Io4UNApWFxpKk0N6HN4ns90z+P5Pwv90ulWEwBCx
+9EUag/YlYX+SqZoavyhEa6fnEmkQvNOFHScQBRnSnqE6Nl5Uanz5wU+XfTL10Rtj
+VRN8iOqxkReADkY+tX+Qj33rVNTjrhrmZ/+i8YGMVvkeNKyrUtxhV0UuSCmz8M2w
+/A==
+=+r2b
+-----END PGP MESSAGE-----
+""",
+    which : "SHA512"
+  }
+]
+
+#==================================================================
+
+verify = ({sig,which}, T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : key }, defer err, km
+  T.no_error err
+  await do_message { armored : sig , keyfetch : km }, defer err
+  T.no_error err
+  T.waypoint which
+  cb()
+
+#--------------------------------
+
+exports.verify = (T,cb) ->
+  for sig in sigs
+    await verify sig, T, defer()
+  cb()
+
+#==================================================================
+
