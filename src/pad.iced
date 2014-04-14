@@ -59,15 +59,11 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hasher) ->
         i++
         header = hash_headers[hasher.algname]
         if not bufeq_secure(new Buffer(header), v[i...(header.length+i)])
-          console.log (new Buffer header).toString 'hex'
-          console.log v[i...(header.length+i)].toString 'hex'
           err = new Error "Sig verify error: missing ASN header for #{hasher.algname}"
         else
           i += header.length
           h = v[i...]
           if h.length isnt hasher.output_length
-            console.log h.length
-            console.log hasher.output_length
             err = new Error "Sig verify error: trailing garbage in signature"
           else
             ret = h

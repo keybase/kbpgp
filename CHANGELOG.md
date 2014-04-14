@@ -1,3 +1,9 @@
+## 0.1.8 (2014-04-14)
+
+Bugfixes:
+
+  - Remove debugging code
+
 ## 0.1.7 (2014-04-14)
 
 Bugfixes:
