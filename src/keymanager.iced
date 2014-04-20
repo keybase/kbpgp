@@ -30,7 +30,15 @@ class Engine
     @messages = []
     @_allocate_key_packets()
     (k.primary = @primary for k in @subkeys)
+    @_index_keys()
     true
+
+  #---------
+
+  _index_keys : () ->
+    @_index = {}
+    for k in _all_keys()
+      @_index[@ekid(k)] = k
 
   #---------
 
@@ -103,11 +111,33 @@ class Engine
   #--------
 
   merge_private : (eng2) ->
+    err = @_merge_prviate_primary eng2.primary
+    unless err?
+      for k,i  in eng2.subkeys
+        break if (err = @_merge_private_subkey k, i)?
+    return err
+
+  #--------
+
+  _merge_private_primary : (eng2) ->
+    if not @key(eng2.primary).has_private() then err = null
+    else if @_merge_1_private @primary, eng2.primary then err = null
+    else err = new Error "primary public key doesn't match private key"
+    return ret
+
+  #--------
+
+  _merge_private_subkey : (k2, i) ->
+    if not @key(k2).has_private() then err = null
+    else if not ((ekid = @ekid(k2)))? 
+      err = new Error "Subkey #{i} wasn't found in public key"
+
+  #--------
+
     err = null
     if not @key(eng2.primary).has_private()
       err = new Error "Expected a private key; got a public key!"
     else if not @_merge_1_private @primary, eng2.primary
-      err = new Error "primary public key doesn't match private key"
     else if @subkeys.length isnt eng2.subkeys.length
       err = new Error "Different number of subkeys"
     else
