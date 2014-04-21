@@ -5,7 +5,8 @@ util = require 'util'
 {box} = require '../../lib/keybase/encode'
 {Encryptor} = require 'triplesec'
 {base91} = require '../../lib/basex'
-{burn} = require '../../lib/burner'
+{burn} = require '../../lib/openpgp/burner'
+{do_message} = require '../../lib/openpgp/processor'
 
 #---------------------------------------------
 
@@ -154,8 +155,43 @@ exports.unlock_merged = (T,cb) ->
 
 #------------
 
-exports.sign = (T,cb) ->
+armored_sig = null
+armored_ctext = null
 
+exports.sign = (T,cb) ->
+  sk = km.find_signing_pgp_key()
+  await burn { msg : canto_I, signing_key : sk }, defer err, tmp
+  armored_sig = tmp
+  T.no_error err
+  cb()
+
+#------------
+
+exports.verify = (T,cb) ->
+  await do_message { armored : armored_sig, keyfetch : km }, defer err, literals
+  T.no_error err
+  T.equal literals[0].toString(), canto_I, "canto I of Don Juan came back"
+  T.assert literals[0].get_data_signer()?, "was signed"
+  cb()
+
+#------------
+
+exports.encrypt_and_sign = (T,cb) ->
+  sk = km.find_signing_pgp_key()
+  ek = km.find_crypt_pgp_key()
+  await burn { msg : canto_I, signing_key : sk, encryption_key : ek }, defer err, tmp
+  armored_ctext = tmp
+  T.no_error err
+  cb()
+
+#------------
+
+exports.decrypt_and_verify = (T,cb) ->
+  await do_message { armored : armored_sig, keyfetch : km }, defer err, literals
+  T.no_error err
+  T.equal literals[0].toString(), canto_I, "canto I of Don Juan came back"
+  T.assert literals[0].get_data_signer()?, "was signed"
+  cb()
 
 #------------
 
