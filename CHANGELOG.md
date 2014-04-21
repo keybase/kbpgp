@@ -1,3 +1,11 @@
+## 0.1.19 (2014-04-21)
+
+Bugfixes:
+
+  - Better support for private key merging --- don't require an exact-key-for-key
+    match, but rather, allow only some of the secret subkeys (and not the primary) to 
+    be merged. This addresses [Keybase Issue #216](https://github.com/keybase/keybase-issues/issues/216)
+
 ## 0.1.8 (2014-04-14)
 
 Bugfixes:
