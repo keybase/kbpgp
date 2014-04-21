@@ -128,13 +128,11 @@ class Engine
   #--------
 
   _merge_private_subkey : (k2, i) ->
-    if not @key(k2).has_private() then err = null
-    else if not ((ekid = @ekid(k2)))? 
-      err = new Error "Subkey #{i} is malformed"
-    else if not ((k = @_index[ekid]))?
-      err = new Error "Subkey #{i} wasn't found in public key"
-    else if @_merge_1_private(k, k2) then err = null
-    else err = new Error "subkey #{i} can't be merged" 
+    err = if not @key(k2).has_private() then null
+    else  if not ((ekid = @ekid(k2)))?  then new Error "Subkey #{i} is malformed"
+    else  if not ((k = @_index[ekid]))? then new Error "Subkey #{i} wasn't found in public key"
+    else  if @_merge_1_private(k, k2)   then null
+    else                                     new Error "subkey #{i} can't be merged" 
     return err
 
   #--------

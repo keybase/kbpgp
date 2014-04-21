@@ -175,6 +175,29 @@ exports.clearsign = clearsign.sign
 
 #==========================================================================================
 
+#
+# burn
+#
+#   Hi-level interface to 'burning' a new GPG message.  Not well-named.
+#   Should probably be renamed to "box"ing a message, or something similar.
+#   Anyways, think of it as burning a CD-ROM in 1999, which is basically when
+#   the PGP protocol is from.
+#
+#   Can specify messages as Utf8 strings, raw buffers, or an array of Literal
+#   open-PGP packets.
+#
+#   Can specify a signing_key if you want the message signed.
+# 
+#   Can specify an encryption_key if you want the message encrypted.
+#
+# @param {String || Buffer} msg the payload, which will be made into literals
+# @param {openpgp.packets.KeyMaterial} signing_key the key to sign with 
+# @param {openpgp.packets.KeyMaterial} encryption_key the key to encrypt with 
+# @param {Array<openpgp.packets.Literal>} literals the literal packets that make up the payload.
+# @param {callback} cb Callback with an ({Error},{Bufffer},{Buffer}) triple.  Error is
+#    set if there was an error, otherwise, we'll get back the PGP output in first armored
+#    and then raw binary form.
+#
 exports.burn = ({msg, literals, signing_key, encryption_key}, cb) ->
   literals = make_simple_literals msg if msg? and not literals?
   b = new Burner { literals, signing_key, encryption_key }

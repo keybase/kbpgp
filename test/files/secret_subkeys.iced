@@ -5,6 +5,7 @@ util = require 'util'
 {box} = require '../../lib/keybase/encode'
 {Encryptor} = require 'triplesec'
 {base91} = require '../../lib/basex'
+{burn} = require '../../lib/burner'
 
 #---------------------------------------------
 
@@ -94,6 +95,19 @@ QxnUKvBgMgieNTMrbxu2Kd4CDCKZBApB
 
 #------------
 
+canto_I = """
+I want a hero: an uncommon want,
+  When every year and month sends forth a new one,
+Till, after cloying the gazettes with cant,
+  The age discovers he is not the true one;
+Of such as these I should not care to vaunt,
+  I'll therefore take our ancient friend Don Juan—
+We all have seen him, in the pantomime,
+Sent to the devil somewhat ere his time.
+"""
+
+#------------
+
 passphrase = "adonais" 
 km = null
 km_priv = null
@@ -101,7 +115,8 @@ km_priv = null
 #------------
 
 exports.load_pub = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : pub }, defer err, km, warnings
+  await KeyManager.import_from_armored_pgp { raw : pub }, defer err, tmp, warnings
+  km = tmp
   T.no_error err
   T.assert km?, "got a key manager back"
   cb()
@@ -109,11 +124,38 @@ exports.load_pub = (T,cb) ->
 #------------
 
 exports.load_priv = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : priv }, defer err, km_priv, warnings
+  await KeyManager.import_from_armored_pgp { raw : priv }, defer err, tmp, warnings
+  km_priv = tmp
   T.no_error err
   throw err if err?
   T.assert km_priv, "got a private key manager back"
   cb()
+
+#------------
+
+exports.unlock_priv = (T,cb) ->
+  await km_priv.unlock_pgp { passphrase }, defer err
+  T.no_error err
+  cb()
+
+#------------
+
+exports.merge = (T,cb) ->
+  await km.merge_pgp_private { raw : priv }, defer err
+  T.no_error err
+  cb()
+
+#------------
+
+exports.unlock_merged = (T,cb) ->
+  await km.unlock_pgp { passphrase }, defer err
+  T.no_error err
+  cb()
+
+#------------
+
+exports.sign = (T,cb) ->
+
 
 #------------
 

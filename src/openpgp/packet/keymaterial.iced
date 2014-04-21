@@ -133,8 +133,6 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  # TODO --- support Other signature systems like DSA?
-  # See Issue #23: https://github.com/keybase/kbpgp/issues/23
   get_klass : () -> @key.constructor
 
   #--------------------------
@@ -326,30 +324,32 @@ class KeyMaterial extends Packet
     passphrase = bufferify passphrase
     err = null
 
-    pt = if @skm.s2k_convention isnt C.s2k_convention.none
+    pt = if @skm.s2k_convention is C.s2k_convention.none then @skm.payload
+    else if (@skm.s2k.type is C.s2k.gnu_dummy) then null # no need to do anything here
+    else 
       key = @skm.s2k.produce_key passphrase, @skm.cipher.key_size
       decrypt { 
         ciphertext : @skm.payload,
         block_cipher_class : @skm.cipher.klass, 
         iv : @skm.iv, 
         key : key }
-    else pt = @skm.payload
 
-    switch @skm.s2k_convention
-      when C.s2k_convention.sha1
-        end = pt.length - SHA1.output_size
-        h1 = pt[end...]
-        pt = pt[0...end]
-        h2 = (new SHA1).bufhash pt
-        err = new Error "hash mismatch" unless bufeq_secure(h1, h2)
-      when C.s2k_convention.checksum, C.s2k_convention.none
-        end = pt.length - 2
-        c1 = pt.readUInt16BE end
-        pt = pt[0...end]
-        c2 = calc_checksum pt
-        err = new Error "checksum mismatch" unless c1 is c2
+    if pt
+      switch @skm.s2k_convention
+        when C.s2k_convention.sha1
+          end = pt.length - SHA1.output_size
+          h1 = pt[end...]
+          pt = pt[0...end]
+          h2 = (new SHA1).bufhash pt
+          err = new Error "hash mismatch" unless bufeq_secure(h1, h2)
+        when C.s2k_convention.checksum, C.s2k_convention.none
+          end = pt.length - 2
+          c1 = pt.readUInt16BE end
+          pt = pt[0...end]
+          c2 = calc_checksum pt
+          err = new Error "checksum mismatch" unless c1 is c2
+      err = @key.read_priv(pt) unless err?
 
-    err = @key.read_priv(pt) unless err?
     cb err
 
   #-------------------
@@ -444,19 +444,18 @@ class Parser
         skm.s2k = (new S2K).read @slice
       else sym_enc_alg = skm.s2k_convention
 
-    console.log "shiiit"
-    console.log sym_enc_alg
-    console.log skm.s2k_convention
-
-    if sym_enc_alg
-      skm.cipher = symmetric.get_cipher sym_enc_alg
-      iv_len = skm.cipher.klass.blockSize
-      skm.iv = @slice.read_buffer iv_len
-
+    # There's a special GNU convention for showing that this key wasn't included.
+    # This comes up when you export secret subkeys but keep the master key
+    # hidden.
     if (skm.s2k_convention isnt C.s2k_convention.none) and (skm.s2k.type is C.s2k.gnu_dummy)
       skm.payload = null
     else 
+      if sym_enc_alg
+        skm.cipher = symmetric.get_cipher sym_enc_alg
+        iv_len = skm.cipher.klass.blockSize
+        skm.iv = @slice.read_buffer iv_len
       skm.payload = @slice.consume_rest_to_buffer()
+
     new KeyMaterial { key, skm, @timestamp, opts }
 
 #=================================================================================
