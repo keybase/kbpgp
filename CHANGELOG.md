@@ -1,4 +1,11 @@
-## 0.1.20 (2014-04-21)
+## 0.1.11 (2014-04-21)
+
+Bugfixes:
+
+  - Fix has_pgp_private() --- it's good enough to have one private,
+    don't need all of them....
+
+## 0.1.10 (2014-04-21)
 
 Bugfixes:
 
@@ -9,7 +16,7 @@ Bugfixes:
   - Able to write out partial secret keys in P3SKB mode (via reversing the
     GNU dummy extension).
 
-## 0.1.19 (2014-04-21)
+## 0.1.9 (2014-04-21)
 
 Bugfixes:
 

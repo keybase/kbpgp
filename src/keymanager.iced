@@ -84,8 +84,8 @@ class Engine
 
   has_private : () ->
     for k in @_all_keys()
-      return false unless @key(k).has_private()
-    return true
+      return true if @key(k).has_private()
+    return false
 
   #--------
 
