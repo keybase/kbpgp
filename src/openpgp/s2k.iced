@@ -85,18 +85,32 @@ class S2K
         @count = @_count c, @EXPBIAS
 
       when C.s2k.gnu
-        if input.read_buffer(3).toString('utf8') is "GNU"
-          @set_hash_algorithm @read_uint8()
-          gnuExtType = 1000 + input.read_uint8()
-          match = true
-          # GnuPG extension mode 1001 -- don't write secret key at all
-          @type = gnuExtType if gnuExtType == 1001
-          else throw new "unknown s2k gnu protection mode! #{gnuExtType}"
-        else throw new "Malformed GNU-extension"
+        @read_gnu_extensions slice
+
       else
         throw new Error "unknown s2k type! #{@type}"
     @
-  
+
+  #--------------------
+  # Read the GNU extensions to S2K format
+  # For now, only useful when reading a dummy primary 
+  # key
+  read_gnu_extensions : (slice) ->
+ 
+    # XXX I believe this is a version, but I don't know for sure.
+    # We should probably check it against 0x2.
+    version = slice.read_uint8()
+
+    if (id = (buf = slice.read_buffer(3)).toString('utf8')) is "GNU"
+      gnu_ext_type = slice.read_uint8() + 1000
+      switch gnu_ext_type
+        when 1001
+          @type = C.s2k.gnu_dummy
+        else
+          throw new "unknown s2k gnu protection mode: #{gnu_ext_type}"
+    else 
+      throw new Error "Malformed GNU-extension: #{ext}" 
+
   #----------------------
   
   # 

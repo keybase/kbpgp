@@ -444,12 +444,16 @@ class Parser
         skm.s2k = (new S2K).read @slice
       else sym_enc_alg = skm.s2k_convention
 
+    console.log "shiiit"
+    console.log sym_enc_alg
+    console.log skm.s2k_convention
+
     if sym_enc_alg
       skm.cipher = symmetric.get_cipher sym_enc_alg
       iv_len = skm.cipher.klass.blockSize
       skm.iv = @slice.read_buffer iv_len
 
-    if (skm.s2k_convention isnt C.s2k_convention.none) and (skm.s2k.type is C.s2k.gnu)
+    if (skm.s2k_convention isnt C.s2k_convention.none) and (skm.s2k.type is C.s2k.gnu_dummy)
       skm.payload = null
     else 
       skm.payload = @slice.consume_rest_to_buffer()

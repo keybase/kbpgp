@@ -69,6 +69,7 @@ exports.openpgp = openpgp =
     salt : 1
     salt_iter : 3
     gnu : 101
+    gnu_dummy : 1001
   s2k_convention :
     none : 0
     checksum : 255
