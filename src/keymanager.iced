@@ -252,7 +252,7 @@ class PgpEngine extends Engine
     check = (k) => 
       km = @key(k) # KeyMaterial
       ok1 = km.fulfills_flags(flags) or ((k.flags & flags) is flags)
-      ok2 = not(need_priv) or km.has_unlocked_private()
+      ok2 = not(need_priv) or km.has_private()
       return (ok1 && ok2)
 
     for k in @subkeys when not wrapper?

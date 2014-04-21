@@ -187,7 +187,7 @@ exports.encrypt_and_sign = (T,cb) ->
 #------------
 
 exports.decrypt_and_verify = (T,cb) ->
-  await do_message { armored : armored_sig, keyfetch : km }, defer err, literals
+  await do_message { armored : armored_ctext, keyfetch : km }, defer err, literals
   T.no_error err
   T.equal literals[0].toString(), canto_I, "canto I of Don Juan came back"
   T.assert literals[0].get_data_signer()?, "was signed"

@@ -1,6 +1,7 @@
 
 mods = 
   secret_subkeys : require '../files/secret_subkeys.iced'
+  secret_subkeys_incomplete : require '../files/secret_subkeys_incomplete.iced'
   sig_various_hashes : require '../files/sig_various_hashes.iced'
   openpgp_js_cure53_audit : require '../files/openpgp_js_cure53_audit.iced'
   bzip2 : require '../files/bzip2.iced'

@@ -1,3 +1,12 @@
+## 0.1.20 (2014-04-21)
+
+Bugfixes:
+
+  - Better versions of fulfills_flags that take into account whether there's
+    an available unlocked secret key to do it.
+  - Better handle a secret key export in which no primary key is exported, and
+    no signing subkey is available (since typically, only the primary can sign).
+
 ## 0.1.19 (2014-04-21)
 
 Bugfixes:
