@@ -195,3 +195,39 @@ exports.decrypt_and_verify = (T,cb) ->
 
 #------------
 
+tsenc = null
+p3skb = null
+
+exports.encrypt_private_to_server = (T,cb) ->
+  tsenc = new Encryptor { key : (new Buffer 'A heart whose love is innocent', 'utf8')}
+  await km.sign {}, defer err
+  T.no_error err, "signing worked"
+  await km.export_private_to_server { tsenc }, defer err, tmp
+  p3skb = tmp
+  T.no_error err
+  T.assert p3skb?, "a plausible answer came back from the server"
+  cb()
+
+#------------
+
+exports.decrypt_private_from_sever = (T,cb) ->
+  await KeyManager.import_from_p3skb { raw : p3skb }, defer err, tmp
+  T.no_error err, "import from p3skb worked"
+  km2 = tmp
+  T.assert km2?, "km came back"
+  T.assert km2.has_p3skb_private(), "has a private part"
+  T.assert km2.is_p3skb_locked(), "is locked"
+  await km2.unlock_p3skb { tsenc }, defer err
+  T.waypoint "unlocked"
+  T.no_error err
+  T.assert not(km2.is_p3skb_locked()), "no longer locked"
+  await do_message { armored : armored_ctext, keyfetch : km2 }, defer err, literals
+  T.no_error err
+  T.equal literals[0].toString(), canto_I, "canto I of Don Juan came back"
+  T.assert literals[0].get_data_signer()?, "was signed"
+  T.waypoint "decryption still worked"
+  sk = km2.find_signing_pgp_key()
+  T.assert sk?, "still has a signing key"
+  cb()
+
+#------------
