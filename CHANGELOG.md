@@ -6,6 +6,8 @@ Bugfixes:
     an available unlocked secret key to do it.
   - Better handle a secret key export in which no primary key is exported, and
     no signing subkey is available (since typically, only the primary can sign).
+  - Able to write out partial secret keys in P3SKB mode (via reversing the
+    GNU dummy extension).
 
 ## 0.1.19 (2014-04-21)
 

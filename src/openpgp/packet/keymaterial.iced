@@ -91,6 +91,20 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
+  _write_dummy : (bufs) ->
+    bufs.push(
+      new Buffer([
+        C.s2k_convention.sha1               # dummy, pro-forma
+        C.symmetric_key_algorithms.AES256   # dummy, pro-forma
+        C.s2k.gnu                           # The GNU s2k param
+        0x2                                 # Not sure, maybe a version #?
+      ]),
+      new Buffer("GNU", "utf8"),            # The "GNU" ascii art goes next
+      new Buffer([ 0x1 ])                   # Finally, 0x1 means "dummy"
+    )
+
+  #--------------------------
+
   add_flags : (v) -> @flags |= v
 
   #--------------------------
@@ -98,10 +112,13 @@ class KeyMaterial extends Packet
   private_body : (opts) ->
     bufs = []
     @_write_public bufs
-    priv = @key.priv.serialize()
+    priv = if (p = @key.priv)? then p.serialize() else null
     pp = opts.passphrase or @passphrase
-    if pp? then @_write_private_enc   bufs, priv, pp
-    else        @_write_private_clear bufs, priv
+
+    if not priv? then @_write_dummy         bufs
+    else if pp?  then @_write_private_enc   bufs, priv, pp
+    else              @_write_private_clear bufs, priv
+
     ret = Buffer.concat bufs
     ret
 
