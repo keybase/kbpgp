@@ -15,12 +15,14 @@ ElGamalSE = require('../../elgamalse').Pair
 S = require './signature'
 {Signature} = S
 {encode} = require '../armor'
-{S2K} = require '../s2k'
+{S2K,SecretKeyMaterial} = require '../s2k'
 symmetric = require '../../symmetric'
 util = require 'util'
 packetsigs = require './packetsigs'
 
 #=================================================================================
+
+FUCK = 0
 
 class KeyMaterial extends Packet
 
@@ -28,13 +30,15 @@ class KeyMaterial extends Packet
   # @param {Pair} key a Keypair that can be used for signing, etc.
   # @param {number} timestamp Uint32 saying what time the key was born
   # @param {string|Buffer} passphrase The passphrase used to lock the key
-  # @param {S2K} s2k the encryption engine used to lock the secret parts of the key
+  # @param {SecretKeyMaterial} skm A wrapper around the {S2K} object; 
+  #                  the encryption engine used to lock the secret parts of the key
   # @param {Object} opts a list of options
   # @param {number} flags The flags to grant this key
   # @option opts {bool} subkey True if this is a subkey
   constructor : ({@key, @timestamp, @passphrase, @skm, @opts, @flags}) ->
     @opts or= {}
     @flags or= 0
+    @cnt = FUCK++
     super()
 
   #--------------------------
@@ -281,7 +285,8 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  merge_private : (k2) -> @skm = k2.skm
+  merge_private : (k2) -> 
+    @skm = k2.skm
 
   #--------------------------
 
@@ -297,8 +302,12 @@ class KeyMaterial extends Packet
   is_primary : -> not @opts?.subkey
   ekid : () -> @key.ekid()
   can_sign : () -> @key.can_sign()
-  is_locked : () -> (not @key.can_sign()) and (@skm? and (@skm.convention isnt C.s2k_convention.none))
-  has_private : () -> (@key.can_sign() or @skm?)
+  is_locked : () -> (not @key.has_private()) and @skm? and @skm.is_locked()
+
+  has_private : () -> @has_unlocked_private() or @has_locked_private()
+  has_locked_private : () -> (@skm and @skm.has_private())
+  has_unlocked_private : () -> @key.has_private()
+  has_secret_key_material : () -> @skm?
 
   #--------------------------
 
@@ -323,6 +332,10 @@ class KeyMaterial extends Packet
   unlock : ({passphrase}, cb) ->
     passphrase = bufferify passphrase
     err = null
+
+    unless @skm?
+      err = new Error "Cannot unlock secret key -- no material!"
+      return cb err
 
     pt = if @skm.s2k_convention is C.s2k_convention.none then @skm.payload
     else if (@skm.s2k.type is C.s2k.gnu_dummy) then null # no need to do anything here
@@ -355,10 +368,12 @@ class KeyMaterial extends Packet
   #-------------------
 
   get_all_key_flags    : ()      -> @_psc.get_all_key_flags()
-  fulfills_flags       : (flags) -> ((@get_all_key_flags() & flags) is flags) or @key.fulfills_flags(flags)
   add_flags            : (v)     -> @flags |= v
 
   #-------------------
+
+  fulfills_flags : (flags) -> 
+    ((@get_all_key_flags() & flags) is flags) or @key.fulfills_flags(flags)
 
   get_signed_userids         : () -> @get_psc().get_signed_userids()
   get_signed_user_attributes : () -> @get_psc().get_signed_user_attributes()
@@ -430,7 +445,7 @@ class Parser
   # See read_priv_key in openpgp.packet.keymaterial.js
   #
   parse_private_key : (opts) ->
-    skm = {}
+    skm = new SecretKeyMaterial()
     key = @_parse_public_key()
 
     encrypted_private_key = true

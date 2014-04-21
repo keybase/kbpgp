@@ -127,6 +127,11 @@ class S2K
     @produce_key passphrase, keysize
 
   #----------------------
+
+  # Returns T/F if it's a dummy key (and there's no secret key here)
+  is_dummy : () -> (@type is C.s2k.gnu_dummy)
+
+  #----------------------
   
   #
   # Produces a key using the specified passphrase and the defined 
@@ -157,7 +162,23 @@ class S2K
 
 #======================================================================
 
+class SecretKeyMaterial
+
+  constructor : () ->
+    @s2k_convention = null
+    @s2k = null
+    @iv = null
+    @cipher = null
+    @payload = null
+
+  is_dummy : () -> @s2k? and @s2k.is_dummy()
+  has_private : () -> not @is_dummy()
+  is_locked : () -> (@s2k_convention isnt C.s2k_convention.none) and not(@is_dummy())
+
+#======================================================================
+
 exports.S2K = S2K 
+exports.SecretKeyMaterial = SecretKeyMaterial
 
 #======================================================================
 

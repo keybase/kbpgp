@@ -43,6 +43,7 @@ exports.BaseKeyPair = class BaseKeyPair
   ekid : () ->  Buffer.concat [ new Buffer([K.kid.version, @type]), @hash() ]
   can_sign : () -> @priv?
   can_decrypt : () -> @priv?
+  has_private : () -> @priv?
   fulfills_flags : (flags) -> false
   is_toxic : () -> false
 

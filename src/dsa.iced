@@ -102,7 +102,7 @@ class Pair extends BaseKeyPair
   
   # DSA keys are always game for verification
   fulfills_flags : (flags) -> 
-    good_for = (C.key_flags.cerify_keys | C.key_flags.sign_data)
+    good_for = (C.key_flags.certify_keys | C.key_flags.sign_data)
     ((flags & good_for) is flags)
 
   #----------------

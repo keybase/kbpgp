@@ -120,19 +120,19 @@ class Engine
   #--------
 
   _merge_private_primary : (eng2) ->
-    if not @key(eng2.primary).has_private() then err = null
-    else if @_merge_1_private(@primary, eng2.primary) then err = null
-    else err = new Error "primary public key doesn't match private key"
+    err = if not @key(eng2.primary).has_secret_key_material() then null
+    else if @_merge_1_private(@primary, eng2.primary) then null
+    else new Error "primary public key doesn't match private key"
     return err
 
   #--------
 
   _merge_private_subkey : (k2, i) ->
-    err = if not @key(k2).has_private() then null
-    else  if not ((ekid = @ekid(k2)))?  then new Error "Subkey #{i} is malformed"
-    else  if not ((k = @_index[ekid]))? then new Error "Subkey #{i} wasn't found in public key"
-    else  if @_merge_1_private(k, k2)   then null
-    else                                     new Error "subkey #{i} can't be merged" 
+    err = if not @key(k2).has_secret_key_material() then null
+    else if not ((ekid = @ekid(k2)))? then new Error "Subkey #{i} is malformed"
+    else if not ((k = @_index[ekid]))? then new Error "Subkey #{i} wasn't found in public key"
+    else if @_merge_1_private(k, k2) then null
+    else new Error "subkey #{i} can't be merged" 
     return err
 
   #--------
@@ -140,7 +140,7 @@ class Engine
   unlock_keys : ({asp, passphrase, tsenc}, cb) ->
     esc = make_esc cb, "Engine::unlock_keys"
     await @key(@primary).unlock {asp, tsenc, passphrase }, esc defer()
-    for subkey in @subkeys
+    for subkey, i in @subkeys
       await @key(subkey).unlock {asp, tsenc, passphrase }, esc defer()
     cb null
 
@@ -246,9 +246,15 @@ class PgpEngine extends Engine
   #--------
 
   # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
-  find_best_key : (flags) ->
+  find_best_key : (flags, need_priv = false) ->
     wrapper = null
-    check = (k) => @key(k).fulfills_flags(flags) or ((k.flags & flags) is flags)
+
+    check = (k) => 
+      km = @key(k) # KeyMaterial
+      ok1 = km.fulfills_flags(flags) or ((k.flags & flags) is flags)
+      ok2 = not(need_priv) or km.has_unlocked_private()
+      return (ok1 && ok2)
+
     for k in @subkeys when not wrapper?
       if check(k) then wrapper = k
     if not wrapper? and check(@primary) then wrapper = @primary
@@ -571,9 +577,9 @@ class KeyManager
   fetch : (key_ids, flags, cb) -> @pgp.fetch key_ids, flags, cb
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
-  find_best_pgp_key : (flags) -> @pgp.find_best_key flags
-  find_signing_pgp_key : () -> @find_best_pgp_key C.key_flags.sign_data
-  find_crypt_pgp_key : () -> @find_best_pgp_key C.key_flags.encrypt_comm
+  find_best_pgp_key : (flags, need_priv) -> @pgp.find_best_key flags, need_priv
+  find_signing_pgp_key : () -> @find_best_pgp_key C.key_flags.sign_data, true
+  find_crypt_pgp_key : (need_priv = false) -> @find_best_pgp_key C.key_flags.encrypt_comm, need_priv
 
   #--------
 
