@@ -13,7 +13,7 @@ assert = require 'assert'
 
 #===========================================================
 
-class Signature_v3 extends Packet
+class Signature_v2_or_v3 extends Packet
 
   #---------------------
 
@@ -82,6 +82,12 @@ class Signature_v3 extends Packet
     cb err
 
   #---------------------
+
+#===========================================================
+
+class Signature_v2 extends Signature_v2_or_v3
+
+class Signature_v3 extends Signature_v2_or_v3
 
 #===========================================================
 
@@ -604,7 +610,7 @@ class Parser
 
   constructor : (@slice) ->
 
-  parse_v3 : () ->
+  parse_v2_or_v3 : (v, klass) ->
     throw new error "Bad one-octet length" unless @slice.read_uint8() is 5
     o = {}
     o.type = @slice.read_uint8()
@@ -615,8 +621,8 @@ class Parser
     o.hasher = alloc_or_throw @slice.read_uint8()
     o.signed_hash_value_hash = @slice.read_uint16()
     o.sig = o.public_key_class.parse_sig @slice
-    o.version = 3
-    new Signature_v3 o
+    o.version = v
+    new klass o
 
   parse_v4 : () ->
     o = {}
@@ -674,7 +680,8 @@ class Parser
   parse : () ->
     version = @slice.read_uint8()
     switch version
-      when C.versions.signature.V3 then @parse_v3()
+      when C.versions.signature.V2 then @parse_v2_or_v3 version, Signature_v2
+      when C.versions.signature.V3 then @parse_v2_or_v3 version, Signature_v3
       when C.versions.signature.V4 then @parse_v4()
       else throw new Error "Unknown signature version: #{version}"
 

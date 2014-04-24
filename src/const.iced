@@ -98,6 +98,7 @@ exports.openpgp = openpgp =
     one_pass_sig : 3
     keymaterial : V4 : 4
     signature : 
+      V2 : 2
       V3 : 3
       V4 : 4
   signatures :

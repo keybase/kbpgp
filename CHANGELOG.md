@@ -1,3 +1,11 @@
+## 0.1.12 (2014-04-24)
+
+Bugfixes:
+
+  - Handle v2 signatures, which are the same as v3 signatures.
+    See the [ancient RFC 1991](https://tools.ietf.org/html/rfc1991#section-6.2)
+    fore more details.  This closes keybase/keybase-issues#572
+
 ## 0.1.11 (2014-04-21)
 
 Bugfixes:
