@@ -344,7 +344,7 @@ class KeyMaterial extends Packet
   # @param {string} passphrase the passphrase in uft8
   # 
   unlock : ({passphrase}, cb) ->
-    passphrase = bufferify passphrase
+    passphrase = bufferify passphrase if passphrase?
     err = null
 
     unless @skm?
@@ -353,7 +353,10 @@ class KeyMaterial extends Packet
 
     pt = if @skm.s2k_convention is C.s2k_convention.none then @skm.payload
     else if (@skm.s2k.type is C.s2k.gnu_dummy) then null # no need to do anything here
-    else 
+    else if not passphrase?
+      err = new Error "Key was locked, but no passphrase given"
+      null
+    else
       key = @skm.s2k.produce_key passphrase, @skm.cipher.key_size
       decrypt { 
         ciphertext : @skm.payload,
@@ -368,13 +371,13 @@ class KeyMaterial extends Packet
           h1 = pt[end...]
           pt = pt[0...end]
           h2 = (new SHA1).bufhash pt
-          err = new Error "hash mismatch" unless bufeq_secure(h1, h2)
+          err = new Error "bad private key passphrase (hash mismatch)" unless bufeq_secure(h1, h2)
         when C.s2k_convention.checksum, C.s2k_convention.none
           end = pt.length - 2
           c1 = pt.readUInt16BE end
           pt = pt[0...end]
           c2 = calc_checksum pt
-          err = new Error "checksum mismatch" unless c1 is c2
+          err = new Error "bad private key passphrase (checksum mismatch)" unless c1 is c2
       err = @key.read_priv(pt) unless err?
 
     cb err
