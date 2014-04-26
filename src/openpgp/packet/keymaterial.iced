@@ -22,8 +22,6 @@ packetsigs = require './packetsigs'
 
 #=================================================================================
 
-FUCK = 0
-
 class KeyMaterial extends Packet
 
   # 
@@ -38,7 +36,6 @@ class KeyMaterial extends Packet
   constructor : ({@key, @timestamp, @passphrase, @skm, @opts, @flags}) ->
     @opts or= {}
     @flags or= 0
-    @cnt = FUCK++
     super()
 
   #--------------------------
