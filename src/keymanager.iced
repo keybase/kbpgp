@@ -312,6 +312,7 @@ class KeyManager
   # @param {string} userid The userID to bake into the key
   # @param {number} nbits The number of bits to use for all keys.  If left unspecified, then assume
   #   defaults of 4096 for the master, and 2048 for the subkeys
+  # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years.
   @generate : ({asp, sub_flags, nsubs, primay_flags, userid, nbits }, cb) ->
     asp = ASP.make asp
 
@@ -328,11 +329,14 @@ class KeyManager
     asp.section "primary"
     await RSA.generate { asp, nbits: (nbits or K.key_defaults.primary.nbits) }, esc defer key
 
-    lifespan = new Lifespan { generated, expire_in : K.key_defaults.primary.expire_in }
+    primary_expire_in = expire_in?.primary or K.key_defaults.primary.expire_in
+    subkey_expire_in = expire_in?.subkey or K.key_defaults.sub.expire_in
+
+    lifespan = new Lifespan { generated, expire_in : primary_expire_in }
     primary = new Primary { key, lifespan, flags : primary_flags }
 
     subkeys = []
-    lifespan = new Lifespan { generated, expire_in : K.key_defaults.sub.expire_in }
+    lifespan = new Lifespan { generated, expire_in : subkey_expire_in }
     for flags in sub_flags
       asp.section "subkey #{i+1}"
       await RSA.generate { asp, nbits: (nbits or K.key_defaults.sub.nbits) }, esc defer key

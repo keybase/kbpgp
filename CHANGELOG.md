@@ -1,10 +1,15 @@
+## 0.1.14 (2014-05-01)
+
+Bugfixes:
+
+  - Handle "critical" subpackets properly; address keybase/keybase-issues#682
+
 ## 0.1.13 (2014-04-26)
 
 Bugfixes:
 
   - Strip out some profane debugging info (sorry)
   - Allow unlocking of keys that were not actually locked. 
-
 
 ## 0.1.12 (2014-04-24)
 

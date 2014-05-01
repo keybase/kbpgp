@@ -1,5 +1,6 @@
 
 mods = 
+  critical_subpacket : require '../files/critical_subpacket.iced'
   secret_subkeys : require '../files/secret_subkeys.iced'
   secret_subkeys_incomplete : require '../files/secret_subkeys_incomplete.iced'
   sig_various_hashes : require '../files/sig_various_hashes.iced'
