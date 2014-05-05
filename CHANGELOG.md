@@ -1,3 +1,9 @@
+## 0.1.15
+
+Bugfixes:
+
+  - iced-error is a dependency
+
 ## 0.1.14 (2014-05-01)
 
 Bugfixes:

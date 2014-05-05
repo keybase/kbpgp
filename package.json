@@ -25,7 +25,8 @@
     "pgp-utils": ">=0.0.20",
     "purepack": ">=1.0.0",
     "triplesec": ">=3.0.10",
-    "keybase-compressjs": "1.0.1-c"
+    "keybase-compressjs": "1.0.1-c",
+    "iced-error": "0.0.8"
   },
   "devDependencies": {
     "browserify": "3.32.1",
@@ -34,7 +35,6 @@
     "iced-coffee-script": "1.7.1-b",
     "optimist": "0.6.1",
     "icsify": "0.6.0",
-    "iced-error": "0.0.8",
     "minimist": "0.0.8"
   }
 }
