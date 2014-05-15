@@ -97,6 +97,7 @@ in a shooting gallery."""
 exports.dsa_round_trip = (T,cb) ->
   await KeyManager.import_from_armored_pgp { raw : gbc.key }, defer err, km
   T.no_error err
+  T.equal km.get_primary_keypair().nbits(), 1024, "the right number of bits"
   await km.unlock_pgp { passphrase : 'abcd' }, defer err
   T.no_error err
   key = km.find_signing_pgp_key()

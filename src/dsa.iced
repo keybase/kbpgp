@@ -1,5 +1,5 @@
 bn = require './bn'
-{nbv,BigInteger} = bn
+{nbits,nbv,BigInteger} = bn
 {SRF,MRF} = require './rand'
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
@@ -33,6 +33,10 @@ class Pub extends BaseKey
   #----------------
 
   trunc_hash : (h) -> bn.bn_from_left_n_bits h, @q.bitLength()
+
+  #----------------
+
+  nbits : () -> @p?.bitLength()
 
   #----------------
 

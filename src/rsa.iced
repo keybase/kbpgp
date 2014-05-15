@@ -1,6 +1,6 @@
 {random_prime,nbs} = require './primegen'
 bn = require './bn'
-{nbv,nbi,BigInteger} = bn
+{nbits,nbv,nbi,BigInteger} = bn
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 konst = require './const'
@@ -174,6 +174,7 @@ class Pub extends BaseKey
   constructor : ({@n,@e}) ->
   encrypt : (p, cb) -> @mod_pow p, @e, cb
   verify :  (s, cb) -> @mod_pow s, @e, cb
+  nbits : () -> @n?.bitLength()
 
   #----------------
 

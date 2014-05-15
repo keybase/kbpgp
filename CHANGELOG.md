@@ -5,6 +5,10 @@ Bugfixes:
   - iced-error is a dependency
   - @terinjokes points out ICS is a real dep and not a devDep
 
+Features:
+
+  - Expose nbits() on public keys
+
 ## 0.1.14 (2014-05-01)
 
 Bugfixes:

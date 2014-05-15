@@ -46,6 +46,7 @@ exports.BaseKeyPair = class BaseKeyPair
   has_private : () -> @priv?
   fulfills_flags : (flags) -> false
   is_toxic : () -> false
+  nbits : () -> @pub?.nbits()
 
   #----------------
 

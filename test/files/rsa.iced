@@ -8,6 +8,7 @@ run_test = (T,nbits,n,cb) ->
   T.assert not(err?), "Generating keypair worked"
   await setTimeout defer(), 10
   T.waypoint "generated #{nbits} bit key!"
+  T.equal key.nbits(), nbits, "the right number of bits"
   for i in [0...n]
     x = MRF().random_zn key.pub.n
     await key.encrypt x, defer y
