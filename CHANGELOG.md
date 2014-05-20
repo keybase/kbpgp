@@ -1,3 +1,9 @@
+## 0.1.17
+
+Bugfixes:
+
+  - Slight change in the hiding interface to burn.
+
 ## 0.1.16 (2014-05-20)
 
 Features:

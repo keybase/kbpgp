@@ -114,9 +114,9 @@ class Burner
     payload = export_key_pgp @_cipher_algo, @_session_key
     pub_k = @encryption_key.key
     await pub_k.pad_and_encrypt payload, esc defer ekey
-    if @opts.hide?
+    if @opts.hide
       key_id = dummy_key_id 
-      await ekey.hide { max : @opts.hide_max, slosh : @opts.hide_slosh, key : pub_k }, esc defer()
+      await ekey.hide { max : @opts.hide?.max, slosh : @opts.hide?.slosh, key : pub_k }, esc defer()
     else 
       key_id = @encryption_key.get_key_id()
     pkt = new PKESK { 
@@ -205,8 +205,10 @@ exports.clearsign = clearsign.sign
 # @param {openpgp.packets.KeyMaterial} encryption_key the key to encrypt with 
 # @param {Array<openpgp.packets.Literal>} literals the literal packets that make up the payload.
 # @param {Object} opts Various options to pass through.  So far:
-#          - blind --- include a dummy key in the packet, to protect the identity of the
+#          - hide --- include a dummy key in the packet, to protect the identity of the
 #                      recipient.
+#          - hide.max --- The maximum size of a key. 8192 for RSA by default. 4096 for ElGamal
+#          - hide.slosh -- The amount of slosh over the max to introduce. 128 by default. In bits.
 # @param {callback} cb Callback with an ({Error},{Bufffer},{Buffer}) triple.  Error is
 #    set if there was an error, otherwise, we'll get back the PGP output in first armored
 #    and then raw binary form.
