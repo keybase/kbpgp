@@ -383,6 +383,8 @@ class Output
   #-------------------
 
   hide : ({key, max, slosh}, cb) -> 
+    max or= 8192
+    slosh or= 128
     await key.hide { i : @y(), max, slosh }, defer err, i
     unless err?
       @y_mpi = i

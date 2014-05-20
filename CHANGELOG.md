@@ -2,7 +2,7 @@
 
 Features:
   
-  - Add an RSA hiding feature, to hide what the public key is. 
+  - Add an RSA hiding feature, to hide what the public key is.  Also, blind the output ciphertext.
 
 ## 0.1.15 (2014-05-20)
 

@@ -151,6 +151,8 @@ class Output
   #----------------------
 
   hide : ({key, max, slosh}, cb) ->
+    max or= 4096
+    slosh or= 128
     err = null
     @c_bufs = null
     new_c_mpis = []

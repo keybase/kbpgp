@@ -110,24 +110,22 @@ class Burner
   #------------
 
   _encrypt_session_key : (cb) ->
+    esc = make_esc cb, "_encrypt_session_key"
     payload = export_key_pgp @_cipher_algo, @_session_key
     pub_k = @encryption_key.key
-    await pub_k.pad_and_encrypt payload, defer err, ekey
-    unless err?
-      if @opts.hide?
-        key_id = dummy_key_id 
-        max = @opts.hide_max or 8192
-        slosh = @opts.hide_slosh or 128
-        await ekey.hide {key : pub_k, max, slosh}, defer err
-      else 
-        key_id = @encryption_key.get_key_id()
-      pkt = new PKESK { 
-        crypto_type : pub_k.type,
-        key_id : key_id,
-        ekey : ekey
-      } 
-      await pkt.write defer err, @_pkesk
-    cb err
+    await pub_k.pad_and_encrypt payload, esc defer ekey
+    if @opts.hide?
+      key_id = dummy_key_id 
+      await ekey.hide { max : @opts.hide_max, slosh : @opts.hide_slosh, key : pub_k }, esc defer()
+    else 
+      key_id = @encryption_key.get_key_id()
+    pkt = new PKESK { 
+      crypto_type : pub_k.type,
+      key_id : key_id,
+      ekey : ekey
+    } 
+    await pkt.write esc defer @_pkesk
+    cb null
 
   #------------
 
