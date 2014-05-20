@@ -149,6 +149,24 @@ class Output
   c : () -> @c_mpis
 
   #----------------------
+
+  hide : ({key, max, slosh}, cb) ->
+    err = null
+    @c_bufs = null
+    new_c_mpis = []
+    for c_mpi in @c_mpis
+      await key.hide { i : c_mpi, max, slosh }, defer err, tmp
+      new_c_mpis.push tmp
+      break if err?
+    @c_mpis = new_c_mpis unless err?
+    cb err
+
+  #----------------------
+
+  find : ({key}) ->
+    @c_mpis = (key.find(j) for j in @c_mpis)
+
+  #----------------------
   
   get_c_bufs : () ->
     if @c_bufs? then @c_bufs
