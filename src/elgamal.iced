@@ -99,7 +99,11 @@ class Pair extends BaseKeyPair
     return ret
 
   #----------------
+  
+  max_value : () -> @pub.p
 
+  #----------------
+  
   pad_and_encrypt : (data, cb) ->
     err = ret = null
     await eme_pkcs1_encode data, @pub.p.mpi_byte_length(), defer err, m

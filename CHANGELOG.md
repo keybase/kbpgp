@@ -1,4 +1,10 @@
-## 0.1.15
+## 0.1.16 
+
+Features:
+  
+  - Add an RSA hiding feature, to hide what the public key is. 
+
+## 0.1.15 (2014-05-20)
 
 Bugfixes:
 

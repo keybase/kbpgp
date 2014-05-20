@@ -26,12 +26,17 @@ clearsign = require './clearsign'
 
 #==========================================================================================
 
+dummy_key_id = new Buffer( 0 for [0...16] ) 
+
+#==========================================================================================
+
 class Burner
 
   #------------
 
-  constructor : ({@literals, @signing_key, @encryption_key}) ->
+  constructor : ({@literals, @signing_key, @encryption_key, @opts}) ->
     @packets = []
+    @opts or= {}
     @signed_payload = null
 
   #------------
@@ -106,12 +111,19 @@ class Burner
 
   _encrypt_session_key : (cb) ->
     payload = export_key_pgp @_cipher_algo, @_session_key
-    k = @encryption_key.key
-    await k.pad_and_encrypt payload, defer err, ekey
+    pub_k = @encryption_key.key
+    await pub_k.pad_and_encrypt payload, defer err, ekey
     unless err?
+      if @opts.hide?
+        key_id = dummy_key_id 
+        max = @opts.hide_max or 8192
+        slosh = @opts.hide_slosh or 128
+        await ekey.hide {key : pub_k, max, slosh}, defer err
+      else 
+        key_id = @encryption_key.get_key_id()
       pkt = new PKESK { 
-        crypto_type : k.type,
-        key_id : @encryption_key.get_key_id(),
+        crypto_type : pub_k.type,
+        key_id : key_id,
         ekey : ekey
       } 
       await pkt.write defer err, @_pkesk
@@ -194,13 +206,16 @@ exports.clearsign = clearsign.sign
 # @param {openpgp.packets.KeyMaterial} signing_key the key to sign with 
 # @param {openpgp.packets.KeyMaterial} encryption_key the key to encrypt with 
 # @param {Array<openpgp.packets.Literal>} literals the literal packets that make up the payload.
+# @param {Object} opts Various options to pass through.  So far:
+#          - blind --- include a dummy key in the packet, to protect the identity of the
+#                      recipient.
 # @param {callback} cb Callback with an ({Error},{Bufffer},{Buffer}) triple.  Error is
 #    set if there was an error, otherwise, we'll get back the PGP output in first armored
 #    and then raw binary form.
 #
-exports.burn = ({msg, literals, signing_key, encryption_key}, cb) ->
+exports.burn = ({msg, literals, signing_key, encryption_key, opts}, cb) ->
   literals = make_simple_literals msg if msg? and not literals?
-  b = new Burner { literals, signing_key, encryption_key }
+  b = new Burner { literals, signing_key, encryption_key, opts }
   await b.burn defer err, raw
   b.scrub()
   aout = encode(C.message_types.generic, raw) if raw? and not err?

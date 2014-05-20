@@ -241,6 +241,7 @@ class Pair extends BaseKeyPair
 
   encrypt : (p, cb) -> @pub.encrypt p, cb
   decrypt : (c, cb) -> @priv.decrypt c, cb
+  max_value : () -> @pub.n
 
   #----------------
 
@@ -281,7 +282,7 @@ class Pair extends BaseKeyPair
     await eme_pkcs1_encode data, @pub.n.mpi_byte_length(), defer err, m
     unless err?
       await @encrypt m, defer ct
-      ret = @export_output { y_buf : ct.to_mpi_buffer() }
+      ret = @export_output { y_mpi : ct } 
     cb err, ret
 
   #----------------
@@ -364,13 +365,35 @@ class Pair extends BaseKeyPair
 #=======================================================================
 
 class Output
+
   constructor : ({@y_mpi, @y_buf}) ->
+
+  #-------------------
+
   @parse : (buf) ->
     [err, ret, raw, n] = bn.mpi_from_buffer buf
     throw err if err?
     throw new Error "junk at the end of input" unless raw.length is 0
     new Output { y_mpi : ret }
+
+  #-------------------
+
   y : () -> @y_mpi
+
+  #-------------------
+
+  hide : ({key, max, slosh}, cb) -> 
+    await key.hide { i : @y(), max, slosh }, defer err, i
+    unless err?
+      @y_mpi = i
+      @y_buf = null
+    cb err
+
+  #-------------------
+
+  find : ({key}) -> @y_mpi = key.find @y_mpi
+
+  #-------------------
 
   output : () -> (@y_buf or @y_mpi.to_mpi_buffer())
 

@@ -4,6 +4,7 @@ K = konst.kb
 {SHA512} = require './hash'
 bn = require './bn'
 {bufeq_secure} = require('pgp-utils').util
+{SRF} = require './rand'
 
 #============================================================
 
@@ -88,6 +89,31 @@ exports.BaseKeyPair = class BaseKeyPair
   read_priv : (raw_priv) ->
     [err,@priv] = @Priv.alloc raw_priv, @pub
     err
+
+  #----------------
+
+  # Undoing the find operation is quite easy....
+  find : (i) -> i.mod(@max_value())
+
+  #----------------
+
+  # Hide bigint i as a bigint of max+slosh bits, that's still
+  # equivalent to i mod n.
+  hide : ({i, max, slosh}, cb) ->
+
+    ret = err = null
+
+    # For RSA, this is n; for ElGamal and DSA, this is p
+    n = @max_value()
+
+    if (L = n.bitLength()) > max
+      err = new Error "Can't hide > #{max} bits; got #{L}"
+    else
+      r_bits = (max - L) + slosh
+      await SRF().random_nbit r_bits, defer r
+      ret = r.multiply(n).add(i)
+
+    cb err, ret
 
   #----------------
 
