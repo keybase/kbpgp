@@ -109,16 +109,18 @@ class Signature extends Packet
 
   get_key_id : () ->
     if @key_id then @key_id
-    else @subpacket_index.hashed[S.issuer]?.id or @subpacket_index.unhashed[S.issuer]?.id
+    else @subpacket_index.all[S.issuer]?.id
 
   #---------------------
 
   _make_subpacket_index : () ->
-    ret = { hashed : {}, unhashed : {} }
+    ret = { hashed : {}, unhashed : {}, all : {} }
     for p in @hashed_subpackets
       ret.hashed[p.type] = p
+      ret.all[p.type] = p
     for p in @unhashed_subpackets
       ret.unhashed[p.type] = p
+      ret.all[p.type] = p
     ret
  
   #---------------------
@@ -328,7 +330,7 @@ class Signature extends Packet
   #-----------------
 
   get_issuer_key_id : () ->
-    @subpacket_index?.unhashed[C.sig_subpacket.issuer]?.id
+    @subpacket_index?.all[C.sig_subpacket.issuer]?.id
 
 #===========================================================
 

@@ -1,9 +1,14 @@
-## 0.1.17
+## 0.1.17 (2014-05-23)
 
 Bugfixes:
 
   - Slight change in the hiding interface to burn.
   - Pass `expire_in` through to `KeyManager.generate`
+  - get_issuer_key_id looks in either signed or unsigned subpackets
+     - Address keybase/keybase-issues#304
+
+Features:
+  - dirsign!
 
 ## 0.1.16 (2014-05-20)
 
