@@ -3,6 +3,7 @@
 Bugfixes:
 
   - Slight change in the hiding interface to burn.
+  - Pass `expire_in` through to `KeyManager.generate`
 
 ## 0.1.16 (2014-05-20)
 

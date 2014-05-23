@@ -313,7 +313,7 @@ class KeyManager
   # @param {number} nbits The number of bits to use for all keys.  If left unspecified, then assume
   #   defaults of 4096 for the master, and 2048 for the subkeys
   # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years.
-  @generate : ({asp, sub_flags, nsubs, primay_flags, userid, nbits }, cb) ->
+  @generate : ({asp, sub_flags, nsubs, primay_flags, userid, nbits, expire_in }, cb) ->
     asp = ASP.make asp
 
     F = C.key_flags
