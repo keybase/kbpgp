@@ -12,27 +12,15 @@ lib/%.js: src/%.iced
 	$(ICED) -I browserify -c -o `dirname $@` $<
 
 $(BUILD_STAMP): \
+	lib/asymmetric.js \
     lib/basekeypair.js \
+	lib/basex.js \
+	lib/bn.js \
 	lib/const.js \
 	lib/dsa.js \
 	lib/elgamal.js \
 	lib/elgamalse.js \
-	lib/main.js \
-	lib/primegen.js \
-	lib/primes.js \
-	lib/rsa.js \
-	lib/util.js \
-	lib/bn.js \
-	lib/asymmetric.js \
-	lib/basex.js \
-	lib/symmetric.js \
-	lib/pad.js \
-	lib/keymanager.js \
-	lib/keywrapper.js \
-	lib/keyfetch.js \
 	lib/hash.js \
-	lib/rand.js \
-	lib/lock.js \
 	lib/header.js \
 	lib/keybase/encode.js \
 	lib/keybase/sign.js \
@@ -43,15 +31,21 @@ $(BUILD_STAMP): \
 	lib/keybase/packet/signature.js \
 	lib/keybase/packet/userid.js \
 	lib/keybase/packet/p3skb.js \
+	lib/keyfetch.js \
+	lib/keymanager.js \
+	lib/keyring.js \
+	lib/keywrapper.js \
+	lib/lock.js \
+	lib/main.js \
 	lib/openpgp/armor.js \
 	lib/openpgp/buffer.js \
 	lib/openpgp/burner.js \
+	lib/openpgp/cast5.js \
 	lib/openpgp/cfb.js \
 	lib/openpgp/clearsign.js \
 	lib/openpgp/detachsign.js \
+	lib/openpgp/hilev.js \
 	lib/openpgp/ocfb.js \
-	lib/openpgp/s2k.js \
-	lib/openpgp/util.js \
 	lib/openpgp/packet/all.js \
 	lib/openpgp/packet/base.js \
 	lib/openpgp/packet/compressed.js \
@@ -66,9 +60,16 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/user_attribute.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
-	lib/openpgp/cast5.js \
-	lib/openpgp/hilev.js \
-	lib/keyring.js 
+	lib/openpgp/s2k.js \
+	lib/openpgp/util.js \
+	lib/openpgp/verifier.js \
+	lib/pad.js \
+	lib/primegen.js \
+	lib/primes.js \
+	lib/rand.js \
+	lib/rsa.js \
+	lib/symmetric.js \
+	lib/util.js 
 	date > $@
 
 build: $(BUILD_STAMP) 

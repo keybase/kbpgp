@@ -21,6 +21,7 @@ hashmod = require '../hash'
 {encode} = require './armor'
 {clearsign_header} = require('pgp-utils').armor
 {Literal} = require "./packet/literal"
+VerifierBase = require('./verifier').Base
 
 #==========================================================================================
 
@@ -143,7 +144,7 @@ class ClearSigner
 
 #==========================================================================================
 
-class Verifier 
+class Verifier extends VerifierBase
 
   #---------------
 
@@ -152,18 +153,8 @@ class Verifier
   # @param {Object} clearsign the clearsign object that was embedded in the armor `Message`
   #    after parsing.
   #
-  constructor : ({@packets, @clearsign, @key_fetch}) ->
-
-  #-----------------------
-
-  _find_signature : (cb) ->
-    err = if (n = @packets.length) isnt 1 
-      new Error "Expected one signature packet; got #{n}"
-    else if (@_sig = @packets[0]).tag isnt C.packet_tags.signature 
-      new Error "Expected a signature packet; but got type=#{@packets[0].tag}"
-    else
-      null
-    cb null
+  constructor : ({packets, @clearsign, keyfetch}) ->
+    super { packets, keyfetch }
 
   #-----------------------
 
@@ -178,17 +169,13 @@ class Verifier
 
   #-----------------------
 
-  _fetch_key : (cb) ->
-    await @key_fetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, obj
-    unless err?
-      @_sig.key = obj.key
-      # MD5 is the default
-      h = @clearsign.headers.hash or 'MD5'
-      if not (@_sig.hasher = hashmod[h])?
-        err = new Error "Unknown hash algorithm: #{h}"
-      else
-        @_sig.keyfetch_obj = obj
-    cb err
+  _make_hasher : (cb) ->
+    err = null
+    # MD5 is the default
+    h = @clearsign.headers.hash or 'MD5'
+    if not (@_sig.hasher = hashmod[h])?
+      err = new Error "Unknown hash algorithm: #{h}"
+    cb null
 
   #-----------------------
 
@@ -214,6 +201,7 @@ class Verifier
     await @_find_signature esc defer()
     await @_reformat_text esc defer()
     await @_fetch_key esc defer()
+    await @_make_hasher esc defer()
     await @_verify esc defer()
     cb null, @_literal
 
@@ -231,8 +219,8 @@ exports.sign = ({msg, signing_key}, cb) ->
 
 #==========================================================================================
 
-exports.verify = ({packets, clearsign, key_fetch}, cb) ->
-  v = new Verifier { packets, clearsign, key_fetch }
+exports.verify = ({packets, clearsign, keyfetch}, cb) ->
+  v = new Verifier { packets, clearsign, keyfetch }
   await v.run defer err, literal
   cb err, literal
 

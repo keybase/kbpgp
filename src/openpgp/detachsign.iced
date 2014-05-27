@@ -7,9 +7,6 @@
 
 
 {make_esc} = require 'iced-error'
-tsec = require 'triplesec'
-{SHA512} = tsec.hash
-{WordArray} = require tsec
 {Signature,CreationTime,Issuer} = require './packet/signature'
 {unix_time} = require '../util'
 triplesec = require 'triplesec'
@@ -20,6 +17,7 @@ Ch = require '../header'
 {SHA512} = triplesec.hash
 {encode} = require './armor'
 {Literal} = require "./packet/literal"
+VerifierBase = require('./verifier').Base
 
 #====================================================================
 
@@ -81,22 +79,12 @@ class Signer
 
 #====================================================================
 
-class Verifier
+class Verifier extends VerifierBase
 
   #-----------------------
 
-  constructor : ({@packets, @data, @data_fn, @key_fetch}) ->
-
-  #-----------------------
-
-  _find_signature : (cb) ->
-    err = if (n = @packets.length) isnt 1 
-      new Error "Expected one signature packet; got #{n}"
-    else if (@_sig = @packets[0]).tag isnt C.packet_tags.signature 
-      new Error "Expected a signature packet; but got type=#{@packets[0].tag}"
-    else
-      null
-    cb null
+  constructor : ({packets, @data, @data_fn, keyfetch}) ->
+    super { packets, keyfetch }
 
   #-----------------------
 
@@ -118,6 +106,7 @@ class Verifier
   run : (cb) ->
     esc = make_esc cb, "Verifier::run"
     await @_find_signature esc defer()
+    await @_fetch_key esc defer()
     await @_consume_data esc defer()
     await @_verify esc defer()
     cb null
@@ -132,8 +121,8 @@ exports.sign = ({data, hash_obj, signing_key}, cb) ->
 
 #====================================================================
 
-exports.verify = ({data, data_fn, packets, key_fetch}, cb) ->
-  v = new Verifier { data, data_fn, hasher, packets, key_fetch }
+exports.verify = ({data, data_fn, packets, keyfetch}, cb) ->
+  v = new Verifier { data, data_fn, hasher, packets, keyfetch }
   await v.run defer err
   cb err
 

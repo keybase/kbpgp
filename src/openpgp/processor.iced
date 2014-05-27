@@ -10,8 +10,7 @@ util = require 'util'
 armor = require './armor'
 hashmod = require '../hash'
 verify_clearsign = require('./clearsign').verify
-{asyncify} = require('iced-utils').util
-verify_detached = require('./detatchsign').verify
+verify_detached = require('./detachsign').verify
 
 #==========================================================================================
 
@@ -119,7 +118,7 @@ class Message
 
   #---------
 
-  constructor : ({@key_fetch, @data_fn, @data}) ->
+  constructor : ({@keyfetch, @data_fn, @data}) ->
     @literals = []
     @enc_data_packet = null
 
@@ -141,7 +140,7 @@ class Message
 
     if key_ids.length 
       enc = true
-      await @key_fetch.fetch key_ids, konst.ops.decrypt, defer err, obj, index
+      await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, obj, index
       unless err?
         packet = esk_packets[index]
         await obj.key.decrypt_and_unpad packet.ekey, defer err, sesskey
@@ -172,7 +171,7 @@ class Message
 
   #---------
 
-  parse : (raw, cb) ->
+  _parse : (raw, cb) ->
     [err, packets] = parse raw
     cb err, packets
 
@@ -235,7 +234,7 @@ class Message
       err = new Error "signature mismatch open v close: #{a?.toString('hex')} != #{b?.toString('hex')}"
 
     unless err?
-      await @key_fetch.fetch [ a ], konst.ops.verify, defer err, obj
+      await @keyfetch.fetch [ a ], konst.ops.verify, defer err, obj
 
     unless err?
       sig.close.key = obj.key
@@ -279,14 +278,14 @@ class Message
     if not clearsign?
       err = new Error "no clearsign data found"
     else
-      await verify_clearsign { packets, clearsign, @key_fetch }, defer err, literal
+      await verify_clearsign { packets, clearsign, @keyfetch }, defer err, literal
     cb err, [ literal ]
 
   #---------
 
   parse_and_process : (msg, cb) ->
     esc = make_esc cb, "Message::parse_and_process" 
-    await @_parse body, esc defer packets
+    await @_parse msg.body, esc defer packets
     await @_process {msg, packets}, esc defer literals
     cb null, literals
 
@@ -296,7 +295,7 @@ class Message
     if not(@data? or @data_fn?)
       err = new Error "Cannot verify detached signature without data input"
     else 
-      await verify_detached { packets, @data, @data_fn, @key_fetch}, defer err
+      await verify_detached { packets, @data, @data_fn, @keyfetch}, defer err
     cb err
 
   #---------
@@ -335,11 +334,11 @@ exports.Message = Message
 # @param {callback} cb Callback with an `err, Array<Literals>` pairs. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
 exports.do_message = do_message = ({armored, keyfetch, data_fn, data}, cb) ->
-  esc = make_esc cb, "do_message"
   literals = null
-  await asyncify (armor.decode armored), esc defer msg
-  proc = new Message { keyfetch, data_fn, data }
-  await proc.parse_and_process msg, esc defer literals
+  [err,msg] = armor.decode armored
+  unless err?
+    proc = new Message { keyfetch, data_fn, data }
+    await proc.parse_and_process msg, defer err, literals
   cb err, literals
 
 #==========================================================================================
