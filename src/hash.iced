@@ -10,6 +10,7 @@ make_hasher = (klass, name, type) ->
     f.type = type
     f.algname = name
     f.output_length = klass.output_size
+    f.klass = klass
     f
   else null
 

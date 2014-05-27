@@ -23,6 +23,7 @@ C = require('../const').openpgp
 {SHA512} = require '../hash'
 {encode} = require './armor'
 clearsign = require './clearsign'
+detachsign = require './detachsign'
 
 #==========================================================================================
 
@@ -182,6 +183,7 @@ exports.make_simple_literals = make_simple_literals = (msg) ->
 #==========================================================================================
 
 exports.clearsign = clearsign.sign
+exports.detachsign = detachsign.sign
 
 #==========================================================================================
 

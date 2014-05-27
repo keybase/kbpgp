@@ -10,6 +10,8 @@ util = require 'util'
 armor = require './armor'
 hashmod = require '../hash'
 verify_clearsign = require('./clearsign').verify
+{asyncify} = require('iced-utils').util
+verify_detached = require('./detatchsign').verify
 
 #==========================================================================================
 
@@ -117,7 +119,7 @@ class Message
 
   #---------
 
-  constructor : (@key_fetch) ->
+  constructor : ({@key_fetch, @data_fn, @data}) ->
     @literals = []
     @enc_data_packet = null
 
@@ -170,7 +172,7 @@ class Message
 
   #---------
 
-  _parse : (raw, cb) ->
+  parse : (raw, cb) ->
     [err, packets] = parse raw
     cb err, packets
 
@@ -263,7 +265,7 @@ class Message
 
   #---------
   
-  process : (packets, cb) ->
+  _process_generic : ({packets}, cb) ->
     @packets = packets
     esc = make_esc cb, "Message:process"
     await @_decrypt esc defer()
@@ -273,19 +275,42 @@ class Message
 
   #---------
 
-  verify_clearsign : (packets, clearsign, cb) ->
-    await verify_clearsign { packets, clearsign, @key_fetch }, defer err, literal
+  _verify_clearsign : ({packets, clearsign}, cb) ->
+    if not clearsign?
+      err = new Error "no clearsign data found"
+    else
+      await verify_clearsign { packets, clearsign, @key_fetch }, defer err, literal
     cb err, [ literal ]
 
   #---------
 
-  parse_and_process : ({body, clearsign}, cb) ->
-    await @_parse body, defer err, packets
-    unless err?
-      if clearsign?
-        await @verify_clearsign packets, clearsign, defer err, literals
+  parse_and_process : (msg, cb) ->
+    esc = make_esc cb, "Message::parse_and_process" 
+    await @_parse body, esc defer packets
+    await @_process {msg, packets}, esc defer literals
+    cb null, literals
+
+  #---------
+
+  _verify_signature : ({packets}, cb) ->
+    if not(@data? or @data_fn?)
+      err = new Error "Cannot verify detached signature without data input"
+    else 
+      await verify_detached { packets, @data, @data_fn, @key_fetch}, defer err
+    cb err
+
+  #---------
+
+  _process : ({msg, packets}, cb) ->
+    switch msg.type
+      when C.message_types.generic
+        await @_process_generic { packets }, defer err, literals
+      when C.message_types.clearsign
+        await @_verify_clearsign { packets, clearsign : msg.clearsign } , defer err, literals
+      when C.message_types.signature
+        await @_verify_signature { packets } , defer err, literals
       else
-        await @process packets, defer err, literals
+        err = new Error "Needed a 'generic', 'clearsign', or 'signature' PGP message, got #{type}"
     cb err, literals
 
 #==========================================================================================
@@ -302,20 +327,19 @@ exports.Message = Message
 # @param {string} armored The armored PGP generic message.
 # @param {KeyFetcher} keyfetch A KeyFetch object that is called to get keys
 #    for decyrption and signature verification.
+# @param {Function} data_fn A function to call with data. Used in the case
+#    of detached signatures.  data_fn is called repeatedly with a hasher object.
+#    It calls back with (err,done).
+# @param {Buffer} data Instead of a streaming data_fn, you can also specify
+#    a static buffer, to check against the given signature.
 # @param {callback} cb Callback with an `err, Array<Literals>` pairs. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
-#    
-#
-exports.do_message = do_message = ({armored, keyfetch}, cb) ->
-  [err,msg] = armor.decode armored
+exports.do_message = do_message = ({armored, keyfetch, data_fn, data}, cb) ->
+  esc = make_esc cb, "do_message"
   literals = null
-  unless err?
-    proc = new Message keyfetch
-    switch msg.type
-      when C.message_types.generic, C.message_types.clearsign
-        await proc.parse_and_process msg, defer err, literals
-      else
-        err = new Error "Needed a 'generic' PGP message, but got something else"
+  await asyncify (armor.decode armored), esc defer msg
+  proc = new Message { keyfetch, data_fn, data }
+  await proc.parse_and_process msg, esc defer literals
   cb err, literals
 
 #==========================================================================================
