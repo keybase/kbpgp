@@ -1,4 +1,7 @@
 
+konst = require '../const'
+C = konst.openpgp
+
 #======================================================
 
 exports.Base = class Base
