@@ -26,7 +26,7 @@ exports.init = (T,cb) ->
 
 make_data_fn = (buf) ->
   i = 0
-  chunk = 0x100
+  chunk = 0x1000
   (hasher, cb) ->
     if (i < buf.length)
       end = i + chunk

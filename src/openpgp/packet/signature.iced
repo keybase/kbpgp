@@ -251,8 +251,8 @@ class Signature extends Packet
     unless err?
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
-      { payload } = @prepare_payload data
-      await @key.verify_unpad_and_check_hash { @sig, data : payload, @hasher }, defer err
+      { payload, hvalue } = @prepare_payload data
+      await @key.verify_unpad_and_check_hash { @sig, hash : hvalue, @hasher }, defer err
 
     # Now make sure that the signature wasn't expired
     unless err?

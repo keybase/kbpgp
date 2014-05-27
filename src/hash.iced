@@ -32,8 +32,13 @@ make_hasher = (klass, name, type) ->
 # with the default hasher above).
 make_streamer = (klass, name, type) -> () ->
   obj = new klass
-  ret = (buf) -> obj.finalize(if buf? then WordArray.from_buffer(buf) else null).to_buffer()
-  ret.update = (buf) -> if buf? then obj.update(WordArray.from_buffer(buf)) else @
+
+  # Clone in case we need to hash ourselves multiple times...
+  ret = (buf) -> obj.clone().finalize(if buf? then WordArray.from_buffer(buf) else null).to_buffer()
+  
+  ret.update = (buf) -> 
+    obj.update(WordArray.from_buffer(buf)) if buf?
+    @
   decorate(ret, klass, name, type)
 
 #--------------------

@@ -99,7 +99,7 @@ class Verifier extends VerifierBase
       go = true
       while go
         await @data_fn buf_hasher, defer err, done
-        go = false if err or done
+        go = false if err? or done
       @_sig.hasher = streamer
     cb err
 
