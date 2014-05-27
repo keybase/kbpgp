@@ -1,5 +1,6 @@
 
 mods = 
+  detached_sigs : require '../files/verify_detached_sigs.iced'
   hide : require '../files/hide.iced'
   critical_subpacket : require '../files/critical_subpacket.iced'
   secret_subkeys : require '../files/secret_subkeys.iced'

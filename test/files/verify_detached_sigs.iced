@@ -1,7 +1,7 @@
 {PgpKeyRing} = require '../../lib/keyring'
 {KeyManager} = require '../../lib/keymanager'
 {do_message} = require '../../lib/openpgp/processor'
-{keys,data}  = require '../data/detached'
+{keys,data}  = require '../data/detached.iced'
 {WordArray}  = require 'triplesec'
 {MRF}        = require '../../lib/rand'
 
@@ -12,6 +12,7 @@ ring = new PgpKeyRing()
 #==========================================
 
 random = (hi) -> MRF().random_word() % hi
+strip = (m) -> m.replace /[\n\t\r ]+/g, ''
 
 #==========================================
 
@@ -32,7 +33,7 @@ exports.init = (T,cb) ->
 
   # Base-64-decode the file data
   for key,val of data
-    val.data = new Buffer val.data, 'base64'
+    val.data = new Buffer strip(val.data), 'base64'
     await corrupt val.data, defer val.bad_data
 
   cb()
