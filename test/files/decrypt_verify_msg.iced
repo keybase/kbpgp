@@ -309,7 +309,7 @@ exports.process_msg_0 = (T,cb) ->
   [err,msg] = armor.decode data.msgs[0]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
-  proc = new Message ring
+  proc = new Message { keyfetch : ring }
   await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf 'Buffer "cats1122", "utf8"'
@@ -323,7 +323,7 @@ exports.process_msg_1 = (T,cb) ->
   [err,msg] = armor.decode data.msgs[1]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
-  proc = new Message ring
+  proc = new Message { keyfetch : ring }
   await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
@@ -337,7 +337,7 @@ exports.process_msg_2 = (T,cb) ->
   [err,msg] = armor.decode data.msgs[2]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
-  proc = new Message ring
+  proc = new Message { keyfetch : ring }
   await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
