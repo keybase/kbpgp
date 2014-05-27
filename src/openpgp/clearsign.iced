@@ -175,7 +175,7 @@ class Verifier extends VerifierBase
     h = @clearsign.headers.hash or 'MD5'
     if not (@_sig.hasher = hashmod[h])?
       err = new Error "Unknown hash algorithm: #{h}"
-    cb null
+    cb err
 
   #-----------------------
 

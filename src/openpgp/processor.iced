@@ -301,6 +301,7 @@ class Message
   #---------
 
   _process : ({msg, packets}, cb) ->
+    msg.type or= C.message_types.generic
     switch msg.type
       when C.message_types.generic
         await @_process_generic { packets }, defer err, literals
@@ -309,7 +310,7 @@ class Message
       when C.message_types.signature
         await @_verify_signature { packets } , defer err, literals
       else
-        err = new Error "Needed a 'generic', 'clearsign', or 'signature' PGP message, got #{type}"
+        err = new Error "Needed a 'generic', 'clearsign', or 'signature' PGP message, got #{msg.type}"
     cb err, literals
 
 #==========================================================================================
