@@ -12,6 +12,8 @@ util = require 'util'
 {Literal} = require '../../lib/openpgp/packet/literal'
 {burn} = require '../../lib/openpgp/burner'
 clearsign = require '../../lib/openpgp/clearsign'
+detachsign = require '../../lib/openpgp/detachsign'
+hashmod = require '../../lib/hash'
 
 #===============================================================================
 
@@ -176,6 +178,40 @@ clear_sign = (msg, T,cb) ->
   await clearsign.sign { signing_key, msg }, defer err, outmsg
   T.no_error err
   await do_message { keyfetch : ring, armored : outmsg }, defer err, literals
+  T.no_error err
+  cb()
+
+#===============================================================
+
+exports.detached_sign_wholesale = (T, cb) ->
+  key_id = new Buffer data.keys.ids[1], 'hex'
+  flags = C.openpgp.key_flags.sign_data
+  await ring.find_best_key { key_id, flags }, defer err, signing_key
+  T.no_error err
+  msg = new Buffer data.msg, 'utf8'
+  await detachsign.sign { signing_key, data : msg }, defer err, outmsg
+  throw err if err?
+  T.no_error err
+  await do_message { data : msg, keyfetch : ring, armored : outmsg }, defer err
+  throw err if err?
+  T.no_error err
+  cb()
+
+#===============================================================
+
+exports.detached_sign_streaming = (T, cb) ->
+  key_id = new Buffer data.keys.ids[1], 'hex'
+  flags = C.openpgp.key_flags.sign_data
+  await ring.find_best_key { key_id, flags }, defer err, signing_key
+  T.no_error err
+  msg = new Buffer data.msg, 'utf8'
+  hash_streamer = hashmod.streamers.SHA384()
+  hash_streamer.update(msg)
+  await detachsign.sign { hash_streamer, signing_key }, defer err, outmsg
+  throw err if err?
+  T.no_error err
+  await do_message { data : msg, keyfetch : ring, armored : outmsg }, defer err
+  throw err if err?
   T.no_error err
   cb()
 

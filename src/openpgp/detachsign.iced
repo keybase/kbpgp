@@ -37,9 +37,9 @@ class Signer
   run : (cb) ->
     esc = make_esc cb, "Signer::run"
     await @_run_hash esc defer()
-    await @_sign esc signature
+    await @_sign esc defer signature
     await @_encode esc defer encoded
-    cb null, signature, encoded
+    cb null, encoded, signature
 
   #---------------------------------------------------
 
@@ -58,11 +58,12 @@ class Signer
     }
     emptybuf = new Buffer []
     await @sig.write emptybuf, defer err, @_sig_output
-    cb err
+    cb err, @_sig_output
 
   #---------------------------------------------------
 
   _encode : (cb) ->
+    err = null
     ret = encode C.message_types.signature, @_sig_output
     cb err, ret
 
@@ -70,7 +71,7 @@ class Signer
 
   _run_hash : (cb) ->
     err = null
-    if @hash_obj? then # noop
+    if @hash_streamer? then # noop
     else if @data?
       @hash_streamer = streamers.SHA512()
       @hash_streamer.update @data
@@ -123,8 +124,8 @@ class Verifier extends VerifierBase
 
 #====================================================================
 
-exports.sign = ({data, hash_obj, signing_key}, cb) ->
-  s = new Signer { data, hash_obj, signing_key }
+exports.sign = ({data, hash_streamer, signing_key}, cb) ->
+  s = new Signer { data, hash_streamer, signing_key }
   await s.run defer err, encoded, signature
   s.scrub()
   cb err, encoded, signature
