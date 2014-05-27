@@ -9,19 +9,20 @@
 {make_esc} = require 'iced-error'
 {Signature,CreationTime,Issuer} = require './packet/signature'
 {unix_time} = require '../util'
-triplesec = require 'triplesec'
-{WordArray} = triplesec
+{WordArray} = require 'triplesec'
 konst = require '../const'
 C = konst.openpgp
 Ch = require '../header'
-{SHA512} = triplesec.hash
+{streamers} = require '../hash'
 {encode} = require './armor'
 {Literal} = require "./packet/literal"
 VerifierBase = require('./verifier').Base
 
 #====================================================================
 
-hash_obj_to_fn = (obj) -> (buf) -> obj.finalize(WordArray.from_buffer(buf)).to_buffer()
+hash_obj_to_fn = (obj) -> 
+  fn = (buf) -> obj.finalize(WordArray.from_buffer(buf)).to_buffer()
+  fn.algname = buf.algname
 
 #====================================================================
 
@@ -29,7 +30,7 @@ class Signer
 
   #---------------------------------------------------
 
-  constructor : ({@data, @hash_obj, @signing_key}) ->
+  constructor : ({@data, @hash_streamer, @signing_key}) ->
 
   #---------------------------------------------------
 
@@ -53,7 +54,7 @@ class Signer
       key : @signing_key.key,
       hashed_subpackets : [ new CreationTime(unix_time()) ],
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ],
-      hasher : hash_obj_to_fn(@hash_obj)
+      hasher : @hash_streamer
     }
     emptybuf = new Buffer []
     await @sig.write emptybuf, defer err, @_sig_output
@@ -71,8 +72,8 @@ class Signer
     err = null
     if @hash_obj? then # noop
     else if @data?
-      @hash_obj= new SHA512()
-      @hash_obj.update WordArray.from_buffer @data
+      @hash_streamer = streamers.SHA512()
+      @hash_streamer.update @data
     else
       err = new Error "Need either a hasher or data"
     cb err
@@ -92,13 +93,20 @@ class Verifier extends VerifierBase
     err = null
     klass = @_sig.hasher.klass
     hasher = new klass()
-    if @data then hasher.update WordArray.from_buffer @data
+    buf_hasher = (buf) -> hasher.update WordArray.from_buffer buf
+    if @data then buf_hasher @data
     else
       go = true
       while go
-        await @data_fn hasher, defer err, done
+        await @data_fn buf_hasher, defer err, done
         go = false if err or done
     @_sig.hasher = hash_obj_to_fn hasher 
+    cb err
+
+  #-----------------------
+
+  _verify : (cb) ->
+    await @_sig.verify [], defer err
     cb err
 
   #-----------------------
@@ -122,7 +130,7 @@ exports.sign = ({data, hash_obj, signing_key}, cb) ->
 #====================================================================
 
 exports.verify = ({data, data_fn, packets, keyfetch}, cb) ->
-  v = new Verifier { data, data_fn, hasher, packets, keyfetch }
+  v = new Verifier { data, data_fn, packets, keyfetch }
   await v.run defer err
   cb err
 

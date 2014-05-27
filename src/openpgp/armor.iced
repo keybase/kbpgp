@@ -29,6 +29,7 @@ class Parser extends armor.Parser
       when "SIGNED MESSAGE"
         if @ret.clearsign then mt.clearsign
         else throw new Error "Signed message, but not clear-signed"
+      when "SIGNATURE" then mt.signature
       when "MESSAGE" then mt.generic
       else throw new Error "Unknown message type: #{@type}"
     @ret.fields.type = @type

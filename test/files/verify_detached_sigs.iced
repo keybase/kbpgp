@@ -15,6 +15,11 @@ exports.init = (T,cb) ->
   T.no_error err
   ring = new PgpKeyRing()
   ring.add_key_manager km
+
+  # Base-64-decode the file data
+  for key,val of data
+    val.data = new Buffer val.data, 'base64'
+
   cb()
 
 #==========================================
@@ -25,7 +30,7 @@ make_data_fn = (buf) ->
   (hasher, cb) ->
     if (i < buf.length)
       end = i + chunk
-      hasher WordArray.from_buffer buf[i...end]
+      hasher buf[i...end]
       i = end
       done = false
     else
