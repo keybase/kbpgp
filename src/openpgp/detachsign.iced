@@ -91,22 +91,24 @@ class Verifier extends VerifierBase
 
   _consume_data : (cb) ->
     err = null
-    klass = @_sig.hasher.klass
-    streamer = streamers[@_sig.hasher.algname]()
-    buf_hasher = (buf) -> streamer.update buf
-    if @data then buf_hasher @data
-    else
+    if @data_fn?
+      err = null
+      klass = @_sig.hasher.klass
+      streamer = streamers[@_sig.hasher.algname]()
+      buf_hasher = (buf) -> streamer.update buf
       go = true
       while go
         await @data_fn buf_hasher, defer err, done
         go = false if err or done
-    @_sig.hasher = streamer
+      @_sig.hasher = streamer
     cb err
 
   #-----------------------
 
   _verify : (cb) ->
-    await @_sig.verify [], defer err
+    data = if @data then [ new Literal  { @data } ]
+    else []
+    await @_sig.verify data, defer err
     cb err
 
   #-----------------------

@@ -40,8 +40,8 @@ make_data_fn = (buf) ->
 #==========================================
 
 verify_good_sig = (T, name, {data,sig}, cb) -> 
-  data_fn = make_data_fn(data)
-  await do_message { keyfetch : ring, armored : sig, data_fn }, defer err
+  data_fn = make_data_fn(data) # ignore for now...
+  await do_message { keyfetch : ring, armored : sig, data }, defer err
   T.no_error err, "sig worked for #{name}"
   T.waypoint "Sig #{name} checked out"
   cb()
