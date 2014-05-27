@@ -39,7 +39,7 @@ make_data_fn = (buf) ->
 
 #==========================================
 
-verify_good_sig = (T, name, {data,sig}, cb) -> 
+verify_good_sig_all_at_once = (T, name, {data,sig}, cb) -> 
   data_fn = make_data_fn(data) # ignore for now...
   await do_message { keyfetch : ring, armored : sig, data }, defer err
   T.no_error err, "sig worked for #{name}"
@@ -48,9 +48,25 @@ verify_good_sig = (T, name, {data,sig}, cb) ->
 
 #==========================================
 
-exports.verify_good_sigs = (T,cb) ->
+verify_good_sig_streaming = (T, name, {data,sig}, cb) -> 
+  data_fn = make_data_fn(data)
+  await do_message { keyfetch : ring, armored : sig, data_fn }, defer err
+  T.no_error err, "sig worked for #{name}"
+  T.waypoint "Sig #{name} checked out"
+  cb()
+
+#==========================================
+
+exports.verify_good_sigs_all_at_once = (T,cb) ->
   for key, val of data
-    await verify_good_sig T, key, val, defer()
+    await verify_good_sig_all_at_once T, key, val, defer()
+  cb()
+
+#==========================================
+
+exports.verify_good_sigs_streaming = (T,cb) ->
+  for key, val of data
+    await verify_good_sig_streaming T, key, val, defer()
   cb()
 
 #==========================================
