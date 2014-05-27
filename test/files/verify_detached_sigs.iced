@@ -65,12 +65,12 @@ good_check_sig_all_at_once = (T, name, {data,sig,bad_data}, cb) ->
 bad_check_sig_all_at_once = (T, name, {sig,bad_data}, cb) -> 
   await do_message { keyfetch : ring, armored : sig, data : bad_data }, defer err
   T.assert err?, "errored out on bad signature"
-  T.waypoint "Sig #{name} / bad checked out"
+  T.waypoint "Sig #{name} failed"
   cb()
 
 #==========================================
 
-verify_good_sig_streaming = (T, name, {data,sig}, cb) -> 
+good_check_sig_streaming = (T, name, {data,sig}, cb) -> 
   data_fn = make_data_fn(data)
   await do_message { keyfetch : ring, armored : sig, data_fn }, defer err
   T.no_error err, "sig worked for #{name}"
@@ -79,6 +79,14 @@ verify_good_sig_streaming = (T, name, {data,sig}, cb) ->
 
 #==========================================
 
+bad_check_sig_streaming = (T, name, {bad_data,sig}, cb) -> 
+  data_fn = make_data_fn(bad_data)
+  await do_message { keyfetch : ring, armored : sig, data_fn }, defer err
+  T.assert err?, "errored out on bad signature"
+  T.waypoint "Sig #{name} failed"
+  cb()
+
+#==========================================
 exports.verify_good_sigs_all_at_once = (T,cb) ->
   for key, val of data
     await good_check_sig_all_at_once T, key, val, defer()
@@ -95,7 +103,14 @@ exports.nix_bad_sigs_all_at_once = (T,cb) ->
 
 exports.verify_good_sigs_streaming = (T,cb) ->
   for key, val of data
-    await verify_good_sig_streaming T, key, val, defer()
+    await good_check_sig_streaming T, key, val, defer()
+  cb()
+
+#==========================================
+
+exports.nix_bad_sigs_streaming = (T,cb) ->
+  for key, val of data
+    await bad_check_sig_streaming T, key, val, defer()
   cb()
 
 #==========================================
