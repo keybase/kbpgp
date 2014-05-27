@@ -92,15 +92,15 @@ class Verifier extends VerifierBase
   _consume_data : (cb) ->
     err = null
     klass = @_sig.hasher.klass
-    hasher = new klass()
-    buf_hasher = (buf) -> hasher.update WordArray.from_buffer buf
+    streamer = streamers[@_sig.hasher.algname]()
+    buf_hasher = (buf) -> streamer.update buf
     if @data then buf_hasher @data
     else
       go = true
       while go
         await @data_fn buf_hasher, defer err, done
         go = false if err or done
-    @_sig.hasher = hash_obj_to_fn hasher 
+    @_sig.hasher = streamer
     cb err
 
   #-----------------------

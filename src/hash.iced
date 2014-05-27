@@ -6,37 +6,46 @@ algos = triplesec.hash
 
 #================================================================
 
-make_hasher = (klass, name, type) -> () ->
-  _o = new klass
-  ret = (x) -> _o.bufhash(x)
-  ret.update = (x) -> 
-    _o.update(WordArray.from_buffer(x)) if x?
-    ret
-  ret.type = type
-  ret.algname = name
-  ret.output_length = klass.output_size
-  ret.klass = klass
-  ret
+# take a function f, and "decorate it" with all of the nice
+# properties we expect
+decorate = (f, klass, name, type) ->
+  f.type = type
+  f.algname = name
+  f.output_length = klass.output_size
+  f.klass = klass
+  f 
 
-  ret = (buf) 
+#--------------------
 
+# By default, hashing is one-shot. You call the function once, on a giant
+# buffer, and it returns the hash.
+make_hasher = (klass, name, type) -> 
   if klass?
     f = (x) -> (new klass).bufhash x
     decorate(f, klass, name, type)
   else null
 
+#--------------------
+
+# A streamer can be "updated" multiple times, but if called directly,
+# will make a last-ditch effort (and therefore is duck-type compatible
+# with the default hasher above).
 make_streamer = (klass, name, type) -> () ->
   obj = new klass
-  ret = (buf) -> obj.finalize(if buf? then wordarray.from_buffer(buf) else null).to_buffer()
-  ret.update = (buf) -> if buf? then obj.update(wordarray.from_buffer(buf)) else @
+  ret = (buf) -> obj.finalize(if buf? then WordArray.from_buffer(buf) else null).to_buffer()
+  ret.update = (buf) -> if buf? then obj.update(WordArray.from_buffer(buf)) else @
   decorate(ret, klass, name, type)
+
+#--------------------
 
 _lookup = {}
 exports.streamers = streamers = {}
 for k,v of C.hash_algorithms
   _lookup[v] = k
   exports[k] = make_hasher algos[k], k, v
-  streamers[k] = make_stream algos[k], k, v
+  streamers[k] = make_streamer algos[k], k, v
+
+#--------------------
 
 exports.alloc = alloc = (typ) ->
   ret = null
@@ -44,6 +53,8 @@ exports.alloc = alloc = (typ) ->
   klass = algos[name] if name?
   ret = make_hasher(klass,name,typ) if klass?
   ret
+
+#--------------------
 
 exports.alloc_or_throw = alloc_or_throw = (typ) ->
   ret = alloc typ
