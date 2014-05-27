@@ -1,3 +1,9 @@
+## 0.1.18 (2014-05-27)
+
+Features:
+
+  - Detached signature generation and verification.
+
 ## 0.1.17 (2014-05-23)
 
 Bugfixes:
