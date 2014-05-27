@@ -3,10 +3,24 @@
 {do_message} = require '../../lib/openpgp/processor'
 {keys,data}  = require '../data/detached'
 {WordArray}  = require 'triplesec'
+{MRF}        = require '../../lib/rand'
 
 #=================================================
 
 ring = new PgpKeyRing()
+
+#==========================================
+
+random = (hi) -> MRF().random_word() % hi
+
+#==========================================
+
+corrupt = (inbuf, cb) ->
+  outbuf = new Buffer inbuf
+  i = random inbuf.length
+  c = (random 0xff) + 1
+  outbuf.writeUInt8((inbuf.readUInt8(i) ^ c), i)
+  cb outbuf
 
 #==========================================
 
@@ -19,6 +33,7 @@ exports.init = (T,cb) ->
   # Base-64-decode the file data
   for key,val of data
     val.data = new Buffer val.data, 'base64'
+    await corrupt val.data, defer val.bad_data
 
   cb()
 
@@ -39,11 +54,18 @@ make_data_fn = (buf) ->
 
 #==========================================
 
-verify_good_sig_all_at_once = (T, name, {data,sig}, cb) -> 
-  data_fn = make_data_fn(data) # ignore for now...
+good_check_sig_all_at_once = (T, name, {data,sig,bad_data}, cb) -> 
   await do_message { keyfetch : ring, armored : sig, data }, defer err
   T.no_error err, "sig worked for #{name}"
-  T.waypoint "Sig #{name} checked out"
+  T.waypoint "Sig #{name} / good checked out"
+  cb()
+
+#==========================================
+
+bad_check_sig_all_at_once = (T, name, {sig,bad_data}, cb) -> 
+  await do_message { keyfetch : ring, armored : sig, data : bad_data }, defer err
+  T.assert err?, "errored out on bad signature"
+  T.waypoint "Sig #{name} / bad checked out"
   cb()
 
 #==========================================
@@ -59,7 +81,14 @@ verify_good_sig_streaming = (T, name, {data,sig}, cb) ->
 
 exports.verify_good_sigs_all_at_once = (T,cb) ->
   for key, val of data
-    await verify_good_sig_all_at_once T, key, val, defer()
+    await good_check_sig_all_at_once T, key, val, defer()
+  cb()
+
+#==========================================
+
+exports.nix_bad_sigs_all_at_once = (T,cb) ->
+  for key, val of data
+    await bad_check_sig_all_at_once T, key, val, defer()
   cb()
 
 #==========================================
