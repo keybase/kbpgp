@@ -62,7 +62,7 @@ exports.encrypt = (T, cb) ->
 exports.decrypt = (T,cb) ->
   await km.unlock_pgp { passphrase : 'aabb' }, defer err
   T.no_error err
-  proc = new Message ring
+  proc = new Message { keyfetch : ring }
   await proc.parse_and_process { body : ctext }, defer err, out
   T.no_error err
   T.assert (not out[0].get_data_signer()?), "wasn't signed"
