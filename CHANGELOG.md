@@ -1,8 +1,10 @@
-## 0.1.19 (2014-05-28)
+## 0.1.19
 
 Features:
 
   - Browserified release
+  - New interface to KeyManager.generate, you can provide primary and subkeys, each of which
+    have nbits, expire_in and flags fields.
 
 ## 0.1.18 (2014-05-27)
 
