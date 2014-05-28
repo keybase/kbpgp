@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJThQcJAAoJEJgKPw0B/gTfC9YH/0IfocDe2LhlsBF3aX7kM/hk
-350PW5nmTa3rtNhluIF2QvslGdwtcj44U4EoLpE1kF2kXuL/NfG302QvEokuUPD5
-6kNMEWwNy36u43STj+/XhjLtiys10R/7SW4xKXh1C0B9gKbizjWay+Gr7Yec8q4i
-BksqBC4KinRL6E+QMhnEdNmkQUxrsBcBgPz7/bfk73+zoubghST+X8iT06ELvXFF
-FDCwoLpeHyasX8UYzh+l7mSreJVUXd/7+qr1R+hgnoxpSrizcOVAp2cVB2DJbHQN
-GhzebL+0JoAuqPIoeZgMonzZTns1Ib5AKk+hoFcLCaf5h8pLUfITMHglJhyNgoQ=
-=tE0C
+iQEcBAABCgAGBQJThfy8AAoJEJgKPw0B/gTfrAsIALVkq3XjdauEDtgyK+ckhFCJ
+I37ZLI5Ohrx1nUQszcW7K4D9ZwogCNyPwUnWwRAYEf+nKjdPheenYXk4hRYosO8P
+pdyxj4ku8Owtr7G7BmKgj4RMS3wspXZfCZc1frJsG9ICUCIFfYJSYHuxsqy3n/G5
+rvdJkKgFlIhjpC4OQQfmN23hQDo0ELAdXsbWYoNQzlr6P4YEN7em6+TcucT5UIyx
+AeA9cPApdx0TH+/8c4Hl36obZ6HyvwaqRdLUwomJuubwnKSyMYzsN4agfDuzSrqN
+urEtCkkVZ7bQsqyf7a4DC78L5vMns/lb0l+wFcdWyM6/ZQra6XoysWYtUnTXDg0=
+=2vYe
 -----END PGP SIGNATURE-----
 
 ```
@@ -29,7 +29,7 @@ size    exec  file                                  contents
 6792            CHANGELOG.md                        82160ec52be8a41b14fca70b64e3b133ef9060b739eccc88d9de3c579d7c7b7d                                                                 
 1483            LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 2321            Makefile                            f75fd806ceaadcc8176f7b0f742037c1cbf9e397b9d213aa67692d08ed5ab317                                                                 
-70              README.md                           b9105874a4d7dfd6aa302e2ceb121ce1ae946a9316341e50784da799498184f0                                                                 
+135             README.md                           78e6510afee9d2d329aa500a24fcc064b97cd16dea4a96bef06773e60756e9ad                                                                 
                 bench/                                                                                                                                                               
 83                main.js                           083729d8233d3d24bc1bc77e1fc9005cf4cb0022d873301be3a156976113220d                                                                 
                 dev/                                                                                                                                                                 
