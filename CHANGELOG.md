@@ -1,3 +1,9 @@
+## 0.1.19 (2014-05-28)
+
+Features:
+
+  - Browserified release
+
 ## 0.1.18 (2014-05-27)
 
 Features:

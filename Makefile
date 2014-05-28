@@ -11,6 +11,8 @@ all: build
 lib/%.js: src/%.iced
 	$(ICED) -I browserify -c -o `dirname $@` $<
 
+BROWSER=browser/kbpgp.js
+
 $(BUILD_STAMP): \
 	lib/asymmetric.js \
     lib/basekeypair.js \
@@ -90,6 +92,14 @@ $(TEST_STAMP): test/browser/test.js
 	date > $@
 
 test: test-server test-browser
+
+$(BROWSER): lib/main.js $(BUILD_STAMP)
+	$(BROWSERIFY) -s kbpgp $< > $@
+
+release: $(BROWSER)
+	V=`jsonpipe < package.json | grep version | awk '{ print $$2 }' | sed -e s/\"//g` ; \
+	cp $< rel/kbpgp-$$V.js ; \
+	$(UGLIFYJS) -c < rel/kbpgp-$$V.js > rel/kbpgp-$$V-min.js 
 
 clean:
 	rm -rf lib/* $(BUILD_STAMP) $(TEST_STAMP) test/browser/test.js

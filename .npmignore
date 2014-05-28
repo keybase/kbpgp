@@ -2,3 +2,5 @@ bench
 dev
 ref
 test
+rel
+browser
