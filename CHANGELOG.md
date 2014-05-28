@@ -5,6 +5,7 @@ Features:
   - Browserified release
   - New interface to KeyManager.generate, you can provide primary and subkeys, each of which
     have nbits, expire_in and flags fields.
+  - Expose interior hash wrapper class
 
 ## 0.1.18 (2014-05-27)
 

@@ -13,16 +13,17 @@ for m in mods
 
 #---------------------------------------
 
-exports.ASP       = require('./util').ASP
+exports.util      = util = require('./util')
+exports.ASP       = util.ASP
 exports.rand      = require('./rand')
 exports.const     = require './const'
-exports.util      = require('./util')
 exports.processor = require('./openpgp/processor')
 exports.armor     = require('./openpgp/armor')
 exports.keyring   = require('./keyring')
 exports.parser    = require('./openpgp/parser')
 exports.Buffer    = Buffer
 exports.triplesec = require('triplesec')
+exports.hash      = require ('./hash')
 
 #---------------------------------------
 
