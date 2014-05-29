@@ -40,6 +40,7 @@ $(BUILD_STAMP): \
 	lib/lock.js \
 	lib/main.js \
 	lib/openpgp/armor.js \
+	lib/openpgp/baseburner.js \
 	lib/openpgp/buffer.js \
 	lib/openpgp/burner.js \
 	lib/openpgp/cast5.js \

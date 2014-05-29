@@ -24,6 +24,7 @@ C = require('../const').openpgp
 {encode} = require './armor'
 clearsign = require './clearsign'
 detachsign = require './detachsign'
+{BaseBurner} = require './baseburner'
 
 #==========================================================================================
 
@@ -31,11 +32,12 @@ dummy_key_id = new Buffer( 0 for [0...16] )
 
 #==========================================================================================
 
-class Burner
+class Burner extends BaseBurner
 
   #------------
 
-  constructor : ({@literals, @signing_key, @encryption_key, @opts}) ->
+  constructor : ({@literals, @opts, sign_with, encrypt_for, signing_key, encryption_key}) ->
+    super { sign_with, encrypt_for, signing_key, encryption_key }
     @packets = []
     @opts or= {}
     @signed_payload = null
@@ -158,6 +160,7 @@ class Burner
   
   burn : (cb) ->
     esc = make_esc cb, "Burner::burn"
+    await @_find_keys esc defer()
     await @_frame_literals esc defer()
     if @signing_key
       await @_sign esc defer()
@@ -198,26 +201,31 @@ exports.detachsign = detachsign.sign
 #   Can specify messages as Utf8 strings, raw buffers, or an array of Literal
 #   open-PGP packets.
 #
-#   Can specify a signing_key if you want the message signed.
+#   Can specify a signing_key OR sign_with if you want the message signed.
 # 
-#   Can specify an encryption_key if you want the message encrypted.
+#   Can specify an encryption_key OR encrypt_for if you want the message encrypted.
 #
 # @param {String || Buffer} msg the payload, which will be made into literals
+# @param {Array<openpgp.packets.Literal>} literals the literal packets that make up the payload.
+#
+# @param {KeyManager} encrypt_for Who to encrypt for (optional)
+# @param {KeyManager} sign_by Who will sign it (optional)
 # @param {openpgp.packets.KeyMaterial} signing_key the key to sign with 
 # @param {openpgp.packets.KeyMaterial} encryption_key the key to encrypt with 
-# @param {Array<openpgp.packets.Literal>} literals the literal packets that make up the payload.
+#
 # @param {Object} opts Various options to pass through.  So far:
 #          - hide --- include a dummy key in the packet, to protect the identity of the
 #                      recipient.
 #          - hide.max --- The maximum size of a key. 8192 for RSA by default. 4096 for ElGamal
 #          - hide.slosh -- The amount of slosh over the max to introduce. 128 by default. In bits.
+#
 # @param {callback} cb Callback with an ({Error},{Bufffer},{Buffer}) triple.  Error is
 #    set if there was an error, otherwise, we'll get back the PGP output in first armored
 #    and then raw binary form.
 #
-exports.burn = ({msg, literals, signing_key, encryption_key, opts}, cb) ->
+exports.burn = ({msg, literals, sign_with, encrypt_for, signing_key, encryption_key, opts}, cb) ->
   literals = make_simple_literals msg if msg? and not literals?
-  b = new Burner { literals, signing_key, encryption_key, opts }
+  b = new Burner { literals, sign_with, encrypt_for, signing_key, encryption_key, opts }
   await b.burn defer err, raw
   b.scrub()
   aout = encode(C.message_types.generic, raw) if raw? and not err?
