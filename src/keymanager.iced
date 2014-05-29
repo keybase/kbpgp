@@ -298,22 +298,36 @@ class KeyManager
   #========================
   # Public Interface
 
-  # Generate a new key bunlde from scratch.  Make the given number
-  # of subkeys.
+  #
+  # @generate
+  #
+  # Generate a new key bundle from scratch.  Make the given number of subkeys, and also the primary.
+  # All generated keys are RSA
   #
   # @param {ASP} asp A standard Async Package.
+  # @param {string|Buffer} userid The userID to bake into the key
+  # @param {object} primary Specify the `flags`, `nbits`, and `expire_in` for the primary
+  #   key.  If not specified, defaults are ALLFLAGS, 4096, and 0, respectively.
+  # @param {Array<object>} subkeys As for primary, specify the `flags`, `nbits`, and `expire_in`
+  #   for all subkeys.  Defaults are (sign|encrypt|auth), 2048, and 8 years, respectively.
+  # @param {callback} cb Callback with <Error, KeyManager> pair.
+  #
+  # Deprecated options:
+  #
   # @param {Array<number>} sub_flags An array of flags to use for the subkeys, one for
   #    each subkey.  For instance, if you want one subkey for signing and one for encryption,
-  #    then you should pass the different flags here.
+  #    then you should pass the different flags here. [DEPRECATED]
   # @param {number} nsubs The number of subkeys to create, all with the standard panel
   #    of keyflags.  If you want to specify the keyflags for each subkey, then you should
-  #    use the sub_flags above, which take precedence.
-  # @param {number} primary_flags The flags to use for the primary, which defaults to nearly all of them
-  # @param {string} userid The userID to bake into the key
+  #    use the sub_flags above, which take precedence. [DEPRECATED]
+  # @param {number} primary_flags The flags to use for the primary, which defaults 
+  #    to nearly all of them [DEPRECATED]
   # @param {number} nbits The number of bits to use for all keys.  If left unspecified, then assume
-  #   defaults of 4096 for the master, and 2048 for the subkeys
-  # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years.
-  @generate : ({asp, sub_flags, nsubs, primary_flags, userid, nbits, expire_in, primary, subkeys }, cb) ->
+  #   defaults of 4096 for the master, and 2048 for the subkeys [DEPRECATED]
+  # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED] 
+  #
+  @generate : ({asp, userid, primary, subkeys,
+                 sub_flags, nsubs, primary_flags, nbits, expire_in}, cb) ->
     asp = ASP.make asp
 
     F = C.key_flags
