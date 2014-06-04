@@ -1,3 +1,9 @@
+## 0.1.21 (2014-06-04)
+
+Bugfix:
+
+  - Fix incorrect dependencies, and loosen them up....
+
 ## 0.1.20 (2014-06-03)
 
 Bugfix:
