@@ -23,7 +23,7 @@ exports.SignatureEngine = class SignatureEngine
   #-----
 
   unbox       : (msg, cb) -> 
-    eng = new processor.Message @km
+    eng = new processor.Message { keyfetch : @km }
     eng.parse_and_process { body : msg.body }, cb
 
 #-----------------------------

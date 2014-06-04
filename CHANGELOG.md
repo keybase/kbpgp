@@ -1,3 +1,9 @@
+## 0.1.20 (2014-06-03)
+
+Bugfix:
+
+  - We broke the high-level interface, fix it.  We need regtests too...
+
 ## 0.1.19 (2014-06-03)
 
 Features:
