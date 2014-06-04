@@ -1,4 +1,4 @@
-## 0.1.19
+## 0.1.19 (2014-06-03)
 
 Features:
 
@@ -7,10 +7,16 @@ Features:
     have nbits, expire_in and flags fields.
   - Expose interior hash wrapper class
   - Better API for burner
+  - Upgrade to ICS v1.7.1-c for refactored runtime
 
 Documentation:
 
   - Fixes for KeyManager.generate and burner.burn
+
+Bugfixes:
+
+  - Fix bugs with 5-byte signature subpacket lengths
+      - Address keybase/keybase-issues#752
 
 ## 0.1.18 (2014-05-27)
 
