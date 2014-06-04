@@ -20,14 +20,14 @@
     "url": "git://github.com/keybase/kbpgp.git"
   },
   "dependencies": {
-    "bn": "0.0.2",
-    "deep-equal": "0.2.1",
-    "iced-error": "0.0.8",
-    "iced-runtime": "0.0.1",
-    "keybase-compressjs": "1.0.1-c",
-    "pgp-utils": ">=0.0.20",
-    "purepack": ">=1.0.0",
-    "triplesec": ">=3.0.10"
+    "bn": ">=0.0.2",
+    "deep-equal": ">=0.2.1",
+    "iced-error": ">=0.0.9",
+    "iced-runtime": ">=0.0.1",
+    "keybase-compressjs": "^1.0.1-c",
+    "pgp-utils": ">=0.0.21",
+    "purepack": ">=1.0.1",
+    "triplesec": ">=3.0.16"
   },
   "devDependencies": {
     "browserify": "3.32.1",
