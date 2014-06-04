@@ -93,7 +93,8 @@ class PacketParser
 
   parse_tag_and_len_new : (c) ->
     @tag = (c & 0x3f)
-    @parse_tag_len_new()
+    ret = @parse_tag_len_new()
+    ret
 
   #----------------
 

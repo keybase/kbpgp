@@ -59,10 +59,12 @@ class SlicerBuffer
 
   read_v4_length : () ->
     p = @peek_uint8()
-    if p < 192       then @advance(1); p
-    else if p < 224  then @read_uint16() - (192 << 8) + 192
-    else if p < 0xff then @advance(1); (1 << (p & 0x1f))
-    else                  @advance(1); @read_uint32()
+    five_byte = false
+    len = if p < 192  then @advance(1); p
+    else  if p < 224  then @read_uint16() - (192 << 8) + 192
+    else  if p < 0xff then @advance(1); (1 << (p & 0x1f))
+    else                   @advance(1); five_byte = true; @read_uint32()
+    [len, five_byte]
 
 #================================================================================================
 

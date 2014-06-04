@@ -25,18 +25,21 @@ exports.calc_checksum = calc_checksum = (text) ->
 
 #=========================================================
 
-exports.encode_length = encode_length = (l) ->
+# Encode a v4 packet length l.  Use the smallest available
+# encoding unless the 'five_byte' flag is specified, and in that case,
+# use the full 5-byte expansion
+exports.encode_length = encode_length = (l, five_byte= false) ->
   ret = null
-  if l < 192
+  if l >= 8384 or five_byte
+    ret = new Buffer 5
+    ret.writeUInt8 0xff, 0
+    ret.writeUInt32BE l, 1
+  else if l < 192 
     ret = new Buffer 1
     ret.writeUInt8 l, 0
   else if l >= 192 and l < 8384
     ret = new Buffer 2
     ret.writeUInt16BE( ((l - 192) + (192 << 8 )), 0)
-  else
-    ret = new Buffer 5
-    ret.writeUInt8 0xff, 0
-    ret.writeUInt32BE l, 1
   ret
 
 #=========================================================

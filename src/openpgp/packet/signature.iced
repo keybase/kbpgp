@@ -337,10 +337,14 @@ class Signature extends Packet
 class SubPacket
   constructor : (@type) ->
     @critical = false
+    @five_byte_len = false
+  set_opts : (d) ->
+    (@[k] = v for k,v of d)
+    true
   to_buffer : () ->
     inner = @_v_to_buffer()
     Buffer.concat [
-      encode_length(inner.length + 1),
+      encode_length(inner.length + 1, @five_byte_len),
       uint_to_buffer(8, (@type | (if @critical then 0x80 else 0x00))),
       inner
     ]
@@ -645,7 +649,7 @@ class Parser
     new Signature o
 
   parse_subpacket : () ->
-    len = @slice.read_v4_length()
+    [len, five_byte_len] = @slice.read_v4_length()
     raw_type = @slice.read_uint8()
     type = (raw_type & 0x7f)
     critical = !!(raw_type & 0x80)
@@ -679,7 +683,7 @@ class Parser
         if type >= S.experimental_low and type <= S.experimental_high then Experimental
         else throw new Error "Unknown signature subpacket: #{type}"
     ret = klass.parse @slice, type
-    ret.critical = critical
+    ret.set_opts { critical, five_byte_len }
     @slice.unclamp end
     ret
 
