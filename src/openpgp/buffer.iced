@@ -62,7 +62,7 @@ class SlicerBuffer
     if p < 192       then @advance(1); p
     else if p < 224  then @read_uint16() - (192 << 8) + 192
     else if p < 0xff then @advance(1); (1 << (p & 0x1f))
-    else                  @read_uint32()
+    else                  @advance(1); @read_uint32()
 
 #================================================================================================
 
