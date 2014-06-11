@@ -1,3 +1,10 @@
+## 0.1.22 (2014-06-10)
+
+Bugfix:
+
+  - Fix a bug in clearsign dash-encoding
+     - Address keybase/keybase-issues#768
+
 ## 0.1.21 (2014-06-04)
 
 Bugfix:

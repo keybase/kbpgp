@@ -38,14 +38,14 @@ exports.input_to_cleartext = input_to_cleartext = (raw) ->
 #==========================================================================================
 
 exports.dash_escape = dash_escape = (line) ->
-  if (line.length >= 1 and line[0] is '-') then ("- " + line[1...]) else line
+  if (line.length >= 1 and line[0] is '-') then ("- " + line) else line
 
 #==========================================================================================
 
 exports.dash_unescape_line = dash_unescape_line = (line) ->
   warn = false
   out = if (m = line.match /^-( )?(.*?)$/)? 
-    warn = true
+    warn = true unless m[1]?.length is 1
     m[2]
   else
     line
