@@ -1,3 +1,11 @@
+## 0.1.22
+
+Optimizations:
+
+  - Switch by to bigint squaring, rather than modPowInt(2), and expose a few
+    more features of bn to make this work.
+  - Upgrade to the newest version of bn, @v1.0.0
+
 ## 0.1.21 (2014-06-04)
 
 Bugfix:

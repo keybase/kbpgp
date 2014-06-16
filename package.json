@@ -20,7 +20,7 @@
     "url": "git://github.com/keybase/kbpgp.git"
   },
   "dependencies": {
-    "bn": ">=0.0.2",
+    "bn": "^1.0.0",
     "deep-equal": ">=0.2.1",
     "iced-error": ">=0.0.9",
     "iced-runtime": ">=0.0.1",

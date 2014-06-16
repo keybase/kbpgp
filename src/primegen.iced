@@ -62,13 +62,12 @@ fermat2_test = (n) ->
   t = nbv(1)
   bl = n.bitLength()
   bl--
+  Bl = n.byteLength()
   for i in [bl..0]
-    t = t.modPowInt(2,n)
-    #t = t.square()
-    # .t in jsbn is equivalent to _mp_size in GNU bigint.  _mp_size
-    # is the "number of limbs" in the bigint
-    #if t.t > n.t
-    #  t = t.mod(n)
+    #t = t.modPowInt(2,n)
+    t = t.square()
+    if t.byteLength() > Bl
+      t = t.mod(n)
     if n.testBit(i)
       t = t.shiftLeft(1)
   if t.compareTo(n) > 0
