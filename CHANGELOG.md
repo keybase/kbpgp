@@ -1,10 +1,17 @@
-## 0.1.22
+## 0.1.23
 
 Optimizations:
 
   - Switch by to bigint squaring, rather than modPowInt(2), and expose a few
     more features of bn to make this work.
   - Upgrade to the newest version of bn, @v1.0.0
+
+## 0.1.22 (2014-06-10)
+
+Bugfix:
+
+  - Fix a bug in clearsign dash-encoding
+     - Address keybase/keybase-issues#768
 
 ## 0.1.21 (2014-06-04)
 

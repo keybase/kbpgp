@@ -169,6 +169,11 @@ exports.clear_sign_3 = (T,cb) -> clear_sign "foo\nbar\n\n\n", T, cb
 exports.clear_sign_4 = (T,cb) -> clear_sign "foo", T, cb
 exports.clear_sign_5 = (T,cb) -> clear_sign "foo\n\n\n\nbar", T, cb
 
+# And dash-encoding
+exports.clear_sign_6 = (T,cb) -> clear_sign "-what\n-is\n---up?", T, cb
+exports.clear_sign_7 = (T,cb) -> clear_sign "- what\n- is\n- up?", T, cb
+exports.clear_sign_8 = (T,cb) -> clear_sign "-----------------word", T, cb
+
 clear_sign = (msg, T,cb) ->
   key_id = new Buffer data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
