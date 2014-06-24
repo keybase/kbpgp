@@ -5,9 +5,13 @@
 
 # http://www.nsa.gov/ia/_files/nist-routines.pdf
 
+#===============================================================================================
+
 # Section 4.5.2
 exports.p521_test = (test,cb) ->
   C = nist_p521()
+
+  #-----------------------
 
   # Compute R = S + T
   S = Point.fromAffine( C,
@@ -36,6 +40,9 @@ exports.p521_test = (test,cb) ->
   test.assert R3.equals(R), "T+R = R"
   test.waypoint("addition S+T")
 
+  #-----------------------
+  # Compute R = S - T
+
   R = Point.fromAffine( C,
     H('00000129 2cb58b17 95ba4770 63fef7cd 22e42c20 f57ae94c eaad86e0 d21ff229 18b0dd3b 076d63be 253de24b c20c6da2 90fa54d8 3771a225 deecf914 9f79a8e6 14c3c4cd'),
     H('00000169 5e3821e7 2c7cacaa dcf62909 cd83463a 21c6d033 93c527c6 43b36239 c46af117 ab7c7ad1 9a4c8cf0 ae95ed51 72988546 1aa2ce27 00a6365b ca3733d2 920b2267')
@@ -44,6 +51,9 @@ exports.p521_test = (test,cb) ->
   test.assert R2.equals(R), "S-T = R"
   test.waypoint("subtraction S-T")
 
+  #-----------------------
+  # Compute R = 2S
+
   R = Point.fromAffine( C,
     H('00000128 79442f24 50c119e7 119a5f73 8be1f1eb a9e9d7c6 cf41b325 d9ce6d64 3106e9d6 1124a91a 96bcf201 305a9dee 55fa7913 6dc70083 1e54c3ca 4ff2646b d3c36bc6'),
     H('00000198 64a8b885 5c2479cb efe375ae 553e2393 271ed36f adfc4494 fc0583f6 bd035988 96f39854 abeae5f9 a6515a02 1e2c0eef 139e71de 610143f5 3382f410 4dccb543')
@@ -51,6 +61,9 @@ exports.p521_test = (test,cb) ->
   R2 = S.twice()
   test.assert R2.equals(R), "2S = R" 
   test.waypoint("twice 2S")
+
+  #-----------------------
+  # Compute R = dS
 
   d = H('000001eb 7f81785c 9629f136 a7e8f8c6 74957109 73555411 1a2a866f a5a16669 9419bfa9 936c78b6 2653964d f0d6da94 0a695c72 94d41b2d 6600de6d fcf0edcf c89fdcb1')
   R = Point.fromAffine( C,
@@ -61,5 +74,7 @@ exports.p521_test = (test,cb) ->
   test.assert R2.equals(R), "dS = R"
   test.waypoint("multiply dS")
 
-
   cb()
+  
+#===============================================================================================
+
