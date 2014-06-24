@@ -25,7 +25,8 @@
     "iced-error": ">=0.0.9",
     "iced-runtime": ">=0.0.1",
     "keybase-compressjs": "^1.0.1-c",
-    "pgp-utils": ">=0.0.24",
+    "pgp-utils": ">=0.0.25",
+    "keybase-ecurve": "^0.9.0",
     "purepack": ">=1.0.1",
     "triplesec": ">=3.0.16"
   },
