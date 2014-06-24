@@ -23,7 +23,8 @@ exports.keyring   = require('./keyring')
 exports.parser    = require('./openpgp/parser')
 exports.Buffer    = Buffer
 exports.triplesec = require('triplesec')
-exports.hash      = require ('./hash')
+exports.hash      = require './hash'
+exports.ecc       = require './ecc/main'
 
 #---------------------------------------
 

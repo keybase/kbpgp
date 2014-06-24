@@ -20,6 +20,8 @@ $(BUILD_STAMP): \
 	lib/bn.js \
 	lib/const.js \
 	lib/dsa.js \
+	lib/ecc/curves.js \
+	lib/ecc/main.js \
 	lib/elgamal.js \
 	lib/elgamalse.js \
 	lib/hash.js \
