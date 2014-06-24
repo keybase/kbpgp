@@ -3,9 +3,14 @@
 
 #=================================================================
 
-H = (x) -> BigInteger.fromHex x.split(/\s+/).join('')
+exports.H = H = (x) -> BigInteger.fromHex x.split(/\s+/).join('')
 
 #=================================================================
+
+# Curve parameters taken from here:
+#
+#  http://www.nsa.gov/ia/_files/nist-routines.pdf
+#
 
 # This one is specified in the base library....
 # p = 2^224 (2^32 - 1) + 2^192 + 2^96 - 1
