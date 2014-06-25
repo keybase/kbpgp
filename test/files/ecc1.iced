@@ -1,7 +1,7 @@
 
 {curves} = require('../../lib/main').ecc
 {Point} = require 'keybase-ecurve'
-{H,nist_p521} = curves
+{H,nist_p521,nist_p384} = curves
 
 # http://www.nsa.gov/ia/_files/nist-routines.pdf
 
@@ -91,3 +91,74 @@ exports.p521_test = (test,cb) ->
 
 #===============================================================================================
 
+# Section 4.4.2
+exports.p384_test = (test,cb) ->
+  C = nist_p384()
+
+  #-----------------------
+
+  # Compute R = S + T
+  S = Point.fromAffine( C,
+    H('fba203b8 1bbd23f2 b3be971c c23997e1 ae4d89e6 9cb6f923 85dda827 68ada415 ebab4167 459da98e 62b1332d 1e73cb0e'),
+    H('5ffedbae fdeba603 e7923e06 cdb5d0c6 5b223014 29293376 d5c6944e 3fa6259f 162b4788 de6987fd 59aed5e4 b5285e45')
+  )
+  test.assert C.isOnCurve(S), "S is on C"
+  T = Point.fromAffine( C,
+    H('aacc0520 2e7fda6f c73d82f0 a6622052 7da8117e e8f8330e ad7d20ee 6f255f58 2d8bd38c 5a7f2b40 bcdb68ba 13d81051'),
+    H('84009a26 3fefba7c 2c57cffa 5db3634d 286131af c0fca8d2 5afa22a7 b5dce0d9 470da892 33cee178 592f49b6 fecb5092')
+  )
+  test.assert C.isOnCurve(T), "T is on C"
+  R = Point.fromAffine( C,
+    H('12dc5ce7 acdfc584 4d939f40 b4df012e 68f865b8 9c3213ba 97090a24 7a2fc009 075cf471 cd2e85c4 89979b65 ee0b5eed'),
+    H('167312e5 8fe0c0af a248f285 4e3cddcb 557f983b 3189b67f 21eee013 41e7e9fe 67f6ee81 b36988ef a406945c 8804a4b0')
+  )
+  test.assert C.isOnCurve(R), "R is on C"
+  R2 = S.add(T)
+  test.assert R2.equals(R), "S+T"
+  test.waypoint("add S+T")
+  R3 = T.add(S)
+  test.assert R3.equals(R), "T+S"
+  test.waypoint("add T+S")
+
+  #-----------------------
+  # Compute R = S - T
+  R = Point.fromAffine( C,
+    H('6afdaf8d a8b11c98 4cf177e5 51cee542 cda4ac2f 25cd522d 0cd710f8 8059c656 5aef78f6 b5ed6cc0 5a6666de f2a2fb59'),
+    H('7bed0e15 8ae8cc70 e847a603 47ca1548 c348decc 6309f48b 59bd5afc 9a9b804e 7f787617 8cb5a7eb 4f6940a9 c73e8e5e')
+  )
+  R2 = S.add(T.negate())
+  test.assert R2.equals(R), "S-T"
+  test.waypoint("subtract S-T")
+
+  #-----------------------
+  # Compute R = 2S
+  R = Point.fromAffine( C,
+    H('2a2111b1 e0aa8b2f c5a19755 16bc4d58 017ff96b 25e1bdff 3c229d5f ac3bacc3 19dcbec2 9f9478f4 2dee597b 4641504c'),
+    H('fa2e3d9d c84db895 4ce8085e f28d7184 fddfd134 4b4d4797 343af9b5 f9d83752 0b450f72 6443e411 4bd4e5bd b2f65ddd')
+  )
+  R2 = S.twice()
+  test.assert R2.equals(R), "2S"
+  test.waypoint("scalar multiply 2S")
+
+  #-----------------------
+  # Compute R = dS
+  d = H('a4ebcae5 a6659834 93ab3e62 6085a24c 104311a7 61b5a8fd ac052ed1 f111a5c4 4f76f456 59d2d111 a61b5fdd 97583480')
+  R = Point.fromAffine( C,
+    H('e4f77e7f feb7f095 8910e3a6 80d677a4 77191df1 66160ff7 ef6bb526 1f791aa7 b45e3e65 3d151b95 dad3d93c a0290ef2'),
+    H('ac7dee41 d8c5f4a7 d5836960 a773cfc1 376289d3 373f8cf7 417b0c62 07ac32e9 13856612 fc9ff2e3 57eb2ee0 5cf9667f')
+  )
+  R2 = S.multiply(d)
+  test.assert R2.equals(R), "dS"
+  test.waypoint("scalar multiply dS")
+
+  #-----------------------
+  # Compute R = dS + eT
+  e = H('afcf8811 9a3a76c8 7acbd600 8e1349b2 9f4ba9aa 0e12ce89 bcfcae21 80b38d81 ab8cf150 95301a18 2afbc689 3e75385d')
+  R = Point.fromAffine( C,
+    H('917ea28b cd641741 ae5d18c2 f1bd917b a68d34f0 f0577387 dc812604 62aea60e 2417b8bd c5d954fc 729d211d b23a02dc'),
+    H('1a29f7ce 6d074654 d77b4088 8c73e925 46c8f16a 5ff6bcbd 307f758d 4aee684b eff26f67 42f597e2 585c86da 908f7186')
+  )
+  R2 = S.multiplyTwo(d, T, e)
+  test.assert R2.equals(R), "dS + eT = R"
+  test.waypoint("multiply/add dS + eT")
+  cb()
