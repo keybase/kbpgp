@@ -74,7 +74,20 @@ exports.p521_test = (test,cb) ->
   test.assert R2.equals(R), "dS = R"
   test.waypoint("multiply dS")
 
+
+  #-----------------------
+  # Compute R = dS + eT
+
+  e = H('00000137 e6b73d38 f153c3a7 57561581 2608f2ba b3229c92 e21c0d1c 83cfad92 61dbb17b b77a6368 2000031b 9122c2f0 cdab2af7 2314be95 254de429 1a8f85f7 c70412e3')
+  R = Point.fromAffine( C,
+    H('0000009d 3802642b 3bea152b eb9e05fb a247790f 7fc16807 2d363340 133402f2 585588dc 1385d40e bcb8552f 8db02b23 d687cae4 6185b275 28adb1bf 9729716e 4eba653d'),
+    H('0000000f e44344e7 9da6f49d 87c10637 44e5957d 9ac0a505 bafa8281 c9ce9ff2 5ad53f8d a084a2de b0923e46 501de579 7850c61b 229023dd 9cf7fc7f 04cd35eb b026d89d')
+  )
+  R2 = S.multiplyTwo(d, T, e)
+  test.assert R2.equals(R), "dS + eT = R"
+  test.waypoint("multiply/add dS + eT")
+
   cb()
-  
+
 #===============================================================================================
 
