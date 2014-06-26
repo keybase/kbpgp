@@ -7,48 +7,14 @@ konst = require '../const'
 C = konst.openpgp
 K = konst.kb
 {BaseKeyPair} = require '../basekeypair'
-{SlicerBuffer} = require '../openpgp/buffer'
-{alloc_by_oid} = require './curves'
+{BaseEccKey} = require './base'
 
 #=================================================================
 
-class Pub
+class Pub extends BaseEccKey
 
   @type : C.public_key_algorithms.ECDSA
   type : Pub.type
-
-  #----------------
-
-  constructor : ({@curve, @R}) ->
-
-  #----------------
-
-  @_parse : (raw) ->
-    sb = new SlicerBuffer raw
-    pre = sb.rem()
-    l = sb.read_uint8()
-    oid = sb.read_buffer(l)
-    [err, curve] = alloc_by_oid oid
-    throw err if err?
-    [err, R] = curve.mpi_point_from_slicer_buffer sb
-    throw err if err?
-    len = pre - sb.rem()
-    pub = new Pub { curve, R}
-    return [ pub, len ]
-
-  #----------------
-
-  @parse : (raw) -> 
-    pub = len = err = null
-    try
-      [pub,len] = Pub._parse(raw)
-    catch e
-      err = e
-    return [ err, pub, len ]
-
-  #----------------
-
-  @alloc : (raw) -> Pub.parse(raw)
 
   #----------------
 
@@ -56,13 +22,27 @@ class Pub
 
   #----------------
 
+  # No params for ECDSA (as with ECDH)
+  read_params : (sb) ->
+
+  #----------------
+
+  trunc_hash : (h) -> bn.bn_from_left_n_bits h, @nbits()
+
+  #----------------
+
+  @alloc : (raw) -> BaseEccKey.alloc Pub, raw
+
+  #----------------
+
   verify : ([r, s], h, cb) ->
     err = null
     hi = @trunc_hash(h)
-    w = s.modInverse @q
-    u1 = hi.multiply(w).mod(@q)
-    u2 = r.multiply(w).mod(@q)
-    v = @g.modPow(u1, @p).multiply(@y.modPow(u2, @p)).mod(@p).mod(@q)
+    w = s.modInverse @curve.p
+    u1 = hi.multiply(w).mod(@p)
+    u2 = r.multiply(w).mod(@p)
+    p = @curve.G.multiplyTwo(u1, @R, u2)
+    v = p.x.mod(@p)
     err = new Error "verification failed" unless v.equals(r)
     cb err
 
