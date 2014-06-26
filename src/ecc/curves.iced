@@ -14,12 +14,12 @@ exports.H = H = (x) -> BigInteger.fromHex x.split(/\s+/).join('')
 
 # This one is specified in the base library....
 # p = 2^224 (2^32 - 1) + 2^192 + 2^96 - 1
-exports.nist_p256 = () -> getCurveByName('secp256r1')
+exports.nist_p256 = nist_p256 = () -> getCurveByName('secp256r1')
 
 #------------------------------------
 
 # p_384 = 2^384 − 2^128 − 2^96 + 2^32 − 1
-exports.nist_p384 = () ->
+exports.nist_p384 = nist_p384 = () ->
   p  = H('ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe ffffffff 00000000 00000000 ffffffff')
   a  = H('ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe ffffffff 00000000 00000000 fffffffc')
   b  = H('b3312fa7 e23ee7e4 988e056b e3f82d19 181d9c6e fe814112 0314088f 5013875a c656398d 8a2ed19d 2a85c8ed d3ec2aef')
@@ -33,7 +33,7 @@ exports.nist_p384 = () ->
 
 # p_521 = 2^521 - 1
 # a = p_521 - 3
-exports.nist_p521 = () ->
+exports.nist_p521 = nist_p521 = () ->
   p  = H('000001ff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff')
   a  = H('000001ff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffc')
   b  = H('00000051 953eb961 8e1c9a1f 929a21a0 b68540ee a2da725b 99b315f3 b8b48991 8ef109e1 56193951 ec7e937b 1652c0bd 3bb1bf07 3573df88 3d2c34f1 ef451fd4 6b503f00')
@@ -45,3 +45,15 @@ exports.nist_p521 = () ->
 
 #=================================================================
 
+exports.alloc_by_oid = (oid) ->
+  tab = 
+    "2a8648ce3d030107" : nist_p256
+    "2b81040022"       : nist_p384
+    "2b81040023"       : nist_p521
+  oid = oid.toString('hex') if Buffer.isBuffer(oid)
+  err = curve = null
+  if (f = tab[oid])? then curve = f()
+  else err = new Error "Unknown curve OID: #{oid}"
+  [err,curve]
+  
+#=================================================================
