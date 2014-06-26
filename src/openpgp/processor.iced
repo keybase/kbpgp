@@ -33,6 +33,9 @@ class KeyBlock
 
   _extract_keys : () ->
     err = null
+    for p in @packets when p.is_primary?()
+      console.log util.inspect(p, { depth : null })
+      console.log p.get_fingerprint().toString('hex')
     if not @packets.length
       err = new Error "No packets; cannot extract a key"
     else if not (@primary = @packets[0]).is_primary() 

@@ -11,7 +11,7 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
-  constructor : ( { p, a, b, Gx, Gy, n, h} ) ->
+  constructor : ( { p, a, b, Gx, Gy, n, h, @oid} ) ->
     h or= BigInteger.ONE
     super p, a, b, Gx, Gy, n, h
 
@@ -28,11 +28,12 @@ exports.Curve = class Curve extends base.Curve
 
   mpi_bit_size : () ->
     # Rounding up needed for p521, and 3 bits needed to represent the leading 0x4
-    2*(@mpi_coord_byte_size()*8) + 3
+    2*@mpi_coord_bit_size() + 3
 
   #----------------------------------
 
   mpi_coord_byte_size : () -> Math.ceil(@nbits()/8)
+  mpi_coord_bit_size : () -> @mpi_coord_byte_size()*8
 
   #----------------------------------
 
@@ -66,6 +67,15 @@ exports.Curve = class Curve extends base.Curve
       err = e
     return [err, point ]
 
+  #----------------------------------
+
+  point_to_mpi_buffer : (p) ->
+    Buffer.concat [
+      new Buffer([0x4]),
+      p.x.toBuffer(@p.byteLength()),
+      p.y.toBuffer(@p.byteLength())
+    ]
+
 #=================================================================
 
 # Curve parameters taken from here:
@@ -83,7 +93,7 @@ exports.nist_p256 = nist_p256 = () ->
   n  = H("FFFFFFFF 00000000 FFFFFFFF FFFFFFFF BCE6FAAD A7179E84 F3B9CAC2 FC632551")
   Gx = H("6B17D1F2 E12C4247 F8BCE6E5 63A440F2 77037D81 2DEB33A0 F4A13945 D898C296")
   Gy = H("4FE342E2 FE1A7F9B 8EE7EB4A 7C0F9E16 2BCE3357 6B315ECE CBB64068 37BF51F5")
-  new Curve { p, a, b, Gx, Gy, n }
+  new Curve { p, a, b, Gx, Gy, n, oid : OIDS.nist_p256 }
 
 #------------------------------------
 
@@ -95,7 +105,7 @@ exports.nist_p384 = nist_p384 = () ->
   n  = H('ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff c7634d81 f4372ddf 581a0db2 48b0a77a ecec196a ccc52973')
   Gx = H('aa87ca22 be8b0537 8eb1c71e f320ad74 6e1d3b62 8ba79b98 59f741e0 82542a38 5502f25d bf55296c 3a545e38 72760ab7')
   Gy = H('3617de4a 96262c6f 5d9e98bf 9292dc29 f8f41dbd 289a147c e9da3113 b5f0b8c0 0a60b1ce 1d7e819d 7a431d7c 90ea0e5f')
-  new Curve { p, a, b, Gx, Gy, n }
+  new Curve { p, a, b, Gx, Gy, n, oid : OIDS.nist_p384 }
 
 #------------------------------------
 
@@ -108,18 +118,26 @@ exports.nist_p521 = nist_p521 = () ->
   n  = H('000001ff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffa 51868783 bf2f966b 7fcc0148 f709a5d0 3bb5c9b8 899c47ae bb6fb71e 91386409')
   Gx = H('000000c6 858e06b7 0404e9cd 9e3ecb66 2395b442 9c648139 053fb521 f828af60 6b4d3dba a14b5e77 efe75928 fe1dc127 a2ffa8de 3348b3c1 856a429b f97e7e31 c2e5bd66')
   Gy = H('00000118 39296a78 9a3bc004 5c8a5fb4 2c7d1bd9 98f54449 579b4468 17afbd17 273e662c 97ee7299 5ef42640 c550b901 3fad0761 353c7086 a272c240 88be9476 9fd16650')
-  new Curve { p, a, b, Gx, Gy, n }
+ 
+  new Curve { p, a, b, Gx, Gy, n, oid : OIDS.nist_p521 }
+
+#=================================================================
+
+OIDS = 
+  nist_p256 : new Buffer [0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07 ]
+  nist_p384 : new Buffer [0x2b, 0x81, 0x04, 0x00, 0x22 ]
+  nist_p521 : new Buffer [0x2b, 0x81, 0x04, 0x00, 0x23 ]
+
+OID_LOOKUP = {}
+for k,v of OIDS
+  OID_LOOKUP[v.toString('hex')] = exports[k]
 
 #=================================================================
 
 exports.alloc_by_oid = (oid) ->
-  tab = 
-    "2a8648ce3d030107" : nist_p256
-    "2b81040022"       : nist_p384
-    "2b81040023"       : nist_p521
   oid = oid.toString('hex') if Buffer.isBuffer(oid)
   err = curve = null
-  if (f = tab[oid])? then curve = f()
+  if (f = OID_LOOKUP[oid.toLowerCase()])? then curve = f()
   else err = new Error "Unknown curve OID: #{oid}"
   [err,curve]
   

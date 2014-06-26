@@ -8,7 +8,17 @@ exports.BaseEccKey = class BaseEccKey
   #----------------
 
   constructor : ({@curve, @R}) ->
-    
+
+  #----------------
+
+  serialize : () ->
+    oid = @curve.oid
+    Buffer.concat [
+      new Buffer([ oid.length ]),
+      oid,
+      @curve.point_to_mpi_buffer(@R)
+    ]
+
   #----------------
 
   @_alloc : (klass, raw) ->
