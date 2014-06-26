@@ -1,4 +1,4 @@
-{BigInteger} = require 'bn'
+{BigInteger} = require '../bn'
 base = require 'keybase-ecurve'
 
 #=================================================================
@@ -19,6 +19,52 @@ exports.Curve = class Curve extends base.Curve
 
   mkpoint : ({x,y}) ->
     base.Point.fromAffine @, x, y
+
+  #----------------------------------
+
+  nbits : () -> @p.bitLength()
+
+  #----------------------------------
+
+  mpi_bit_size : () ->
+    # Rounding up needed for p521, and 3 bits needed to represent the leading 0x4
+    2*(@mpi_coord_byte_size()*8) + 3
+
+  #----------------------------------
+
+  mpi_coord_byte_size : () -> Math.ceil(@nbits()/8)
+
+  #----------------------------------
+
+  # Read a point from an MPI as specified in 
+  #
+  #   http://tools.ietf.org/html/rfc6637#section-6
+  #   Section 6: Conversion Primitives
+  # 
+  # Throw an error if there's an issue.
+  #
+  _mpi_point_from_slicer_buffer : (sb) ->
+    n_bits = sb.read_uint16()
+    if n_bits isnt (b = @mpi_bit_size())
+      throw new Error "Need #{b} bits for this curve; got #{n_bits}"
+    if sb.read_uint8() isnt 0x4
+      throw new Error "Can only handle 0x4 prefix for MPI representations"
+    n_bytes = @mpi_coord_byte_size()
+    [x,y] = [ BigInteger.fromBuffer(sb.read_buffer(n_bytes)), BigInteger.fromBuffer(sb.read_buffer(n_bytes)) ]
+    point = @mkpoint { x, y} 
+    unless @isOnCurve point
+      throw new Error "Given ECC point isn't on the given curve; data corruption detected."
+    [ null, point ]
+
+  #----------------------------------
+
+  mpi_point_from_slicer_buffer : (sb) ->
+    err = point = null
+    try 
+      [err, point] = @_mpi_point_from_slicer_buffer sb
+    catch e 
+      err = e
+    return [err, point ]
 
 #=================================================================
 

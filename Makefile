@@ -21,6 +21,7 @@ $(BUILD_STAMP): \
 	lib/const.js \
 	lib/dsa.js \
 	lib/ecc/curves.js \
+	lib/ecc/ecdsa.js \
 	lib/ecc/main.js \
 	lib/elgamal.js \
 	lib/elgamalse.js \

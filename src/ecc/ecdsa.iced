@@ -7,9 +7,8 @@ konst = require '../const'
 C = konst.openpgp
 K = konst.kb
 {BaseKeyPair} = require '../basekeypair'
-{SlicerBuffer} = require '../buffer'
+{SlicerBuffer} = require '../openpgp/buffer'
 {alloc_by_oid} = require './curves'
-{mpi_read} = require './mpi'
 
 #=================================================================
 
@@ -20,33 +19,40 @@ class Pub
 
   #----------------
 
-  # The serialization order of the parameters in the public key
-  @ORDER : [ 'R' ]
-  ORDER : Pub.ORDER
-
-  #----------------
-
   constructor : ({@curve, @R}) ->
 
   #----------------
 
-  @alloc : (raw) -> 
-
-  #----------------
-
-  @parse : (raw) ->
+  @_parse : (raw) ->
     sb = new SlicerBuffer raw
+    pre = sb.rem()
     l = sb.read_uint8()
     oid = sb.read_buffer(l)
     [err, curve] = alloc_by_oid oid
     throw err if err?
-    [err, V] = mpi_read curve, sb.consume_rest_to_buffer()
+    [err, R] = curve.mpi_point_from_slicer_buffer sb
     throw err if err?
-    return { curve, V }
+    len = pre - sb.rem()
+    pub = new Pub { curve, R}
+    return [ pub, len ]
 
   #----------------
 
-  nbits : () -> @p?.bitLength()
+  @parse : (raw) -> 
+    pub = len = err = null
+    try
+      [pub,len] = Pub._parse(raw)
+    catch e
+      err = e
+    return [ err, pub, len ]
+
+  #----------------
+
+  @alloc : (raw) -> Pub.parse(raw)
+
+  #----------------
+
+  nbits : () -> @curve.nbits()
 
   #----------------
 
@@ -62,48 +68,16 @@ class Pub
 
 #=================================================================
 
-class Priv extends BaseKey
-
-  #-------------------
-
-  # The serialization order of the parameters in the public key
-  @ORDER : [ 'x' ]
-  ORDER : Priv.ORDER
-
-  #-------------------
-
-  constructor : ({@x,@pub}) ->
-
-  #-------------------
-
-  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
-
-  #-------------------
-
-  sign : (h, cb) ->
-    err = null
-    {p,q,g} = @pub
-    hi = @pub.trunc_hash(h)
-    await SRF().random_zn q.subtract(bn.nbv(2)), defer k
-    k = k.add(bn.BigInteger.ONE)
-    r = g.modPow(k,p).mod(q)
-    s = (k.modInverse(q).multiply(hi.add(@x.multiply(r)))).mod(q)
-    cb [r,s]
-
-#=================================================================
-
 class Pair extends BaseKeyPair
 
   #--------------------
 
   @Pub : Pub
   Pub : Pub
-  @Priv : Priv
-  Priv : Priv
 
   #--------------------
 
-  @type : C.public_key_algorithms.DSA
+  @type : C.public_key_algorithms.ECDSA
   type : Pair.type
 
   #--------------------
@@ -176,7 +150,7 @@ class Pair extends BaseKeyPair
 
 #=================================================================
 
-exports.DSA = exports.Pair = Pair
+exports.ECDSA = exports.Pair = Pair
 
 #=================================================================
 

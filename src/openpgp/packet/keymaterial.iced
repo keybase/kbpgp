@@ -436,9 +436,7 @@ class Parser
       when A.ELGAMAL then ElGamal
       when A.ELGAMAL_SIGN_AND_ENCRYPT then ElGamalSE
       when A.ECDSA then ECDSA
-      else 
-        console.log @slice.peek_rest_to_buffer()
-        throw new Error "Unknown key type: #{@algorithm}"
+      else throw new Error "Unknown key type: #{@algorithm}"
     [err, key, len] = klass.parse @slice.peek_rest_to_buffer()
     throw err if err?
     @slice.advance len
