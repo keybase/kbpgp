@@ -4,19 +4,19 @@
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
 Comment: GPGTools - https://gpgtools.org
 
-iQIcBAABCgAGBQJTsu4vAAoJENIkQTsc+mSQ81oQANAlHId2zGn0MarMCOIpb6yu
-8PUWzO+1rJCkvNyjU6ZiG0tS88gjzWXFBYsj8YKpb3h6ZeyrxmGw0CFlNPiMCx9T
-7o7meFCIS8ZCS5P+29eNwBzcjv+3hAZBXV8HT7oBvSmrt0NUoz8xfpx3vwuV6kxk
-4imd8U12d+CSO8QrBnhpK3VCPDr5O7m9atgFSnwGBfUwGPaP9kTPvDBGMcOxhqm9
-FygNqMG9282BzQh3KAxdMv5XdxysPSVcCn603LVsZ2OYByxTVuQQirC0F+36YGrY
-HlBIl6eLx/Nhr9V0kpSUL0CbcBpqhiXBXUfPRfNo+0legpDvQyyM+GVtRJ+BVkNf
-oaxXMak9Yb8/C+OVCJPfa1H7OhnAQwry4q8gtyhtoXsm1b4JYw+JBdVso7WH433V
-Qx/XTA31TVm304Dp/Q46WjTvH6dodGF20ZXW2k0xFMEHw0Spvjm3EhTiBI43G4rR
-Ht/B8RXrwqMV4u4TnqDO+gy0rb7aaqPFCEqOVHbjRcGzo4VC0FrxZdjvPPMYH5iY
-mGMFUQm7Ji/dDJcjdTlVs8jkFyJPT33Z2evmeOfB04jcEFwkXe7wwNd0Kc5Sfeni
-sSY7KEZEN5ufFkEPdAOR70RP1+mrmg4bF3IuwC0UJtLAayDZvTqjBU1X/Vsv1xkz
-EN6FHWWJivkg7thEnhsX
-=DOSz
+iQIcBAABCgAGBQJTsvpUAAoJENIkQTsc+mSQel0QALsLA6fD+0LBow99enAKWtfb
+b3ZvcLZRgmZQmNovL0lmrJbhEfFA7g1WXnnHhefL5QLUqvDrxrBwCErag7BNPnHa
+AhviHbtR6d8Z76kvkW6uKl31c57FsyiT25LSkhrb7aZqWtnkvoMhkBOR9DohHP3/
+FTx7zAyAxz9NnTits9AVfxG3BjvM9P43+og3Y4sOKu2O0QDYITY40mCkPTSafouS
+UxYpl+6/5ZbeqxVY/Jaldr4pbauBoZ9xJowtcIzdM6GHxhjDtsk2x3TyEZbjp0M/
+2cPEYPZFDqu3wUk9Grztp82Cc1tvbTulsCEzd9gii9k4mOumCHAFY3cRBVfGGHGe
+4ebUZ4iz1Rq7Z/LlZmLumRy8Hrj5w/N8ME57BBLaSk/ua/fb49dXDjR70dZHlamy
+glTanfiHufjoPU1cXTp3xf491fl3XRGZKwXrI/rc3tpshHeJjF757TciZSTZELOw
+Bquuhk9F4QUtcI75c/oLEBoeYKqAebwbjQ72PX8FajilMGSLjSnwOpaTKbJiD1xJ
+LxX4cWj0s15XCGyklRR27ymA7GRIgYvin/ahOxn6wlWKVZcOqQ/7qqLnIfl0ILk6
+JDF07MizwNu8yRV3Ykm9G+slpg6cNBwEHhQbSZ5E5pevcLs+uKk95yRQPXMnugOh
+p9efsYiDNv9veRgAfbff
+=AUMY
 -----END PGP SIGNATURE-----
 
 ```
@@ -34,7 +34,7 @@ size     exec  file                                  contents
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
 7790             CHANGELOG.md                        a07977ad22eb1855b370a62e30305ef3638746135d51afaff497c433ccaf1473                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
-2803             Makefile                            0099a1869365362e67d89fb1441f51f34d6c5fa6ea81dfb4dcde2889dd7dfd5a                                                                 
+2993             Makefile                            c4745c49568da341b324cae41ead451e870d0fad5e33113186b5301b174a2093                                                                 
 135              README.md                           78e6510afee9d2d329aa500a24fcc064b97cd16dea4a96bef06773e60756e9ad                                                                 
                  bench/                                                                                                                                                               
 83                 main.js                           083729d8233d3d24bc1bc77e1fc9005cf4cb0022d873301be3a156976113220d                                                                 
@@ -133,8 +133,8 @@ size     exec  file                                  contents
 753933             kbpgp-0.1.19-min.js               1e582443a072f7d90de67864e2a0ffe921bbd9af7d467b7d4bdef5494c90c79c                                                                 
 1171371            kbpgp-0.1.19.js                   bd03528931a40966742e203c8764f625e81c32e39c6d398164943923f06f5d17|e5097f78db6cb88a814576df859f290198eb14fbabf4a4ddfa3b8bce1fddc423
 764209             kbpgp-0.1.22-min.js               02317cbf0f73700a90839c4d170fb76e693255d06b36aed8c4b4560e5ca77ceb                                                                 
+452762             kbpgp-0.1.22-signed-release.zip   9952e8ddc9bb5eefbff9e56c8c6a9b5df9884f429234f3f930b25623324e3494|514286cfdea24a0d9f8d77d50bd19e52fd2999403fd07c80d38684d8b8913aed
 1187187            kbpgp-0.1.22.js                   e367caa04c89a0978531c4ca8c6767edc5557ab7f31740269384ba3e695fd339|d090cd97503c1bd6c39a042e55911a0e2c8b5439966e5186d81686d61862015b
-1339029            kbpgp-signed-release-0.1.22.zip   e0903fd0f7e9e280633ce3609771db6f2fe844c8c51ed0b34e8f02c301e9b2c0|1d01204975628a1d41bf517c0798b5ea25ba2f29fe5981a85f445fb8aba88a7d
                  src/                                                                                                                                                                 
 412                asymmetric.iced                   109ed4e5f4d8dc9c3839a4a7db2423271dc755dfcc31dd9dae0774aa5effa6ca                                                                 
 2951               basekeypair.iced                  52e1812d76abc1730588cccc9ec5288fc12de6f2924784da137b58dc6d97b264                                                                 

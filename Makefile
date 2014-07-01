@@ -102,10 +102,16 @@ release: $(BROWSER)
 	V=`jsonpipe < package.json | grep version | awk '{ print $$2 }' | sed -e s/\"//g` ; \
 	cp $< rel/kbpgp-$$V.js ; \
 	$(UGLIFYJS) -c < rel/kbpgp-$$V.js > rel/kbpgp-$$V-min.js ; \
-	rm -rf rel/*.zip ; \
-	keybase dir sign -p none rel/ ; \
-	zip rel/kbpgp-signed-release-$$V.zip rel/*
-	rm rel/SIGNED.md
+	rm -rf rel/kbpgp-$$V-signed-release.zip ; \
+	rm -rf rel/kbpgp ; \
+	mkdir rel/kbpgp ; \
+	cp rel/kbpgp-$$V.js     rel/kbpgp/ ; \
+	cp rel/kbpgp-$$V-min.js rel/kbpgp/ ; \
+	pushd rel/ ; \
+	keybase dir sign -p none kbpgp/ ; \
+	zip kbpgp-$$V-signed-release.zip kbpgp/*.js kbpgp/*.md ; \
+	popd ; \
+	rm -rf rel/kbpgp
 	keybase dir sign
 
 clean:
