@@ -13,6 +13,11 @@ exports.BaseEccKey = class BaseEccKey
 
   serialize : () ->
     oid = @curve.oid
+    console.log [
+      new Buffer([ oid.length ]),
+      oid,
+      @curve.point_to_mpi_buffer(@R)
+    ]
     Buffer.concat [
       new Buffer([ oid.length ]),
       oid,

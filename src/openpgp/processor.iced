@@ -33,9 +33,9 @@ class KeyBlock
 
   _extract_keys : () ->
     err = null
-    for p in @packets when p.is_primary?()
-      console.log util.inspect(p, { depth : null })
-      console.log p.get_fingerprint().toString('hex')
+    #for p in @packets when p.is_primary?()
+    #  console.log util.inspect(p, { depth : null })
+    #  console.log p.get_fingerprint().toString('hex')
     if not @packets.length
       err = new Error "No packets; cannot extract a key"
     else if not (@primary = @packets[0]).is_primary() 
@@ -44,6 +44,9 @@ class KeyBlock
       for p,i in @packets[1...] when (p.is_key_material() and not err?)
         if p.key.is_toxic() then @warnings.push "Ignoring toxic subkey (ElGamal Encrypt+Sign)"
         else if not p.is_primary() then @subkeys.push p
+        # Google End-to-End seems to write the public key twice
+        else if bufeq_secure(p.get_fingerprint(), @primary.get_fingerprint())
+          console.log "got duplicated primary key"
         else err = new Error "cannot have 2 primary keys"
     err
 
@@ -87,23 +90,27 @@ class KeyBlock
   #--------------------
 
   _verify_sigs : (cb) ->
-    # No sense in processing packet 1, since it's the primary key!
     err = null
     working_set = []
     n_sigs = 0
+    # No sense in processing packet 1, since it's the primary key!
     for p,i in @packets[1...] when not err?
       if not p.is_signature() 
+        console.log "failed signature chedk #{i}"
         if n_sigs > 0
           n_sigs = 0
           working_set = []
         working_set.push p
       else if not bufeq_secure((iid = p.get_issuer_key_id()), (pid = @primary.get_key_id()))
+        console.log "skip what #{i}"
         n_sigs++
         @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
+        console.log "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
       else
         n_sigs++
         p.key = @primary.key
         p.primary = @primary
+        console.log "verifying sig... #{i}"
         await p.verify working_set, defer tmp
         if tmp?
           msg = "Signature failure in packet #{i}: #{tmp.message}"
