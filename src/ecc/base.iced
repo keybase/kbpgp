@@ -16,7 +16,7 @@ exports.BaseEccKey = class BaseEccKey
     console.log [
       new Buffer([ oid.length ]),
       oid,
-      @curve.point_to_mpi_buffer(@R)
+      @curve.point_to_mpi_buffer(@R).toString 'hex'
     ]
     Buffer.concat [
       new Buffer([ oid.length ]),
