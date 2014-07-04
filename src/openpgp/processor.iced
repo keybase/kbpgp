@@ -96,7 +96,7 @@ class KeyBlock
     # No sense in processing packet 1, since it's the primary key!
     for p,i in @packets[1...] when not err?
       if not p.is_signature() 
-        console.log "failed signature chedk #{i}"
+        console.log "is not a signature .... #{i}"
         if n_sigs > 0
           n_sigs = 0
           working_set = []
@@ -111,6 +111,8 @@ class KeyBlock
         p.key = @primary.key
         p.primary = @primary
         console.log "verifying sig... #{i}"
+        console.log "working set..."
+        console.log working_set
         await p.verify working_set, defer tmp
         if tmp?
           msg = "Signature failure in packet #{i}: #{tmp.message}"

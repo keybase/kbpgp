@@ -12,12 +12,8 @@ exports.BaseEccKey = class BaseEccKey
   #----------------
 
   serialize : () ->
+    console.log "base..."
     oid = @curve.oid
-    console.log [
-      new Buffer([ oid.length ]),
-      oid,
-      @curve.point_to_mpi_buffer(@R).toString 'hex'
-    ]
     Buffer.concat [
       new Buffer([ oid.length ]),
       oid,
@@ -27,6 +23,8 @@ exports.BaseEccKey = class BaseEccKey
   #----------------
 
   @_alloc : (klass, raw) ->
+    console.log "xxx....."
+    console.log raw.toString 'hex'
     sb = new SlicerBuffer raw
     pre = sb.rem()
     l = sb.read_uint8()

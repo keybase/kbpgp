@@ -8,13 +8,15 @@ triplesec = require 'triplesec'
 {uint_to_buffer} = require './util'
 
 exports.get_cipher = get_cipher = (n) ->
-  switch n
+  ret = switch n
     when C.AES128 then { klass : AES, key_size : 16 }
     when C.AES192 then { klass : AES, key_size : 24 }
     when C.AES256 then { klass : AES, key_size : 32 }
     when C.CAST5  then { klass : CAST5, key_size : CAST5.keySize }
     else
       throw new Error "unknown cipher: #{n}"
+  ret.type = n
+  return ret
 
 exports.checksum2 = checksum2 = (buf) ->
   res = 0

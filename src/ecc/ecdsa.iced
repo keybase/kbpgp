@@ -1,7 +1,7 @@
 bn = require '../bn'
 {nbits,nbv,BigInteger} = bn
 {SRF,MRF} = require '../rand'
-{bufeq_secure,ASP} = require '../util'
+{uint_to_buffer,bufeq_secure,ASP} = require '../util'
 {make_esc} = require 'iced-error'
 konst = require '../const'
 C = konst.openpgp

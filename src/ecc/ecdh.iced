@@ -1,5 +1,5 @@
 bn = require '../bn'
-{bufeq_secure,ASP} = require '../util'
+{uint_to_buffer,bufeq_secure,ASP} = require '../util'
 {make_esc} = require 'iced-error'
 konst = require '../const'
 C = konst.openpgp
@@ -33,6 +33,29 @@ class Pub extends BaseEccKey
   #----------------
 
   @alloc : (raw) -> BaseEccKey.alloc Pub, raw
+
+  #----------------
+  
+  serialize : () ->
+    console.log "special zwar gokken...."
+    base = super()
+    console.log "base -->"
+    console.log [
+      base,
+      uint_to_buffer(8,3),
+      uint_to_buffer(8,1),
+      uint_to_buffer(8,@hasher.type),
+      uint_to_buffer(8,@cipher.type)
+    ]
+    ret = Buffer.concat [
+      base,
+      uint_to_buffer(8,3),
+      uint_to_buffer(8,1),
+      uint_to_buffer(8,@hasher.type),
+      uint_to_buffer(8,@cipher.type)
+    ]
+    console.log ret.toString 'hex'
+    return ret
 
   #----------------
 
