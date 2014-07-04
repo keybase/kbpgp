@@ -35,15 +35,30 @@ class Pub extends BaseEccKey
 
   #----------------
 
+  mod : (x) -> x.mod @curve.p
+
+  #----------------
+
   verify : ([r, s], h, cb) ->
     err = null
     hi = @trunc_hash(h)
-    w = s.modInverse @curve.p
-    u1 = hi.multiply(w).mod(@p)
-    u2 = r.multiply(w).mod(@p)
-    p = @curve.G.multiplyTwo(u1, @R, u2)
-    v = p.x.mod(@p)
-    err = new Error "verification failed" unless v.equals(r)
+
+    if (r.signum() is 0 or r.compareTo(@curve.p) > 0)
+      err = new Error "bad r"
+    else if (r.signum() is 0 or s.compareTo(@curve.p) > 0)
+      err = new Error "bad s"
+    else
+
+      w = s.modInverse @curve.p
+      u1 = @mod hi.multiply(w)
+      u2 = @mod r.multiply(w)
+      p = @curve.G.multiply(u1).add(@R.multiply(u2))
+
+      v = @mod p.affineX
+      console.log { r, s, w, u1, u2, hi, v }
+      console.log @curve.p
+      err = new Error "verification failed" unless v.equals(r)
+    console.log err
     cb err
 
 #=================================================================
