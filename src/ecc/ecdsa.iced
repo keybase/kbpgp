@@ -35,13 +35,11 @@ class Pub extends BaseEccKey
 
   #----------------
 
-  mod : (x) -> x.mod @curve.p
-
-  #----------------
-
   verify : ([r, s], h, cb) ->
     err = null
+    console.log h
     hi = @trunc_hash(h)
+    console.log hi.toHex()
 
     if (r.signum() is 0 or r.compareTo(@curve.p) > 0)
       err = new Error "bad r"
@@ -49,15 +47,18 @@ class Pub extends BaseEccKey
       err = new Error "bad s"
     else
 
-      w = s.modInverse @curve.p
-      u1 = @mod hi.multiply(w)
-      u2 = @mod r.multiply(w)
+      n = @curve.n
+      w = s.modInverse n
+      u1 = hi.multiply(w).mod(n)
+      u2 = r.multiply(w).mod(n)
       p = @curve.G.multiply(u1).add(@R.multiply(u2))
 
-      v = @mod p.affineX
-      console.log { r, s, w, u1, u2, hi, v }
-      console.log @curve.p
+      v = p.affineX.mod(n)
+      d = { r, s, w, u1, u2, hi, v, p : @curve.p, n }
       err = new Error "verification failed" unless v.equals(r)
+      for k,v of d
+        d[k] = v.toHex()
+      console.log d
     console.log err
     cb err
 
