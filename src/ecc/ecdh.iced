@@ -107,7 +107,7 @@ class Pair extends BaseKeyPair
 
   #--------------------
 
-  @type : C.public_key_algorithms.ELGAMAL
+  @type : C.public_key_algorithms.ECDH
   type : Pair.type
 
   #--------------------
