@@ -1,5 +1,6 @@
 
 mods = 
+  google_end_to_end : require '../files/google_end_to_end.iced'
   detached_sigs : require '../files/verify_detached_sigs.iced'
   hide : require '../files/hide.iced'
   critical_subpacket : require '../files/critical_subpacket.iced'
