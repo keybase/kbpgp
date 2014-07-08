@@ -388,7 +388,6 @@ class KeyManager
       if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
         err = new Error "Wanted a public or private key; got: #{msg.type}"
     unless err?
-      console.log msg.body.toString 'hex'
       await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret, warnings
     cb err, ret, warnings
 

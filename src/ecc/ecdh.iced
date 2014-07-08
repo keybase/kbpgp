@@ -37,25 +37,14 @@ class Pub extends BaseEccKey
   #----------------
   
   serialize : () ->
-    console.log "special zwar gokken...."
     base = super()
-    console.log "base -->"
-    console.log [
+    Buffer.concat [
       base,
       uint_to_buffer(8,3),
       uint_to_buffer(8,1),
       uint_to_buffer(8,@hasher.type),
       uint_to_buffer(8,@cipher.type)
     ]
-    ret = Buffer.concat [
-      base,
-      uint_to_buffer(8,3),
-      uint_to_buffer(8,1),
-      uint_to_buffer(8,@hasher.type),
-      uint_to_buffer(8,@cipher.type)
-    ]
-    console.log ret.toString 'hex'
-    return ret
 
   #----------------
 
