@@ -1,6 +1,10 @@
 
 {KeyManager} = require '../../lib/main'
 
+km = null
+
+#------------------
+
 exports.import_ecc_key_with_private_gen_by_google_e2e_1 = (T, cb) ->
 
   key = """-----BEGIN PGP PRIVATE KEY BLOCK-----
@@ -30,8 +34,27 @@ exports.import_ecc_key_with_private_gen_by_google_e2e_1 = (T, cb) ->
   =TRLE
   -----END PGP PRIVATE KEY BLOCK-----"""
 
-  await KeyManager.import_from_armored_pgp { raw : key }, defer err, km, warnings
+  await KeyManager.import_from_armored_pgp { raw : key }, defer err, tmp, warnings
   T.no_error err
-  T.assert km?, "a key manager returned"
+  T.assert tmp?, "a key manager returned"
   T.assert (warnings.warnings().length is 0), "didn't get any warnings"
+  km = tmp
+  cb()
+
+#------------------
+
+exports.decrypt_ecdh_1 = (T,cb) ->
+
+  msg = """
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG v2
+
+hHYDZen/wXRK1k0SAgMETZt1YbqhrG4lAIFkROBI6IAwgOha3BkPxaBfHeUd0Xn+
+zAbVcwKOFslg2WVOK5caRD6KIMWqXZ8wRQGINKh2/yh7jPxOY/2+s2xgPUw8tMFS
+Fhohz7IUvt0I+LRrG3yHmB2MY3QmV0G0ySIGZsa9EdPV1jOBPIKV8u+sA12SoAZ6
+xWzsZ+W6kkM5vsv7
+=sNOC
+-----END PGP MESSAGE-----
+  """
+
   cb()
