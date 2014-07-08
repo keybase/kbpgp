@@ -2,9 +2,16 @@
 
 Optimizations:
 
-  - Switch by to bigint squaring, rather than modPowInt(2), and expose a few
+  - Switch to bigint squaring, rather than modPowInt(2), and expose a few
     more features of bn to make this work.
   - Upgrade to the newest version of bn, @v1.0.0
+
+Bugfix:
+
+  - Fix a bug in clearsign parsing; we were being to liberal in our understanding
+    of BEGIN PGP blocks.  They have to start at the beginning of a line, as made
+    explicit in the "clearsign your public key" test case.
+      - Fix via upgrade to pgp-utils@
 
 ## 0.1.22 (2014-06-10)
 

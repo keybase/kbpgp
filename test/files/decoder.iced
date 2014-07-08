@@ -48,7 +48,8 @@ eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
 veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
 commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit
 esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"""
+non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+"""
 
 #-------------------------------------
 
@@ -67,12 +68,12 @@ exports.test_freestanding = (T,cb) ->
 #-------------------------------------
 
 exports.test_context_1 = (T,cb) ->
-  text = filler + orig + filler
+  text = [ filler,  orig , filler ].join "\n"
   [err,msg] = decode text 
   T.no_error err
   T.assert msg, "got a message object back"
-  T.equal msg.pre, filler, "msg.pre = filler"
-  T.equal msg.post, filler, "msg.post = filler"
+  T.equal msg.pre, (filler + "\n"), "msg.pre = filler"
+  T.equal msg.post, ("\n" + filler), "msg.post = filler"
   T.equal msg.fields.type, "PUBLIC KEY BLOCK", "we expected a public key block"
   T.equal msg.raw(), orig, "msg raw was right"
   cb()
@@ -80,11 +81,11 @@ exports.test_context_1 = (T,cb) ->
 #-------------------------------------
 
 exports.test_context_2 = (T,cb) ->
-  text = filler + orig
+  text = [ filler,  orig ].join("\n")
   [err,msg] = decode text 
   T.no_error err
   T.assert msg, "got a message object back"
-  T.equal msg.pre, filler, "msg.pre = filler"
+  T.equal msg.pre, (filler + "\n"), "msg.pre = filler"
   T.equal msg.fields.type, "PUBLIC KEY BLOCK", "we expected a public key block"
   T.equal msg.raw(), orig, "msg raw was right"
   cb()
