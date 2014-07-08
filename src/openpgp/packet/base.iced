@@ -29,6 +29,7 @@ class Packet
 
   is_signature : () -> false
   is_key_material : () -> false
+  is_duplicate_primary : () -> false
 
   #----------------------
 

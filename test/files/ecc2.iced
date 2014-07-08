@@ -33,5 +33,5 @@ exports.import_ecc_key_with_private_gen_by_google_e2e_1 = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : key }, defer err, km, warnings
   T.no_error err
   T.assert km?, "a key manager returned"
-  console.log warnings
+  T.assert (warnings.warnings().length is 0), "didn't get any warnings"
   cb()

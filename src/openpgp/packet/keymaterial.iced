@@ -38,6 +38,7 @@ class KeyMaterial extends Packet
   constructor : ({@key, @timestamp, @passphrase, @skm, @opts, @flags}) ->
     @opts or= {}
     @flags or= 0
+    @_is_duplicate_primary = false
     super()
 
   #--------------------------
@@ -316,6 +317,8 @@ class KeyMaterial extends Packet
 
   is_key_material : () -> true
   is_primary : -> not @opts?.subkey
+  is_duplicate_primary : -> @_is_duplicate_primary
+  set_duplicate_primary : () -> @_is_duplicate_primary = true
   ekid : () -> @key.ekid()
   can_sign : () -> @key.can_sign()
   is_locked : () -> (not @key.has_private()) and @skm? and @skm.is_locked()

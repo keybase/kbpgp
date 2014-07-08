@@ -45,8 +45,8 @@ class KeyBlock
         if p.key.is_toxic() then @warnings.push "Ignoring toxic subkey (ElGamal Encrypt+Sign)"
         else if not p.is_primary() then @subkeys.push p
         # Google End-to-End seems to write the public key twice
-        else if bufeq_secure(p.get_fingerprint(), @primary.get_fingerprint())
-          console.log "got duplicated primary key"
+        else if bufeq_secure(p.get_fingerprint(), @primary.get_fingerprint()) 
+          p.set_duplicate_primary()
         else err = new Error "cannot have 2 primary keys"
     err
 
@@ -99,7 +99,7 @@ class KeyBlock
         if n_sigs > 0
           n_sigs = 0
           working_set = []
-        working_set.push p
+        working_set.push p unless p.is_duplicate_primary()
       else if not bufeq_secure((iid = p.get_issuer_key_id()), (pid = @primary.get_key_id()))
         n_sigs++
         @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
