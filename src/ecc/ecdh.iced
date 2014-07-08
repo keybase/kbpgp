@@ -1,9 +1,8 @@
 bn = require '../bn'
-{uint_to_buffer,bufeq_secure,ASP} = require '../util'
+{xxd,uint_to_buffer,bufeq_secure,ASP} = require '../util'
 {make_esc} = require 'iced-error'
 konst = require '../const'
 C = konst.openpgp
-K = konst.kb
 {BaseKeyPair,BaseKey} = require '../basekeypair'
 {SRF,MRF} = require '../rand'
 {eme_pkcs1_encode,eme_pkcs1_decode} = require '../pad'
@@ -11,6 +10,7 @@ K = konst.kb
 {BaseEccKey} = require './base'
 hashmod = require '../hash'
 sym = require '../symmetric'
+{SlicerBuffer} = require '../openpgp/buffer'
 
 #=================================================================
 
@@ -148,17 +148,28 @@ class Output
 
   #----------------------
 
-  constructor : ({@c_mpis, @c_bufs}) ->
+  constructor : ({@S_buf, @C_buf}) ->
 
   #----------------------
   
   @parse : (buf) ->
-    c_mpis = for i in [0...2] 
-      [err, ret, buf, n] = bn.mpi_from_buffer buf
-      throw err if err?
-      ret
-    throw new Error "junk at the end of input" unless buf.length is 0
-    new Output { c_mpis }
+
+    # read the shared point S as a raw buffer, since we don't
+    # want to decode it until we've allocated the curve.
+    sb = new SlicerBuffer buf
+    n_bits = sb.read_uint16()
+    n_bytes = Math.ceil( n_bits / 8 )
+    S_buf = Buffer.concat [ buf[0...2], sb.read_buffer(n_bytes) ]
+    n_bytes = sb.read_uint8()
+
+    # C is the encrypted shared key, which we also read in as a buffer
+    C_buf = sb.consume_rest_to_buffer()
+    if (a = C_buf.length) isnt n_bytes
+      throw new Error "bad C input: wanted #{n_bytes} bytes, but got #{a}"
+
+    # More decoding of encryption output to follow....
+    ret = new Output { S_buf, C_buf }
+    return ret
 
   #----------------------
   
@@ -167,22 +178,12 @@ class Output
   #----------------------
 
   hide : ({key, max, slosh}, cb) ->
-    max or= 4096
-    slosh or= 128
-    err = null
-    @c_bufs = null
-    new_c_mpis = []
-    for c_mpi in @c_mpis
-      await key.hide { i : c_mpi, max, slosh }, defer err, tmp
-      new_c_mpis.push tmp
-      break if err?
-    @c_mpis = new_c_mpis unless err?
-    cb err
+    cb new Error "not implemented for ECDH!"
 
   #----------------------
 
   find : ({key}) ->
-    @c_mpis = (key.find(j) for j in @c_mpis)
+    throw new Error "not implemented for ECDH!"
 
   #----------------------
   

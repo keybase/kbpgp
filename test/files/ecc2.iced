@@ -1,4 +1,5 @@
 {KeyManager} = require '../../lib/main'
+{do_message} = require '../../lib/openpgp/processor'
 km = null
 
 #=================================================================
@@ -54,5 +55,6 @@ xWzsZ+W6kkM5vsv7
 =sNOC
 -----END PGP MESSAGE-----
   """
-
+  await do_message { armored : msg, keyfetch : km }, defer err, msg
+  T.no_error err
   cb()
