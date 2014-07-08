@@ -42,6 +42,14 @@ CNU=
 
 #=================================================================
 
+exports.unlock_private = (T,cb) ->
+  T.assert km.has_pgp_private(), "has a private key"
+  await km.unlock_pgp { passphrase : '' }, defer err
+  T.no_error err
+  cb()
+
+#=================================================================
+
 exports.decrypt_ecdh_1 = (T,cb) ->
 
   msg = """

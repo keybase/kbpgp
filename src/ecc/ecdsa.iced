@@ -6,7 +6,7 @@ bn = require '../bn'
 konst = require '../const'
 C = konst.openpgp
 K = konst.kb
-{BaseKeyPair} = require '../basekeypair'
+{BaseKeyPair,BaseKey} = require '../basekeypair'
 {BaseEccKey} = require './base'
 
 #=================================================================
@@ -49,11 +49,41 @@ class Pub extends BaseEccKey
       w = s.modInverse n
       u1 = hi.multiply(w).mod(n)
       u2 = r.multiply(w).mod(n)
-      p = @curve.G.multiply(u1).add(@R.multiply(u2))
+      p = @curve.G.multiplyTwo(u1,@R,u2)
 
       v = p.affineX.mod(n)
       err = new Error "verification failed" unless v.equals(r)
     cb err
+
+#=================================================================
+
+class Priv extends BaseKey
+
+  # The serialization order of the parameters in the private key
+  @ORDER : [ 'x' ]
+  ORDER : Priv.ORDER
+
+  #-------------------
+
+  constructor : ({@x,@pub}) ->
+
+  #-------------------
+
+  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
+
+  #-------------------
+
+  sign : (h, cb) ->
+    err = null
+    {n,G} = @pub.curve
+    hi = @pub.trunc_hash(h)
+    await SRF().random_zn n.subtract(bn.nbv(2)), defer k
+    k = k.add(bn.BigInteger.ONE)
+    Q = G.multiply(k)
+    r = Q.affineX.mod(n)
+    throw new Error "invalid r-value" if r.signum() is 0
+    s = k.modInverse(n).multiply(hi.add(@x.multiply(r))).mod(n)
+    cb [r,s]
 
 #=================================================================
 
@@ -63,6 +93,8 @@ class Pair extends BaseKeyPair
 
   @Pub : Pub
   Pub : Pub
+  @Priv : Priv
+  Priv : Priv
 
   #--------------------
 

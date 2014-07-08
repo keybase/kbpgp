@@ -108,7 +108,6 @@ class Pair extends BaseKeyPair
 
   #--------------------
   
-  constructor : ({ pub, priv }) -> super { pub, priv }
   can_sign : () -> false
   @parse : (pub_raw) -> 
     ret = BaseKeyPair.parse Pair, pub_raw

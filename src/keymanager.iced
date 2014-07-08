@@ -140,7 +140,7 @@ class Engine
   unlock_keys : ({asp, passphrase, tsenc}, cb) ->
     esc = make_esc cb, "Engine::unlock_keys"
     await @key(@primary).unlock {asp, tsenc, passphrase }, esc defer()
-    for subkey, i in @subkeys
+    for subkey, i in @subkeys when @key(subkey).has_private()
       await @key(subkey).unlock {asp, tsenc, passphrase }, esc defer()
     cb null
 
