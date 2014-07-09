@@ -13,7 +13,8 @@ run_test = (T,nbits,n,cb) ->
     x = MRF().random_zn key.pub.n
     await key.encrypt x, defer y
     await setTimeout defer(), 2
-    await key.decrypt y, defer z
+    await key.decrypt y, defer err, z
+    T.no_error err
     T.waypoint "did encrypt/decrypt ##{i}"
     await setTimeout defer(), 10
     cmp = x.compareTo z
