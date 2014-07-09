@@ -86,8 +86,10 @@ class Priv extends BaseKey
 
     # S is now the Shared secret point
     S = V.multiply @x
+
+    err = new Error "not finished!"
     
-    cb ret
+    cb err, null
 
 #=================================================================
 
@@ -137,9 +139,10 @@ class Pair extends BaseKeyPair
 
   decrypt_and_unpad : (ciphertext, cb) ->
     err = ret = null
-    await @priv.decrypt ciphertext, defer m
-    b = m.to_padded_octets @pub.p
-    [err, ret] = eme_pkcs1_decode b
+    await @priv.decrypt ciphertext, defer err, m
+    unless err?
+      b = m.to_padded_octets @pub.p
+      [err, ret] = eme_pkcs1_decode b
     cb err, ret
 
   #----------------

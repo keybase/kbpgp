@@ -65,7 +65,7 @@ class Priv extends BaseKey
   decrypt : (c, cb) ->
     p = @pub.p
     ret = c[0].modPow(@x,p).modInverse(p).multiply(c[1]).mod(p)
-    cb ret
+    cb null, ret
 
 #=================================================================
 
@@ -116,9 +116,10 @@ class Pair extends BaseKeyPair
 
   decrypt_and_unpad : (ciphertext, cb) ->
     err = ret = null
-    await @priv.decrypt ciphertext.c(), defer m
-    b = m.to_padded_octets @pub.p
-    [err, ret] = eme_pkcs1_decode b
+    await @priv.decrypt ciphertext.c(), defer err, m
+    unless err?
+      b = m.to_padded_octets @pub.p
+      [err, ret] = eme_pkcs1_decode b
     cb err, ret
 
   #----------------

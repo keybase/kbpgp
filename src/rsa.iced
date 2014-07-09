@@ -19,7 +19,12 @@ class Priv extends BaseKey
 
   #--------------------
 
-  decrypt : (c,cb) -> @mod_pow_d_crt c, cb
+  decrypt : (c,cb) -> 
+    await @mod_pow_d_crt c, defer x
+    cb null, x
+
+  #--------------------
+
   sign    : (m,cb) -> @mod_pow_d_crt m, cb
 
   #--------------------
@@ -215,8 +220,9 @@ class Pair extends BaseKeyPair
     unless err?
       x0 = MRF().random_zn @pub.n
       await @encrypt x0, defer x1
-      await @decrypt x1, defer x2
-      err = new Error "Decrypt/encrypt failed" unless x0.compareTo(x2) is 0
+      await @decrypt x1, defer err, x2
+      if not err? and x0.compareTo(x2) isnt 0
+        err = new Error "Decrypt/encrypt failed"
     unless err?
       y0 = MRF().random_zn @pub.n
       await @sign y0, defer y1
@@ -291,9 +297,10 @@ class Pair extends BaseKeyPair
   # 
   decrypt_and_unpad : (ciphertext, cb) ->
     err = ret = null
-    await @decrypt ciphertext.y(), defer p
-    b = p.to_padded_octets @pub.n
-    [err, ret] = eme_pkcs1_decode b
+    await @decrypt ciphertext.y(), defer err, p
+    unless err?
+      b = p.to_padded_octets @pub.n
+      [err, ret] = eme_pkcs1_decode b
     cb err, ret
 
   #----------------

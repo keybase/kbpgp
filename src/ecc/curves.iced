@@ -80,8 +80,8 @@ exports.Curve = class Curve extends base.Curve
     Buffer.concat [
       uint_to_buffer(16, @mpi_bit_size()),
       new Buffer([0x4]),
-      p.x.toBuffer(@p.byteLength()),
-      p.y.toBuffer(@p.byteLength())
+      p.affineX.toBuffer(@p.byteLength()),
+      p.affineY.toBuffer(@p.byteLength())
     ]
 
 #=================================================================
