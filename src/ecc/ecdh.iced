@@ -79,8 +79,14 @@ class Priv extends BaseKey
   #----------------
 
   decrypt : (c, cb) ->
-    p = @pub.p
-    ret = c[0].modPow(@x,p).modInverse(p).multiply(c[1]).mod(p)
+    esc = make_esc cb, "Priv::decrypt"
+    {curve} = @pub
+
+    await c.load_V curve, esc defer V
+
+    # S is now the Shared secret point
+    S = V.multiply @x
+    
     cb ret
 
 #=================================================================
@@ -131,7 +137,7 @@ class Pair extends BaseKeyPair
 
   decrypt_and_unpad : (ciphertext, cb) ->
     err = ret = null
-    await @priv.decrypt ciphertext.c(), defer m
+    await @priv.decrypt ciphertext, defer m
     b = m.to_padded_octets @pub.p
     [err, ret] = eme_pkcs1_decode b
     cb err, ret
@@ -147,7 +153,13 @@ class Output
 
   #----------------------
 
-  constructor : ({@S_buf, @C_buf}) ->
+  constructor : ({@V_buf, @C_buf}) ->
+
+  #----------------------
+
+  load_V : (curve, cb) -> 
+    [err, @V] = curve.mpi_point_from_buffer @V_buf
+    cb err, @V
 
   #----------------------
   
@@ -158,7 +170,7 @@ class Output
     sb = new SlicerBuffer buf
     n_bits = sb.read_uint16()
     n_bytes = Math.ceil( n_bits / 8 )
-    S_buf = Buffer.concat [ buf[0...2], sb.read_buffer(n_bytes) ]
+    V_buf = Buffer.concat [ buf[0...2], sb.read_buffer(n_bytes) ]
     n_bytes = sb.read_uint8()
 
     # C is the encrypted shared key, which we also read in as a buffer
@@ -167,12 +179,8 @@ class Output
       throw new Error "bad C input: wanted #{n_bytes} bytes, but got #{a}"
 
     # More decoding of encryption output to follow....
-    ret = new Output { S_buf, C_buf }
+    ret = new Output { V_buf, C_buf }
     return ret
-
-  #----------------------
-  
-  c : () -> @c_mpis
 
   #----------------------
 

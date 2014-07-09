@@ -1,6 +1,7 @@
 {BigInteger} = require '../bn'
 base = require 'keybase-ecurve'
 {uint_to_buffer} = require '../util'
+{SlicerBuffer} = require '../openpgp/buffer'
 
 #=================================================================
 
@@ -57,6 +58,11 @@ exports.Curve = class Curve extends base.Curve
     unless @isOnCurve point
       throw new Error "Given ECC point isn't on the given curve; data corruption detected."
     [ null, point ]
+
+  #----------------------------------
+
+  mpi_point_from_buffer : (b) ->
+    @mpi_point_from_slicer_buffer new SlicerBuffer b
 
   #----------------------------------
 
