@@ -1,5 +1,6 @@
 
 {WordArray} = require 'triplesec'
+{bufeq_secure} = require './util'
 
 #================================================================================
 
@@ -26,17 +27,8 @@ split64 = (wa) -> wa.split (wa.words.length >> 1)
 #
 exports.wrap = wrap = ({plaintext, key, cipher}) ->
 
-  P = split64 WordArray.from_buffer plaintext
-  K = WordArray.from_buffer key
-  {klass} = cipher
-  AES = new klass K
-
-  # Sanity-check the key size
-  unless (a = cipher.key_size) is (b = key.length)
-    throw new Error "Bad key, needed #{a} bytes, but got #{b}"
-
-  # n is the number of 64-bit chunks the plaintext can be split into.
-  n = P.length
+  [err, P, AES ] = setup { input : plaintext, key, cipher } 
+  throw err if err?
 
   # 1) Initialize Variables
   A = IV
@@ -48,7 +40,13 @@ exports.wrap = wrap = ({plaintext, key, cipher}) ->
     for r,i in R
       t.words[1]++
       B = A.clone().concat(r)
+      console.log "#{j} #{i}"
+      console.log "->"
+      console.log B
       AES.encryptBlock B.words
+      console.log "<-"
+      console.log B
+      console.log ""
       A = B.slice(0,2)
       R[i] = B.slice(2,4)
       A.xor(t, {})
@@ -57,6 +55,70 @@ exports.wrap = wrap = ({plaintext, key, cipher}) ->
   C = A
   C.concat(r) for r in R
   return C.to_buffer()
+
+#================================================================================
+
+setup = ( { input, key, cipher}) ->
+
+  P = split64 WordArray.from_buffer input
+  K = WordArray.from_buffer key
+  {klass} = cipher
+  AES = new klass K
+
+  # Sanity-check the key size
+  err = null
+  if (a = cipher.key_size) isnt (b = key.length)
+    err = new Error "Bad key, needed #{a} bytes, but got #{b}"
+
+  return [err, P, AES ]
+
+#================================================================================
+
+#
+# RFC 3394, Section 2.2.2 --- Key Unwrap
+#    http://tools.ietf.org/html/rfc3394#section-2.2.2
+#
+# @param {Buffer} ciphertext The ciphertext to decrypt
+# @param {Buffer} key the Key to encrypt with
+# @param {Object} cipher The cipher object, which contains a `klass` saying which
+#   class to use, and also a `key_size`; As returned from `symmetric.get_cipher`
+# @return {Array<Error,Buffer>} the plaintext or an Error if the integrity check failed
+#
+exports.unwrap = unwrap = ({ciphertext, key, cipher}) ->
+
+  [err, C, AES, n] = setup { input : ciphertext, key, cipher }
+  return [err, null] if err?
+
+  # 1) Initialize Variables
+  A = C[0]
+  R = C[1...]
+
+  # 2) Calculate Intermediate values
+  t = new WordArray [0, 6*R.length]
+  for j in [0...6]
+    for r,i in R by -1
+      A.xor(t,{})
+      B = A.clone().concat(r)
+      console.log "#{j} #{i}"
+      console.log "->"
+      console.log B
+      AES.decryptBlock B.words
+      console.log "<-"
+      console.log B
+      console.log ""
+      A = B.slice(0,2)
+      R[i] = B.slice(2,4)
+      t.words[1]--
+
+  # 3) Output the results
+  console.log A.to_hex()
+  console.log IV.toString 'hex'
+  if A.equal(IV)
+    P = new WordArray []
+    P.concat(r) for r in R
+    [ null, P.to_buffer() ]
+  else
+    [ (new Error "integrity check failure; got bad IV in decryption"), null ]
 
 #================================================================================
 

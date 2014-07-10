@@ -1,7 +1,7 @@
 
 
 {test_vectors} = require '../data/rfc3394.iced'
-{wrap} = require '../../lib/rfc3394'
+{wrap,unwrap} = require '../../lib/rfc3394'
 {AES} = require('triplesec').ciphers
 
 test_vector = (T,n,{key, plaintext, ciphertext}) ->
@@ -9,7 +9,10 @@ test_vector = (T,n,{key, plaintext, ciphertext}) ->
   plaintext = new Buffer plaintext, 'hex'
   cipher = { klass : AES, key_size : key.length }
   ct2 = wrap { key, plaintext, cipher }
-  T.equal ct2.toString('hex'), ciphertext.toLowerCase(), "#{n} worked"
+  T.equal ct2.toString('hex'), ciphertext.toLowerCase(), "#{n} worked encrypt"
+  [err, pt1]  = unwrap { key, ciphertext : ct2, cipher }
+  T.no_error err
+  T.equal pt1.toString('hex'), plaintext.toLoweCase(), "#{n} worked decrypt"
   T.waypoint "test #{n}"
 
 exports.run_test_vectors = (T,cb) ->
