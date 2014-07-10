@@ -60,10 +60,3 @@ exports.wrap = wrap = ({plaintext, key, cipher}) ->
 
 #================================================================================
 
-test = () ->
-  {AES} = require('triplesec').ciphers
-  {get_cipher} = require './symmetric'
-  plaintext = new Buffer "00112233445566778899AABBCCDDEEFF", "hex"
-  key = new Buffer "000102030405060708090A0B0C0D0E0F", "hex"
-  cipher = { klass : AES , key_size : 16 }
-  console.log wrap({ plaintext, key, cipher }).toString 'hex'
