@@ -114,7 +114,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  decrypt_and_unpad : (ciphertext, cb) ->
+  decrypt_and_unpad : (ciphertext, params, cb) ->
     err = ret = null
     await @priv.decrypt ciphertext.c(), defer err, m
     unless err?

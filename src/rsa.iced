@@ -295,7 +295,7 @@ class Pair extends BaseKeyPair
 
   # @param {Output} ciphertext A ciphertext in RSA::Output form
   # 
-  decrypt_and_unpad : (ciphertext, cb) ->
+  decrypt_and_unpad : (ciphertext, params, cb) ->
     err = ret = null
     await @decrypt ciphertext.y(), defer err, p
     unless err?

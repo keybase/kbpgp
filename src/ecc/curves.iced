@@ -76,6 +76,10 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
+  point_to_mpi_buffer_compact : (p) -> p.affineX.toBuffer @p.byteLength()
+
+  #----------------------------------
+
   point_to_mpi_buffer : (p) ->
     Buffer.concat [
       uint_to_buffer(16, @mpi_bit_size()),

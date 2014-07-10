@@ -76,6 +76,9 @@ exports.openpgp = openpgp =
     none : 0
     checksum : 255
     sha1 : 254
+  ecdh :
+    param_bytes : 3
+    version : 1
   packet_tags :
     PKESK : 1
     signature : 2

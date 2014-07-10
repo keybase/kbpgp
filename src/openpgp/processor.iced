@@ -149,7 +149,7 @@ class Message
       await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, obj, index
       unless err?
         packet = esk_packets[index]
-        await obj.key.decrypt_and_unpad packet.ekey, defer err, sesskey
+        await obj.key.decrypt_and_unpad packet.ekey, obj, defer err, sesskey
     else
       enc = false
 

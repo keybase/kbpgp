@@ -22,10 +22,10 @@ class Pub extends BaseEccKey
   #----------------
 
   read_params : (sb) ->
-    if (size = sb.read_uint8()) < 3
-      throw new Error "Need at least 3 bytes of params; got #{size}"
-    if (val = sb.read_uint8()) isnt 1
-      throw new Error "Cannot deal with future extensions, byte=#{val}"
+    if (size = sb.read_uint8()) < (n = C.ecdh.param_bytes)
+      throw new Error "Need at least #{n} bytes of params; got #{size}"
+    if (val = sb.read_uint8()) isnt (v = C.ecdh.version)
+      throw new Error "Cannot deal with future extensions, byte=#{val}; wanted #{v}"
     @hasher = hashmod.alloc_or_throw sb.read_uint8()
     @cipher = sym.get_cipher sb.read_uint8()
     sb.advance(size - 3)
@@ -35,16 +35,17 @@ class Pub extends BaseEccKey
   @alloc : (raw) -> BaseEccKey.alloc Pub, raw
 
   #----------------
-  
-  serialize : () ->
-    base = super()
+
+  serialize_params : () -> 
     Buffer.concat [
-      base,
-      uint_to_buffer(8,3),
-      uint_to_buffer(8,1),
+      uint_to_buffer(8,C.ecdh.param_bytes),
+      uint_to_buffer(8,C.ecdh.version),
       uint_to_buffer(8,@hasher.type),
       uint_to_buffer(8,@cipher.type)
     ]
+  #----------------
+  
+  serialize : () -> Buffer.concat [ super(), @serialize_params() ]
 
   #----------------
 
@@ -78,6 +79,17 @@ class Priv extends BaseKey
 
   #----------------
 
+  format_params : () ->
+    Buffer.concat [
+      uint_to_buffer(8, @pub.curve.oid.length),
+      @pub.curve.oid,
+      uint_to_buffer(8, @pub.type),
+      @pub.serialize_params(),
+      (new Buffer "Anonymous Sender    ", "utf8")
+    ]
+
+  #----------------
+
   decrypt : (c, cb) ->
     esc = make_esc cb, "Priv::decrypt"
     {curve} = @pub
@@ -86,6 +98,14 @@ class Priv extends BaseKey
 
     # S is now the Shared secret point
     S = V.multiply @x
+
+    # Write S = (x,y) and only output x to buffer
+    # This is the "compact" representation of S, since y
+    # is implied by x.
+    S_compact = curve.point_to_mpi_buffer_compact S
+
+    params = @format_params()
+    console.log params
 
     err = new Error "not finished!"
     
@@ -137,7 +157,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  decrypt_and_unpad : (ciphertext, cb) ->
+  decrypt_and_unpad : (ciphertext, params, cb) ->
     err = ret = null
     await @priv.decrypt ciphertext, defer err, m
     unless err?

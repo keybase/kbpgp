@@ -92,7 +92,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  decrypt_and_unpad : (ciphertext, cb) -> cb @err(), null
+  decrypt_and_unpad : (ciphertext, params, cb) -> cb @err(), null
 
   #----------------
 
