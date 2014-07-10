@@ -38,7 +38,7 @@ exports.test_hide_rsa = (T,cb) ->
   T.equal ctext2.y().bitLength(), bl_orig, "the right bitlength after finding"
   T.assert ctext2.y().equals(y_orig), "we got the right y back"
 
-  await key.decrypt_and_unpad ctext2, defer err, plaintext
+  await key.decrypt_and_unpad ctext2, {}, defer err, plaintext
   T.no_error err
   T.assert bufeq_secure(plaintext, data), "output was same as input"
 
@@ -102,7 +102,7 @@ exports.test_hide_elgamal = (T,cb) ->
   for c_mpi,j in ctext2.c()
     T.assert c_mpis_orig[j].equals(c_mpi), "we got c_#{j} back"
 
-  await key.decrypt_and_unpad ctext2, defer err, plaintext
+  await key.decrypt_and_unpad ctext2, {}, defer err, plaintext
   T.no_error err
   T.assert bufeq_secure(plaintext, data), "output was same as input"
 
