@@ -11,6 +11,7 @@ C = konst.openpgp
 hashmod = require '../hash'
 sym = require '../symmetric'
 {SlicerBuffer} = require '../openpgp/buffer'
+{unwrap} = require '../rfc3394'
 
 #=================================================================
 
@@ -26,8 +27,12 @@ class Pub extends BaseEccKey
       throw new Error "Need at least #{n} bytes of params; got #{size}"
     if (val = sb.read_uint8()) isnt (v = C.ecdh.version)
       throw new Error "Cannot deal with future extensions, byte=#{val}; wanted #{v}"
+
+    # Will throw if either hasher or cipher cannot be found 
     @hasher = hashmod.alloc_or_throw sb.read_uint8()
     @cipher = sym.get_cipher sb.read_uint8()
+
+    # 1 byte for each of the three above fields
     sb.advance(size - 3)
 
   #----------------
@@ -91,6 +96,31 @@ class Priv extends BaseKey
 
   #----------------
 
+  #
+  # See RFC6637 Section 7
+  #  http://tools.ietf.org/html/rfc6637#section-7
+  #
+  # o_bits is the size of the AES being used (via KeyWrap stuff).
+  # No reason to pass it in
+  kdf : ({X,params}) ->
+    o_bytes = @pub.cipher.key_size 
+
+    # Write S = (x,y) and only output x to buffer
+    # This is the "compact" representation of S, since y
+    # is implied by x.
+    X_compact = @pub.curve.point_to_mpi_buffer_compact X
+    buf = Buffer.concat [
+      (new Buffer [0,0,0,1]),
+      X_compact,
+      params
+    ]
+    hash = @pub.hasher buf
+
+    # Only need o_bytes worth of hashed material
+    return hash[0...o_bytes]
+
+  #----------------
+
   decrypt : (c, { fingerprint}, cb) ->
     esc = make_esc cb, "Priv::decrypt"
     {curve} = @pub
@@ -100,19 +130,13 @@ class Priv extends BaseKey
     # S is now the Shared secret point
     S = V.multiply @x
 
-    # Write S = (x,y) and only output x to buffer
-    # This is the "compact" representation of S, since y
-    # is implied by x.
-    S_compact = curve.point_to_mpi_buffer_compact S
+    params = @format_params { fingerprint }
 
-    params = @format_params {fingerprint}
     key = @kdf { X : S, params }
 
-    console.log params
-
-    err = new Error "not finished!"
+    [err, ret] = unwrap { key, ciphertext : c.C_buf , cipher : @pub.cipher }
     
-    cb err, null
+    cb err, ret 
 
 #=================================================================
 
@@ -163,6 +187,9 @@ class Pair extends BaseKeyPair
   decrypt_and_unpad : (ciphertext, {fingerprint}, cb) ->
     err = ret = null
     await @priv.decrypt ciphertext, { fingerprint }, defer err, m
+    console.log "shit!"
+    console.log err
+    console.log m
     unless err?
       b = m.to_padded_octets @pub.p
       [err, ret] = eme_pkcs1_decode b
