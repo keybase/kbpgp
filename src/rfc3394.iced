@@ -40,13 +40,7 @@ exports.wrap = wrap = ({plaintext, key, cipher}) ->
     for r,i in R
       t.words[1]++
       B = A.clone().concat(r)
-      console.log "#{j} #{i}"
-      console.log "->"
-      console.log B
       AES.encryptBlock B.words
-      console.log "<-"
-      console.log B
-      console.log ""
       A = B.slice(0,2)
       R[i] = B.slice(2,4)
       A.xor(t, {})
@@ -99,20 +93,12 @@ exports.unwrap = unwrap = ({ciphertext, key, cipher}) ->
     for r,i in R by -1
       A.xor(t,{})
       B = A.clone().concat(r)
-      console.log "#{j} #{i}"
-      console.log "->"
-      console.log B
       AES.decryptBlock B.words
-      console.log "<-"
-      console.log B
-      console.log ""
       A = B.slice(0,2)
       R[i] = B.slice(2,4)
       t.words[1]--
 
   # 3) Output the results
-  console.log A.to_hex()
-  console.log IV.toString 'hex'
   if A.equal(IV)
     P = new WordArray []
     P.concat(r) for r in R
