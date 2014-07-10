@@ -148,7 +148,8 @@ class Engine
 
   export_keys_to_keyring : (km) ->
     x = (key_wrapper, is_primary) =>
-      { km, is_primary, key_wrapper, key_material : @key(key_wrapper), key : @key(key_wrapper).key }
+      fingerprint = @key(key_wrapper).get_fingerprint()
+      { km, is_primary, key_wrapper, key_material : @key(key_wrapper), key : @key(key_wrapper).key, fingerprint }
     [ x(@primary, true) ].concat( x(k,false) for k in @subkeys )
 
   #--------
@@ -283,6 +284,12 @@ class PgpEngine extends Engine
 
     err = if not key then new Error "No keys match the given fingerprint"
     else if not @key(key).fulfills_flags flags then new Error "We don't have a key for the requested PGP ops"
+
+    # Since we've added ECDH, the requirement is that the object returned by fetch has
+    # two fields; The `key` field, which contains the actual bigints and algorithmic
+    # details; and the `fingerprint` field, which is the PGP fingerprint of the key or subkey
+    key.fingerprint = @key(key).get_fingerprint() 
+    
     cb err, key, ret_i
 
 #=================================================================

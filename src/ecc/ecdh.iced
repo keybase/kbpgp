@@ -79,18 +79,19 @@ class Priv extends BaseKey
 
   #----------------
 
-  format_params : () ->
+  format_params : ({fingerprint}) ->
     Buffer.concat [
       uint_to_buffer(8, @pub.curve.oid.length),
       @pub.curve.oid,
       uint_to_buffer(8, @pub.type),
       @pub.serialize_params(),
-      (new Buffer "Anonymous Sender    ", "utf8")
+      (new Buffer "Anonymous Sender    ", "utf8"),
+      fingerprint
     ]
 
   #----------------
 
-  decrypt : (c, cb) ->
+  decrypt : (c, { fingerprint}, cb) ->
     esc = make_esc cb, "Priv::decrypt"
     {curve} = @pub
 
@@ -104,7 +105,9 @@ class Priv extends BaseKey
     # is implied by x.
     S_compact = curve.point_to_mpi_buffer_compact S
 
-    params = @format_params()
+    params = @format_params {fingerprint}
+    key = @kdf { X : S, params }
+
     console.log params
 
     err = new Error "not finished!"
@@ -157,9 +160,9 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  decrypt_and_unpad : (ciphertext, params, cb) ->
+  decrypt_and_unpad : (ciphertext, {fingerprint}, cb) ->
     err = ret = null
-    await @priv.decrypt ciphertext, defer err, m
+    await @priv.decrypt ciphertext, { fingerprint }, defer err, m
     unless err?
       b = m.to_padded_octets @pub.p
       [err, ret] = eme_pkcs1_decode b
