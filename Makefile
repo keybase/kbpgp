@@ -75,6 +75,7 @@ $(BUILD_STAMP): \
 	lib/primegen.js \
 	lib/primes.js \
 	lib/rand.js \
+	lib/rfc3394.js \
 	lib/rsa.js \
 	lib/symmetric.js \
 	lib/util.js 
