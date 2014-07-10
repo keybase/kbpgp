@@ -99,7 +99,7 @@ exports.unwrap = unwrap = ({ciphertext, key, cipher}) ->
       t.words[1]--
 
   # 3) Output the results
-  if A.equal(IV)
+  if A.equal IV
     P = new WordArray []
     P.concat(r) for r in R
     [ null, P.to_buffer() ]
