@@ -17,7 +17,7 @@ exports.test_hide_rsa = (T,cb) ->
   T.equal key.nbits(), nbits, "the right number of bits"
 
   await SRF().random_bytes 64, defer data
-  await key.pad_and_encrypt data, defer err, ctext
+  await key.pad_and_encrypt data, {}, defer err, ctext
   bl_orig = ctext.y().bitLength()
   y_orig = ctext.y()
   T.waypoint "Encrypted a random payload"
@@ -83,7 +83,7 @@ exports.test_hide_elgamal = (T,cb) ->
   T.no_error err
   key = pubkey.find_crypt_pgp_key().key
   await SRF().random_bytes 64, defer data
-  await key.pad_and_encrypt data, defer err, ctext
+  await key.pad_and_encrypt data, {}, defer err, ctext
   c_mpis_orig = ctext.c()
   await ctext.hide { key, max : 4096 , slosh : 64 }, defer err
 
