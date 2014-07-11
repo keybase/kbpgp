@@ -1,7 +1,6 @@
 {BigInteger} = require '../bn'
 base = require 'keybase-ecurve'
 {uint_to_buffer} = require '../util'
-{SlicerBuffer} = require '../openpgp/buffer'
 
 #=================================================================
 
@@ -61,11 +60,6 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
-  mpi_point_from_buffer : (b) ->
-    @mpi_point_from_slicer_buffer new SlicerBuffer b
-
-  #----------------------------------
-
   mpi_point_from_slicer_buffer : (sb) ->
     err = point = null
     try 
@@ -76,16 +70,12 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
-  point_to_mpi_buffer_compact : (p) -> p.affineX.toBuffer @p.byteLength()
-
-  #----------------------------------
-
   point_to_mpi_buffer : (p) ->
     Buffer.concat [
       uint_to_buffer(16, @mpi_bit_size()),
       new Buffer([0x4]),
-      p.affineX.toBuffer(@p.byteLength()),
-      p.affineY.toBuffer(@p.byteLength())
+      p.x.toBuffer(@p.byteLength()),
+      p.y.toBuffer(@p.byteLength())
     ]
 
 #=================================================================
@@ -153,4 +143,17 @@ exports.alloc_by_oid = (oid) ->
   else err = new Error "Unknown curve OID: #{oid}"
   [err,curve]
   
+#=================================================================
+
+exports.alloc_by_nbits = (nbits) ->
+  ret = err = null
+  f = switch nbits 
+    when 256 then nist_p256
+    when 384 then nist_p384
+    when 521 then nist_p521
+    else null
+  if f? then ret = f()
+  else err = new Error "No curve for #{nbits} bits"
+  return [ err, ret ]
+
 #=================================================================

@@ -9,6 +9,7 @@ K = konst.kb
 {BaseKeyPair,BaseKey} = require '../basekeypair'
 {BaseEccKey} = require './base'
 {ECDH} = require './ecdh'
+{alloc_by_nbits} = require './curves'
 
 #=================================================================
 
@@ -175,6 +176,14 @@ class Pair extends BaseKeyPair
       x
     n = orig_len - buf.length
     return [err, ret, n]
+
+  #----------------
+
+  @generate : ({nbits, asp}, cb) ->
+    nbits or= 256
+    [err,curve] = alloc_by_nbits nbits
+
+
 
 #=================================================================
 
