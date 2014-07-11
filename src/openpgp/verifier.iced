@@ -25,9 +25,9 @@ exports.Base = class Base
   #-----------------------
 
   _fetch_key : (cb) ->
-    await @keyfetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, obj
+    await @keyfetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, keymat, i, obj
     unless err?
-      @_sig.key = obj.key
+      @_sig.key = keymat.key
       @_sig.keyfetch_obj = obj
     cb err
   

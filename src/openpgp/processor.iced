@@ -243,10 +243,10 @@ class Message
       err = new Error "signature mismatch open v close: #{a?.toString('hex')} != #{b?.toString('hex')}"
 
     unless err?
-      await @keyfetch.fetch [ a ], konst.ops.verify, defer err, obj
+      await @keyfetch.fetch [ a ], konst.ops.verify, defer err, key_material, i, obj
 
     unless err?
-      sig.close.key = obj.key
+      sig.close.key = key_material.key
 
       # This is used by the front-end in keybase, though nowhere else in kbpgpg
       sig.close.keyfetch_obj = obj

@@ -267,15 +267,13 @@ class PgpEngine extends Engine
     return (if wrapper? then @key(wrapper) else null)
     
   #--------
-
-
   #
   # So this class fits the KeyFetcher template.
   #
   # @param {Array<String>} key_ids A list of PGP Key Ids, as an array of strings
   # @param {Number} op_mask A bitmask of Ops that we need to perform with this key,
   #    taken from kbpgp.const.ops
-  # @param {callback} cb Callback with `err, key`
+  # @param {callback} cb Callback with `err, key, i, @`
   fetch : (key_ids, op_mask, cb) -> 
     flags = ops_to_keyflags op_mask
 
@@ -294,7 +292,7 @@ class PgpEngine extends Engine
     else
       ret = @key(key)
 
-    cb err, ret, ret_i
+    cb err, ret, ret_i, @
 
 #=================================================================
 
