@@ -145,6 +145,8 @@ exports.ecc_pkcs5_unpad_data = (buf, data_len) ->
   pad_len = buf.length - data_len
   if pad_len < 0
     err = new Error "Pad length was < 0; pad underrun"
+  else if (buf.length % 8) isnt 0
+    err = new Error "Padded data must be a multiple of 8 bytes long"
   else
     for i in [data_len...buf.length]
       if (c = buf.readUInt8(i)) isnt pad_len

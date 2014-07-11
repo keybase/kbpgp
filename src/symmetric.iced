@@ -25,17 +25,20 @@ exports.checksum2 = checksum2 = (buf) ->
     res = ((res + buf.readUInt8(i)) & 0xffff)
   res
 
-exports.import_key_pgp = import_key_pgp = (msg, padding_ok = false) ->
+exports.import_key_pgp = import_key_pgp = (msg, pkcs5_padding = false) ->
   sb = new SlicerBuffer msg
   ret = err = null
   cipher = get_cipher sb.read_uint8()
   key = sb.read_buffer cipher.key_size
   checksum = sb.read_uint16()
 
-  # Check the key remainder, and be strict about no trailing junk
+  # First check the checksum.
+  # Next, check the key remainder, and be strict about no trailing junk,
+  # and we must apply pkcs5_padding if it's been asked for, to ensure the
+  # mod 8 requirement at the very least.
   err = if checksum2(key) isnt checksum then new Error "Checksum mismatch" 
+  else if pkcs5_padding then ecc_pkcs5_unpad_data msg, sb.offset()
   else if not sb.rem() then null
-  else if padding_ok then ecc_pkcs5_unpad_data msg, sb.offset()
   else new Error "Junk at the end of input"
 
   throw err if err?

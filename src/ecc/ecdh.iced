@@ -1,31 +1,30 @@
 bn = require '../bn'
-{xxd,uint_to_buffer,bufeq_secure,ASP} = require '../util'
+{uint_to_buffer,bufeq_secure,ASP} = require '../util'
 {make_esc} = require 'iced-error'
 konst = require '../const'
-C = konst.openpgp
+Const = konst.openpgp
 {BaseKeyPair,BaseKey} = require '../basekeypair'
-{SRF,MRF} = require '../rand'
+{SRF} = require '../rand'
 {ecc_pkcs5_pad_data} = require '../pad'
-{BaseKeyPair} = require '../basekeypair'
 {BaseEccKey} = require './base'
 hashmod = require '../hash'
 sym = require '../symmetric'
 {SlicerBuffer} = require '../openpgp/buffer'
-{unwrap} = require '../rfc3394'
+{wrap,unwrap} = require '../rfc3394'
 
 #=================================================================
 
 class Pub extends BaseEccKey
 
-  @type : C.public_key_algorithms.ECDH
+  @type : Const.public_key_algorithms.ECDH
   type : Pub.type
 
   #----------------
 
   read_params : (sb) ->
-    if (size = sb.read_uint8()) < (n = C.ecdh.param_bytes)
+    if (size = sb.read_uint8()) < (n = Const.ecdh.param_bytes)
       throw new Error "Need at least #{n} bytes of params; got #{size}"
-    if (val = sb.read_uint8()) isnt (v = C.ecdh.version)
+    if (val = sb.read_uint8()) isnt (v = Const.ecdh.version)
       throw new Error "Cannot deal with future extensions, byte=#{val}; wanted #{v}"
 
     # Will throw if either hasher or cipher cannot be found 
@@ -43,8 +42,8 @@ class Pub extends BaseEccKey
 
   serialize_params : () -> 
     Buffer.concat [
-      uint_to_buffer(8,C.ecdh.param_bytes),
-      uint_to_buffer(8,C.ecdh.version),
+      uint_to_buffer(8,Const.ecdh.param_bytes),
+      uint_to_buffer(8,Const.ecdh.version),
       uint_to_buffer(8,@hasher.type),
       uint_to_buffer(8,@cipher.type)
     ]
@@ -55,7 +54,7 @@ class Pub extends BaseEccKey
   #----------------
 
   format_params : ({fingerprint}) ->
-    Buffer.concat [
+    list = [
       uint_to_buffer(8, @curve.oid.length),
       @curve.oid,
       uint_to_buffer(8, @type),
@@ -63,16 +62,56 @@ class Pub extends BaseEccKey
       (new Buffer "Anonymous Sender    ", "utf8"),
       fingerprint
     ]
+    console.log list
+    Buffer.concat list
+
+  #----------------
+
+  #
+  # See RFC6637 Section 7
+  #  http://tools.ietf.org/html/rfc6637#section-7
+  #
+  # o_bits is the size of the AES being used (via KeyWrap stuff).
+  # No reason to pass it in
+  kdf : ({X,params}) ->
+    o_bytes = @cipher.key_size 
+
+    # Write S = (x,y) and only output x to buffer
+    # This is the "compact" representation of S, since y
+    # is implied by x.
+    X_compact = @curve.point_to_mpi_buffer_compact X
+    buf = Buffer.concat [
+      (new Buffer [0,0,0,1]),
+      X_compact,
+      params
+    ]
+    hash = @hasher buf
+
+    # Only need o_bytes worth of hashed material
+    return hash[0...o_bytes]
+
   #----------------
 
   encrypt : (m, {fingerprint}, cb) ->
-    await SRF().random_zn @p.subtract(bn.nbv(2)), defer k
-    k = k.add(bn.BigInteger.ONE)
-    c = [
-      @g.modPow(k, @p),
-      @y.modPow(k, @p).multiply(m).mod(@p)
-    ]
-    cb c
+    {n,G} = @curve
+
+    # Pick a random v in Z_n 
+    await SRF().random_zn n.subtract(bn.nbv(2)), defer v
+    v = v.add(bn.BigInteger.ONE)
+    V = G.multiply v
+
+    # S is the shared point.  If we send V, the private key holder can
+    # compute S = rV = rvG = vrG = vR
+    S = @R.multiply v
+
+    params = @format_params { fingerprint }
+    key = @kdf { X : S, params } 
+
+    # Now wrap the plaintext m (which is really an AES key)
+    # with the shared key `key`
+    C = wrap { key, plaintext : m, @cipher }
+
+    cb {V,C}
 
 #=================================================================
 
@@ -95,31 +134,6 @@ class Priv extends BaseKey
 
   #----------------
 
-  #
-  # See RFC6637 Section 7
-  #  http://tools.ietf.org/html/rfc6637#section-7
-  #
-  # o_bits is the size of the AES being used (via KeyWrap stuff).
-  # No reason to pass it in
-  kdf : ({X,params}) ->
-    o_bytes = @pub.cipher.key_size 
-
-    # Write S = (x,y) and only output x to buffer
-    # This is the "compact" representation of S, since y
-    # is implied by x.
-    X_compact = @pub.curve.point_to_mpi_buffer_compact X
-    buf = Buffer.concat [
-      (new Buffer [0,0,0,1]),
-      X_compact,
-      params
-    ]
-    hash = @pub.hasher buf
-
-    # Only need o_bytes worth of hashed material
-    return hash[0...o_bytes]
-
-  #----------------
-
   decrypt : (c, { fingerprint}, cb) ->
     esc = make_esc cb, "Priv::decrypt"
     {curve} = @pub
@@ -131,9 +145,9 @@ class Priv extends BaseKey
 
     params = @pub.format_params { fingerprint }
 
-    key = @kdf { X : S, params }
+    key = @pub.kdf { X : S, params }
 
-    [err, ret] = unwrap { key, ciphertext : c.C_buf , cipher : @pub.cipher }
+    [err, ret] = unwrap { key, ciphertext : c.C , cipher : @pub.cipher }
     
     cb err, ret 
 
@@ -150,14 +164,14 @@ class Pair extends BaseKeyPair
 
   #--------------------
 
-  @type : C.public_key_algorithms.ECDH
+  @type : Const.public_key_algorithms.ECDH
   type : Pair.type
 
   #--------------------
   
   # ElGamal keys are always game for encryption
   fulfills_flags : (flags) -> 
-    good_for = (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+    good_for = (Const.key_flags.encrypt_comm | Const.key_flags.encrypt_storage)
     ((flags & good_for) is flags)
 
   #--------------------
@@ -177,8 +191,8 @@ class Pair extends BaseKeyPair
     err = ret = null
     [err, m] = ecc_pkcs5_pad_data data
     unless err?
-      await @pub.encrypt m, {fingerprint}, defer c
-      ret = @export_output c
+      await @pub.encrypt m, {fingerprint}, defer {C,V}
+      ret = @export_output {C,V,@curve}
     cb err, ret
 
   #----------------
@@ -199,11 +213,12 @@ class Output
 
   #----------------------
 
-  constructor : ({@V_buf, @C_buf}) ->
+  constructor : ({@V_buf, @C, @V, @curve}) ->
 
   #----------------------
 
   load_V : (curve, cb) -> 
+    @curve = curve
     [err, @V] = curve.mpi_point_from_buffer @V_buf
     cb err, @V
 
@@ -220,33 +235,36 @@ class Output
     n_bytes = sb.read_uint8()
 
     # C is the encrypted shared key, which we also read in as a buffer
-    C_buf = sb.consume_rest_to_buffer()
-    if (a = C_buf.length) isnt n_bytes
+    C = sb.consume_rest_to_buffer()
+    if (a = C.length) isnt n_bytes
       throw new Error "bad C input: wanted #{n_bytes} bytes, but got #{a}"
 
     # More decoding of encryption output to follow....
-    ret = new Output { V_buf, C_buf }
+    ret = new Output { V_buf, C }
     return ret
 
   #----------------------
 
-  hide : ({key, max, slosh}, cb) ->
-    cb new Error "not implemented for ECDH!"
+  get_V_buf : () ->
+    @V_buf = @curve.point_to_mpi_buffer @V unless @V_buf?
+    @V_buf
 
   #----------------------
 
-  find : ({key}) ->
-    throw new Error "not implemented for ECDH!"
+  hide : ({key, max, slosh}, cb) -> cb null
 
   #----------------------
-  
-  get_c_bufs : () ->
-    if @c_bufs? then @c_bufs
-    else (@c_bufs = (i.to_mpi_buffer() for i in @c_mpis))
+
+  find : ({key}) ->  # noop
 
   #----------------------
   
-  output : () -> Buffer.concat @get_c_bufs()
+  output : () -> 
+    Buffer.concat [ 
+      @get_V_buf(),
+      uint_to_buffer(8, @C.length),
+      @C
+    ]
 
 #=======================================================================
 

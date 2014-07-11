@@ -13,6 +13,7 @@ C = require('./const').openpgp
 opkts = require './openpgp/packet/all'
 {read_base64,box,unbox,box} = require './keybase/encode'
 {P3SKB} = require './keybase/packet/p3skb'
+{KeyFetcher,KeyFetched} = require './keyfetch'
 
 ##
 ## KeyManager
@@ -147,9 +148,13 @@ class Engine
   #--------
 
   export_keys_to_keyring : (km) ->
-    x = (key_wrapper, is_primary) =>
-      fingerprint = @key(key_wrapper).get_fingerprint()
-      { km, is_primary, key_wrapper, key_material : @key(key_wrapper), key : @key(key_wrapper).key, fingerprint }
+    x = (key_wrapper, is_primary) => { 
+      km,
+      is_primary, 
+      key_wrapper, 
+      key_material : @key(key_wrapper), 
+      key : @key(key_wrapper).key
+    }
     [ x(@primary, true) ].concat( x(k,false) for k in @subkeys )
 
   #--------
@@ -274,7 +279,7 @@ class PgpEngine extends Engine
   fetch : (key_ids, op_mask, cb) -> 
     flags = ops_to_keyflags op_mask
 
-    err = key = null
+    err = key = ret = null
     key = null
     ret_i = null
 
@@ -282,19 +287,18 @@ class PgpEngine extends Engine
       key = @find_key kid
       ret_i = i if key?
 
-    err = if not key then new Error "No keys match the given fingerprint"
-    else if not @key(key).fulfills_flags flags then new Error "We don't have a key for the requested PGP ops"
+    if not key?
+      err = new Error "No keys match the given fingerprint"
+    else if not @key(key).fulfills_flags flags 
+      err = new Error "We don't have a key for the requested PGP ops"
+    else
+      ret = @key(key)
 
-    # Since we've added ECDH, the requirement is that the object returned by fetch has
-    # two fields; The `key` field, which contains the actual bigints and algorithmic
-    # details; and the `fingerprint` field, which is the PGP fingerprint of the key or subkey
-    key.fingerprint = @key(key).get_fingerprint() 
-    
-    cb err, key, ret_i
+    cb err, ret, ret_i
 
 #=================================================================
 
-class KeyManager
+class KeyManager extends KeyFetcher
 
   constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private, @user_attributes}) ->
     @pgp = new PgpEngine { @primary, @subkeys, @userids, @user_attributes }

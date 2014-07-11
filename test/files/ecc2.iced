@@ -1,5 +1,6 @@
 {KeyManager} = require '../../lib/main'
 {do_message} = require '../../lib/openpgp/processor'
+{burn} = require '../../lib/openpgp/burner'
 km = null
 
 #=================================================================
@@ -67,4 +68,19 @@ pvdU
   await do_message { armored : msg, keyfetch : km }, defer err, msg
   T.no_error err
   T.equal msg[0].toString(), "hello world\n", "got the right plaintext"
+  cb()
+
+#=================================================================
+
+exports.encrypt_ecdh_1 = (T,cb) ->
+
+  plaintext = """
+The Aquarium is gone. Everywhere,
+giant finned cars nose forward like fish;
+a savage servility
+slides by on grease.
+"""
+  await burn { msg : plaintext, encrypt_for : km }, defer err, aout, raw
+  T.no_error err
+  console.log aout.toString('utf8')
   cb()

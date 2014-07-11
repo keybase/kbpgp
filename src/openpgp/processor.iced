@@ -150,7 +150,7 @@ class Message
       await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, obj, index
       unless err?
         packet = esk_packets[index]
-        {fingerprint} = obj
+        fingerprint = obj.get_pgp_fingerprint()
         await obj.key.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey, pkcs5
     else
       enc = false

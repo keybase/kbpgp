@@ -26,14 +26,17 @@ class PgpKeyRing extends KeyFetcher
   #-------------
 
   fetch : (key_ids, ops, cb) -> 
-    ret = null
+    ret = err = null
     key_ids = (hexkid(k) for k in key_ids)
     for id,i in key_ids when not ret?
       k = @_keys[id]
       if k?.key?.can_perform ops
         ret_i = i
-        ret = k
-    err = if ret? then null else new Error "key not found: #{JSON.stringify key_ids}"
+        ret_k = k
+    if ret_k?
+      ret = ret_k.key_material
+    else
+      err = new Error "key not found: #{JSON.stringify key_ids}"
     cb err, ret, ret_i
 
   #-------------
