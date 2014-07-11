@@ -6,6 +6,7 @@ triplesec = require 'triplesec'
 {SlicerBuffer} = require './openpgp/buffer'
 {WordArray} = triplesec
 {uint_to_buffer} = require './util'
+{ecc_pkcs5_unpad_data} = require './pad'
 
 exports.get_cipher = get_cipher = (n) ->
   ret = switch n
@@ -32,16 +33,13 @@ exports.import_key_pgp = import_key_pgp = (msg, padding_ok = false) ->
   checksum = sb.read_uint16()
 
   # Check the key remainder, and be strict about no trailing junk
-  if not sb.rem() then # noop
-  else if padding_ok
-    b = sb.consume_rest_to_buffer()
-    l = b.length
-    for i in [0...l] when (c = b.readUInt8(i)) isnt l
-      throw new Error "Bad PKCS#5 padding in key; wanted all #{l}s but got #{c}" 
-  else
-    throw new Error "Junk at the end of input"
+  err = if checksum2(key) isnt checksum then new Error "Checksum mismatch" 
+  else if not sb.rem() then null
+  else if padding_ok then ecc_pkcs5_unpad_data msg, sb.offset()
+  else new Error "Junk at the end of input"
 
-  throw new Error "Checksum mismatch" unless checksum2(key) is checksum
+  throw err if err?
+
   new cipher.klass WordArray.from_buffer key
 
 exports.export_key_pgp = export_key_pgp = (algo_id, key) ->

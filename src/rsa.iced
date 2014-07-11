@@ -283,7 +283,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  pad_and_encrypt : (data, cb) ->
+  pad_and_encrypt : (data, params, cb) ->
     err = ret = null
     await eme_pkcs1_encode data, @pub.n.mpi_byte_length(), defer err, m
     unless err?

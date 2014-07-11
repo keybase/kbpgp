@@ -5,7 +5,7 @@ konst = require '../const'
 C = konst.openpgp
 {BaseKeyPair,BaseKey} = require '../basekeypair'
 {SRF,MRF} = require '../rand'
-{eme_pkcs1_encode,eme_pkcs1_decode} = require '../pad'
+{ecc_pkcs5_pad_data} = require '../pad'
 {BaseKeyPair} = require '../basekeypair'
 {BaseEccKey} = require './base'
 hashmod = require '../hash'
@@ -54,7 +54,18 @@ class Pub extends BaseEccKey
 
   #----------------
 
-  encrypt : (m, cb) ->
+  format_params : ({fingerprint}) ->
+    Buffer.concat [
+      uint_to_buffer(8, @curve.oid.length),
+      @curve.oid,
+      uint_to_buffer(8, @type),
+      @serialize_params(),
+      (new Buffer "Anonymous Sender    ", "utf8"),
+      fingerprint
+    ]
+  #----------------
+
+  encrypt : (m, {fingerprint}, cb) ->
     await SRF().random_zn @p.subtract(bn.nbv(2)), defer k
     k = k.add(bn.BigInteger.ONE)
     c = [
@@ -81,18 +92,6 @@ class Priv extends BaseKey
 
   serialize : () -> @x.to_mpi_buffer()
   @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
-
-  #----------------
-
-  format_params : ({fingerprint}) ->
-    Buffer.concat [
-      uint_to_buffer(8, @pub.curve.oid.length),
-      @pub.curve.oid,
-      uint_to_buffer(8, @pub.type),
-      @pub.serialize_params(),
-      (new Buffer "Anonymous Sender    ", "utf8"),
-      fingerprint
-    ]
 
   #----------------
 
@@ -130,7 +129,7 @@ class Priv extends BaseKey
     # S is now the Shared secret point
     S = V.multiply @x
 
-    params = @format_params { fingerprint }
+    params = @pub.format_params { fingerprint }
 
     key = @kdf { X : S, params }
 
@@ -174,12 +173,12 @@ class Pair extends BaseKeyPair
 
   #----------------
   
-  pad_and_encrypt : (data, cb) ->
+  pad_and_encrypt : (data, {fingerprint}, cb) ->
     err = ret = null
-    await eme_pkcs1_encode data, @pub.p.mpi_byte_length(), defer err, m
+    [err, m] = ecc_pkcs5_pad_data data
     unless err?
-      await @pub.encrypt m, defer c_mpis
-      ret = @export_output { c_mpis }
+      await @pub.encrypt m, {fingerprint}, defer c
+      ret = @export_output c
     cb err, ret
 
   #----------------

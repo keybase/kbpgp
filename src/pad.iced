@@ -121,3 +121,36 @@ exports.eme_pkcs1_decode = (v) ->
 
 #====================================================================
 
+#
+# From RFC-6637, Section 8
+#   http://tools.ietf.org/html/rfc6637#section-8
+#
+#  "The result is padded using the method described in [PKCS5] 
+#  to the 8-byte granularity."
+#
+exports.ecc_pkcs5_pad_data = (d) ->
+  err = ret = null
+  pad_len = 40 - d.length
+  if pad_len < 0
+    err = new Error "Pad underrun"
+  else
+    v = (pad_len for [0...pad_len])
+    ret = Buffer.concat [ d, (new Buffer v) ]
+  [err, ret]
+
+#--------------
+
+exports.ecc_pkcs5_unpad_data = (buf, data_len) ->
+  err = null
+  pad_len = buf.length - data_len
+  if pad_len < 0
+    err = new Error "Pad length was < 0; pad underrun"
+  else
+    for i in [data_len...buf.length]
+      if (c = buf.readUInt8(i)) isnt pad_len
+        err = new Error "Got bad PKCS#5 pad character #{c} at position #{i}; wanted #{pad_len}"
+        break
+  err
+
+#====================================================================
+
