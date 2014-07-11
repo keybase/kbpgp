@@ -72,7 +72,7 @@ pvdU
 
 #=================================================================
 
-exports.encrypt_ecdh_1 = (T,cb) ->
+exports.roundtrip_ecdh_1 = (T,cb) ->
 
   plaintext = """
 The Aquarium is gone. Everywhere,
@@ -82,5 +82,10 @@ slides by on grease.
 """
   await burn { msg : plaintext, encrypt_for : km }, defer err, aout, raw
   T.no_error err
-  console.log aout.toString('utf8')
+  await do_message { armored : aout, keyfetch : km }, defer err, msg
+  T.no_error err
+  T.equal plaintext, msg[0].toString(), "roundtrip worked!"
   cb()
+
+#=================================================================
+

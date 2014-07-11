@@ -54,7 +54,7 @@ class Pub extends BaseEccKey
   #----------------
 
   format_params : ({fingerprint}) ->
-    list = [
+    Buffer.concat [
       uint_to_buffer(8, @curve.oid.length),
       @curve.oid,
       uint_to_buffer(8, @type),
@@ -62,8 +62,6 @@ class Pub extends BaseEccKey
       (new Buffer "Anonymous Sender    ", "utf8"),
       fingerprint
     ]
-    console.log list
-    Buffer.concat list
 
   #----------------
 
@@ -192,7 +190,7 @@ class Pair extends BaseKeyPair
     [err, m] = ecc_pkcs5_pad_data data
     unless err?
       await @pub.encrypt m, {fingerprint}, defer {C,V}
-      ret = @export_output {C,V,@curve}
+      ret = @export_output { C, V, curve : @pub.curve }
     cb err, ret
 
   #----------------

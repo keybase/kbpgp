@@ -147,11 +147,12 @@ class Message
 
     if key_ids.length 
       enc = true
-      await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, obj, index
+      await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, key_material, index
       unless err?
         packet = esk_packets[index]
-        fingerprint = obj.get_pgp_fingerprint()
-        await obj.key.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey, pkcs5
+        fingerprint = key_material.get_fingerprint()
+        privk = key_material.key
+        await privk.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey, pkcs5
     else
       enc = false
 

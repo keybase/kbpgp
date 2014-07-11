@@ -116,7 +116,7 @@ class Burner extends BaseBurner
     esc = make_esc cb, "_encrypt_session_key"
     payload = export_key_pgp @_cipher_algo, @_session_key
     pub_k = @encryption_key.key
-    fingerprint = @encryption_key.get_pgp_fingerprint()
+    fingerprint = @encryption_key.get_fingerprint()
     await pub_k.pad_and_encrypt payload, {fingerprint}, esc defer ekey
     if @opts.hide
       key_id = dummy_key_id 
