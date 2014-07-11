@@ -24,13 +24,23 @@ exports.checksum2 = checksum2 = (buf) ->
     res = ((res + buf.readUInt8(i)) & 0xffff)
   res
 
-exports.import_key_pgp = import_key_pgp = (msg) ->
+exports.import_key_pgp = import_key_pgp = (msg, padding_ok = false) ->
   sb = new SlicerBuffer msg
   ret = err = null
   cipher = get_cipher sb.read_uint8()
   key = sb.read_buffer cipher.key_size
   checksum = sb.read_uint16()
-  throw new Error "Junk at the end of input" unless sb.rem() is 0
+
+  # Check the key remainder, and be strict about no trailing junk
+  if not sb.rem() then # noop
+  else if padding_ok
+    b = sb.consume_rest_to_buffer()
+    l = b.length
+    for i in [0...l] when (c = b.readUInt8(i)) isnt l
+      throw new Error "Bad PKCS#5 padding in key; wanted all #{l}s but got #{c}" 
+  else
+    throw new Error "Junk at the end of input"
+
   throw new Error "Checksum mismatch" unless checksum2(key) is checksum
   new cipher.klass WordArray.from_buffer key
 

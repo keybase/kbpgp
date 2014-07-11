@@ -56,13 +56,15 @@ exports.decrypt_ecdh_1 = (T,cb) ->
 -----BEGIN PGP MESSAGE-----
 Version: GnuPG v2
 
-hHYDZen/wXRK1k0SAgMETZt1YbqhrG4lAIFkROBI6IAwgOha3BkPxaBfHeUd0Xn+
-zAbVcwKOFslg2WVOK5caRD6KIMWqXZ8wRQGINKh2/yh7jPxOY/2+s2xgPUw8tMFS
-Fhohz7IUvt0I+LRrG3yHmB2MY3QmV0G0ySIGZsa9EdPV1jOBPIKV8u+sA12SoAZ6
-xWzsZ+W6kkM5vsv7
-=sNOC
+hH4DZen/wXRK1k0SAgMEMaeSZiHn2zlYnn57aUN7R6RLg6grrfgMlDya4c3LeLNT
+TKAuSg6s0Bdl21QQKWsfZEkRLPbZIXuP4vE5jwWdCzCjit+3Z8HZRz4zORTAQ+jI
+M/h1V3bwMIKarlrQLkBcT2nkMlk55EP9CXuZ+ch/y3rSQQFR4GaqfDUsmHnI7jdC
+tIS8mMwehxu5u2THLSteUgrfT1HByfbq2Qt33C+ESezeW8YPSdbMb9b0NfSkpWRO
+pvdU
+=TbII
 -----END PGP MESSAGE-----
   """
   await do_message { armored : msg, keyfetch : km }, defer err, msg
   T.no_error err
+  T.equal msg[0].toString(), "hello world\n", "got the right plaintext"
   cb()

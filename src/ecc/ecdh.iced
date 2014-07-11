@@ -187,13 +187,7 @@ class Pair extends BaseKeyPair
   decrypt_and_unpad : (ciphertext, {fingerprint}, cb) ->
     err = ret = null
     await @priv.decrypt ciphertext, { fingerprint }, defer err, m
-    console.log "shit!"
-    console.log err
-    console.log m
-    unless err?
-      b = m.to_padded_octets @pub.p
-      [err, ret] = eme_pkcs1_decode b
-    cb err, ret
+    cb err, m, true
 
   #----------------
 

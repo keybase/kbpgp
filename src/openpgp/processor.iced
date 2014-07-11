@@ -134,6 +134,7 @@ class Message
     key_ids = []
     esk_packets = []
     err = null
+    pkcs5 = false
 
     # Handle the case that the Session Key is encrypted N times, and we
     # only have the key decrypt one of them.  This is the case when you send
@@ -150,11 +151,11 @@ class Message
       unless err?
         packet = esk_packets[index]
         {fingerprint} = obj
-        await obj.key.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey
+        await obj.key.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey, pkcs5
     else
       enc = false
 
-    cb err, enc, sesskey
+    cb err, enc, sesskey, pkcs5
 
   #---------
 
@@ -167,10 +168,10 @@ class Message
 
   #---------
 
-  _decrypt_with_session_key : (sesskey, edat, cb) ->
+  _decrypt_with_session_key : (sesskey, edat, pkcs5, cb) ->
     err = null
     try
-      cipher = import_key_pgp sesskey
+      cipher = import_key_pgp sesskey, pkcs5
       ret = edat.decrypt cipher
     catch e
       err = e
@@ -187,10 +188,10 @@ class Message
   _decrypt : (cb) ->
     err = null
     esc = make_esc cb, "Message::decrypt"
-    await @_get_session_key esc defer is_enc, sesskey
+    await @_get_session_key esc defer is_enc, sesskey, pkcs5
     if is_enc
       await @_find_encrypted_data esc defer edat
-      await @_decrypt_with_session_key sesskey, edat, esc defer plaintext
+      await @_decrypt_with_session_key sesskey, edat, pkcs5, esc defer plaintext
       await @_parse plaintext, esc defer packets
       @packets = packets.concat @packets
     cb err 
