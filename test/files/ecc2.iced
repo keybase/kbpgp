@@ -89,3 +89,24 @@ slides by on grease.
 
 #=================================================================
 
+exports.roundtrip_ecdh_2 = (T,cb) ->
+
+  plaintext = """
+The Aquarium is gone. Everywhere,
+giant finned cars nose forward like fish;
+a savage servility
+slides by on grease.
+"""
+  await burn { msg : plaintext, encrypt_for : km, sign_with : km }, defer err, aout, raw
+  T.no_error err
+  await do_message { armored : aout, keyfetch : km }, defer err, msg
+  T.no_error err
+  T.equal plaintext, msg[0].toString(), "roundtrip worked!"
+  T.assert (msg[0].get_data_signer()?), "was signed!"
+  sign_fp = msg[0].get_data_signer().sig.keyfetch_obj.get_fingerprint()
+  start_fp = km.get_pgp_fingerprint()
+  T.equal sign_fp.toString('hex'), start_fp.toString('hex'), "signed by the right person"
+  cb()
+
+#=================================================================
+
