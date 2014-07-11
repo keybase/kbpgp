@@ -8,6 +8,7 @@ C = konst.openpgp
 K = konst.kb
 {BaseKeyPair,BaseKey} = require '../basekeypair'
 {BaseEccKey} = require './base'
+{ECDH} = require './ecdh'
 
 #=================================================================
 
@@ -106,6 +107,12 @@ class Pair extends BaseKeyPair
   constructor : ({ pub, priv }) -> super { pub, priv }
   @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
   can_encrypt : () -> false
+
+  #----------------
+
+  @subkey_algo : (flags) -> 
+    if (flags & (C.key_flags.certify_keys | C.key_flags.sign_data)) then Pair
+    else ECDH
 
   #----------------
   

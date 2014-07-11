@@ -215,6 +215,11 @@ class Pair extends BaseKeyPair
 
   #----------------
 
+  # All subkeys use the same parent algorithm as the parent -- RSA
+  @subkey_algo : (flags) -> Pair
+
+  #----------------
+
   sanity_check : (cb) ->
     err = if @priv.n().compareTo(@pub.n) is 0 then null else new Error "pq != n"
     unless err?

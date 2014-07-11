@@ -318,7 +318,8 @@ class KeyManager extends KeyFetcher
   # @param {object} primary Specify the `flags`, `nbits`, and `expire_in` for the primary
   #   key.  If not specified, defaults are ALLFLAGS, 4096, and 0, respectively.
   # @param {Array<object>} subkeys As for primary, specify the `flags`, `nbits`, and `expire_in`
-  #   for all subkeys.  Defaults are (sign|encrypt|auth), 2048, and 8 years, respectively.
+  #   and `algo` for all subkeys.  Defaults are (sign|encrypt|auth), 2048, 8 years, and
+  #   RSA respectively.
   # @param {callback} cb Callback with <Error, KeyManager> pair.
   #
   # Deprecated options:
@@ -337,7 +338,6 @@ class KeyManager extends KeyFetcher
   #
   @generate : ({asp, userid, primary, subkeys,
                  sub_flags, nsubs, primary_flags, nbits, expire_in}, cb) ->
-    asp = ASP.make asp
 
     F = C.key_flags
     KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
@@ -347,6 +347,7 @@ class KeyManager extends KeyFetcher
     primary.flags or= primary_flags or KEY_FLAGS_PRIMARY
     primary.nbits or= nbits or K.key_defaults.primary.nbits
     primary.expire_in or= expire_in?.primary or K.key_defaults.primary.expire_in
+    primary.algo or= RSA
 
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if nsubs? and not sub_flags?
     subkeys or= ( { flags } for flags in sub_flags)
@@ -354,6 +355,7 @@ class KeyManager extends KeyFetcher
       subkey.nbits or= nbits or K.key_defaults.sub.nbits
       subkey.expire_in or= expire_in?.subkey or K.key_defaults.sub.expire_in
       subkey.flags or= KEY_FLAGS_STD
+      subkey.algo or= primary.algo.subkey_algo subkey.flags
 
     userids = [ new opkts.UserID userid ]
     generated = unix_time()
@@ -361,7 +363,7 @@ class KeyManager extends KeyFetcher
 
     gen = ( {klass, section, params, primary}, cb) ->
       asp.section section
-      await RSA.generate { asp, nbits: params.nbits }, defer err, key
+      await params.algo.generate { asp, nbits: params.nbits }, defer err, key
       unless err?
         lifespan = new Lifespan { generated, expire_in : params.expire_in }
         wrapper = new klass { key, lifespan, flags : params.flags, primary }
