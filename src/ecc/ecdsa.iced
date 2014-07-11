@@ -183,11 +183,8 @@ class Pair extends BaseKeyPair
     nbits or= 256
     [err,curve] = alloc_by_nbits nbits
 
-
-
 #=================================================================
 
 exports.ECDSA = exports.Pair = Pair
 
 #=================================================================
-
