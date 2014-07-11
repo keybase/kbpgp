@@ -1,6 +1,7 @@
 {BigInteger} = require '../bn'
 base = require 'keybase-ecurve'
 {uint_to_buffer} = require '../util'
+{SlicerBuffer} = require '../openpgp/buffer'
 
 #=================================================================
 
@@ -60,6 +61,11 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
+  mpi_point_from_buffer : (b) ->
+    @mpi_point_from_slicer_buffer new SlicerBuffer b
+
+  #----------------------------------
+
   mpi_point_from_slicer_buffer : (sb) ->
     err = point = null
     try 
@@ -70,12 +76,16 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
+  point_to_mpi_buffer_compact : (p) -> p.affineX.toBuffer @p.byteLength()
+
+  #----------------------------------
+
   point_to_mpi_buffer : (p) ->
     Buffer.concat [
       uint_to_buffer(16, @mpi_bit_size()),
       new Buffer([0x4]),
-      p.x.toBuffer(@p.byteLength()),
-      p.y.toBuffer(@p.byteLength())
+      p.affineX.toBuffer(@p.byteLength()),
+      p.affineY.toBuffer(@p.byteLength())
     ]
 
 #=================================================================
