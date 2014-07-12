@@ -1,5 +1,7 @@
 
 mods = 
+  ecc1 : require '../files/ecc1.iced'
+  ecc2 : require '../files/ecc2.iced'
   rfc3394 : require '../files/rfc3394.iced'
   google_end_to_end : require '../files/google_end_to_end.iced'
   detached_sigs : require '../files/verify_detached_sigs.iced'

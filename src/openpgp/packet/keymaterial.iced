@@ -303,7 +303,6 @@ class KeyMaterial extends Packet
       ],
       unhashed_subpackets
     }
-
       
     await sig.write payload, defer err
     cb err, sig

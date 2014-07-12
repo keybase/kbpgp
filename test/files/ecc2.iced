@@ -89,8 +89,7 @@ slides by on grease.
 
 #=================================================================
 
-exports.roundtrip_sig_crypt_1 = (T,cb) ->
-
+roundtrip_sig_crypt = (T,km,cb) ->
   plaintext = """
 The Aquarium is gone. Everywhere,
 giant finned cars nose forward like fish;
@@ -108,16 +107,20 @@ slides by on grease.
   T.equal sign_fp.toString('hex'), start_fp.toString('hex'), "signed by the right person"
   cb()
 
+#======================================================================
+
+exports.roundtrip_sig_crypt_1 = (T,cb) -> roundtrip_sig_crypt T, km, cb
+
 #=================================================================
 
 exports.generate_and_roundtrip = (T,cb) ->
-  await KeyManager.generate_ecc { userid : "test@test.cc" }, defer err, km
+  await KeyManager.generate_ecc { userid : "test@test.cc" }, defer err, km2
   T.no_error err
-  await km.sign {}, defer err
+  await km2.sign {}, defer err
   T.no_error err
-  await km.export_pgp_private_to_client { passphrase : '' }, defer err, msg
+  await km2.export_pgp_private_to_client { passphrase : '' }, defer err, msg
   T.no_error err
-  console.log msg
+  await roundtrip_sig_crypt T, km2, defer()
   cb()
 
 #=================================================================
