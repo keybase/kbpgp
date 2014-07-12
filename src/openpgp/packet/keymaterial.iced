@@ -241,17 +241,20 @@ class KeyMaterial extends Packet
 
   sign_subkey : ({subkey, lifespan}, cb) ->
     err = sig = null
-    if @key.can_sign() and subkey.key.can_sign()
+    if @key.can_sign()
       await @_sign_subkey { subkey, lifespan }, defer err
     else if not (subkey.get_subkey_binding()?.sig?.get_framed_output())
-      err = new Error "Cannot sign key --- don't have private key and can't replay"
+      err = new Error "Cannot sign with subkey --- don't have private key and can't replay"
     cb err
 
   #--------------------------
 
   _sign_subkey : ({subkey, lifespan}, cb) ->
-    sig = err = null
-    await subkey._sign_primary_with_subkey { primary : @, lifespan }, defer err, primary_binding
+    sig = err = primary_binding = null
+
+    # Don't want to try this for ECDH or ElGamal.
+    if subkey.can_sign()
+      await subkey._sign_primary_with_subkey { primary : @, lifespan }, defer err, primary_binding
     unless err?
       await @_sign_subkey_with_primary { subkey, lifespan, primary_binding }, defer err, sig
     unless err?
@@ -284,18 +287,23 @@ class KeyMaterial extends Packet
 
   _sign_subkey_with_primary : ({subkey, lifespan, primary_binding}, cb) ->
     payload = Buffer.concat [ @to_signature_payload(), subkey.to_signature_payload() ]
+
+    unhashed_subpackets = [ new S.Issuer(@get_key_id()) ]
+    # This is optional, especially for ECDH or ElGamal
+    if primary_binding?
+      unhashed_subpackets.push (new S.EmbeddedSignature { rawsig : primary_binding })
+
     sig = new Signature {
-      type : C.sig_types.subkey_binding
-      key : @key
+      type : C.sig_types.subkey_binding,
+      @key,
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
         new S.KeyExpirationTime(lifespan.expire_in)
         new S.KeyFlags([subkey.flags])
       ],
-      unhashed_subpackets : [
-        new S.Issuer(@get_key_id()),
-        new S.EmbeddedSignature { rawsig : primary_binding }
-      ]}
+      unhashed_subpackets
+    }
+
       
     await sig.write payload, defer err
     cb err, sig

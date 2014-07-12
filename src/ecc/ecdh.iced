@@ -1,12 +1,10 @@
-bn = require '../bn'
 {uint_to_buffer,bufeq_secure,ASP} = require '../util'
 {make_esc} = require 'iced-error'
 konst = require '../const'
 Const = konst.openpgp
 {BaseKeyPair,BaseKey} = require '../basekeypair'
-{SRF} = require '../rand'
 {ecc_pkcs5_pad_data} = require '../pad'
-{BaseEccKey} = require './base'
+{generate,BaseEccKey} = require './base'
 hashmod = require '../hash'
 sym = require '../symmetric'
 {SlicerBuffer} = require '../openpgp/buffer'
@@ -18,6 +16,12 @@ class Pub extends BaseEccKey
 
   @type : Const.public_key_algorithms.ECDH
   type : Pub.type
+
+  #----------------
+
+  apply_defaults : () ->
+    @cipher or= sym.get_cipher()
+    @hasher or= hashmod.SHA512
 
   #----------------
 
@@ -94,8 +98,7 @@ class Pub extends BaseEccKey
     {n,G} = @curve
 
     # Pick a random v in Z_n 
-    await SRF().random_zn n.subtract(bn.nbv(2)), defer v
-    v = v.add(bn.BigInteger.ONE)
+    await @curve.random_scalar defer v
     V = G.multiply v
 
     # S is the shared point.  If we send V, the private key holder can
@@ -205,6 +208,15 @@ class Pair extends BaseKeyPair
   @parse_output : (buf) -> (Output.parse buf)
   export_output : (args) -> new Output args
 
+  #----------------------
+
+  @generate : ({nbits, asp}, cb) -> 
+    await generate { nbits, asp, Pair }, defer err, pair
+    unless err?
+      # Make sure we have algorithms for hasher and cipher
+      pair.pub.apply_defaults()
+    cb err, pair
+
 #=================================================================
 
 class Output
@@ -263,6 +275,7 @@ class Output
       uint_to_buffer(8, @C.length),
       @C
     ]
+
 
 #=======================================================================
 

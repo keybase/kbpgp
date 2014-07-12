@@ -9,6 +9,7 @@ triplesec = require 'triplesec'
 {ecc_pkcs5_unpad_data} = require './pad'
 
 exports.get_cipher = get_cipher = (n) ->
+  n or= C.AES256
   ret = switch n
     when C.AES128 then { klass : AES, key_size : 16 }
     when C.AES192 then { klass : AES, key_size : 24 }

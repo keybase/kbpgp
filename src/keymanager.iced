@@ -1,4 +1,5 @@
 {RSA} = require './rsa'
+{ECDSA} = require './ecc/ecdsa'
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
@@ -336,9 +337,9 @@ class KeyManager extends KeyFetcher
   #   defaults of 4096 for the master, and 2048 for the subkeys [DEPRECATED]
   # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED] 
   #
-  @generate : ({asp, userid, primary, subkeys,
+  @generate : ({asp, userid, primary, subkeys, 
                  sub_flags, nsubs, primary_flags, nbits, expire_in}, cb) ->
-
+    asp = ASP.make asp
     F = C.key_flags
     KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
     KEY_FLAGS_PRIMARY = KEY_FLAGS_STD | F.certify_keys
@@ -377,6 +378,43 @@ class KeyManager extends KeyFetcher
 
     bundle = new KeyManager { primary, subkeys : subkeys_out, userids }
     cb null, bundle
+
+  #------------
+
+  @generate_std : ({asp, userid}, cb) ->
+    F = C.key_flags
+    primary = {
+      flags : F.certify_keys
+      nbits : 4096
+    }
+    subkeys = [{
+      flags : F.encrypt_data | F.encrypt_comm,
+      nbits : 2048
+    },{
+      flags : F.sign_data | F.auth
+      nbits : 2048
+    }]
+
+    KeyManager.generate { asp, userid, primary, subkeys }, cb
+
+  #------------
+
+  @generate_ecc : ({asp, userid}, cb) ->
+    F = C.key_flags
+    primary = {
+      flags : F.certify_keys
+      nbits : 384
+      algo : ECDSA
+    }
+    subkeys = [{
+      flags : F.encrypt_data | F.encrypt_comm,
+      nbits : 256
+    },{
+      flags : F.sign_data | F.auth
+      nbits : 256
+    }]
+
+    KeyManager.generate { asp, userid, primary, subkeys }, cb
 
   #------------
 

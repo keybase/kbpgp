@@ -89,7 +89,7 @@ slides by on grease.
 
 #=================================================================
 
-exports.roundtrip_ecdh_2 = (T,cb) ->
+exports.roundtrip_sig_crypt_1 = (T,cb) ->
 
   plaintext = """
 The Aquarium is gone. Everywhere,
@@ -106,6 +106,18 @@ slides by on grease.
   sign_fp = msg[0].get_data_signer().sig.keyfetch_obj.get_fingerprint()
   start_fp = km.get_pgp_fingerprint()
   T.equal sign_fp.toString('hex'), start_fp.toString('hex'), "signed by the right person"
+  cb()
+
+#=================================================================
+
+exports.generate_and_roundtrip = (T,cb) ->
+  await KeyManager.generate_ecc { userid : "test@test.cc" }, defer err, km
+  T.no_error err
+  await km.sign {}, defer err
+  T.no_error err
+  await km.export_pgp_private_to_client { passphrase : '' }, defer err, msg
+  T.no_error err
+  console.log msg
   cb()
 
 #=================================================================

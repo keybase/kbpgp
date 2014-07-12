@@ -2,6 +2,8 @@
 base = require 'keybase-ecurve'
 {uint_to_buffer} = require '../util'
 {SlicerBuffer} = require '../openpgp/buffer'
+{SRF} = require '../rand'
+bn = require '../bn'
 
 #=================================================================
 
@@ -88,6 +90,13 @@ exports.Curve = class Curve extends base.Curve
       p.affineY.toBuffer(@p.byteLength())
     ]
 
+  #----------------------------------
+
+  random_scalar : (cb) ->
+    await SRF().random_zn @n.subtract(bn.nbv(2)), defer k
+    k = k.add(bn.BigInteger.ONE)
+    cb k
+
 #=================================================================
 
 # Curve parameters taken from here:
@@ -157,6 +166,7 @@ exports.alloc_by_oid = (oid) ->
 
 exports.alloc_by_nbits = (nbits) ->
   ret = err = null
+  nbits or= 256
   f = switch nbits 
     when 256 then nist_p256
     when 384 then nist_p384

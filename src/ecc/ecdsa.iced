@@ -1,15 +1,13 @@
 bn = require '../bn'
 {nbits,nbv,BigInteger} = bn
-{SRF,MRF} = require '../rand'
 {uint_to_buffer,bufeq_secure,ASP} = require '../util'
 {make_esc} = require 'iced-error'
 konst = require '../const'
 C = konst.openpgp
 K = konst.kb
 {BaseKeyPair,BaseKey} = require '../basekeypair'
-{BaseEccKey} = require './base'
+{generate,BaseEccKey} = require './base'
 {ECDH} = require './ecdh'
-{alloc_by_nbits} = require './curves'
 
 #=================================================================
 
@@ -79,8 +77,7 @@ class Priv extends BaseKey
     err = null
     {n,G} = @pub.curve
     hi = @pub.trunc_hash(h)
-    await SRF().random_zn n.subtract(bn.nbv(2)), defer k
-    k = k.add(bn.BigInteger.ONE)
+    await @pub.curve.random_scalar defer k
     Q = G.multiply(k)
     r = Q.affineX.mod(n)
     throw new Error "invalid r-value" if r.signum() is 0
@@ -179,9 +176,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  @generate : ({nbits, asp}, cb) ->
-    nbits or= 256
-    [err,curve] = alloc_by_nbits nbits
+  @generate : ({nbits, asp}, cb) -> generate { nbits, asp, Pair }, cb
 
 #=================================================================
 
