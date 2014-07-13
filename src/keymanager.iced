@@ -321,6 +321,7 @@ class KeyManager extends KeyFetcher
   # @param {Array<object>} subkeys As for primary, specify the `flags`, `nbits`, and `expire_in`
   #   and `algo` for all subkeys.  Defaults are (sign|encrypt|auth), 2048, 8 years, and
   #   RSA respectively.
+  # @param {Boolbean} ecc Whether to use ECC or RSA.  Off by default.
   # @param {callback} cb Callback with <Error, KeyManager> pair.
   #
   # Deprecated options:
@@ -337,7 +338,7 @@ class KeyManager extends KeyFetcher
   #   defaults of 4096 for the master, and 2048 for the subkeys [DEPRECATED]
   # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED] 
   #
-  @generate : ({asp, userid, primary, subkeys, 
+  @generate : ({asp, userid, primary, subkeys, ecc,
                  sub_flags, nsubs, primary_flags, nbits, expire_in}, cb) ->
     asp = ASP.make asp
     F = C.key_flags
@@ -346,17 +347,19 @@ class KeyManager extends KeyFetcher
 
     primary or= {} 
     primary.flags or= primary_flags or KEY_FLAGS_PRIMARY
-    primary.nbits or= nbits or K.key_defaults.primary.nbits
     primary.expire_in or= expire_in?.primary or K.key_defaults.primary.expire_in
-    primary.algo or= RSA
+    primary.algo or= (if ecc then ECDSA else RSA)
+    primary.nbits or= nbits or K.key_defaults.primary.nbits[primary.algo.klass_name]
+    console.log primary
 
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if nsubs? and not sub_flags?
     subkeys or= ( { flags } for flags in sub_flags)
     for subkey in subkeys
-      subkey.nbits or= nbits or K.key_defaults.sub.nbits
       subkey.expire_in or= expire_in?.subkey or K.key_defaults.sub.expire_in
       subkey.flags or= KEY_FLAGS_STD
       subkey.algo or= primary.algo.subkey_algo subkey.flags
+      subkey.nbits or= nbits or K.key_defaults.sub.nbits[subkey.algo.klass_name]
+    console.log subkeys 
 
     userids = [ new opkts.UserID userid ]
     generated = unix_time()

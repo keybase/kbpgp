@@ -81,6 +81,7 @@ class Pair extends BaseKeyPair
   #--------------------
 
   @type : C.public_key_algorithms.ELGAMAL
+  @klass_name : "ELGAMAL"
   type : Pair.type
 
   #--------------------

@@ -99,6 +99,7 @@ class Pair extends BaseKeyPair
 
   @type : C.public_key_algorithms.ECDSA
   type : Pair.type
+  @klass_name : "ECDSA"
 
   #--------------------
   

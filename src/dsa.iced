@@ -95,6 +95,7 @@ class Pair extends BaseKeyPair
 
   @type : C.public_key_algorithms.DSA
   type : Pair.type
+  @klass_name : "DSA"
 
   #--------------------
   

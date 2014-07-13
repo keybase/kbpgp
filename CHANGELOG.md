@@ -1,4 +1,11 @@
-## 0.1.23
+## 0.2.0
+
+Features:
+
+  - RFC 6637: ECC crypto: ECDSA and ECDH. Experimental and not recommended, 
+    since more GPG clients do not support it.
+
+## 0.1.23 (2014-07-08)
 
 Optimizations:
 
