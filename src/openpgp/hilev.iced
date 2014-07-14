@@ -28,3 +28,8 @@ exports.SignatureEngine = class SignatureEngine
 
 #-----------------------------
 
+exports.box = burn
+exports.unbox = processor.do_message
+
+#-----------------------------
+

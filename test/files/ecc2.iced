@@ -2,6 +2,7 @@
 {do_message} = require '../../lib/openpgp/processor'
 {burn} = require '../../lib/openpgp/burner'
 km = null
+top = require '../../lib/main'
 
 #=================================================================
 
@@ -132,7 +133,7 @@ exports.generate_export_import = (T,cb) ->
   T.no_error err
   passphrase = "goat dog bird"
   plaintext = "this be the verse"
-  await burn { msg : plaintext, encrypt_for : km3, sign_with : km3  }, defer err, aout, raw
+  await top.box { msg : plaintext, encrypt_for : km3, sign_with : km3  }, defer err, aout, raw
   T.no_error err
   await km3.export_private { p3skb : true, passphrase }, defer err, ex
   T.no_error err
@@ -140,7 +141,7 @@ exports.generate_export_import = (T,cb) ->
   T.no_error err
   await km4.unlock_p3skb { passphrase }, defer err
   T.no_error err
-  await do_message { armored : aout, keyfetch : km4 }, defer err, msg
+  await top.unbox { armored : aout, keyfetch : km4 }, defer err, msg
   T.no_error err
   T.equal plaintext, msg[0].toString(), "roundtrip worked!"
   cb()
