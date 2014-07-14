@@ -4,6 +4,8 @@ Features:
 
   - RFC 6637: ECC crypto: ECDSA and ECDH. Experimental and not recommended, 
     since more GPG clients do not support it.
+  - Add new API entrance points for cleaner code and consistent metaphors.
+    Don't throw away the old entrance points just yet
 
 ## 0.1.23 (2014-07-08)
 
