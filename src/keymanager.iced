@@ -15,6 +15,7 @@ opkts = require './openpgp/packet/all'
 {read_base64,box,unbox,box} = require './keybase/encode'
 {P3SKB} = require './keybase/packet/p3skb'
 {KeyFetcher,KeyFetched} = require './keyfetch'
+{Encryptor} = require 'triplesec'
 
 ##
 ## KeyManager
@@ -350,7 +351,6 @@ class KeyManager extends KeyFetcher
     primary.expire_in or= expire_in?.primary or K.key_defaults.primary.expire_in
     primary.algo or= (if ecc then ECDSA else RSA)
     primary.nbits or= nbits or K.key_defaults.primary.nbits[primary.algo.klass_name]
-    console.log primary
 
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if nsubs? and not sub_flags?
     subkeys or= ( { flags } for flags in sub_flags)
@@ -359,7 +359,6 @@ class KeyManager extends KeyFetcher
       subkey.flags or= KEY_FLAGS_STD
       subkey.algo or= primary.algo.subkey_algo subkey.flags
       subkey.nbits or= nbits or K.key_defaults.sub.nbits[subkey.algo.klass_name]
-    console.log subkeys 
 
     userids = [ new opkts.UserID userid ]
     generated = unix_time()
@@ -459,8 +458,10 @@ class KeyManager extends KeyFetcher
 
   #--------------
 
-  unlock_p3skb : ({asp, tsenc}, cb) ->
+  unlock_p3skb : ({asp, tsenc, passphrase}, cb) ->
     asp = ASP.make asp
+    if not tsenc? and passphrase?
+      tsenc = new Encryptor { key : bufferify(passphrase) }
     await @p3skb.unlock { tsenc, asp }, defer err
     unless err?
       msg = new Message { body : @p3skb.priv.data, type : C.message_types.private_key }
@@ -564,7 +565,7 @@ class KeyManager extends KeyFetcher
     asp = ASP.make asp
     err = msg = null
     passphrase = bufferify passphrase if passphrase?
-    if not regen? and (msg = @armored_pgp_private) then #noop
+    if not regen and (msg = @armored_pgp_private) then #noop
     else if not (err = @_assert_signed())?
       msg = @pgp.export_keys({private : true, passphrase})
     cb err, msg
@@ -580,6 +581,16 @@ class KeyManager extends KeyFetcher
       msg = @armored_pgp_public unless regen
       msg = @pgp.export_keys({private : false}) unless msg?
     cb err, msg
+
+  #-----
+
+  export_private : ({passphrase, p3skb , asp}, cb) ->
+    if p3skb
+      tsenc = new Encryptor { key : bufferify(passphrase) }
+      await @export_private_to_server { tsenc, asp }, defer err, res
+    else
+      await @export_pgp_private_to_client { passphrase , asp }, defer err, res
+    cb err, res
 
   #-----
 

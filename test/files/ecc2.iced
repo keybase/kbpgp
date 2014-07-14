@@ -125,3 +125,25 @@ exports.generate_and_roundtrip = (T,cb) ->
 
 #=================================================================
 
+exports.generate_export_import = (T,cb) ->
+  await KeyManager.generate_ecc { userid : 'test@test.io' }, defer err, km3
+  T.no_error err
+  await km3.sign {}, defer err
+  T.no_error err
+  passphrase = "goat dog bird"
+  plaintext = "this be the verse"
+  await burn { msg : plaintext, encrypt_for : km3, sign_with : km3  }, defer err, aout, raw
+  T.no_error err
+  await km3.export_private { p3skb : true, passphrase }, defer err, ex
+  T.no_error err
+  await KeyManager.import_from_p3skb { raw : ex }, defer err, km4
+  T.no_error err
+  await km4.unlock_p3skb { passphrase }, defer err
+  T.no_error err
+  await do_message { armored : aout, keyfetch : km4 }, defer err, msg
+  T.no_error err
+  T.equal plaintext, msg[0].toString(), "roundtrip worked!"
+  cb()
+
+#=================================================================
+
