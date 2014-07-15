@@ -1,6 +1,8 @@
 util = require '../util'
 C = require('../../const').openpgp
 packetsigs = require './packetsigs'
+stream = require 'stream'
+{PacketizerStream} = require './packetizer_stream'
 
 #==================================================================================================
 
@@ -12,14 +14,40 @@ class Packet
     @_psc = new packetsigs.Collection()
 
   #----------------------
+
+  stream : ({stream, tag, body}, cb) ->
+    err = null
+    unless body?
+      await @write_unframed defer err, body
+    tag or= @TAG
+    unless err?
+      buf = Buffet.concat [ @tagbuf(tag), body ]
+      await stream.write buf, defer()
+    cb err
+
+  #----------------------
+
+  tagbuf : (tag) -> 
+    tag or= @TAG
+    new Buffer [ (0xc0 | tag) ]
+
+  #----------------------
    
   frame_packet : (tag, body) ->
     bufs = [
-      new Buffer([ (0xc0 | tag) ]),
+      @tagbuf(),
       util.encode_length(body.length),
       body
     ]
     Buffer.concat bufs
+
+  #----------------------
+
+  write : (cb) -> 
+    err = ret = null
+    await @write_unframed defer err, raw
+    ret = @frame_packet @TAG, raw unless err?
+    cb err, ret
 
   #----------------------
 
@@ -74,38 +102,55 @@ class Packet
 
 #==================================================================================================
 
-# If we're streaming data and we don't know ahead of time how big it is, 
-# we can packetize via this class
-class StreamingPacketizer 
+# Useful for Literals, Compressed, and Encrypted packets of Indeterminiate length
+#
+# The idea is:
+#   1. Output the packet tag directly
+#   2. Fire up a Packetizer Stream
+#   3. Output the header packet to the packetizer
+#   4. Output the 
 
-  constructor : (@pushfn, log2_chunksz) ->
-    log2_chunksz or= 16
-    @chunksz = (1 << log2_chunksz)
-    @prefix = (0xe0 | log2_chunksz) # AKA 224 + log2_chunksz
-    @buffers = []
-    @dlen = 0
+exports.PacketizedOutStream = class PacketizedOutStream extends stream.Transform
 
-  push : (buf) ->
-    @buffers.push buf
-    @dlen += buf.length
-    if @dlen >= @chunksz
-      buf = Buffer.concat @buffers
-      front = buf[0...@chunksz]
-      rest = buf[@chunksz...]
-      @buffers = [ rest ]
-      @dlen = rest.length
-      @pushfn Buffer.concat [ (new Buffer [@prefix]), front ]
+  #--------------------------------
 
-  flush : () ->
-    if @dlen > 0
-      buf = Buffer.concat @buffers
-      @buffers = []
-      @pushfn Buffer.concat [ util.encode_length(@dlen), buf ]
-      @dlen = 0
+  # @param {openpgp.packet.Base} header A header packet to prestream [optional]
+  # @param {openpgp.packet.Base} footer A footer packet to add after flush [optional]
+  constructor : ({@header}) ->
+    @_did_header_stream = false
+    @_ps = PacketizerStream.substream @
+    super()
+
+  #--------------------------------
+  
+  _stream_header : (cb) ->
+    err = null
+    if @header and not @_did_header_stream
+      @_did_header_stream = true
+      @push @header.tagbuf()
+      await @header.write_unframed defer err, hbuf
+      if err? then @emit 'error', err
+      else await @_ps.write hbuf, defer()
+    cb err
+
+  #--------------------------------
+  
+  _transform : (buf, encoding, cb) ->
+    await @_stream_header defer err
+    unless err?
+      await @_v_transform buf, encoding, defer()
+    cb()
+
+  #--------------------------------
+  
+  _flush : (cb) ->
+    await @_stream_header defer err
+    unless err?
+      await @_v_flush defer()
+    cb()
 
 #==================================================================================================
 
 exports.Packet = Packet
-exports.StreamingPacketizer = StreamingPacketizer
 
 #==================================================================================================

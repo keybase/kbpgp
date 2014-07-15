@@ -1,5 +1,5 @@
 
-{Packet} = require './base'
+{OutStream,Packet} = require './base'
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 {uint_to_buffer} = require '../../util'
@@ -9,12 +9,23 @@ asymmetric = require '../../asymmetric'
 # 5.9.  Literal Data Packet (Tag 11)
 class Literal extends Packet
 
+  @TAG : C.packet_tags.literal
+  TAG : Literal.TAG
+
+  #--------
+
   constructor : ( { @format, @filename, @date, @data} ) ->
     super()
 
+  #--------
+
   @parse : (slice) -> (new LiteralParser slice).parse()
 
+  #--------
+
   toString : () -> @data.toString @buffer_format()
+
+  #--------
 
   buffer_format : () ->
     switch @format 
@@ -22,7 +33,11 @@ class Literal extends Packet
       when C.literal_formats.utf8 then 'utf8'
       else 'binary'
 
+  #--------
+
   to_signature_payload : () -> Buffer.concat [ @data ]
+
+  #--------
 
   write_unframed : (cb) ->
     @filename or= new Buffer []
@@ -36,11 +51,7 @@ class Literal extends Packet
     ret = Buffer.concat bufs
     cb null, ret
 
-  write : (cb) ->
-    err = ret = null
-    await @write_unframed defer err, raw
-    ret = @frame_packet C.packet_tags.literal, raw unless err?
-    cb err, ret
+  #--------
 
   to_literal : () -> @
 
@@ -65,6 +76,25 @@ class LiteralParser
     data = @slice.consume_rest_to_buffer()
 
     new Literal { format , filename, date, data }
+
+#=================================================================================
+
+exports.OutStream = class OutStream extends base.OutStream
+
+  constructor : ({header}) -> 
+    super { header }
+    @_did_write_header = false
+
+  _write_header : (cb) ->
+    err = null
+    cb err
+
+  _transform : (buf, encoding, cb) ->
+    await @_write_header defer()
+
+  _v_transform : (buf, encoding, cb) -> @_ps.write buf, encoding, cb
+  _v_flush : (cb) -> @_ps.end cb
+
 
 #=================================================================================
 

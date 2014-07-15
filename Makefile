@@ -61,6 +61,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/literal.js \
 	lib/openpgp/packet/keymaterial.js \
 	lib/openpgp/packet/one_pass_sig.js \
+	lib/openpgp/packet/packetizer_stream.js \
 	lib/openpgp/packet/packetsigs.js \
 	lib/openpgp/packet/sess.js \
 	lib/openpgp/packet/signature.js \

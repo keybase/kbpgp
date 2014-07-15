@@ -4,11 +4,15 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 hash = require '../../hash'
 {uint_to_buffer} = require '../../util'
+stream = require 'stream'
 
 #=================================================================================
 
 # 5.4. One-Pass Signature Packets (Tag 4)
 class OnePassSignature extends Packet
+
+  @TAG : C.packet_tags.one_pass_sig
+  TAG : OnePassSignature.TAG
 
   #---------------
 
@@ -32,13 +36,6 @@ class OnePassSignature extends Packet
     bufs.push uint_to_buffer(8,@is_final)
     unframed = Buffer.concat bufs
     cb null, unframed
-
-  #---------------
-
-  write : (cb) ->
-    await @write_unframed defer err, unframed
-    framed = @frame_packet C.packet_tags.one_pass_sig, unframed
-    cb err, framed
 
 #=================================================================================
 
@@ -65,5 +62,31 @@ class OPS_Parser
 #=================================================================================
 
 exports.OnePassSignature = OnePassSignature
+
+#=================================================================================
+
+exports.OutStream = class OutStream extends stream.Transform
+
+  constructor : ({@header, @footer}) ->
+    super()
+    @_literal_stream = new literal.OutStream()
+    @_literal.on 'data', (data) => @push data
+
+  _stream_header : (cb) ->
+    await @header.stream_header { stream : @ }, defer()
+
+  _transform : (data, encoding, cb) ->
+    await @_stream_header defer()
+    @hasher.update data
+    await @_literal_stream.write data, defer()
+    cb()
+
+  _flush : (cb) ->
+    await @_stream_header defer()
+    await @_literal_stream.end defer()
+    await @footer.write defer err, buf
+    if err? then @emit 'error', err
+    else @push(buf)
+    cb()
 
 #=================================================================================

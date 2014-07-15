@@ -1,25 +1,36 @@
 
 {BaseBurner} = require './baseburner'
 hashmod = require '../hash'
+{PacketizerStream} = require './packet/packetizer_stream'
 
 #===========================================================================
 
 class Pipeline extends stream.Transform
 
-  constructor : () ->
+  constructor : (@log2_packetsize) ->
+    @log2_packetsize or= 16 # 64kB chunks by default
     @xforms = []
     @last = null
+    super()
 
   push_xform : (x) ->
     last.pipe(x) if @last?
+    ps = new PacketizerStream @log2_packetsize
+    x.pipe(ps)
     @xforms.push x
-    @last = x
+    @xforms.push ps
+    @last = ps
 
   start : () ->
     @last.on 'data', (chunk) -> @push chunk
 
   _transform : (chunk, encoding, cb) ->
     await @xforms[0].write chunk, encoding, defer()
+    cb()
+
+  _flush : (cb) ->
+    for x in @xforms
+      await x.end defer()
     cb()
 
 #===========================================================================
@@ -40,7 +51,8 @@ class BoxTransformEngine extends BaseBurner
     await @_find_keys esc defer()
     if @signing_key
       @pipeline.push new SigningTransform @signing_key
-    @pipeline.push new LiteralTransform()
+    else
+      @pipeline.push new LiteralTransform()
     if (algo = @opts.compress)
       @pipeline.push new CompressionTransform algo
     if @encryption_key
