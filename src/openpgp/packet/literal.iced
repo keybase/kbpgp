@@ -79,22 +79,7 @@ class LiteralParser
 
 #=================================================================================
 
-exports.OutStream = class OutStream extends base.OutStream
-
-  constructor : ({header}) -> 
-    super { header }
-    @_did_write_header = false
-
-  _write_header : (cb) ->
-    err = null
-    cb err
-
-  _transform : (buf, encoding, cb) ->
-    await @_write_header defer()
-
-  _v_transform : (buf, encoding, cb) -> @_ps.write buf, encoding, cb
-  _v_flush : (cb) -> @_ps.end cb
-
+exports.OutStream = class OutStream extends PacketizerStream
 
 #=================================================================================
 

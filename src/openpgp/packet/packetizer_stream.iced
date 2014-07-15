@@ -1,5 +1,5 @@
 
-stream = require 'stream'
+{InitableTransform} = require '../../stream'
 util = require '../util'
 
 #==================================================================================================
@@ -10,14 +10,15 @@ util = require '../util'
 # and write out that chunk.  Of course we need to be certain to flush it
 # at the end, which will write out a final packet size.
 # 
-exports.PacketizerStream = class Transform extends stream.Transform
+exports.PacketizerStream = class Transform extends InitableTransform
 
-  constructor : ({tag, log2_chunksz, header}) ->
+  constructor : ({tag, log2_chunksz, header, packet}) ->
     log2_chunksz or= 16
     @_chunksz = (1 << log2_chunksz)
     @_prefix = new Buffer [(0xe0 | log2_chunksz)] # AKA 224 + log2_chunksz
     @_buffers = []
-    @_tag = tag
+    @_packet = packet # on OpenPGP packet that might contain a tag
+    @_tag = tag or packet?.TAG
     @_dlen = 0
     @_push_to_buffer header
     super()
@@ -31,10 +32,17 @@ exports.PacketizerStream = class Transform extends stream.Transform
       @push new Buffer [@_tag]
       @_tag = null
 
-  _transform : (buf, encoding, cb) ->
+  _v_init : (cb) ->
     @_do_tag()
+    err = null
+    if @_packet?
+      await @_packet.write_unframed defer err, buf
+      @_push_to_buffer buf unless err?
+    cb err
+
+  _v_transform : (buf, encoding, cb) ->
     @_push_to_buffer buf
-    if @_dlen >= @_chunksz
+    if _dlen >= @_chunksz
       flat = Buffer.concat @_buffers
       pos = 0
       while (end = pos + @_chunksz) <= @_dlen
@@ -46,8 +54,7 @@ exports.PacketizerStream = class Transform extends stream.Transform
       @_dlen = rest.length
     cb()
 
-  _flush : (cb) ->
-    @_do_tag()
+  _v_flush : (cb) ->
     if @dlen > 0
       buf = Buffer.concat @_buffers
       @_buffers = []

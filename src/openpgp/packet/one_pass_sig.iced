@@ -4,7 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 hash = require '../../hash'
 {uint_to_buffer} = require '../../util'
-stream = require 'stream'
+{InitableTransform} = require '../../stream'
 
 #=================================================================================
 
@@ -65,28 +65,29 @@ exports.OnePassSignature = OnePassSignature
 
 #=================================================================================
 
-exports.OutStream = class OutStream extends stream.Transform
+exports.OutStream = class OutStream extends InitableTransform
 
-  constructor : ({@header, @footer}) ->
+  constructor : ({@header, @footer, literal}) ->
     super()
-    @_literal_stream = new literal.OutStream()
-    @_literal.on 'data', (data) => @push data
+    @_literal_stream = new literal.OutStream { packet : literal }
+    @_literal_stream.on 'data', (data) -> @push data
+    @_literal_stream.on 'error', (err) -> @emit 'error', err
 
-  _stream_header : (cb) ->
-    await @header.stream_header { stream : @ }, defer()
+  _v_init : (cb) ->
+    # Push out the "OnePassSignature" header packet
+    await @header.write defer err, buf
+    @push buf unless err?
+    cb err
 
-  _transform : (data, encoding, cb) ->
-    await @_stream_header defer()
+  _v_transform : (data, encoding, cb) ->
     @hasher.update data
     await @_literal_stream.write data, defer()
-    cb()
+    cb null
 
-  _flush : (cb) ->
-    await @_stream_header defer()
+  _v_flush : (cb) ->
     await @_literal_stream.end defer()
     await @footer.write defer err, buf
-    if err? then @emit 'error', err
-    else @push(buf)
-    cb()
+    @push buf unless err?
+    cb err
 
 #=================================================================================

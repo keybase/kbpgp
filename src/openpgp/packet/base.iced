@@ -15,18 +15,6 @@ class Packet
 
   #----------------------
 
-  stream : ({stream, tag, body}, cb) ->
-    err = null
-    unless body?
-      await @write_unframed defer err, body
-    tag or= @TAG
-    unless err?
-      buf = Buffet.concat [ @tagbuf(tag), body ]
-      await stream.write buf, defer()
-    cb err
-
-  #----------------------
-
   tagbuf : (tag) -> 
     tag or= @TAG
     new Buffer [ (0xc0 | tag) ]
