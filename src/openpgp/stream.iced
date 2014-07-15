@@ -62,7 +62,7 @@ class BoxTransformEngine extends BaseBurner
     await @_find_keys esc defer()
     await @_read_opts esc defer()
 
-    literal = new Literal { format : @encoding, @date : unix_time() }
+    literal = new Literal { format : @encoding, date : unix_time() }
 
     if @signing_key?
       @pipeline.push @_make_ops_packet().new_stream { sig: @_make_sig_packet(), literal }

@@ -25,7 +25,7 @@ exports.Buffer    = Buffer
 exports.triplesec = require('triplesec')
 exports.hash      = require './hash'
 exports.ecc       = require './ecc/main'
-exports.stream    = require './openpgp/streamer'
+exports.stream    = require './openpgp/stream'
 
 #---------------------------------------
 
