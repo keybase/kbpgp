@@ -1,5 +1,5 @@
 
-{InitableTransform} = require '../../stream'
+{InitableTransform} = require '../../basestream'
 util = require '../util'
 
 #==================================================================================================

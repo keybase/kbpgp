@@ -4,7 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 hash = require '../../hash'
 {uint_to_buffer} = require '../../util'
-{InitableTransform} = require '../../stream'
+{InitableTransform} = require '../../basestream'
 
 #=================================================================================
 
