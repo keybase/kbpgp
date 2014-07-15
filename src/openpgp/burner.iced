@@ -38,7 +38,6 @@ class Burner extends BaseBurner
 
   constructor : ({@literals, @opts, sign_with, encrypt_for, signing_key, encryption_key}) ->
     super { sign_with, encrypt_for, signing_key, encryption_key }
-    @packets = []
     @opts or= {}
     @signed_payload = null
 
@@ -58,14 +57,7 @@ class Burner extends BaseBurner
 
   _sign : (cb) ->
     esc = make_esc cb, "Burner::_sign'"
-    ops = new OnePassSignature { 
-      sig_type : C.sig_types.binary_doc,
-      hasher : SHA512
-      sig_klass : @signing_key.get_klass()
-      key_id : @signing_key.get_key_id()
-      is_final : 1
-    }
-    await ops.write esc defer ops_framed
+    await @_sign_preamble esc defer ops_framed
     sig = new Signature {
       type : C.sig_types.binary_doc
       key : @signing_key.key
@@ -97,39 +89,9 @@ class Burner extends BaseBurner
 
   #------------
 
-  _make_session_key : (cb) ->
-    @_cipher_algo = C.symmetric_key_algorithms.AES256
-    @_cipher_info = get_cipher @_cipher_algo
-    await SRF().random_bytes @_cipher_info.key_size, defer @_session_key
-    @_cipher = new @_cipher_info.klass WordArray.from_buffer @_session_key
-    cb null
-
-  #------------
-
   scrub : () ->
     @_cipher.scrub() if @_cipher?
     scrub_buffer @_session_key if @_session_key?
-
-  #------------
-
-  _encrypt_session_key : (cb) ->
-    esc = make_esc cb, "_encrypt_session_key"
-    payload = export_key_pgp @_cipher_algo, @_session_key
-    pub_k = @encryption_key.key
-    fingerprint = @encryption_key.get_fingerprint()
-    await pub_k.pad_and_encrypt payload, {fingerprint}, esc defer ekey
-    if @opts.hide
-      key_id = dummy_key_id 
-      await ekey.hide { max : @opts.hide?.max, slosh : @opts.hide?.slosh, key : pub_k }, esc defer()
-    else 
-      key_id = @encryption_key.get_key_id()
-    pkt = new PKESK { 
-      crypto_type : pub_k.type,
-      key_id : key_id,
-      ekey : ekey
-    } 
-    await pkt.write esc defer @_pkesk
-    cb null
 
   #------------
 
@@ -148,8 +110,7 @@ class Burner extends BaseBurner
 
   _encrypt : (cb) ->
     esc = make_esc cb, "Burner::_encrypt"
-    await @_make_session_key esc defer()
-    await @_encrypt_session_key esc defer()
+    await @_setup_encryption esc defer()
     await @_encrypt_payload esc defer()
     cb null
 
