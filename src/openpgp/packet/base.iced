@@ -74,7 +74,38 @@ class Packet
 
 #==================================================================================================
 
+# If we're streaming data and we don't know ahead of time how big it is, 
+# we can packetize via this class
+class StreamingPacketizer 
+
+  constructor : (@pushfn, log2_chunksz) ->
+    log2_chunksz or= 16
+    @chunksz = (1 << log2_chunksz)
+    @prefix = (0xe0 | log2_chunksz) # AKA 224 + log2_chunksz
+    @buffers = []
+    @dlen = 0
+
+  push : (buf) ->
+    @buffers.push buf
+    @dlen += buf.length
+    if @dlen >= @chunksz
+      buf = Buffer.concat @buffers
+      front = buf[0...@chunksz]
+      rest = buf[@chunksz...]
+      @buffers = [ rest ]
+      @dlen = rest.length
+      @pushfn Buffer.concat [ (new Buffer [@prefix]), front ]
+
+  flush : () ->
+    if @dlen > 0
+      buf = Buffer.concat @buffers
+      @buffers = []
+      @pushfn Buffer.concat [ util.encode_length(@dlen), buf ]
+      @dlen = 0
+
+#==================================================================================================
 
 exports.Packet = Packet
+exports.StreamingPacketizer = StreamingPacketizer
 
 #==================================================================================================
