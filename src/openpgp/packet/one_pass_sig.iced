@@ -4,7 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 hash = require '../../hash'
 {uint_to_buffer} = require '../../util'
-{InitableTransform} = require '../../basestream'
+{InitTransform} = require 'iced-stream'
 
 #=================================================================================
 
@@ -69,7 +69,7 @@ exports.OnePassSignature = OnePassSignature
 
 #=================================================================================
 
-exports.OutStream = class OutStream extends InitableTransform
+exports.OutStream = class OutStream extends InitTransform
 
   constructor : ({@header, @footer, literal}) ->
     super()

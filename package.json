@@ -24,6 +24,7 @@
     "deep-equal": ">=0.2.1",
     "iced-error": ">=0.0.9",
     "iced-runtime": ">=0.0.1",
+    "iced-stream": "0.0.1",
     "keybase-compressjs": "^1.0.1-c",
     "keybase-ecurve": "^0.9.0",
     "pgp-utils": ">=0.0.25",

@@ -15,8 +15,7 @@ BROWSER=browser/kbpgp.js
 
 $(BUILD_STAMP): \
 	lib/asymmetric.js \
-    lib/basekeypair.js \
-	lib/basestream.js \
+        lib/basekeypair.js \
 	lib/basex.js \
 	lib/bn.js \
 	lib/const.js \

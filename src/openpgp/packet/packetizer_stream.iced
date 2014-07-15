@@ -1,5 +1,5 @@
 
-{InitableTransform} = require '../../basestream'
+{InitTransform} = require 'iced-stream'
 util = require '../util'
 
 #==================================================================================================
@@ -10,7 +10,7 @@ util = require '../util'
 # and write out that chunk.  Of course we need to be certain to flush it
 # at the end, which will write out a final packet size.
 # 
-exports.PacketizerStream = class Transform extends InitableTransform
+exports.PacketizerStream = class Transform extends InitTransform
 
   constructor : ({tag, log2_chunksz, header, packet}) ->
     log2_chunksz or= 16
