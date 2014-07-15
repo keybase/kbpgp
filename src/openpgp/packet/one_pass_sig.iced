@@ -24,6 +24,10 @@ class OnePassSignature extends Packet
 
   #---------------
 
+  new_stream : ({sig, literal}) -> new OutStream { header : @, footer : sig, literal }
+
+  #---------------
+
   write_unframed : (cb) ->
     vals = [
       C.versions.one_pass_sig, 

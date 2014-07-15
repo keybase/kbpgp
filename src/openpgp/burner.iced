@@ -57,18 +57,11 @@ class Burner extends BaseBurner
 
   _sign : (cb) ->
     esc = make_esc cb, "Burner::_sign'"
-    await @_sign_preamble esc defer ops_framed
-    sig = new Signature {
-      type : C.sig_types.binary_doc
-      key : @signing_key.key
-      hashed_subpackets : [ new CreationTime(unix_time()) ]
-      unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
-    }
-    await sig.write @signed_payload, defer err, fp
-    unless err?
-      @packets.unshift ops_framed
-      @packets.push fp
-    cb err
+    await @_mape_ops_packet().write esc defer ops_framed
+    @packets.unshift ops_framed
+    await @_make_sig_packet().write @signed_payload esc defer fp
+    @packets.push fp
+    cb null
     
   #------------
 

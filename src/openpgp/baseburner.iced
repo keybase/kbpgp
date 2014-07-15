@@ -93,19 +93,24 @@ exports.BaseBurner = class BaseBurner
 
   #-----------------
 
-  _sign_preamble : (cb) -> 
-    esc = make_esc cb, "Burner::_sign'"
-    ops = new OnePassSignature { 
+  _make_ops_packet : () ->
+    return new OnePassSignature { 
       sig_type : C.sig_types.binary_doc,
       hasher : (@hasher or SHA512)
       sig_klass : @signing_key.get_klass()
       key_id : @signing_key.get_key_id()
       is_final : 1
     }
-    await ops.write esc defer ops_framed
-    cb err, ops_framed
 
   #-----------------
+
+  _make_sig_packet : () ->
+    return new Signature {
+      type : C.sig_types.binary_doc
+      key : @signing_key.key
+      hashed_subpackets : [ new CreationTime(unix_time()) ]
+      unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
+    }
 
 #==========================================================
 

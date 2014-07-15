@@ -3,6 +3,7 @@
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 {uint_to_buffer} = require '../../util'
+{PacketizerStream} = require './packetizer_stream'
 
 #=================================================================================
 
@@ -54,6 +55,10 @@ class Literal extends Packet
   #--------
 
   to_literal : () -> @
+
+  #--------
+
+  new_stream : () -> new OutStream { packet : @ }
 
 #=================================================================================
 

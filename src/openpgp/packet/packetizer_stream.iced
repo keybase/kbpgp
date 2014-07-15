@@ -42,7 +42,7 @@ exports.PacketizerStream = class Transform extends InitableTransform
 
   _v_transform : (buf, encoding, cb) ->
     @_push_to_buffer buf
-    if _dlen >= @_chunksz
+    if @_dlen >= @_chunksz
       flat = Buffer.concat @_buffers
       pos = 0
       while (end = pos + @_chunksz) <= @_dlen
@@ -73,4 +73,3 @@ test = () ->
   x.on 'end', () -> console.error "ok done!"
   await x.write buf, defer()
   await x.end defer()
-test()
