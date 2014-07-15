@@ -78,6 +78,7 @@ $(BUILD_STAMP): \
 	lib/rand.js \
 	lib/rfc3394.js \
 	lib/rsa.js \
+	lib/stream.js \
 	lib/symmetric.js \
 	lib/util.js 
 	date > $@
