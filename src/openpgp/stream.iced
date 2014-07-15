@@ -5,6 +5,7 @@ C = require('../const').openpgp
 {unix_time} = require '../util'
 {Literal} = require './packet/literal'
 stream = require 'stream'
+{make_esc} = require 'iced-error'
 
 #===========================================================================
 

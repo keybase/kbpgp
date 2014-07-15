@@ -73,7 +73,7 @@ exports.OutStream = class OutStream extends InitTransform
 
   constructor : ({@header, @footer, literal}) ->
     super()
-    @_literal_stream = new literal.OutStream { packet : literal }
+    @_literal_stream = literal.new_stream()
     @_literal_stream.on 'data', (data) -> @push data
     @_literal_stream.on 'error', (err) -> @emit 'error', err
 

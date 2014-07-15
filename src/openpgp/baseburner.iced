@@ -1,11 +1,14 @@
 {make_esc} = require 'iced-error'
 {OnePassSignature} = require './packet/one_pass_sig'
+{Signature,CreationTime,Issuer} = require './packet/signature'
 {export_key_pgp,get_cipher} = require '../symmetric'
 {SEIPD,PKESK} = require './packet/sess'
 {SHA512} = require '../hash'
 {encode} = require './armor'
 clearsign = require './clearsign'
 {BaseBurner} = require './baseburner'
+C = require('../const').openpgp
+{unix_time} = require '../util'
 
 #==========================================================
 
