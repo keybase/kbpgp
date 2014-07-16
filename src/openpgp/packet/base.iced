@@ -23,7 +23,7 @@ class Packet
    
   frame_packet : (tag, body) ->
     bufs = [
-      @tagbuf(),
+      @tagbuf(tag),
       util.encode_length(body.length),
       body
     ]

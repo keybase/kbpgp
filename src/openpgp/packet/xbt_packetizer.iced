@@ -12,15 +12,13 @@ util = require '../util'
 # 
 exports.Packetizer = class Packetizer extends xbt.SimpleInit
 
-  constructor : ({tag, log2_chunksz, header, packet}) ->
+  constructor : ({log2_chunksz, packet}) ->
     log2_chunksz or= 16
     @_chunksz = (1 << log2_chunksz)
     @_prefix = new Buffer [(0xe0 | log2_chunksz)] # AKA 224 + log2_chunksz
     @_buffers = []
-    @_packet = packet # on OpenPGP packet that might contain a tag
-    @_tag = tag or packet?.TAG
+    @_packet = packet # an OpenPGP packet that might contain a tag
     @_dlen = 0
-    @_push_to_buffer header if header?
     super()
 
   _push_to_buffer : (b) ->
@@ -30,8 +28,8 @@ exports.Packetizer = class Packetizer extends xbt.SimpleInit
 
   _v_init : (cb) ->
     err = ret = null
-    if @_tag then ret = new Buffer [ @_tag ]
     if @_packet?
+      ret = @_packet.tagbuf()
       await @_packet.write_unframed defer err, buf
       @_push_to_buffer buf unless err?
     cb err, ret

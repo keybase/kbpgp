@@ -1,6 +1,6 @@
 
 main = require '../../'
-{keyring,unbox,KeyManager,stream,armor} = main
+{keyring,unbox,KeyManager,stream,armor,util} = main
 C = main.const
 {Faucet,Drain} = require 'iced-stream'
 
@@ -49,7 +49,7 @@ exports.verify = (T,cb) ->
   keyfetch = new keyring.PgpKeyRing
   keyfetch.add_key_manager km
   await unbox { armored : signed_msg, keyfetch }, defer err, msg
-  console.log msg
+  T.equal plaintext, msg[0].toString(), "signed literal was right"
   T.no_error err
   cb()
 

@@ -47,11 +47,11 @@ class SimpleInit extends Base
     @_did_init = false
 
   init : (cb) ->
-    data = null
+    err = data = null
     unless @_did_init
       @_did_init = true
       await @_v_init defer err, data
-    cb err
+    cb err, data
 
   chunk : ({data,eof}, cb) ->
     esc = make_esc cb, "SimpleInit::chunk"
@@ -75,7 +75,7 @@ class StreamAdapter extends stream.Transform
 
   _flush : (cb) ->
     await @xbt.chunk { eof : true }, defer err, out
-    @push(out) unless err?
+    @push(out) if not(err?) and out?
     cb err
 
 #=========================================================

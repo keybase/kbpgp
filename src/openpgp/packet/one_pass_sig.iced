@@ -62,7 +62,8 @@ class OPS_Parser
     sig_klass = asymmetric.get_class @slice.read_uint8() 
     key_id = @slice.read_buffer 8
     is_final = @slice.read_uint8()
-    new OnePassSignature { sig_type, hasher, sig_klass, key_id, is_final }
+    ret = new OnePassSignature { sig_type, hasher, sig_klass, key_id, is_final }
+    return ret
 
 #=================================================================================
 
@@ -76,7 +77,9 @@ exports.XbtOut = class XbtOut extends xbt.SimpleInit
     super()
     @_literal_xbt = literal.new_xbt()
 
-  _v_init : (cb) -> @header.write cb
+  _v_init : (cb) -> 
+    await @header.write defer err, buf
+    cb err, buf
 
   _v_chunk : ({data, eof}, cb) ->
     esc = make_esc cb, "XbtOut"
