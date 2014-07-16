@@ -12,25 +12,35 @@ stream = require 'stream'
 class Pipeline extends stream.Transform
 
   constructor : () ->
-    @xforms = []
-    @last = null
+    @__xforms = []
+    @__last = null
     super()
 
-  push_xform : (x) ->
-    @last.pipe(x) if @last?
-    @xforms.push x
-    @last = x
+  xform : (x) ->
+    @__last.pipe(x) if @__last?
+    @__xforms.push x
+    @__last = x
 
   start : () ->
-    @last.on 'data', (chunk) -> @push chunk
-    @last.on 'emit', (err) -> @emit 'error', err
+    i = 0
+    @__last.on 'data', (chunk) -> 
+      console.log "ok, chunked out.."
+      console.log chunk
+      await setTimeout defer(), 0
+      console.log "nothing doing here... after sleep...."
+      @push chunk
+    @__last.on 'emit', (err) -> @emit 'error', err
 
   _transform : (chunk, encoding, cb) ->
-    await @xforms[0].write chunk, encoding, defer()
+    console.log "transform chunk.."
+    console.log chunk
+    await @__xforms[0].write chunk, encoding, defer()
     cb()
 
   _flush : (cb) ->
-    for x in @xforms
+    console.log "flushing it!"
+    for x in @__xforms
+      console.log "ok, in flush situation..."
       await x.end defer()
     cb()
 
@@ -67,9 +77,9 @@ class BoxTransformEngine extends BaseBurner
     literal = new Literal { format : @encoding, date : unix_time() }
 
     if @signing_key?
-      @pipeline.push @_make_ops_packet().new_stream { sig: @_make_sig_packet(), literal }
+      @pipeline.xform @_make_ops_packet().new_stream { sig: @_make_sig_packet(), literal }
     else
-      @pipeline.push literal.new_stream()
+      @pipeline.xform literal.new_stream()
 
     #if @compression isnt C.compression.none
     #  @pipeline.push new CompressionTransform algo
@@ -89,9 +99,30 @@ exports.box = (opts, cb) ->
 
 #===========================================================================
 
+class SimpleXform extends stream.Transform
+
+  _transform : (chunk, encoding, cb) ->
+    console.log "push in simple"
+    console.log chunk
+    @push chunk
+    console.log "pushed!"
+    cb()
+
 #input = fs.createReadStream "bigfile"
 #out = fs.createWriteStream "outfile"
 #await input.once 'error', esc defer()
 #await kb.stream.box { sign_with, encrypt_for }, esc defer xform
 #input.pipe(xform).pipe(output)
 #await input.once 'eof', esc defer()
+
+
+x = new Pipeline()
+x.xform new SimpleXform()
+x.start()
+buf = new Buffer "helloo what the fuck man"
+await x.write buf, defer()
+x.on 'data', (data) ->
+  console.log "got data"
+  console.log data.toString 'utf8'
+await x.end defer()
+console.log "done"

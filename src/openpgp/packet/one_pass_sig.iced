@@ -78,9 +78,13 @@ exports.OutStream = class OutStream extends InitTransform
     @_literal_stream.on 'error', (err) -> @emit 'error', err
 
   _v_init : (cb) ->
+    console.log "In _v_init for OPS"
     # Push out the "OnePassSignature" header packet
     await @header.write defer err, buf
+    console.log "prepush..."
+    console.log buf
     @push buf unless err?
+    console.log "after push...."
     cb err
 
   _v_transform : (data, encoding, cb) ->

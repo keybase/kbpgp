@@ -24,8 +24,9 @@ exports.PacketizerStream = class Transform extends InitTransform
     super()
 
   _push_to_buffer : (b) ->
-    @_buffers.push b
-    @_dlen += b.length
+    if b? and b.length
+      @_buffers.push b
+      @_dlen += b.length
 
   _do_tag : () ->
     if @_tag
