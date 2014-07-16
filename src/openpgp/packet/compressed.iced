@@ -7,6 +7,7 @@ zlib = require 'zlib'
 compressjs = require 'keybase-compressjs'
 {Packetizer} = require './xbt_packetizer'
 {ReverseAdapter} = require '../../xbt'
+{make_esc} = require 'iced-error'
 
 #=================================================================================
 
@@ -15,8 +16,9 @@ fake_zip_inflate = (buf, cb) ->
   await zlib.inflate buf, defer err, ret
   cb err, ret
 
-fix_zip_deflate = (buf, cb) ->
+fake_zip_deflate = (buf, cb) ->
   await zlib.deflate buf, defer err, ret
+  ret = ret[3...] if not(err?) and ret?
   cb err, ret
 
 bzip_inflate = (buf, cb) ->
@@ -78,11 +80,11 @@ class Compressed extends Packet
 
   write_unframed : (cb) ->
     err = ret = null
-    await @deflate defer err, @compressed
-    unless err?
-      bufs = [ uint_to_buffer(8, @algo) ]
-      bufs.push @compressed if @compressed
-      ret = Buffer.concat bufs
+    bufs = [ uint_to_buffer(8, @algo) ]
+    if @inflated?
+      await @deflate defer err, @compressed
+      bufs.push @compressed
+    ret = Buffer.concat bufs
     cb err, ret
 
   #--------
@@ -111,9 +113,9 @@ class CompressionParser
 exports.XbtOut = class XbtOut extends Packetizer
 
   _v_init : (cb) ->
-    await super defer err
+    await super defer err, data
     err = @_setup_stream() unless err?
-    cb err
+    cb err, data
 
   _setup_stream : () ->
     @_stream = switch @packet().algo
@@ -123,7 +125,10 @@ exports.XbtOut = class XbtOut extends Packetizer
         null
     return err
 
-  _v_chunk : ({data, eof}, cb) -> @_stream.chunk { data, eof }, cb
+  _v_chunk : ({data, eof}, cb) -> 
+    esc = make_esc cb, "compresed.XbtOut._v_chunk"
+    await @_stream.chunk { data, eof }, esc defer data
+    super { data, eof }, cb
 
 #=================================================================================
 

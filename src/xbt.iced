@@ -100,28 +100,19 @@ class ReverseAdapter extends Base
   _transform : (data, cb) ->
     await @stream.write data, defer()
     while (diff = @_hiwat - @_dlen) > 0 
-      console.log "transform it!"
-      console.log diff
       break unless @_push_data @stream.read diff
     cb()
 
   _flush : (cb) ->
     @stream.end()
-    console.log "flushie!"
-    @stream.on 'data'    , (data) => 
-      console.log "data was shat out.."
-      console.log data.length
-      @_push_data data
-    @stream.once 'error' , (err ) -> 
-      console.log "shit ass, there was an error"
-      cb err
-    @stream.once 'end', (data) -> 
-      console.log "ok, we finished!"
-      cb null
+    @stream.on 'data'    , (data) => @_push_data data
+    @stream.once 'error' , (err ) -> cb err
+    @stream.once 'end', (data) -> cb null
 
   _consume_bufs : () ->
     out = Buffer.concat @_buffers
     @_buffers = []
+    @_dlen = 0
     out
 
   chunk : ({data, eof}, cb) ->

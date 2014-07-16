@@ -58,7 +58,7 @@ verify = ({T,signed_msg, plaintext, km }, cb) ->
 #----------------------------------------------------------------
 
 sign_and_verify = (T,plaintext,opts,cb) ->
-  arg = { T, km, plaintext : short, opts }
+  arg = { T, km, plaintext, opts }
   await sign arg, defer arg.signed_msg
   T.waypoint "sign"
   await verify arg, defer()
