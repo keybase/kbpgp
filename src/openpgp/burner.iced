@@ -57,9 +57,9 @@ class Burner extends BaseBurner
 
   _sign : (cb) ->
     esc = make_esc cb, "Burner::_sign'"
-    await @_mape_ops_packet().write esc defer ops_framed
+    await @_make_ops_packet().write esc defer ops_framed
     @packets.unshift ops_framed
-    await @_make_sig_packet().write @signed_payload esc defer fp
+    await @_make_sig_packet({}).write @signed_payload, esc defer fp
     @packets.push fp
     cb null
     

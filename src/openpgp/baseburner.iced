@@ -9,6 +9,9 @@ clearsign = require './clearsign'
 {BaseBurner} = require './baseburner'
 C = require('../const').openpgp
 {unix_time} = require '../util'
+{SRF} = require '../rand'
+triplesec = require 'triplesec'
+{WordArray} = triplesec
 
 #==========================================================
 
