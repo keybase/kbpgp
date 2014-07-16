@@ -51,7 +51,7 @@ class Literal extends Packet
 
     # For streaming cases, there won't be any data!
     bufs.push(@data) if @data?
-    
+
     ret = Buffer.concat bufs
     cb null, ret
 

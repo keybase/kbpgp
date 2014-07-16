@@ -1,5 +1,7 @@
 
-{KeyManager,stream} = require '../..'
+main = require '../../'
+{keyring,unbox,KeyManager,stream,armor} = main
+C = main.const
 {Faucet,Drain} = require 'iced-stream'
 
 #----------------------------------------------------------------
@@ -12,6 +14,8 @@ In the park sit pauper and rentier,
 The screaming children, the motor-car
 """
 userid = "Delmore Schwartz"
+signed_msg = null
+keyfetch = null
 
 #----------------------------------------------------------------
 
@@ -32,9 +36,20 @@ exports.sign = (T,cb) ->
   f.pipe(xform)
   xform.pipe(d)
   d.once 'finish', () ->
-    console.log d.data()
+    buf = d.data()
+    signed_msg = armor.encode C.openpgp.message_types.generic, buf
     cb()
   d.once 'error', (err) ->
     T.no_error err
     cb()
+
+#----------------------------------------------------------------
+
+exports.verify = (T,cb) ->
+  keyfetch = new keyring.PgpKeyRing
+  keyfetch.add_key_manager km
+  await unbox { armored : signed_msg, keyfetch }, defer err, msg
+  console.log msg
+  T.no_error err
+  cb()
 

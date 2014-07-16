@@ -56,7 +56,7 @@ exports.Packetizer = class Packetizer extends xbt.SimpleInit
       @_dlen = rest.length
 
   _handle_flush : (bufs) ->
-    if @dlen > 0
+    if @_dlen > 0
       buf = Buffer.concat @_buffers
       @_buffers = []
       bufs.push util.encode_length buf.length

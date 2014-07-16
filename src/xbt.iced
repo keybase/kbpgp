@@ -33,9 +33,11 @@ class Chain extends Base
 
   chunk : ({data,eof}, cb) ->
     esc = make_esc cb, "Chain::chunk"
+    out = null
     for l in @links
       await l.chunk {data,eof}, esc defer data
-    cb null
+      out = data
+    cb null, out
 
 #=========================================================
 
