@@ -21,6 +21,8 @@ exports.Packetizer = class Packetizer extends xbt.SimpleInit
     @_dlen = 0
     super()
 
+  packet : () -> @_packet
+
   _push_to_buffer : (b) ->
     if b? and b.length
       @_buffers.push b

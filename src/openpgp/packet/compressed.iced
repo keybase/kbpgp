@@ -5,6 +5,8 @@ asymmetric = require '../../asymmetric'
 zlib = require 'zlib'
 {uint_to_buffer} = require '../../util'
 compressjs = require 'keybase-compressjs'
+{Packetizer} = require './xbt_packetizer'
+{ReverseAdapter} = require '../../xbt'
 
 #=================================================================================
 
@@ -30,6 +32,9 @@ bzip_inflate = (buf, cb) ->
 
 # 5.1.  Public-Key Encrypted Session Key Packets (Tag 1)
 class Compressed extends Packet
+
+  @TAG : C.packet_tags.compressed
+  TAG : Compressed.TAG
 
   #--------
 
@@ -75,18 +80,14 @@ class Compressed extends Packet
     err = ret = null
     await @deflate defer err, @compressed
     unless err?
-      bufs = [ uint_to_buffer(8, @algo), @compressed ]
+      bufs = [ uint_to_buffer(8, @algo) ]
+      bufs.push @compressed if @compressed
       ret = Buffer.concat bufs
     cb err, ret
 
   #--------
 
-  write : (cb) ->
-    err = ret = null
-    await @write_unframed defer err, unframed
-    unless err?
-      ret = @frame_packet C.packet_tags.compressed, unframed
-    cb err, ret
+  new_xbt : () -> new XbtOut { packet : @ }
 
 #=================================================================================
 
@@ -104,6 +105,25 @@ class CompressionParser
     algo = @slice.read_uint8()
     compressed = @slice.consume_rest_to_buffer()
     new Compressed { algo, compressed }
+
+#=================================================================================
+
+exports.XbtOut = class XbtOut extends Packetizer
+
+  _v_init : (cb) ->
+    await super defer err
+    err = @_setup_stream() unless err?
+    cb err
+
+  _setup_stream : () ->
+    @_stream = switch @packet().algo
+      when C.compression.zlib then new ReverseAdapter { stream : zlib.createDeflate() }
+      else
+        err = new Error "unhandled streaming compression algorithm: #{@packet.algo}"
+        null
+    return err
+
+  _v_chunk : ({data, eof}, cb) -> @_stream.chunk { data, eof }, cb
 
 #=================================================================================
 

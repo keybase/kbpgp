@@ -80,9 +80,62 @@ class StreamAdapter extends stream.Transform
 
 #=========================================================
 
+# Given a node.js-style Stream, make an XBT out of it
+class ReverseAdapter extends Base
+
+  constructor : ({@stream, hiwat}) ->
+    super()
+    @_buffers = []
+    @_dlen = 0
+    @_hiwat = hiwat or 0x10000
+
+  _push_data : (data) -> 
+    if data? and data.length
+      @_buffers.push data
+      @_dlen += data.length
+      true
+    else
+      false
+
+  _transform : (data, cb) ->
+    await @stream.write data, defer()
+    while (diff = @_hiwat - @_dlen) > 0 
+      console.log "transform it!"
+      console.log diff
+      break unless @_push_data @stream.read diff
+    cb()
+
+  _flush : (cb) ->
+    @stream.end()
+    console.log "flushie!"
+    @stream.on 'data'    , (data) => 
+      console.log "data was shat out.."
+      console.log data.length
+      @_push_data data
+    @stream.once 'error' , (err ) -> 
+      console.log "shit ass, there was an error"
+      cb err
+    @stream.once 'end', (data) -> 
+      console.log "ok, we finished!"
+      cb null
+
+  _consume_bufs : () ->
+    out = Buffer.concat @_buffers
+    @_buffers = []
+    out
+
+  chunk : ({data, eof}, cb) ->
+    esc = make_esc cb, "ReverseAdapter::chunk"
+    await @_transform data, esc defer() if data?
+    await @_flush esc defer() if eof
+    cb null, @_consume_bufs()
+
+#=========================================================
+
 exports.Base = Base
 exports.Chain = Chain
 exports.SimpleInit = SimpleInit
 exports.StreamAdapter = StreamAdapter
+exports.ReverseAdapter = ReverseAdapter
 
 #=========================================================

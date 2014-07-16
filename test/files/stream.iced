@@ -29,8 +29,9 @@ exports.generate_ecc_km = (T,cb) ->
 
 #----------------------------------------------------------------
 
-sign = ({T,km,plaintext}, cb) ->
-  await stream.box { sign_with : km }, defer err, xform
+sign = ({T,km,plaintext, opts}, cb) ->
+  opts or= {}
+  await stream.box { sign_with : km, opts}, defer err, xform
   T.no_error err
   buf = new Buffer(plaintext, 'utf8')
   f = new Faucet buf
@@ -56,8 +57,8 @@ verify = ({T,signed_msg, plaintext, km }, cb) ->
 
 #----------------------------------------------------------------
 
-sign_and_verify = (T,plaintext, cb) ->
-  arg = { T, km, plaintext : short }
+sign_and_verify = (T,plaintext,opts,cb) ->
+  arg = { T, km, plaintext : short, opts }
   await sign arg, defer arg.signed_msg
   T.waypoint "sign"
   await verify arg, defer()
@@ -66,7 +67,11 @@ sign_and_verify = (T,plaintext, cb) ->
 
 #----------------------------------------------------------------
 
-exports.sign_and_verify_shortie = (T,cb) -> sign_and_verify T, short, cb
-exports.sign_and_verify_med = (T,cb) -> sign_and_verify T, med, cb
+exports.sign_and_verify_shortie = (T,cb) -> sign_and_verify T, short, {}, cb
+exports.sign_and_verify_med = (T,cb) -> sign_and_verify T, med, {}, cb
+
+#----------------------------------------------------------------
+
+exports.sign_and_verify_zlib = (T,cb) -> sign_and_verify T, med, { compression : 'zlib' }, cb
 
 #----------------------------------------------------------------
