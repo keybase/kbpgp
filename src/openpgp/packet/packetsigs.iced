@@ -28,7 +28,11 @@ class SubkeyBinding extends Base
 #===================================================
 
 class Data extends Base
-  constructor : ({@key, sig}) -> super {sig}
+  constructor : ({sig}) -> 
+    super {sig}
+    if (@km = sig.keyfetch_obj?.km)?
+      @key_fingerprint = @km.get_pgp_fingerprint().toString('hex')
+
   typ : () -> "data"
 
 #===================================================

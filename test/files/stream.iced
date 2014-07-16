@@ -49,7 +49,8 @@ exports.verify = (T,cb) ->
   keyfetch = new keyring.PgpKeyRing
   keyfetch.add_key_manager km
   await unbox { armored : signed_msg, keyfetch }, defer err, msg
-  T.equal plaintext, msg[0].toString(), "signed literal was right"
   T.no_error err
+  T.equal plaintext, msg[0].toString(), "signed literal was right"
+  T.assert km.is_pgp_same_key(msg[0].get_data_signer().km, km), "the right signing key"
   cb()
 

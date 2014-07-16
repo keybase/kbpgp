@@ -534,6 +534,10 @@ class KeyManager extends KeyFetcher
   is_p3skb_locked : () -> @p3skb?.is_locked()
 
   #-----
+
+  is_pgp_same_key : (k2) -> bufeq_secure(@get_pgp_fingerprint(), k2.get_pgp_fingerprint())
+
+  #-----
   
   # Open the private MPIs of the secret key, and check for sanity.
   # Use the given triplesec.Encryptor / password object.
