@@ -80,12 +80,12 @@ exports.XbtOut = class XbtOut extends xbt.SimpleInit
 
   _v_chunk : ({data, eof}, cb) ->
     esc = make_esc cb, "XbtOut"
-    @hasher.update(data) if data?
+    @footer.hasher.update(data) if data?
     bufs = []
-    await @_literal_stream.chunk {data, eof}, esc defer b
+    await @_literal_xbt.chunk {data, eof}, esc defer b
     bufs.push b if b?
     if eof
-      await @footer.write esc defer ftr
+      await @footer.write (new Buffer []), esc defer ftr
       bufs.push ftr
     cb null, (Buffer.concat bufs)
 

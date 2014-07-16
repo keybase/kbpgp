@@ -43,7 +43,8 @@ class BoxTransformEngine extends BaseBurner
     literal = new Literal { format : @encoding, date : unix_time() }
 
     if @signing_key?
-      @chain.push_xbt @_make_ops_packet().new_xbt { sig: @_make_sig_packet(), literal }
+      sig = @_make_sig_packet { hasher : hashmod.streamers.SHA512() }
+      @chain.push_xbt @_make_ops_packet().new_xbt { sig, literal }
     else
       @chain.push_xbt literal.new_xbt()
 

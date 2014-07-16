@@ -47,8 +47,11 @@ class Literal extends Packet
       uint_to_buffer(8,@filename.length)
       @filename,
       uint_to_buffer(32, @date),
-      @data
     ]
+
+    # For streaming cases, there won't be any data!
+    bufs.push(@data) if @data?
+    
     ret = Buffer.concat bufs
     cb null, ret
 
@@ -84,7 +87,7 @@ class LiteralParser
 
 #=================================================================================
 
-exports.XbtOut = Packetizer
+exports.XbtOut = XbtOut = Packetizer
 
 #=================================================================================
 

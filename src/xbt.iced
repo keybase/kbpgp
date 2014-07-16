@@ -11,6 +11,7 @@
 #=========================================================
 
 stream = require 'stream'
+{make_esc} = require 'iced-error'
 
 #=========================================================
 
@@ -62,6 +63,7 @@ class SimpleInit extends Base
 class StreamAdapter extends stream.Transform
 
   constructor : ({@xbt}) ->
+    super()
 
   _transform : (data, encoding, cb) ->
     if endcoding? then data = new Buffer data, encoding

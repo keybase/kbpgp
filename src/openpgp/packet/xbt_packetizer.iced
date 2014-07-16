@@ -39,8 +39,8 @@ exports.Packetizer = class Packetizer extends xbt.SimpleInit
   _v_chunk : ({data, eof}, cb) ->
     bufs = []
     @_handle_data(data, bufs) if data?
-    @_handle_eof(bufs)        if eof
-    cb err, Buffer.concat(bufs)
+    @_handle_flush(bufs)      if eof
+    cb null, Buffer.concat(bufs)
 
   _handle_data : (data, bufs) ->
     @_push_to_buffer data

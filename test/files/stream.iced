@@ -25,19 +25,16 @@ exports.generate_ecc_km = (T,cb) ->
 
 exports.sign = (T,cb) ->
   await stream.box { sign_with : km }, defer err, xform
+  T.no_error err
   buf = new Buffer(plaintext, 'utf8')
-  await xform.write buf, defer()
-  cb()
-
-  #T.no_error err
-  #f = new Faucet new Buffer(plaintext, 'utf8')
-  #d = new Drain()
-  #f.pipe(xform)
-  #xform.pipe(d)
-  #d.once 'finish', () ->
-  #  console.log d.data()
-  #  cb()
-  #d.once 'error', (err) ->
-  #  T.no_error err
-  #  cb()
+  f = new Faucet buf
+  d = new Drain()
+  f.pipe(xform)
+  xform.pipe(d)
+  d.once 'finish', () ->
+    console.log d.data()
+    cb()
+  d.once 'error', (err) ->
+    T.no_error err
+    cb()
 
