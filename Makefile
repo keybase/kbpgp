@@ -15,7 +15,7 @@ BROWSER=browser/kbpgp.js
 
 $(BUILD_STAMP): \
 	lib/asymmetric.js \
-        lib/basekeypair.js \
+	lib/basekeypair.js \
 	lib/basex.js \
 	lib/bn.js \
 	lib/const.js \
@@ -61,12 +61,12 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/literal.js \
 	lib/openpgp/packet/keymaterial.js \
 	lib/openpgp/packet/one_pass_sig.js \
-	lib/openpgp/packet/packetizer_stream.js \
 	lib/openpgp/packet/packetsigs.js \
 	lib/openpgp/packet/sess.js \
 	lib/openpgp/packet/signature.js \
 	lib/openpgp/packet/userid.js \
 	lib/openpgp/packet/user_attribute.js \
+	lib/openpgp/packet/xbt_packetizer.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/s2k.js \
@@ -80,7 +80,8 @@ $(BUILD_STAMP): \
 	lib/rfc3394.js \
 	lib/rsa.js \
 	lib/symmetric.js \
-	lib/util.js 
+	lib/util.js \
+	lib/xbt.js
 	date > $@
 
 build: $(BUILD_STAMP) 

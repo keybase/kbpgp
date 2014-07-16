@@ -4,7 +4,8 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 hash = require '../../hash'
 {uint_to_buffer} = require '../../util'
-{InitTransform} = require 'iced-stream'
+xbt = require '../../xbt'
+{make_esc} = require 'iced-error'
 
 #=================================================================================
 
@@ -24,7 +25,7 @@ class OnePassSignature extends Packet
 
   #---------------
 
-  new_stream : ({sig, literal}) -> new OutStream { header : @, footer : sig, literal }
+  new_xbt : ({sig, literal}) -> new XbtOut { header : @, footer : sig, literal }
 
   #---------------
 
@@ -69,33 +70,23 @@ exports.OnePassSignature = OnePassSignature
 
 #=================================================================================
 
-exports.OutStream = class OutStream extends InitTransform
+exports.XbtOut = class XbtOut extends xbt.SimpleInit
 
   constructor : ({@header, @footer, literal}) ->
     super()
-    @_literal_stream = literal.new_stream()
-    @_literal_stream.on 'data', (data) -> @push data
-    @_literal_stream.on 'error', (err) -> @emit 'error', err
+    @_literal_xbt = literal.new_xbt()
 
-  _v_init : (cb) ->
-    console.log "In _v_init for OPS"
-    # Push out the "OnePassSignature" header packet
-    await @header.write defer err, buf
-    console.log "prepush..."
-    console.log buf
-    @push buf unless err?
-    console.log "after push...."
-    cb err
+  _v_init : (cb) -> @header.write cb
 
-  _v_transform : (data, encoding, cb) ->
-    @hasher.update data
-    await @_literal_stream.write data, defer()
-    cb null
-
-  _v_flush : (cb) ->
-    await @_literal_stream.end defer()
-    await @footer.write defer err, buf
-    @push buf unless err?
-    cb err
+  _v_chunk : ({data, eof}, cb) ->
+    esc = make_esc cb, "XbtOut"
+    @hasher.update(data) if data?
+    bufs = []
+    await @_literal_stream.chunk {data, eof}, esc defer b
+    bufs.push b if b?
+    if eof
+      await @footer.write esc defer ftr
+      bufs.push ftr
+    cb null, (Buffer.concat bufs)
 
 #=================================================================================

@@ -6,43 +6,7 @@ C = require('../const').openpgp
 {Literal} = require './packet/literal'
 stream = require 'stream'
 {make_esc} = require 'iced-error'
-
-#===========================================================================
-
-class Pipeline extends stream.Transform
-
-  constructor : () ->
-    @__xforms = []
-    @__last = null
-    super()
-
-  xform : (x) ->
-    @__last.pipe(x) if @__last?
-    @__xforms.push x
-    @__last = x
-
-  start : () ->
-    i = 0
-    @__last.on 'data', (chunk) -> 
-      console.log "ok, chunked out.."
-      console.log chunk
-      await setTimeout defer(), 0
-      console.log "nothing doing here... after sleep...."
-      @push chunk
-    @__last.on 'emit', (err) -> @emit 'error', err
-
-  _transform : (chunk, encoding, cb) ->
-    console.log "transform chunk.."
-    console.log chunk
-    await @__xforms[0].write chunk, encoding, defer()
-    cb()
-
-  _flush : (cb) ->
-    console.log "flushing it!"
-    for x in @__xforms
-      console.log "ok, in flush situation..."
-      await x.end defer()
-    cb()
+xbt = require '../xbt'
 
 #===========================================================================
 
@@ -53,7 +17,9 @@ class BoxTransformEngine extends BaseBurner
   constructor : ({@opts, sign_with, encrypt_for, signing_key, encryption_key}) -> 
     super { sign_with, encrypt_for, signing_key, encryption_key }
     @packets = []
-    @pipeline = new Pipeline
+
+    @chain = new xbt.Chain
+    @stream = new xbt.StreamAdapter { xbt: @chain }
 
   #--------------------------------
 
@@ -77,9 +43,9 @@ class BoxTransformEngine extends BaseBurner
     literal = new Literal { format : @encoding, date : unix_time() }
 
     if @signing_key?
-      @pipeline.xform @_make_ops_packet().new_stream { sig: @_make_sig_packet(), literal }
+      @chain.push_xbt @_make_ops_packet().new_xbt { sig: @_make_sig_packet(), literal }
     else
-      @pipeline.xform literal.new_stream()
+      @chain.push_xbt literal.new_xbt()
 
     #if @compression isnt C.compression.none
     #  @pipeline.push new CompressionTransform algo
@@ -87,8 +53,7 @@ class BoxTransformEngine extends BaseBurner
     #  await @_setup_encryption esc defer()
     #  @pipeline.push new EncryptionTransform { pkesk : @_pkesk, cipher : @_cipher}
 
-    @pipeline.start()
-    cb null, @pipeline
+    cb null, @stream
 
 #===========================================================================
 
@@ -98,31 +63,3 @@ exports.box = (opts, cb) ->
   cb err, xform
 
 #===========================================================================
-
-class SimpleXform extends stream.Transform
-
-  _transform : (chunk, encoding, cb) ->
-    console.log "push in simple"
-    console.log chunk
-    @push chunk
-    console.log "pushed!"
-    cb()
-
-#input = fs.createReadStream "bigfile"
-#out = fs.createWriteStream "outfile"
-#await input.once 'error', esc defer()
-#await kb.stream.box { sign_with, encrypt_for }, esc defer xform
-#input.pipe(xform).pipe(output)
-#await input.once 'eof', esc defer()
-
-
-x = new Pipeline()
-x.xform new SimpleXform()
-x.start()
-buf = new Buffer "helloo what the fuck man"
-await x.write buf, defer()
-x.on 'data', (data) ->
-  console.log "got data"
-  console.log data.toString 'utf8'
-await x.end defer()
-console.log "done"
