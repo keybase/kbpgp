@@ -33,6 +33,10 @@ class BoxTransformEngine extends BaseBurner
     v = @opts?.encoding or 'binary'
     if not (@encoding = C.literal_formats[v])? then err = new Error "no known encoding: #{v}"
 
+    # PGP armoring 
+    if (v = @opts?.armor) and not (@armor = C.message_types[v])? 
+      err = new Error "bad armor message type: #{v}"
+      
     cb err
 
   #--------------------------------
@@ -56,6 +60,9 @@ class BoxTransformEngine extends BaseBurner
     if @encryption_key?
       await @_setup_encryption esc defer()
       @chain.push_xbt (new SEIPD {}).new_xbt { @pkesk, @cipher, @prefixrandom }
+
+    if @armor
+      @chain.push_xbt new XbtArmorer { type : @armor }
 
     cb null, @stream
 
