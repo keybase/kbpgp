@@ -27,7 +27,7 @@
     "iced-stream": "0.0.1",
     "keybase-compressjs": "^1.0.1-c",
     "keybase-ecurve": "^0.9.0",
-    "pgp-utils": ">=0.0.25",
+    "pgp-utils": ">=0.0.26",
     "purepack": ">=1.0.1",
     "triplesec": ">=3.0.16"
   },

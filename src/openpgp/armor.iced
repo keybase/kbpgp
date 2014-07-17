@@ -3,18 +3,28 @@
 C = require '../const'
 Ch = require '../header'
 {armor} = require('pgp-utils')
+xbt = require '../xbt'
+
+#=========================================================================
+
+MT = C.openpgp.message_types
+
+type_table = 
+  "PUBLIC KEY BLOCK"  : MT.public_key
+  "PRIVATE KEY BLOCK" : MT.private_key
+  "SIGNATURE"         : MT.signature
+  "MESSAGE"           : MT.generic
+
+r_type_table = {}
+for k,v of type_table
+  r_type_table[v] = k
 
 #=========================================================================
 
 exports.encode = (type, data) ->
   mt = C.openpgp.message_types
-  type = switch type
-    when mt.public_key  then "PUBLIC KEY BLOCK"
-    when mt.private_key then "PRIVATE KEY BLOCK"
-    when mt.signature   then "SIGNATURE"
-    when mt.generic     then "MESSAGE"
-    else
-      throw new Error "Cannot encode tag type #{type}"
+  if not (type = r_type_table[type])?
+    throw new Error "Cannot encode tag type #{type}"
   return armor.encode Ch, type, data
 
 #=========================================================================
@@ -22,21 +32,40 @@ exports.encode = (type, data) ->
 class Parser extends armor.Parser
 
   parse_type : () ->
-    mt = C.openpgp.message_types
-    @ret.type = switch @type
-      when "PUBLIC KEY BLOCK" then mt.public_key
-      when "PRIVATE KEY BLOCK" then mt.private_key
-      when "SIGNED MESSAGE"
-        if @ret.clearsign then mt.clearsign
-        else throw new Error "Signed message, but not clear-signed"
-      when "SIGNATURE" then mt.signature
-      when "MESSAGE" then mt.generic
-      else throw new Error "Unknown message type: #{@type}"
+    if not(@ret.type = type_table[@type])?
+      throw new Error "Unknown message type: #{@type}"
+    else if (@ret.type is MT.clearsign) and not @ret.clearsign
+      throw new Error "Signed message, but not clear-signed"
     @ret.fields.type = @type
 
 #=========================================================================
 
-exports.XbtArmorer = class xbt.SimpleInit
+exports.XbtArmorer = class xbt.InBlocker
+
+  constructor : ({type}) ->
+    @_enc = new armor.Encoder Ch
+    @_frame = @_enc.frame type
+    @_out_width = 64                   # 64-base64-encoded characters
+    @_in_width = (@_out_width / 4) * 3 # in input characters
+    super @_in_width
+    @_crc = null
+
+  _v_init : (cb) ->
+    hdr = @_frame.begin.concat(@_enc.header(), "\n")
+    buf = new Buffer hdr, 'utf8'
+    cb null, buf
+
+  _v_inblock_chunk : ({data, eof}, cb) ->
+    strings = []
+    if data?
+      strings.push data.toString('base64')
+      @_crc = armor.compute_crc24 data, @_crc
+    if eof
+      chksum = "=" + uint_to_buffer(32, @_crc)[1...4].toString('base64')
+      strings.push chksum
+      strings.push @_frame.end
+    buf = new Buffer strings.join("\n"), "utf8"
+    cb null, buf
 
 #=========================================================================
 
@@ -55,3 +84,5 @@ exports.decode = decode = (data) -> katch () -> (new Parser data).parse()
 exports.mdecode = decode = (data) -> katch () -> (new Parser data).mparse()
 
 #=========================================================================
+
+
