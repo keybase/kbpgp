@@ -53,3 +53,7 @@ exports.ops_to_keyflags = ops_to_keyflags = (ops) ->
   return out
 
 #=========================================================
+
+exports.bufcat = (bufs) -> Buffer.concat (b for b in bufs when b?)
+
+#=========================================================

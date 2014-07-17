@@ -138,8 +138,7 @@ class InBlocker extends SimpleInit
     bufs = []
 
     # First pop of the first partial buffer (if it's partial)
-    if @_buffers.length and @_p > 0
-      bufs.push @_buffers.shift()[@_p...]
+    bufs.push(@_buffers.shift()[@_p...]) if @_buffers.length and @_p > 0
 
     # Now consider all of the full buffers, and concat them
     # together into one.
@@ -149,6 +148,7 @@ class InBlocker extends SimpleInit
     # Reset the internal state
     @_buffers = []
     @_dlen = 0
+    @_p = 0
 
     eof = false
     until eof
@@ -158,6 +158,7 @@ class InBlocker extends SimpleInit
       await @_v_inblock_chunk { data, eof }, esc defer out
       outbufs.push out
       i = end
+      
     out = Buffer.concat outbufs
     cb null, out
 

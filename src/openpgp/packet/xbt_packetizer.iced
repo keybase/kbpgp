@@ -12,7 +12,7 @@ util = require '../util'
 # 
 exports.Packetizer = class Packetizer extends xbt.SimpleInit
 
-  constructor : ({log2_chunksz, packet}) ->
+  constructor : ({log2_chunksz, packet, header}) ->
     log2_chunksz or= 16
     @_chunksz = (1 << log2_chunksz)
     @_prefix = new Buffer [(0xe0 | log2_chunksz)] # AKA 224 + log2_chunksz

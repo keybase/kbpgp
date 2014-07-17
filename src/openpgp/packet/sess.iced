@@ -2,9 +2,13 @@
 {Packet} = require './base'
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
-{SHA1} = require '../../hash'
-{uint_to_buffer,bufeq_secure,bufeq_fast} = require '../../util'
-{encrypt,Decryptor} = require '../ocfb'
+hashmod = require '../../hash'
+{SHA1} = hashmod
+{bufcat,uint_to_buffer,bufeq_secure,bufeq_fast} = require '../../util'
+{encrypt,Encryptor,Decryptor} = require '../ocfb'
+{Packetizer} = require './xbt_packetizer'
+xbt = require '../../xbt'
+{make_esc} = require 'iced-error'
 
 #=================================================================================
 
@@ -42,9 +46,14 @@ class PKESK extends Packet
 # 5.13.  Sym. Encrypted Integrity Protected Data Packet (Tag 18)
 class SEIPD extends Packet
 
-  constructor : ( { @ciphertext} ) ->
+  constructor : ( { @ciphertext }) ->
 
   @parse : (slice) -> (new SEIPD_Parser slice).parse()
+
+  #------
+
+  @TAG : C.packet_tags.SEIPD
+  TAG : SEIPD.TAG
 
   #------
 
@@ -81,22 +90,59 @@ class SEIPD extends Packet
 
   write_unframed : (cb) ->
     err = ret = null
-    ret = Buffer.concat [ uint_to_buffer(8, C.versions.SEIPD), @ciphertext ]
+    bufs = [ uint_to_buffer(8, C.versions.SEIPD) ]
+    bufs.push(@ciphertext) if @ciphertext?
+    ret = Buffer.concat(bufs)
     cb err, ret
 
   #------
 
-  write : (cb) ->
-    ret = err = null
-    await @write_unframed defer err, unframed
-    unless err?
-      ret = @frame_packet C.packet_tags.SEIPD, unframed
-    cb err, ret
+  new_xbt : ( { pkesk, cipher, prefixrandom } ) -> new SEIPD_XbtOut { pkesk, packet : @, cipher, prefixrandom }
+
+#=================================================================================
+
+exports.SEIPD_XbtOut = class SEIPD_XbtOut extends Packetizer
+
+  constructor : ({packet, @pkesk, cipher, prefixrandom }) ->
+    super { packet } 
+    @_mdc = new MDC {}
+    @_mdc_xbt = @_mdc.new_xbt {}
+    @_ocfb = new Encryptor { cipher, prefixrandom }
+
+  #----------------
+
+  _v_init : (cb) ->
+    # Prefix our packet with the full PKESK packet (see above)
+    await super defer err, out
+    if not err? then out = bufcat [ @pkesk, out ]
+    cb err, out
+
+  #----------------
+
+  _v_chunk : ({data, eof}, cb) ->
+    esc = make_esc cb, "SEIPD_XbtOut::_v_chunk"
+
+    # Will only output a SHA1 digest in an EOF situation
+    await @_mdc_xbt.chunk { data, eof }, esc defer out
+
+    # Append the MDC packet to the end of the stream, and then, in turn,
+    # we'll encrypt it with the OCFB encryption stream.
+    data = bufcat [ data, out ]
+
+    # Get the encrypted data... 
+    await @_ocfb.chunk { data, eof }, esc defer out
+
+    # And pass our output up to the superclass, which will packetize it accordingly,
+    # along 64k boundaries
+    await super { data : out, eof }, esc defer out
+
+    cb null, out
 
 #=================================================================================
 
 # 5.14.  Modification Detection Code Packet (Tag 19)
 class MDC extends Packet
+
   @header : new Buffer [ (0xc0 | C.packet_tags.MDC ), SHA1.output_length ]
   header  : MDC.header
   constructor : ({@digest}) ->
@@ -108,6 +154,27 @@ class MDC extends Packet
 
   check : () -> bufeq_secure @digest, @computed
 
+  @TAG : C.packet_tags.MDC
+  TAG : MDC.TAG
+
+  write_unframed : (cb) -> cb null, @digest
+
+  new_xbt : () -> new MDC_XbtOut { mdc : @ }
+
+#=================================================================================
+
+exports.MDC_XbtOut = class MDC_XbtOut extends xbt.Base
+
+  constructor : ({@mdc}) ->
+    @hasher = hashmod.streamers.SHA1()
+
+  chunk : ( {data, eof}, cb) ->
+    @hasher.update(data) if data?
+    err = out = null
+    if eof
+      @mdc.digest = @hasher()
+      await @mdc.write defer err, out
+    cb err, out
 
 #=================================================================================
 

@@ -83,7 +83,7 @@ class Burner extends BaseBurner
   #------------
 
   scrub : () ->
-    @_cipher.scrub() if @_cipher?
+    @cipher.scrub() if @cipher?
     scrub_buffer @_session_key if @_session_key?
 
   #------------
@@ -91,12 +91,11 @@ class Burner extends BaseBurner
   _encrypt_payload : (cb) ->
     esc = make_esc cb, "Burner::_encrypt_payload"
     plaintext = @collect_packets()
-    await SRF().random_bytes @_cipher.blockSize, defer prefixrandom
     pkt = new SEIPD {}
-    await pkt.encrypt { cipher : @_cipher, plaintext, prefixrandom }, esc defer()
+    await pkt.encrypt { @cipher, plaintext, @prefixrandom }, esc defer()
     await pkt.write esc defer pkt
     scrub_buffer plaintext
-    @packets = [ @_pkesk, pkt ]
+    @packets = [ @pkesk, pkt ]
     cb null
 
   #------------

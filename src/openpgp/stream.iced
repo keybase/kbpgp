@@ -8,6 +8,7 @@ stream = require 'stream'
 {make_esc} = require 'iced-error'
 xbt = require '../xbt'
 {Compressed} = require './packet/compressed'
+{SEIPD} = require './packet/sess'
 
 #===========================================================================
 
@@ -52,9 +53,9 @@ class BoxTransformEngine extends BaseBurner
     if @compression isnt C.compression.none
       @chain.push_xbt (new Compressed { algo : @compression}).new_xbt()
 
-    #if @encryption_key?
-    #  await @_setup_encryption esc defer()
-    #  @pipeline.push new EncryptionTransform { pkesk : @_pkesk, cipher : @_cipher}
+    if @encryption_key?
+      await @_setup_encryption esc defer()
+      @chain.push_xbt (new SEIPD {}).new_xbt { @pkesk, @cipher, @prefixrandom }
 
     cb null, @stream
 

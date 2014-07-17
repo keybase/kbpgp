@@ -65,7 +65,7 @@ exports.BaseBurner = class BaseBurner
     @_cipher_algo = C.symmetric_key_algorithms.AES256
     @_cipher_info = get_cipher @_cipher_algo
     await SRF().random_bytes @_cipher_info.key_size, defer @_session_key
-    @_cipher = new @_cipher_info.klass WordArray.from_buffer @_session_key
+    @cipher = new @_cipher_info.klass WordArray.from_buffer @_session_key
     cb null
 
   #------------
@@ -86,7 +86,13 @@ exports.BaseBurner = class BaseBurner
       key_id : key_id,
       ekey : ekey
     } 
-    await pkt.write esc defer @_pkesk
+    await pkt.write esc defer @pkesk
+    cb null
+
+  #-----------------
+
+  _generate_iv : (cb) ->
+    await SRF().random_bytes @cipher.blockSize, defer @prefixrandom
     cb null
 
   #-----------------
@@ -95,7 +101,8 @@ exports.BaseBurner = class BaseBurner
     esc = make_esc cb, "_setup_encryption"
     await @_make_session_key esc defer()
     await @_encrypt_session_key esc defer()
-    cb null, @_pkesk
+    await @_generate_iv esc defer()
+    cb null, @pkesk
 
   #-----------------
 

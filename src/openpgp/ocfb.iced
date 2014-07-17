@@ -407,6 +407,7 @@ decrypt = ({block_cipher_class, key, cipher, resync, ciphertext}) ->
 exports.encrypt = encrypt
 exports.decrypt = decrypt
 exports.Decryptor = Decryptor
+exports.Encryptor = Encryptor
 
 #===============================================================================
 
@@ -439,7 +440,7 @@ test = () ->
   console.log pt.toString('utf8')
   console.log pt.length
 
-test()
+#test()
 
 #===============================================================================
 
