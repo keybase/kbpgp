@@ -100,14 +100,14 @@ class InBlocker extends SimpleInit
         slices.push getbuf b, start
         total += stuff
       else if leftover is 0
-        @slices.push getbuf b, start
+        slices.push getbuf b, start
         total += stuff
         @_buffers = @_buffers[(i+1)...]
         @_p = 0
         break
       else
         end = b.length - leftover
-        @slices.push getbuf b, start, end
+        slices.push getbuf b, start, end
         @_buffers = @_buffers[i...]
         @_p = end
         break
@@ -126,8 +126,6 @@ class InBlocker extends SimpleInit
       await @_handle_eof defer err, out
     else if @_dlen >= @block_size
       await @_handle_block defer err, out
-    console.log "_v_chunk"
-    console.log out
     cb err, out
 
   #----------------------
@@ -136,10 +134,23 @@ class InBlocker extends SimpleInit
     esc = make_esc cb, "InBlocker::_v_chunk"
     i = 0
     outbufs = []
-    eof = false
-    buf = Buffer.concat @_buffers
+
+    bufs = []
+
+    # First pop of the first partial buffer (if it's partial)
+    if @_buffers.length and @_p > 0
+      bufs.push @_buffers.shift()[@_p...]
+
+    # Now consider all of the full buffers, and concat them
+    # together into one.
+    bufs = bufs.concat @_buffers
+    buf = Buffer.concat bufs
+
+    # Reset the internal state
     @_buffers = []
     @_dlen = 0
+
+    eof = false
     until eof
       end = i + @block_size
       eof = end >= buf.length
@@ -152,7 +163,7 @@ class InBlocker extends SimpleInit
 
   #----------------------
 
-  _handle_block : (buf, cb) ->
+  _handle_block : (cb) ->
     data = @_pop_block()
     await @_v_inblock_chunk { data, eof : false }, defer err, out
     cb err, out

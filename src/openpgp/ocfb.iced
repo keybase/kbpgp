@@ -103,8 +103,6 @@ class Encryptor extends Base
   #-------------
 
   _emit_buf : (buf) ->
-    console.log "emit buf "
-    console.log xxd buf
     wa = WordArray.from_buffer buf[0...@block_size]
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
@@ -190,7 +188,6 @@ class Encryptor extends Base
 
   _do_first : (data, cb) ->
     if @resync
-      console.log "resync!!"
       @_emit_buf data
     else
       # 9. FRE is xored with the first 8 octets of the given plaintext, now
@@ -199,8 +196,6 @@ class Encryptor extends Base
       wa = WordArray.from_buffer data
       wa.xor @FRE, {}
       buf = wa.to_buffer()[2...]
-      console.log "init buf push"
-      console.log xxd buf
       @out_bufs.push buf
       ct = @compact()
       ct.copy(@FR,0,ct.length - @block_size,ct.length)
@@ -225,14 +220,6 @@ class Encryptor extends Base
       else if overage isnt 0
         out = out[0...(-overage)]
     [err, out]
-
-#===============================================================================
-
-# Should inherit from xbt.Base, but no multiple inheritance, so we'll duck-type
-# it instead.
-class XbtEncryptor extends Encryptor
-
-  chunk : ({data, eof}, cb) ->
 
 #===============================================================================
 
@@ -323,8 +310,6 @@ class Encryptor0 extends Base
   #-------------
 
   _emit_buf : (buf) ->
-    console.log "emit buf "
-    console.log xxd buf
     wa = WordArray.from_buffer buf[0...@block_size]
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
@@ -384,8 +369,6 @@ class Encryptor0 extends Base
       wa = WordArray.from_buffer buf
       wa.xor @FRE, {}
       buf = wa.to_buffer()[2...]
-      console.log "init buf push"
-      console.log xxd buf
       @out_bufs.push buf
       ct = @compact()
       ct.copy(@FR,0,ct.length - @block_size,ct.length)
@@ -430,16 +413,31 @@ exports.Decryptor = Decryptor
 {rng} = require 'crypto'
 test = () ->
   plaintext = new Buffer("a man a plan a canal panama. and you know the rest")
+  plaintext = Buffer.concat (plaintext for [0..48])
   key = rng(32)
   prefixrandom = new Buffer [0...16]
   block_cipher_class = AES
   await encrypt { block_cipher_class, key, prefixrandom, plaintext }, defer err, ct
+  eng = new Encryptor { block_cipher_class, key, prefixrandom }
+  outbufs = []
+  for i in [0...plaintext.length] by 29
+    await process.nextTick defer()
+    await eng.chunk { data : plaintext[i...(i+29)], eof : false }, defer err, out
+    throw err if err?
+    outbufs.push out
+  console.log outbufs
+  await eng.chunk { eof : true }, defer err, out
+  throw err if err?
+  outbufs.push out
+  ct = Buffer.concat outbufs
+
   console.log err
   console.log xxd ct
   ct2 = encrypt0 { block_cipher_class, key, prefixrandom, plaintext }
   console.log xxd ct2
   pt = decrypt {block_cipher_class, key, prefixrandom, ciphertext : ct }
   console.log pt.toString('utf8')
+  console.log pt.length
 
 test()
 
