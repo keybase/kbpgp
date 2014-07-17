@@ -83,8 +83,8 @@ class SEIPD extends Packet
     mdc = new MDC {}
     mdc_buf = mdc.compute { plaintext, prefix : prefixrandom }
     plaintext = Buffer.concat [ plaintext, MDC.header, mdc_buf ]
-    @ciphertext = encrypt { cipher, plaintext, prefixrandom }
-    cb null
+    await encrypt { cipher, plaintext, prefixrandom }, defer err, @ciphertext
+    cb err
 
   #------
 
