@@ -12,6 +12,7 @@
 
 stream = require 'stream'
 {make_esc} = require 'iced-error'
+assert = require 'assert'
 
 #=========================================================
 
@@ -59,6 +60,102 @@ class SimpleInit extends Base
     await @_v_chunk { data, eof }, esc defer out
     out = Buffer.concat([ init_data, out ]) if init_data?
     cb null, out
+
+#=========================================================
+
+class InBlocker extends SimpleInit
+
+  constructor : (@block_size) ->
+    super()
+    @_buffers = []
+    @_dlen = 0
+    @_p = 0
+    @_input_len = 0
+
+  #----------------------
+
+  _push_data : (b) ->
+    if b?.length
+      @_buffers.push b
+      @_dlen += b.length
+
+  #----------------------
+
+  _pop_block : (block_size) ->
+    total = 0
+    slices = []
+
+    block_size or= @block_size
+
+    getbuf = (buf, start, end) ->
+      if not start and not end? then buf
+      else if not end? then buf[start...]
+      else buf[start...end]
+
+    for b,i in @_buffers
+      start = if i is 0 then @_p else 0
+      stuff = b.length - start
+      leftover = total + stuff - block_size
+      if leftover < 0
+        slices.push getbuf b, start
+        total += stuff
+      else if leftover is 0
+        @slices.push getbuf b, start
+        total += stuff
+        @_buffers = @_buffers[(i+1)...]
+        @_p = 0
+        break
+      else
+        end = b.length - leftover
+        @slices.push getbuf b, start, end
+        @_buffers = @_buffers[i...]
+        @_p = end
+        break
+
+    out = Buffer.concat slices
+    assert (out.length is block_size)
+    return out
+
+  #----------------------
+  
+  _v_chunk : ({data, eof}, cb) ->
+    @_input_len += data.length if data?
+    @_push_data data
+    err = out = null
+    if eof
+      await @_handle_eof defer err, out
+    else if @_dlen >= @block_size
+      await @_handle_block defer err, out
+    console.log "_v_chunk"
+    console.log out
+    cb err, out
+
+  #----------------------
+  
+  _handle_eof : (cb) -> 
+    esc = make_esc cb, "InBlocker::_v_chunk"
+    i = 0
+    outbufs = []
+    eof = false
+    buf = Buffer.concat @_buffers
+    @_buffers = []
+    @_dlen = 0
+    until eof
+      end = i + @block_size
+      eof = end >= buf.length
+      data = buf[i...end]
+      await @_v_inblock_chunk { data, eof }, esc defer out
+      outbufs.push out
+      i = end
+    out = Buffer.concat outbufs
+    cb null, out
+
+  #----------------------
+
+  _handle_block : (buf, cb) ->
+    data = @_pop_block()
+    await @_v_inblock_chunk { data, eof : false }, defer err, out
+    cb err, out
 
 #=========================================================
 
@@ -128,5 +225,6 @@ exports.Chain = Chain
 exports.SimpleInit = SimpleInit
 exports.StreamAdapter = StreamAdapter
 exports.ReverseAdapter = ReverseAdapter
+exports.InBlocker = InBlocker
 
 #=========================================================

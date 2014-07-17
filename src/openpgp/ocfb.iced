@@ -46,6 +46,8 @@
 {SlicerBuffer} = require './buffer'
 triplesec = require 'triplesec'
 {AES} = triplesec.ciphers
+xbt = require '../xbt'
+{make_esc} = require 'iced-error'
 
 #===============================================================================
 
@@ -53,15 +55,17 @@ repeat = (b, n) -> Buffer.concat [ b, b[(b.length - n)...] ]
 
 #===============================================================================
 
-class Base 
+class Base extends xbt.InBlocker
 
   #-------------
 
   constructor : ({@block_cipher_class, key, @cipher, @resync}) ->
     @block_cipher_class or= AES
     @cipher or= new @block_cipher_class WordArray.from_buffer key
-    @block_size = @cipher.blockSize
+    block_size = @cipher.blockSize
     @out_bufs = []
+    @bytes_flushed = 0
+    super block_size
 
   #-------------
 
@@ -69,6 +73,14 @@ class Base
     b = Buffer.concat @out_bufs
     @out_bufs = [ b ] 
     b
+
+  #-------------
+
+  _flush : () ->
+    out = Buffer.concat @out_bufs
+    @out_bufs = []
+    @bytes_flushed += out.length
+    out
 
 #===============================================================================
 
@@ -78,22 +90,13 @@ class Encryptor extends Base
 
   constructor : ({block_cipher_class, key, cipher, prefixrandom, resync}) ->
     super { block_cipher_class, key, cipher, resync }
-    @_init prefixrandom
+    @_init_iv prefixrandom
 
   #-------------
 
   _enc : () ->
     @FRE = WordArray.from_buffer @FR
     @cipher.encryptBlock @FRE.words, 0
-
-  #-------------
-
-  _emit_sb : (sb) ->
-    buf = if (deficit = @block_size - sb.rem()) > 0
-      pad = new Buffer( 0 for i in [0...deficit])
-      Buffer.concat [ sb.consume_rest_to_buffer(), pad ]
-    else sb.read_buffer @block_size
-    @_emit_buf buf
 
   #-------------
 
@@ -106,7 +109,7 @@ class Encryptor extends Base
 
   #-------------
 
-  _init : (prefixrandom) ->
+  _init_iv : (prefixrandom) ->
 
     # 1. The feedback register (FR) is set to the IV, which is all zeros.
     @FR = new Buffer(0 for i in [0...@block_size]) 
@@ -144,30 +147,85 @@ class Encryptor extends Base
 
   #-------------
 
-  enc : (plaintext) -> 
-    sb = new SlicerBuffer plaintext
+  _v_init : (cb) -> 
+    # The first block is prefixed with 2 sync NULL bytes. This shifts the 
+    # whole stream over 2 bytes, as desired
+    unless @resync
+      @_push_data new Buffer [0,0]
+    cb null, null
 
+  #-------------
+
+  _pad : ({data, eof}) ->
+    err = null
+    if (a = data.length) > (b = @block_size) 
+      err = new Error "Got overgrown data block; this should never happen: #{a} > #{b}"
+    else if a is b then # noop
+    else if not(eof) 
+      err = new Error "blocking error; got a block of size #{a} != #{b} midstream"
+    else
+      data = Buffer.concat [ data, (new Buffer(0 for [0...(b-a)])) ]
+    [err, data]
+
+  #-------------
+
+  _v_inblock_chunk : ({data, eof}, cb) ->
+    out = null
+    [err,data] = @_pad { data, eof }
+    unless err?
+      if @_first
+        @_first = false
+        @_do_first data
+        data = null
+      if data?.length
+        @_do_block data
+      [err, out] = @_flush_and_trunc eof
+    cb err, out
+
+  #-------------
+
+  _do_first : ({data}, cb) ->
     if @resync
-      @_emit_sb sb
+      @_emit_buf data
     else
       # 9. FRE is xored with the first 8 octets of the given plaintext, now
       #    That we have finished encrypting the 10 octets of prefixed data.
       #    This produces C11-C18, the next 8 octets of ciphertext.
-      buf = Buffer.concat [ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
-      wa = WordArray.from_buffer buf
+      wa = WordArray.from_buffer data
       wa.xor @FRE, {}
       buf = wa.to_buffer()[2...]
       @out_bufs.push buf
       ct = @compact()
       ct.copy(@FR,0,ct.length - @block_size,ct.length)
 
-    while sb.rem()
-      @_enc()
-      @_emit_sb sb
+  #-------------
 
-    ret = @compact()
-    n_wanted = plaintext.length + @block_size + 2
-    ret[0...n_wanted]
+  _do_block : (data, cb) ->
+    @_enc()
+    @_emit_buf data
+
+  #-------------
+
+  _flush_and_trunc : (eof) ->
+    out = @_flush()
+    err = null
+    if eof
+      n_wanted = @_input_len + @block_size + 2
+      if (overage = @bytes_flushed - n_wanted) < 0
+        err = new Error "Internal error: flushed #{@bytes_flushed} but needed #{n_wanted}"
+      else if overage > out.length
+        err = new Error "Internal error: we had #{overage} overage bytes, but only had #{out.length} to trim"
+      else if overage isnt 0
+        out = out[0...(-overage)]
+    [err, out]
+
+#===============================================================================
+
+# Should inherit from xbt.Base, but no multiple inheritance, so we'll duck-type
+# it instead.
+class XbtEncryptor extends Encryptor
+
+  chunk : ({data, eof}, cb) ->
 
 #===============================================================================
 
@@ -232,9 +290,10 @@ class Decryptor extends Base
 
 #===============================================================================
 
-encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext} ) ->
+encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext}, cb) ->
   eng = new Encryptor { block_cipher_class, key, cipher, prefixrandom, resync }
-  eng.enc plaintext
+  await eng.chunk { data : plaintext, eof : true }, defer err, out
+  cb err, out
 
 #===============================================================================
 
@@ -258,12 +317,13 @@ test = () ->
   key = rng(32)
   prefixrandom = new Buffer [0...16]
   block_cipher_class = AES
-  ct = encrypt { block_cipher_class, key, prefixrandom, plaintext }
+  await encrypt { block_cipher_class, key, prefixrandom, plaintext }, defer err, ct
+  console.log err
   console.log ct.toString('hex')
   pt = decrypt {block_cipher_class, key, prefixrandom, ciphertext : ct }
   console.log pt.toString('utf8')
 
-#test()
+test()
 
 #===============================================================================
 
