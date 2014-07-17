@@ -4,7 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 hashmod = require '../../hash'
 {SHA1} = hashmod
-{bufcat,uint_to_buffer,bufeq_secure,bufeq_fast} = require '../../util'
+{xxd,bufcat,uint_to_buffer,bufeq_secure,bufeq_fast} = require '../../util'
 {encrypt,Encryptor,Decryptor} = require '../ocfb'
 {Packetizer} = require './xbt_packetizer'
 xbt = require '../../xbt'
@@ -105,8 +105,8 @@ exports.SEIPD_XbtOut = class SEIPD_XbtOut extends Packetizer
 
   constructor : ({packet, @pkesk, cipher, prefixrandom }) ->
     super { packet } 
-    @_mdc = new MDC {}
-    @_mdc_xbt = @_mdc.new_xbt {}
+    @_mdc = new MDC { }
+    @_mdc_xbt = @_mdc.new_xbt { prefixrandom }
     @_ocfb = new Encryptor { cipher, prefixrandom }
 
   #----------------
@@ -157,23 +157,29 @@ class MDC extends Packet
   @TAG : C.packet_tags.MDC
   TAG : MDC.TAG
 
-  write_unframed : (cb) -> cb null, @digest
+  write_unframed : (cb) -> 
+    out = @digest or (new Buffer [])
+    cb null, out
 
-  new_xbt : () -> new MDC_XbtOut { mdc : @ }
+  new_xbt : ({prefixrandom}) -> new MDC_XbtOut { mdc : @, prefixrandom }
 
 #=================================================================================
 
 exports.MDC_XbtOut = class MDC_XbtOut extends xbt.Base
 
-  constructor : ({@mdc}) ->
+  constructor : ({@mdc, prefixrandom}) ->
     @hasher = hashmod.streamers.SHA1()
+    @hasher.update prefixrandom
+    @hasher.update prefixrandom[-2...]
 
   chunk : ( {data, eof}, cb) ->
+    esc = make_esc cb, "MDC_XbtOut::chunk"
     @hasher.update(data) if data?
     err = out = null
     if eof
+      @hasher.update @mdc.header
       @mdc.digest = @hasher()
-      await @mdc.write defer err, out
+      await @mdc.write esc defer out
     cb err, out
 
 #=================================================================================

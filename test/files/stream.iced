@@ -48,44 +48,49 @@ box = ({T,sign_with, encrypt_for,plaintext,opts}, cb) ->
 
 #----------------------------------------------------------------
 
-verify = ({T,signed_msg, plaintext, km }, cb) ->
-  await unbox { armored : signed_msg, keyfetch }, defer err, msg
+unbox2 = ({T,plaintext, armored, km, signed }, cb) ->
+  await unbox { armored, keyfetch }, defer err, msg
   T.no_error err
-  T.equal plaintext, msg[0].toString(), "signed literal was right"
-  T.assert km.is_pgp_same_key(msg[0].get_data_signer().km, km), "the right signing key"
+  T.equal plaintext, msg[0].toString(), "output literal was right"
+  if signed
+    T.assert km.is_pgp_same_key(msg[0].get_data_signer().km, km), "the right signing key"
   cb()
 
 #----------------------------------------------------------------
 
-sign_and_verify = (T,plaintext,opts,cb) ->
-  arg = { T, km, sign_with : km, plaintext, opts }
-  await box arg, defer arg.signed_msg
+round_trip = (cfg, T,plaintext,cb) ->
+  arg = { T, km, plaintext }
+  for c in cfg
+    switch c
+      when 's' 
+        arg.sign_with = km
+        arg.signed = true
+      when 'e'
+        arg.encrypt_for = km
+      when 'z'
+        arg.opts = { compression : 'zlib' } 
+  await box arg, defer arg.armored
   T.waypoint "sign"
-  await verify arg, defer()
+  await unbox2 arg, defer()
   T.waypoint "verify"
   cb()
 
 #----------------------------------------------------------------
 
-encrypt = (T,plaintext,opts,cb) ->
-  arg = { T, km, encrypt_for : km, plaintext, opts }
-  await box arg, defer ctext
-  console.log ctext
-  cb()
+exports.encrypt_shortie = (T,cb) -> round_trip "e", T, short, cb
+exports.encrypt_med = (T,cb) -> round_trip "e", T, med, cb
+exports.encrypt_med_zlib = (T,cb) -> round_trip "ez", T, med, cb
 
 #----------------------------------------------------------------
 
-exports.encrypt_shortie = (T,cb) -> encrypt T, short, {}, cb
-exports.encrypt_med = (T,cb) -> encrypt T, med, {}, cb
-exports.encrypt_med_zlib = (T,cb) -> encrypt T, med, { compression : 'zlib' }, cb
+exports.sign_and_verify_shortie = (T,cb) -> round_trip "s", T, short, cb
+exports.sign_and_verify_med = (T,cb) -> round_trip "s", T, med, cb
+exports.sign_and_verify_zlib = (T,cb) -> round_trip "sz", T, med, cb
 
 #----------------------------------------------------------------
 
-exports.sign_and_verify_shortie = (T,cb) -> sign_and_verify T, short, {}, cb
-exports.sign_and_verify_med = (T,cb) -> sign_and_verify T, med, {}, cb
-
-#----------------------------------------------------------------
-
-exports.sign_and_verify_zlib = (T,cb) -> sign_and_verify T, med, { compression : 'zlib' }, cb
+exports.signcrypt_shortie = (T,cb) -> round_trip "es", T, short, cb
+exports.signcrypt_med = (T,cb) -> round_trip "es", T, med, cb
+exports.signcrypt_zlib = (T,cb) -> round_trip "esz", T, med, cb
 
 #----------------------------------------------------------------
