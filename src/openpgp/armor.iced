@@ -44,7 +44,7 @@ exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
 
   constructor : ({type}) ->
     @_enc = new armor.Encoder Ch
-    unless (type = type_table[type])
+    unless (type = r_type_table[type])?
       @_err = new Error "Bad type"
     @_frame = @_enc.frame type
     @_out_width = 64                   # 64-base64-encoded characters
@@ -61,13 +61,13 @@ exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
   _v_inblock_chunk : ({data, eof}, cb) ->
     strings = []
     if data?
-      strings.push data.toString('base64')
+      strings.push (data.toString('base64') + "\n")
       @_crc = armor.compute_crc24 data, @_crc
     if eof
       chksum = "=" + uint_to_buffer(32, @_crc)[1...4].toString('base64')
-      strings.push chksum
+      strings.push chksum + "\n"
       strings.push @_frame.end
-    buf = new Buffer strings.join("\n"), "utf8"
+    buf = new Buffer strings.join(""), "utf8"
     cb null, buf
 
 #=========================================================================

@@ -72,7 +72,6 @@ exports.import_key = (T,cb) ->
 box = ({T,sign_with, encrypt_for,plaintext,opts}, cb) ->
   opts or= {}
   opts.armor = 'generic'
-  console.log opts
   await stream.box { sign_with, encrypt_for, opts}, defer err, xform
   T.no_error err
   buf = new Buffer(plaintext, 'utf8')
@@ -112,7 +111,6 @@ round_trip = (cfg, T,plaintext,cb) ->
       when 'z'
         arg.opts = { compression : 'zlib' } 
   await box arg, defer arg.armored
-  console.log arg.armored
   T.waypoint "sign"
   await unbox2 arg, defer()
   T.waypoint "verify"

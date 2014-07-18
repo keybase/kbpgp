@@ -13,6 +13,7 @@
 stream = require 'stream'
 {make_esc} = require 'iced-error'
 assert = require 'assert'
+{bufcat} = require './util'
 
 #=========================================================
 
@@ -58,7 +59,7 @@ class SimpleInit extends Base
     esc = make_esc cb, "SimpleInit::chunk"
     await @init esc defer init_data
     await @_v_chunk { data, eof }, esc defer out
-    out = Buffer.concat([ init_data, out ]) if init_data?
+    out = bufcat [ init_data, out ]
     cb null, out
 
 #=========================================================
