@@ -9,6 +9,7 @@ stream = require 'stream'
 xbt = require '../xbt'
 {Compressed} = require './packet/compressed'
 {SEIPD} = require './packet/sess'
+{XbtArmorer} = require './armor'
 
 #===========================================================================
 
@@ -61,7 +62,7 @@ class BoxTransformEngine extends BaseBurner
       await @_setup_encryption esc defer()
       @chain.push_xbt (new SEIPD {}).new_xbt { @pkesk, @cipher, @prefixrandom }
 
-    if @armor
+    if @armor?
       @chain.push_xbt new XbtArmorer { type : @armor }
 
     cb null, @stream

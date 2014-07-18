@@ -1,6 +1,6 @@
 
 main = require '../../'
-{keyring,unbox,KeyManager,stream,armor,util} = main
+{keyring,unbox,KeyManager,stream,util} = main
 C = main.const
 {Faucet,Drain} = require 'iced-stream'
 
@@ -71,6 +71,8 @@ exports.import_key = (T,cb) ->
 
 box = ({T,sign_with, encrypt_for,plaintext,opts}, cb) ->
   opts or= {}
+  opts.armor = 'generic'
+  console.log opts
   await stream.box { sign_with, encrypt_for, opts}, defer err, xform
   T.no_error err
   buf = new Buffer(plaintext, 'utf8')
@@ -80,7 +82,7 @@ box = ({T,sign_with, encrypt_for,plaintext,opts}, cb) ->
   xform.pipe(d)
   d.once 'finish', () ->
     buf = d.data()
-    signed_msg = armor.encode C.openpgp.message_types.generic, buf
+    signed_msg = buf
     cb signed_msg
   d.once 'error', (err) ->
     T.no_error err
@@ -110,6 +112,7 @@ round_trip = (cfg, T,plaintext,cb) ->
       when 'z'
         arg.opts = { compression : 'zlib' } 
   await box arg, defer arg.armored
+  console.log arg.armored
   T.waypoint "sign"
   await unbox2 arg, defer()
   T.waypoint "verify"

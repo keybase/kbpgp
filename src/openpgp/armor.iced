@@ -40,10 +40,12 @@ class Parser extends armor.Parser
 
 #=========================================================================
 
-exports.XbtArmorer = class xbt.InBlocker
+exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
 
   constructor : ({type}) ->
     @_enc = new armor.Encoder Ch
+    unless (type = type_table[type])
+      @_err = new Error "Bad type"
     @_frame = @_enc.frame type
     @_out_width = 64                   # 64-base64-encoded characters
     @_in_width = (@_out_width / 4) * 3 # in input characters
@@ -51,9 +53,10 @@ exports.XbtArmorer = class xbt.InBlocker
     @_crc = null
 
   _v_init : (cb) ->
-    hdr = @_frame.begin.concat(@_enc.header(), "\n")
-    buf = new Buffer hdr, 'utf8'
-    cb null, buf
+    unless @_err?
+      hdr = @_frame.begin.concat(@_enc.header(), "\n")
+      buf = new Buffer hdr, 'utf8'
+    cb @_err, buf
 
   _v_inblock_chunk : ({data, eof}, cb) ->
     strings = []
