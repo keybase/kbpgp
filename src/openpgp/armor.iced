@@ -72,6 +72,29 @@ exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
 
 #=========================================================================
 
+exports.XbtSmartDearmorer = class XbtSmartDearmorer extends xbt.Gets
+
+  constructor : () ->
+    super { maxline : 256 }
+    @_did_first = false
+    @_binary_mode = false
+
+  chunk : ({data, eof}, cb) ->
+    if @_first
+      @_first = false
+      await @_chunk_first { data, eof }, defer err, out
+    else
+      await @_chunk_rest { data, eof }, defer err, out
+    cb err, out
+
+  _chunk_first : ({data, eof}, cb) ->
+    await @_line_chunk { data, eof }, defer err, out, newline
+    if newline
+    @_binary_mode = true unless newline
+    cb err, out
+
+#=========================================================================
+
 exports.Message = armor.Message
 
 #=========================================================================

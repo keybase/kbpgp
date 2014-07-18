@@ -9,7 +9,7 @@ stream = require 'stream'
 xbt = require '../xbt'
 {Compressed} = require './packet/compressed'
 {SEIPD} = require './packet/sess'
-{XbtArmorer} = require './armor'
+{XbtSmartDearmorer,XbtArmorer} = require './armor'
 
 #===========================================================================
 
@@ -69,9 +69,36 @@ class BoxTransformEngine extends BaseBurner
 
 #===========================================================================
 
+class UnboxTransformEngine
+
+  #---------------------------------------
+
+  constructor : ({@opts, @keyfetch}) ->
+    @chain = new xbt.Chain
+    @stream = new xbt.StreamAdapter { xbt : @chain }
+
+  #---------------------------------------
+
+  init : (cb) ->
+    @chain.push_xbt(new XbtSmartDearmorer {})
+          .push_xbt(SEIPD.new_parse_xbt { @keyfetch })
+          .push_xbt(Compressed.new_parse_xbt {})
+          .push_xbt(OnePassSignature.new_parse_xbt {})
+          .push_xbt(Literal.new_parse_xbt {})
+    cb null, @stream
+
+#===========================================================================
+
 exports.box = (opts, cb) ->
   eng = new BoxTransformEngine opts
   await eng.init defer err, xform
   cb err, xform
+
+#===========================================================================
+
+exports.unbox = (opts, cb) ->
+  eng = new UnboxTransformEngine opts
+  await eng.init defer err, xform
+  cb err, xform, eng
 
 #===========================================================================

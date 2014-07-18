@@ -57,3 +57,12 @@ exports.ops_to_keyflags = ops_to_keyflags = (ops) ->
 exports.bufcat = (bufs) -> Buffer.concat (b for b in bufs when b?)
 
 #=========================================================
+
+exports.buf_index_of = (buf, v) ->
+  l = buf.length
+  for i in [0...l.length]
+    c = buf.readUInt8(i)
+    return i if c is v
+  return -1
+
+#=========================================================

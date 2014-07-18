@@ -13,7 +13,7 @@
 stream = require 'stream'
 {make_esc} = require 'iced-error'
 assert = require 'assert'
-{bufcat} = require './util'
+{buf_index_of,bufcat} = require './util'
 
 #=========================================================
 
@@ -32,6 +32,7 @@ class Chain extends Base
 
   push_xbt : (link) ->
     @links.push link
+    @
 
   chunk : ({data,eof}, cb) ->
     esc = make_esc cb, "Chain::chunk"
@@ -169,6 +170,47 @@ class InBlocker extends SimpleInit
     data = @_pop_block()
     await @_v_inblock_chunk { data, eof : false }, defer err, out
     cb err, out
+
+#=========================================================
+
+class Gets extends Base
+
+  #-----------------------
+
+  constructor : ({maxline}) ->
+    @_maxline = maxline
+    @_buffers = []
+    @_dlen = 0
+    @_dummy_mode = false
+
+  #-----------------------
+
+  _flush : () -> 
+    out = bufcat @_buffers
+    @_buffer = []
+    @_dlen = 0
+    return out
+
+  #-----------------------
+
+  _line_chunk : ({data, eof}, cb) ->
+    out = err = null
+    newline = false
+    if data? and (i = buf_index_of(data, "\n".charCodeAt(0))) >= 0
+      front = data[0...index]
+      @_buffers.push front
+      out = Buffer.concat @_buffers
+      rest = data[index...]
+      @_buffers = if rest.length then [ rest ] else []
+      @_dlen = rest.length
+      newline = true
+    else if data? or eof 
+      @_buffers.push data
+      @_dlen += data.length
+      if @_maxline and (@_dlen > @_maxline)
+        out = Buffer.concat @_buffers
+        @_dlen = 0
+    cb err, out, newline
 
 #=========================================================
 
