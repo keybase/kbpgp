@@ -25,6 +25,11 @@ class Base
 
 #=========================================================
 
+class Passthrough extends Base
+  chunk : ({data, eof}, cb) -> cb null, data
+
+#=========================================================
+
 class Chain extends Base
 
   constructor : () ->
@@ -173,27 +178,57 @@ class InBlocker extends SimpleInit
 
 #=========================================================
 
+class Demux extends Base
+
+  #----------------
+
+  constructor : () ->
+    @_buffers = []
+    @_dlen = 0
+    @_sink = null
+
+  #----------------
+
+  chunk : ({data,eof}, cb) ->
+    err = out = null
+
+    # IF we don't yet have a sink, we keep slurping in bytes until
+    # we can demux
+    if not @_sink?
+      if data?
+        @_buffers.push data
+        @_dlen += data.length
+      if @_dlen >= (pb = @peek_bytes())
+        data = Buffer.concat @_buffers
+        await @_demux { data, eof }, defer err, @_sink, data
+        @_flowing = true
+      else if eof?
+        err = new Error "EOF before #{pb} bytes"
+        data = null
+
+    # Once we have a sink, we shunt the data down into the sink.
+    if @_sink?
+      await @_sink.chunk { data, eof }, defer err, out
+
+    cb err, out
+
+#=========================================================
+
 class Gets extends Base
 
   #-----------------------
 
-  constructor : ({maxline}) ->
+  constructor : ({maxline,mod}) ->
     @_maxline = maxline
+    @_mod = mod or 4
     @_buffers = []
     @_dlen = 0
     @_dummy_mode = false
+    @_lineno = 0
 
   #-----------------------
 
-  _flush : () -> 
-    out = bufcat @_buffers
-    @_buffer = []
-    @_dlen = 0
-    return out
-
-  #-----------------------
-
-  _line_chunk : ({data, eof}, cb) ->
+  chunk : ({data, eof}, cb) ->
     out = err = null
     newline = false
     if data? and (i = buf_index_of(data, "\n".charCodeAt(0))) >= 0
@@ -208,9 +243,16 @@ class Gets extends Base
       @_buffers.push data
       @_dlen += data.length
       if @_maxline and (@_dlen > @_maxline)
-        out = Buffer.concat @_buffers
-        @_dlen = 0
-    cb err, out, newline
+        buf = Buffer.concat @_buffers
+        retlen = Math.floor(@_dlen / @_mod)*@_mod
+        out = buf[0...retlen]
+        rest = buf[retlen...]
+        @_buffers = [ rest ]
+        @_dlen = rest.length
+    if out? or eof
+      @_lineno++ if newline
+      await @_v_line_chunk { data : out, newline, eof }, defer err, out
+    cb err, out
 
 #=========================================================
 
@@ -281,5 +323,7 @@ exports.SimpleInit = SimpleInit
 exports.StreamAdapter = StreamAdapter
 exports.ReverseAdapter = ReverseAdapter
 exports.InBlocker = InBlocker
+exports.Demux = Demux
+exports.Passthrough = Passthrough
 
 #=========================================================
