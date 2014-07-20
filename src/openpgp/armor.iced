@@ -75,7 +75,7 @@ exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
 exports.XbtDemux = class XbtDemux extends xbt.Demux
 
   constructor : (mt) ->
-    @_prefix = "----- BEGIN PGP"
+    @_prefix = "-----BEGIN PGP"
     super
 
   peek_bytes : () -> @_prefix.length

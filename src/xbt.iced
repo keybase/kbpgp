@@ -202,7 +202,7 @@ class Demux extends Base
         data = Buffer.concat @_buffers
         await @_demux { data, eof }, defer err, @_sink, data
         @_flowing = true
-      else if eof?
+      else if eof
         err = new Error "EOF before #{pb} bytes"
         data = null
 

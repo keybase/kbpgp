@@ -48,37 +48,47 @@ class SlowWriter
 
 #---------------------------------------------------------------------
 
-dearmor64 = (T,buf,cb) ->
-  stream = new xbt.StreamAdapter { xbt : new armor.XbtDearmorer }
+dearmor64 = ({T,input,klass}, cb) ->
+  klass or= armor.XbtDearmorer
+  stream = new xbt.StreamAdapter { xbt : new klass() }
   drain = new Drain
   stream.pipe(drain)
-  sw = new SlowWriter { buf, stream }
+  sw = new SlowWriter { buf : input, stream }
   await sw.pipe defer err
   T.no_error
   cb drain.data()
 
 #---------------------------------------------------------------------
 
-round_trip = (T, type, data, cb) ->
-  b64 = armor.encode type, data
-  await dearmor64 T, b64, defer data_out
-  T.assert util.bufeq_fast(data, data_out), "data_in is data_out"
+round_trip = ({T, type, input, klass}, cb) ->
+  type or= C.openpgp.message_types.generic
+  b64 = armor.encode type, input
+  await dearmor64 { T, input : b64, klass }, defer data_out
+  T.assert util.bufeq_fast(input, data_out), "input is data_out"
   cb()
 
 #---------------------------------------------------------------------
 
 exports.dearmor_pgp_out = (T,cb) -> 
-  await dearmor64 T,msg, defer()
+  await dearmor64 {T, input: msg }, defer()
   cb()
 
 #---------------------------------------------------------------------
 
 exports.dearmor_round_trip_1 = (T,cb) ->
   buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
-  await round_trip T, C.openpgp.message_types.generic, buf, defer()
+  await round_trip {T, input: buf}, defer()
   cb()
 
 #---------------------------------------------------------------------
+
+exports.demux_round_trip_1 = (T,cb) ->
+  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
+  await round_trip { T, input : buf, klass : armor.XbtDemux }, defer()
+  cb()
+
+#---------------------------------------------------------------------
+
 
 
 
