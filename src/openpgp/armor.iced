@@ -95,9 +95,6 @@ class XbtTokenizer extends xbt.Gets
     super { maxline : 4096, mod : 4 }
 
   _v_line_chunk : ({data, newline, eof}, cb) ->
-    console.log "input..."
-    console.log data
-    console.log newline
     tok = if not data? then null
     else 
       s = data.toString('utf8')
@@ -111,8 +108,6 @@ class XbtTokenizer extends xbt.Gets
         { type : 'empty' }
       else
         { type :'data', value : s }
-    console.log "toked!"
-    console.log tok
     if tok? or eof
       await @_v_token_chunk { tok, eof }, defer err, out
     cb err, out

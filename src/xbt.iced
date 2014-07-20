@@ -265,7 +265,7 @@ class Gets extends Base
         await @_v_line_chunk { data : chunk, newline : false, eof }, esc defer tmp
         outbufs.push tmp
 
-    cb err, Buffer.concat(outbufs)
+    cb err, bufcat(outbufs)
 
 #=========================================================
 
