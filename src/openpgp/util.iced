@@ -60,9 +60,19 @@ exports.bufcat = (bufs) -> Buffer.concat (b for b in bufs when b?)
 
 exports.buf_index_of = (buf, v) ->
   l = buf.length
-  for i in [0...l.length]
+  for i in [0...buf.length]
     c = buf.readUInt8(i)
     return i if c is v
   return -1
+
+#=========================================================
+
+exports.buf_indices_of = (buf, v) ->
+  l = buf.length
+  ret = []
+  for i in [0...buf.length]
+    c = buf.readUInt8(i)
+    ret.push i if c is v
+  ret
 
 #=========================================================

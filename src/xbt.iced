@@ -13,7 +13,7 @@
 stream = require 'stream'
 {make_esc} = require 'iced-error'
 assert = require 'assert'
-{buf_index_of,bufcat} = require './util'
+{buf_indices_of,bufcat} = require './util'
 
 #=========================================================
 
@@ -225,34 +225,47 @@ class Gets extends Base
     @_dlen = 0
     @_dummy_mode = false
     @_lineno = 0
+    super()
 
   #-----------------------
 
   chunk : ({data, eof}, cb) ->
-    out = err = null
-    newline = false
-    if data? and (i = buf_index_of(data, "\n".charCodeAt(0))) >= 0
-      front = data[0...index]
-      @_buffers.push front
-      out = Buffer.concat @_buffers
-      rest = data[index...]
-      @_buffers = if rest.length then [ rest ] else []
+    err = null
+    outbufs = []
+    esc = make_esc cb, "Gets::chunk"
+
+    if data? and (v = buf_indices_of(data, "\n".charCodeAt(0))).length
+      prev = Buffer.concat @_buffers
+      @_buffers = []
+      @_dlen = 0
+      start = 0
+      for index in v
+        line = bufcat [ prev, data[start...index] ]
+        @_lineno++
+        await @_v_line_chunk { data : line, newline : true, eof : false }, esc defer tmp
+        outbufs.push tmp
+        start = index + 1
+        prev = null
+      rest = data[start...]
+      @_buffers = [ rest ]
       @_dlen = rest.length
-      newline = true
+
     else if data? or eof 
       @_buffers.push data
       @_dlen += data.length
+      chunk = null
       if @_maxline and (@_dlen > @_maxline)
         buf = Buffer.concat @_buffers
         retlen = Math.floor(@_dlen / @_mod)*@_mod
-        out = buf[0...retlen]
+        chunk = buf[0...retlen]
         rest = buf[retlen...]
         @_buffers = [ rest ]
         @_dlen = rest.length
-    if out? or eof
-      @_lineno++ if newline
-      await @_v_line_chunk { data : out, newline, eof }, defer err, out
-    cb err, out
+      if chunk? or eof
+        await @_v_line_chunk { data : chunk, newline : false, eof }, esc defer tmp
+        outbufs.push tmp
+
+    cb err, Buffer.concat(outbufs)
 
 #=========================================================
 

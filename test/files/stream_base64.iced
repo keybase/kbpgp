@@ -1,5 +1,8 @@
 
-{armor} = require '../../'
+main = require '../../'
+{armor} = main
+xbt = require '../../lib/xbt'
+{Faucet,Drain} = require 'iced-stream'
 
 #---------------------------------------------------------------------
 
@@ -28,22 +31,30 @@ UnZPtobSm8qqDh3CFPKpmg==
 
 class SlowWriter
 
-  constructor : ({@buf, @sink, @chunk_size}) ->
+  constructor : ({@buf, @stream, @chunk_size}) ->
     @chunk_size or= 7
-    @i = 0
 
   pipe : (cb) ->
     err = null
-    while @i < @buf.length
-      end = @i + @chunk_size
-      await @sink.write @buf[@i...end], defer err
+    i = 0
+    while i < @buf.length
+      end = i + @chunk_size
+      await @stream.write @buf[i...end], defer err
       break if err?
-      await setTimeout defer(), 10
+      await setTimeout defer(), 3
+      i = end
     cb err
 
 #---------------------------------------------------------------------
 
 exports.dearmor64 = (T,cb) ->
+  stream = new xbt.StreamAdapter { xbt : new armor.XbtDearmorer }
+  drain = new Drain
+  stream.pipe(drain)
+  sw = new SlowWriter { buf : msg , stream }
+  await sw.pipe defer err
+  T.no_error
+  console.log drain.data()
   cb()
 
 #---------------------------------------------------------------------

@@ -95,10 +95,13 @@ class XbtTokenizer extends xbt.Gets
     super { maxline : 4096, mod : 4 }
 
   _v_line_chunk : ({data, newline, eof}, cb) ->
+    console.log "input..."
+    console.log data
+    console.log newline
     tok = if not data? then null
     else 
       s = data.toString('utf8')
-      if (m = s.match /^-{5} (BEGIN|END) PGP (\w+) -{5}$/)?
+      if (m = s.match /^-{5}\s?(BEGIN|END) PGP ([\w\s]+?)\s?-{5}$/)?
         { type : 'frame', begin : (m[1] is 'BEGIN'), msg_type : m[2] }
       else if (m = s.match /^(\w+): (.*)$/)?
         { type : 'comment', name : m[1], value : m[2] }
@@ -108,6 +111,8 @@ class XbtTokenizer extends xbt.Gets
         { type : 'empty' }
       else
         { type :'data', value : s }
+    console.log "toked!"
+    console.log tok
     if tok? or eof
       await @_v_token_chunk { tok, eof }, defer err, out
     cb err, out
@@ -121,8 +126,9 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
     @_msg_type = null
     @_comments = []
     @_crc24 = null
+    super()
 
-  _v_line_chunk : ( {tok, eof}, cb) ->
+  _v_token_chunk : ( {tok, eof}, cb) ->
     err = out = null
     if tok?
       switch @_state
@@ -131,7 +137,7 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
             @_msg_type = tok.msg_type
             @_state++
           else
-            err = new Error "Failed to get valid '----- BEGIN PGP ...' block "
+            err = new Error "Failed to get valid '-----BEGIN PGP ...' block "
         when 1 
           if (tok.type is 'comment')
             @_comments.push [ tok.name, tok.value ]
