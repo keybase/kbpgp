@@ -89,7 +89,7 @@ exports.dearmor_round_trip_1 = (T,cb) ->
 #---------------------------------------------------------------------
 
 exports.demux_round_trip_1 = (T,cb) ->
-  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...2])
+  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
   await round_trip { T, input : buf, klass : armor.XbtDemux }, defer()
   cb()
 
