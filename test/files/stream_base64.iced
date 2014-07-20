@@ -1,6 +1,7 @@
 
 main = require '../../'
-{armor} = main
+{util,armor} = main
+C = main.const
 xbt = require '../../lib/xbt'
 {Faucet,Drain} = require 'iced-stream'
 
@@ -41,21 +42,44 @@ class SlowWriter
       end = i + @chunk_size
       await @stream.write @buf[i...end], defer err
       break if err?
-      await setTimeout defer(), 3
+      await setTimeout defer(), 1
       i = end
     cb err
 
 #---------------------------------------------------------------------
 
-exports.dearmor64 = (T,cb) ->
+dearmor64 = (T,buf,cb) ->
   stream = new xbt.StreamAdapter { xbt : new armor.XbtDearmorer }
   drain = new Drain
   stream.pipe(drain)
-  sw = new SlowWriter { buf : msg , stream }
+  sw = new SlowWriter { buf, stream }
   await sw.pipe defer err
   T.no_error
-  console.log drain.data()
+  cb drain.data()
+
+#---------------------------------------------------------------------
+
+round_trip = (T, type, data, cb) ->
+  b64 = armor.encode type, data
+  await dearmor64 T, b64, defer data_out
+  T.assert util.bufeq_fast(data, data_out), "data_in is data_out"
   cb()
 
 #---------------------------------------------------------------------
+
+exports.dearmor_pgp_out = (T,cb) -> 
+  await dearmor64 T,msg, defer()
+  cb()
+
+#---------------------------------------------------------------------
+
+exports.dearmor_round_trip_1 = (T,cb) ->
+  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
+  await round_trip T, C.openpgp.message_types.generic, buf, defer()
+  cb()
+
+#---------------------------------------------------------------------
+
+
+
 

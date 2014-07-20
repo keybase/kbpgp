@@ -64,7 +64,7 @@ exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
       strings.push (data.toString('base64') + "\n")
       @_crc = armor.compute_crc24 data, @_crc
     if eof
-      chksum = "=" + uint_to_buffer(32, @_crc)[1...4].toString('base64')
+      chksum = armor.crc24_to_base64(@_crc)
       strings.push chksum + "\n"
       strings.push @_frame.end
     buf = new Buffer strings.join(""), "utf8"
@@ -102,7 +102,7 @@ class XbtTokenizer extends xbt.Gets
         { type : 'frame', begin : (m[1] is 'BEGIN'), msg_type : m[2] }
       else if (m = s.match /^(\w+): (.*)$/)?
         { type : 'comment', name : m[1], value : m[2] }
-      else if (m = s.match /^=(\w+)$/ )
+      else if (m = s.match /^=([a-zA-Z0-9+/]){4}/ )
         { type : 'checksum', value : m[1] }
       else if data.length is 0
         { type : 'empty' }
@@ -164,10 +164,9 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
     else if @_state isnt 4
       err = new Error "EOF before close of message"
     else
-      chksum = uint_to_buffer(32, @_crc24)[1...4].toString('base64')
+      chksum = armor.crc24_to_base64(@_crc24, false)
       if chksum isnt @_checksum
         err = new Error "Checksum failure: #{chksum} != #{@_checksum}"
-
     cb err, out
 
 #=========================================================================
