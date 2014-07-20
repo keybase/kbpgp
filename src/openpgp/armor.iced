@@ -119,9 +119,11 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
   constructor : () ->
     @_state = 0
     @_msg_type = null
-    @_comments = []
     @_crc24 = null
     super()
+
+  get_root_metadata : () -> super 'armor'
+  headers_out : () -> @get_root_metadata().headers or= {}
 
   _v_token_chunk : ( {tok, eof}, cb) ->
     err = out = null
@@ -129,13 +131,13 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
       switch @_state
         when 0
           if (tok.type is 'frame') and (tok.begin)
-            @_msg_type = tok.msg_type
+            @get_root_metadata().type = @_msg_type = tok.msg_type
             @_state++
           else
             err = new Error "Failed to get valid '-----BEGIN PGP ...' block "
         when 1 
           if (tok.type is 'comment')
-            @_comments.push [ tok.name, tok.value ]
+            @headers_out()[tok.name] = tok.value
           else if (tok.type is 'empty')
             @_state++
           else

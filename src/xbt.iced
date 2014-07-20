@@ -20,8 +20,24 @@ assert = require 'assert'
 class Base
 
   constructor : () ->
+    @_parent = null
+    @_metadata = {}
 
   chunk : ({data, eof}, cb) -> cb new Error "unimplemented!"
+
+  set_parent : (p) -> @_parent = p
+  get_parent : () -> @_parent
+  get_metadata : () -> @_metadata
+  get_root_metadata : (slice, def) -> 
+    def or= {}
+    md = @root()?.get_metadata() or {}
+    if slice? then (md[slice] or= def)
+    else md
+
+  # Work up the root of the XBT tree. 
+  root : () ->
+    p = @get_parent()
+    if not p? then @ else p.root()
 
 #=========================================================
 
@@ -37,6 +53,7 @@ class Chain extends Base
 
   push_xbt : (link) ->
     @links.push link
+    link.set_parent @
     @
 
   chunk : ({data,eof}, cb) ->
@@ -186,6 +203,7 @@ class Demux extends Base
     @_buffers = []
     @_dlen = 0
     @_sink = null
+    super()
 
   #----------------
 
@@ -201,7 +219,7 @@ class Demux extends Base
       if @_dlen >= (pb = @peek_bytes())
         data = Buffer.concat @_buffers
         await @_demux { data, eof }, defer err, @_sink, data
-        @_flowing = true
+        @_sink?.set_parent(@)
       else if eof
         err = new Error "EOF before #{pb} bytes"
         data = null

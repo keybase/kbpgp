@@ -56,6 +56,7 @@ dearmor64 = ({T,input,klass}, cb) ->
   sw = new SlowWriter { buf : input, stream }
   await sw.pipe defer err
   T.no_error
+  console.log require('util').inspect stream.xbt.get_metadata(), { depth : null }
   cb drain.data()
 
 #---------------------------------------------------------------------
@@ -67,23 +68,23 @@ round_trip = ({T, type, input, klass}, cb) ->
   T.assert util.bufeq_fast(input, data_out), "input is data_out"
   cb()
 
-#---------------------------------------------------------------------
-
-exports.dearmor_pgp_out = (T,cb) -> 
-  await dearmor64 {T, input: msg }, defer()
-  cb()
-
-#---------------------------------------------------------------------
-
-exports.dearmor_round_trip_1 = (T,cb) ->
-  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
-  await round_trip {T, input: buf}, defer()
-  cb()
-
+##---------------------------------------------------------------------
+#
+#exports.dearmor_pgp_out = (T,cb) -> 
+#  await dearmor64 {T, input: msg }, defer()
+#  cb()
+#
+##---------------------------------------------------------------------
+#
+#exports.dearmor_round_trip_1 = (T,cb) ->
+#  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
+#  await round_trip {T, input: buf}, defer()
+#  cb()
+#
 #---------------------------------------------------------------------
 
 exports.demux_round_trip_1 = (T,cb) ->
-  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
+  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...2])
   await round_trip { T, input : buf, klass : armor.XbtDemux }, defer()
   cb()
 
