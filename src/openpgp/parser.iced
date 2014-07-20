@@ -12,6 +12,7 @@ C = require('../const').openpgp
 {OnePassSignature} = require './packet/one_pass_sig'
 {Literal} = require './packet/literal'
 {inspect} = require 'util'
+xbt = require '../xbt'
 
 #==================================================================================================
 
@@ -125,6 +126,13 @@ class PacketParser
       @body = new SlicerBuffer Buffer.concat segments
       @len = @body.length
       @real_packet_len = @slice.offset()
+
+#==================================================================================================
+
+exports.Demux = class Demux extends xbt.Demux
+
+  _demux : ( { data, eof}, cb) ->
+    if data?.length
 
 #==================================================================================================
 
