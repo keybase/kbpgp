@@ -2,8 +2,9 @@
 main = require '../../'
 {util,armor} = main
 C = main.const
-xbt = require '../../lib/xbt'
+{StreamAdapter} = require '../../lib/xbt'
 {Faucet,Drain} = require 'iced-stream'
+Ch = require '../../lib/header'
 
 #---------------------------------------------------------------------
 
@@ -50,37 +51,40 @@ class SlowWriter
 
 dearmor64 = ({T,input,klass}, cb) ->
   klass or= armor.XbtDearmorer
-  stream = new xbt.StreamAdapter { xbt : new klass() }
+  xbt = new klass()
+  stream = new StreamAdapter { xbt }
   drain = new Drain
   stream.pipe(drain)
   sw = new SlowWriter { buf : input, stream }
   await sw.pipe defer err
   T.no_error
-  console.log require('util').inspect stream.xbt.get_metadata(), { depth : null }
-  cb drain.data()
+  cb drain.data(), xbt
 
 #---------------------------------------------------------------------
 
 round_trip = ({T, type, input, klass}, cb) ->
   type or= C.openpgp.message_types.generic
   b64 = armor.encode type, input
-  await dearmor64 { T, input : b64, klass }, defer data_out
+  await dearmor64 { T, input : b64, klass }, defer data_out, xbt
   T.assert util.bufeq_fast(input, data_out), "input is data_out"
+  T.equal xbt.get_metadata().armor.type, "MESSAGE", "got a message type"
+  T.equal xbt.get_metadata().armor.headers.version, Ch.version, "got back the right version"
+  T.equal xbt.get_metadata().armor.headers.comment, Ch.comment, "got back the right comment"
   cb()
 
-##---------------------------------------------------------------------
-#
-#exports.dearmor_pgp_out = (T,cb) -> 
-#  await dearmor64 {T, input: msg }, defer()
-#  cb()
-#
-##---------------------------------------------------------------------
-#
-#exports.dearmor_round_trip_1 = (T,cb) ->
-#  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
-#  await round_trip {T, input: buf}, defer()
-#  cb()
-#
+#---------------------------------------------------------------------
+
+exports.dearmor_pgp_out = (T,cb) -> 
+  await dearmor64 {T, input: msg }, defer()
+  cb()
+
+#---------------------------------------------------------------------
+
+exports.dearmor_round_trip_1 = (T,cb) ->
+  buf = Buffer.concat ((new Buffer [0...i]) for i in [0...50])
+  await round_trip {T, input: buf}, defer()
+  cb()
+
 #---------------------------------------------------------------------
 
 exports.demux_round_trip_1 = (T,cb) ->

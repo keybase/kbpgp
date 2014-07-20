@@ -116,14 +116,20 @@ class XbtTokenizer extends xbt.Gets
 
 exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
 
+  #---------------------------
+
   constructor : () ->
     @_state = 0
     @_msg_type = null
     @_crc24 = null
     super()
 
+  #---------------------------
+
   get_root_metadata : () -> super 'armor'
   headers_out : () -> @get_root_metadata().headers or= {}
+
+  #---------------------------
 
   _v_token_chunk : ( {tok, eof}, cb) ->
     err = out = null
