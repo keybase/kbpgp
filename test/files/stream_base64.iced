@@ -67,9 +67,10 @@ round_trip = ({T, type, input, klass}, cb) ->
   b64 = armor.encode type, input
   await dearmor64 { T, input : b64, klass }, defer data_out, xbt
   T.assert util.bufeq_fast(input, data_out), "input is data_out"
-  T.equal xbt.get_metadata().armor.type, "MESSAGE", "got a message type"
-  T.equal xbt.get_metadata().armor.headers.version, Ch.version, "got back the right version"
-  T.equal xbt.get_metadata().armor.headers.comment, Ch.comment, "got back the right comment"
+  A = xbt.get_metadata().armor
+  T.equal A.type, "MESSAGE", "got a message type"
+  T.equal A.headers.version, Ch.version, "got back the right version"
+  T.equal A.headers.comment, Ch.comment, "got back the right comment"
   cb()
 
 #---------------------------------------------------------------------
