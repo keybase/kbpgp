@@ -4,6 +4,8 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 {uint_to_buffer} = require '../../util'
 {Packetizer} = require './xbt_packetizer'
+{Depacketizer} = require './xbt_depacketizer'
+{make_esc} = require 'iced-error'
 
 #=================================================================================
 
@@ -78,7 +80,7 @@ class LiteralParser
   parse : () ->
     known_formats = (v for k,v of C.literal_formats)
     format = @slice.read_uint8()
-    throw new Error "unknwon format: #{format}" unless format in known_formats
+    throw new Error "unknown format: #{format}" unless format in known_formats
     filename = @slice.read_string()
     date = @slice.read_uint32()
     data = @slice.consume_rest_to_buffer()
@@ -88,6 +90,28 @@ class LiteralParser
 #=================================================================================
 
 exports.XbtOut = XbtOut = Packetizer
+
+#=================================================================================
+
+class XbtIn extends Depacketizer
+
+  constructor : () ->
+    super 
+
+  _parse_header : (cb) ->
+    esc = make_esc cb, "XbtIn::Depacketizer"
+    err = null
+    await @_read_uint8  esc defer format
+    await @_read_string esc defer filename
+    await @_read_uint32 esc defer date
+    rmd = @get_root_metadata()
+    if rmd.literal?
+      err = new Error "Cannot have >1 literal in a stream"
+    else 
+      rmd.literal = { format, filename, date }
+    cb err
+
+  _flow : ({data, eof}, cb) -> cb null, data
 
 #=================================================================================
 

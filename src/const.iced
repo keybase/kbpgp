@@ -79,6 +79,10 @@ exports.openpgp = openpgp =
   ecdh :
     param_bytes : 3
     version : 1
+  packet_version :
+    none : 0
+    old : 1
+    modern : 2
   packet_tags :
     PKESK : 1
     signature : 2

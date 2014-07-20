@@ -207,6 +207,13 @@ class Demux extends Base
 
   #----------------
 
+  _remux : ({data}) ->
+    @_buffers.push data
+    @_dlen += data.length
+    @_sink = null
+
+  #----------------
+
   chunk : ({data,eof}, cb) ->
     err = out = null
 
@@ -218,6 +225,8 @@ class Demux extends Base
         @_dlen += data.length
       if @_dlen >= (pb = @peek_bytes())
         data = Buffer.concat @_buffers
+        @_buffers = []
+        @_dlen = 0
         await @_demux { data, eof }, defer err, @_sink, data
         @_sink?.set_parent(@)
       else if eof

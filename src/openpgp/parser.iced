@@ -127,14 +127,55 @@ class PacketParser
       @len = @body.length
       @real_packet_len = @slice.offset()
 
-#==================================================================================================
+#============================================================================
 
 exports.Demux = class Demux extends xbt.Demux
 
-  _demux : ( { data, eof}, cb) ->
-    if data?.length
+  #---------------
 
-#==================================================================================================
+  peek_bytes : () -> 1
+
+  #---------------
+
+  _demux : ( { data, eof}, cb) ->
+    err = xbt = packet_version = null
+    if eof then err = new Error "EOF when looking for a new PGP packet"
+    else if not data? then # noop
+    else if ((c = data.readUInt8(0)) & 0x80) is 0
+      err = new Error "This doesn't look like a binary PGP packet (c=#{c})"
+    else if (c & 0x40) is 0
+      tag = (c & 0x3f) >> 2
+      packet_version = C.packet_version.old
+    else 
+      tag = (c & 0x3f)
+      packet_version = C.packet_version.modern
+    if tag?
+      PT = C.packet_tags
+      klass = switch tag
+        when PT.literal then Literal
+        else
+          err = new Error "Can't stream packet type=#{tag}"
+    if klass?
+      xbt = klass.new_xbt_parser { packet_version }
+    cb err, xbt, data[1...]
+
+#============================================================================
+
+exports.Depacketizer = class Depacketizer extends xbt.Base
+
+  constructor : ({@packet_version}) ->
+    @_state = 0
+
+  _read_packet_chunks : (cb) ->
+
+
+  chunk : ({data, eof}, cb) ->
+    if @packet_version
+
+
+
+#============================================================================
+
 
 exports.parse = parse = (buf) -> 
   util.katch () ->
