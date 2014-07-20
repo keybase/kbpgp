@@ -169,24 +169,6 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
 
     cb err, out
 
-
-  categorize_line : (line) ->
-
-
-  chunk : ({data, eof}, cb) ->
-    if @_first
-      @_first = false
-      await @_chunk_first { data, eof }, defer err, out
-    else
-      await @_chunk_rest { data, eof }, defer err, out
-    cb err, out
-
-  _chunk_first : ({data, eof}, cb) ->
-    await @_line_chunk { data, eof }, defer err, out, newline
-    if newline
-    @_binary_mode = true unless newline
-    cb err, out
-
 #=========================================================================
 
 exports.Message = armor.Message
