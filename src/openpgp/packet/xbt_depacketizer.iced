@@ -42,9 +42,40 @@ class ReadBuffer
     @fire '_pusher_cb'
     cb @_err, out
 
+  #-------------------------
+
+  read_uint8 : (cb) ->
+    await @read 1, defer err, buf
+    out = if err? then null else buf.readUInt8(0)
+    cb err, out
+
+  #-------------------------
+
+  read_uint16 : (cb) ->
+    await @read 2, defer err, buf
+    out = if err? then null else buf.readUInt16BE(0)
+    cb err, out
+
+  #-------------------------
+
+  read_uint32 : (cb) ->
+    await @_read_data 4, defer err, buf
+    out = if err? then null else buf.readUInt32BE(0)
+    cb err, out
+
+  #-------------------------
+
+  read_string : (cb) ->
+    esc = make_esc cb, "_read_string"
+    await @read_uint8 esc defer len
+    await @read len, esc defer buf
+    cb null, buf
+
   #-------------------------------
 
   flush : () ->
+    @_dlen = 0
+    @fire '_pusher_cb'
     out = Buffer.concat @_buffers
     @_dlen = 0
     @_buffers = []
@@ -58,8 +89,8 @@ class ReadBuffer
         await @_pusher_cb = defer()
       @_buffers.push data
       @_dlen += data.length
-      @fire '_puller_cb'
     @_eof = true if eof
+    @fire '_puller_cb'
     cb null
 
 #=================================================================================
@@ -96,110 +127,37 @@ exports.PacketParser = class PacketParser extends Depacketizer
   
   constructor : ({packet_version}) ->
     super { packet_version }
-    @_read_buffer = new ReadBuffer @
+    @_read_buffer = new ReadBuffer()
     @_state = 0
-    @_consumer_cb = @_producer_cb = null 
-    @_buffers = []
-    @_dlen = 0
+    @_prebuf = null
+    @_finish_header_cb = null
 
   #-------------------------
   
   _run : () ->
     @_state = 1
     await @_parse_header defer @_err
-    if (tmp = @_producer_cb)
-      @_producer_cb = null
-      tmp @_err, @_flush_buffers()
+    @_prebuf = @_read_buffer.flush()
     @_state = 2 
-
-  #-------------------------
-
-  _flush_buffers : () ->
-    out = Buffer.concat @_buffers
-    @_dlen = 0
-    @_buffers = []
-    out
-
-  #-------------------------
-
-  _shift_data : (len) ->
-    err = out = null
-    if @_buffers.length is 0
-      err = new Error "No data, can't pop"
-    else if @_dlen < len
-      err = new Error "Buffer underrun; unexpected"
-    else if @_buffers.length > 1
-      buf = [ Buffer.concat(@_buffers) ]
-    else
-      buf = @_buffers[0]
-    unless err?
-      out = buf[0...len]
-      @_buffers = [ buf[len...] ]
-      @_dlen -= len
-    cb err, out
-
-  #-------------------------
-
-  _read_data : (len, cb) ->
-    err = null
-    while @_dlen < len and not err?
-      if @_eof
-        err = new Error "EOF in read"
-      else
-        await 
-          @_consumer_cb = defer()
-          if (tmp = @_producer_cb)?
-            @_producer_cb = null
-            tmp()
-    if not err?
-      [err, out] = @_shift_data(len)
-    cb err, out
-
-  #-------------------------
-
-  _read_uint8 : (cb) ->
-    await @_read_data 1, defer err, buf
-    out = if err? then null else buf.readUInt8(0)
-    cb err, out
-
-  #-------------------------
-
-  _read_uint16 : (cb) ->
-    await @_read_data 2, defer err, buf
-    out = if err? then null else buf.readUInt16BE(0)
-    cb err, out
-
-  #-------------------------
-
-  _read_uint32 : (cb) ->
-    await @_read_data 4, defer err, buf
-    out = if err? then null else buf.readUInt32BE(0)
-    cb err, out
-
-  #-------------------------
-
-  _read_string : (cb) ->
-    esc = make_esc cb, "_read_string"
-    await @_read_uint8 esc defer len
-    await @_read_data len, esc defer buf
-    cb null, buf
+    if (tmp = @_finish_header_cb)?
+      @_finish_header_cb = null
+      tmp()
 
   #-------------------------
 
   _pump_data : ({data, eof}, cb) ->
-    if @_err then cb @_err
+    err = out = null
+    if @_err then err = @_err
     else if @_state is 1
-      @_buffers.push data
-      @_dlen += data.length
-      @_eof = eof
-      @_producer_cb = cb
-      if (tmp = @_consumer_cb)?
-        @_consumer_cb = null
-        tmp()
-    else
-      if @_dlen
-        data = bufcat [ @_flush_buffers(), data ]
-      @_flow { data, eof }, cb 
+      await 
+        if eof
+          @_finish_header_cb = defer()
+        @_read_buffer.push { data, eof }, defer err
+    if not(@_err?) and (@_state is 2)
+      data = bufcat [ @_prebuf, data ] 
+      await @_flow { data, eof }, defer err, out
+    @_err = err if err?
+    cb err, out
 
   #-------------------------
   
