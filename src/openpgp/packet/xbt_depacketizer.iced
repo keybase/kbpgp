@@ -126,6 +126,7 @@ exports.Depacketizer = class Depacketizer extends xbt.Base
     cb null
 
   chunk : ({data,eof}, cb) ->
+    # XXX write me
 
 
 #=================================================================================
