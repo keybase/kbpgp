@@ -1,7 +1,47 @@
 
 xbt = require '../../xbt'
+{bufcat} = require '../../util'
+
+#=================================================================================
+
+class ReadBuffer
+
+  constructor : (@capacity) ->
+    @_buffers = []
+    @_dlen = 0
+    @_eof = false
+    @_err = null
+
+  push : ({data, eof}, cb) ->
+    while (@_dlen > @_capacity) and not(@_err?)
+      await 
+        @_pusher_cb = defer()
+
+#=================================================================================
 
 exports.Depacketizer = class Depacketizer extends xbt.Base
+
+  constructor : ( { @packet_version } ) ->
+    super()
+    @_total = 0
+
+  _depacketize_1 : (cb) ->
+    esc = make_esc cb, "_depacketize_1"
+    await @_find_length esc defer final, len
+    await @_stream_packet len, esc defer()
+    @_total += len
+    cb null, final
+
+  _depacketize_all : (cb) ->
+    esc = make_esc cb, "_depacketize_all"
+    final = false
+    until final
+      await @_depacketize_1 esc defer final
+    cb null
+
+
+  chunk : ({data,eof}, cb) ->
+
 
 #=================================================================================
 
@@ -11,6 +51,7 @@ exports.PacketParser = class PacketParser extends Depacketizer
   
   constructor : ({packet_version}) ->
     super { packet_version }
+    @_read_buffer = new ReadBuffer @
     @_state = 0
     @_consumer_cb = @_producer_cb = null 
     @_buffers = []
@@ -21,12 +62,22 @@ exports.PacketParser = class PacketParser extends Depacketizer
   _run : () ->
     @_state = 1
     await @_parse_header defer @_err
-    @_flush()
+    if (tmp = @_producer_cb)
+      @_producer_cb = null
+      tmp @_err, @_flush_buffers()
     @_state = 2 
 
   #-------------------------
 
-  _pop_data : (len) ->
+  _flush_buffers : () ->
+    out = Buffer.concat @_buffers
+    @_dlen = 0
+    @_buffers = []
+    out
+
+  #-------------------------
+
+  _shift_data : (len) ->
     err = out = null
     if @_buffers.length is 0
       err = new Error "No data, can't pop"
@@ -56,8 +107,37 @@ exports.PacketParser = class PacketParser extends Depacketizer
             @_producer_cb = null
             tmp()
     if not err?
-      [err, out] = @_pop_data(len)
+      [err, out] = @_shift_data(len)
     cb err, out
+
+  #-------------------------
+
+  _read_uint8 : (cb) ->
+    await @_read_data 1, defer err, buf
+    out = if err? then null else buf.readUInt8(0)
+    cb err, out
+
+  #-------------------------
+
+  _read_uint16 : (cb) ->
+    await @_read_data 2, defer err, buf
+    out = if err? then null else buf.readUInt16BE(0)
+    cb err, out
+
+  #-------------------------
+
+  _read_uint32 : (cb) ->
+    await @_read_data 4, defer err, buf
+    out = if err? then null else buf.readUInt32BE(0)
+    cb err, out
+
+  #-------------------------
+
+  _read_string : (cb) ->
+    esc = make_esc cb, "_read_string"
+    await @_read_uint8 esc defer len
+    await @_read_data len, esc defer buf
+    cb null, buf
 
   #-------------------------
 
@@ -72,6 +152,8 @@ exports.PacketParser = class PacketParser extends Depacketizer
         @_consumer_cb = null
         tmp()
     else
+      if @_dlen
+        data = bufcat [ @_flush_buffers(), data ]
       @_flow { data, eof }, cb 
 
   #-------------------------
