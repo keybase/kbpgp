@@ -58,8 +58,18 @@ class ReadBuffer
 
   #-------------------------
 
+  read_at_most : (n, cb) ->
+    err = null
+    if n > @_dlen
+      out = @flush()
+    else
+      await @read n, defer err, out
+    cb err, out
+
+  #-------------------------
+
   read_uint32 : (cb) ->
-    await @_read_data 4, defer err, buf
+    await @read 4, defer err, buf
     out = if err? then null else buf.readUInt32BE(0)
     cb err, out
 
@@ -99,7 +109,7 @@ exports.Depacketizer = class Depacketizer extends xbt.Base
 
   constructor : ( { @packet_version } ) ->
     super()
-    @_total = 0
+    @_read_buffer = new ReadBuffer()
 
   _depacketize_1 : (cb) ->
     esc = make_esc cb, "_depacketize_1"
@@ -114,7 +124,6 @@ exports.Depacketizer = class Depacketizer extends xbt.Base
     until final
       await @_depacketize_1 esc defer final
     cb null
-
 
   chunk : ({data,eof}, cb) ->
 
