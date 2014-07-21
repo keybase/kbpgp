@@ -46,6 +46,7 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
     @_total = 0
     @_flow_rem = 0
     @packet_xbt.set_parent(@)
+    @_V = true
 
   #-------------------------------------
 
@@ -108,6 +109,8 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       console.log "Ok, here's the data Johnny!"
       console.log data
       await @packet_xbt.chunk { data, eof }, esc defer out
+      console.log "and the data out --->"
+      console.log out
       @_buffer_out_data out
     cb null
 
@@ -116,17 +119,22 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
   _parse_loop : (cb) ->
     await @_depacketize_all defer err
     cb err
-    unless @_err? or @_eof
+    if not(@_err?) and not(@_eof)
       # At the end of a packet, we probably need to find the next packet, so we
       # call back to our parent (which has to be a Demux!) to do its next demux.
-      @parent()._remux { indata : @_flush_in(), outdata : @_flush_out() }
+      @get_parent()._remux { indata : @_flush_in(), outdata : @_flush_out() }
 
 #=================================================================================
 
 exports.PacketParser = class PacketParser extends PgpReadBufferer
 
+  constructor : () ->
+    super {}
+
   _parse_loop : (cb) ->
+    console.log "parsing header.."
     await @_parse_header defer err
+    console.log "parsed header...."
     @_switch_to_flow_mode()
     cb err
 

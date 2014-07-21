@@ -223,6 +223,8 @@ class ReadBufferer extends Base
     @_flow_data_prepend = null
     @_first = true
     @_outbufs = []
+    @_last_cb = null
+    super()
 
   #-------------------------------
 
@@ -275,30 +277,28 @@ class ReadBufferer extends Base
   #-------------------------------
 
   _switch_to_flow_mode : () ->
+    if @_V then console.log "Switching to flow mode..."
     @_flow_mode = true
 
   #-------------------------------
 
-  _switch_to_parse_mode : (buf) ->
-    @_flow_mode = false
-
-  #-------------------------------
-
-  _finish_parse : () ->
-    @_fire '_finish_parse_cb', [ @_err, @_flush_out() ]
-
-  #-------------------------------
-
   _chunk_parse_mode : ({data, eof}, cb) ->
+    if @_V
+      console.log "CPM"
+      console.log eof
+      console.log data
     if data?.length
       while (@_dlen > @_capacity) and not(@_err?) and not(@_flow_mode)
         await @_pusher_cb = defer()
       @_buffer_in_data(data)
     @_eof = true if eof
-    @_fire '_puller_cb'
+    # Tricky; we need to set this before we poke the puller back into action,
+    # in case the puller uses up the rest of the parsed data and then moves
+    # into flow mode.
     if eof
-      @_finish_parse_cb = cb
-    else
+      @_last_cb = cb
+    @_fire '_puller_cb'
+    if not eof
       cb null, @_flush_out()
 
   #-------------------------------
@@ -320,12 +320,22 @@ class ReadBufferer extends Base
     if @_first
       @_first = false
       await @_parse_loop defer @_err
-      @_finish_parse()
+      if (tmp = @_last_cb)
+        @_last_cb = null
+        if @_flow_mode
+          if @_V then console.log "ok, going to flow!"
+          @_chunk_flow_mode { eof : true }, tmp
+        else
+          tmp @_err, @_flush_out()
 
   #-------------------------------
 
   chunk : ( {data, eof}, cb) ->
     @_run_parse_loop()
+    if @_V
+      console.log "got chunk..."
+      console.log eof
+      console.log data
 
     # Once we're stuck in an error situation, we can't proceed.
     if @_err then            cb @_err, null
@@ -388,8 +398,8 @@ class Demux extends Base
         @_dlen = 0
         await @_demux { data, eof }, defer err, @_sink, data
         @_sink?.set_parent(@)
-      else if eof
-        err = new Error "EOF before #{pb} bytes"
+      else if eof and @_dlen
+        err = new Error "EOF before #{pb} bytes (had #{@_dlen} ready)"
         data = null
 
     # Once we have a sink, we shunt the data down into the sink.

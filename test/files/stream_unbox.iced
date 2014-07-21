@@ -1,6 +1,6 @@
 
 main = require '../../'
-{stream} = main
+{util,stream} = main
 {Faucet,Drain} = require 'iced-stream'
 
 #===================================================================
@@ -27,8 +27,8 @@ exports.literal_roundtrip = (T,cb) ->
   await oneshot input, xform, defer err, pgp
   T.no_error err
   await stream.unbox {}, defer err, xform
-  await oneshot pgp, xform, defer err, msg
-  console.log msg
+  await oneshot pgp, xform, defer err, output
+  T.assert util.bufeq_fast(input, output), "input != output after literal roundtrip"
   cb()
 
 
