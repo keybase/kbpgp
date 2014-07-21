@@ -72,7 +72,7 @@ exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
 
 #=========================================================================
 
-exports.XbtDemux = class XbtDemux extends xbt.Demux
+exports.XbtDearmorDemux = class XbtDearmorDemux extends xbt.Demux
 
   constructor : (mt) ->
     @_prefix = "-----BEGIN PGP"

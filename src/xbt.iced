@@ -243,9 +243,10 @@ class ReadBufferer extends Base
     out = null
 
     if @_err then # noop
-    else if eof and min > @_dlen then @_err = new Error "EOF before read satisfied"
+    else if @_eof and min > @_dlen 
+      @_err = new Error "EOF before read satisfied"
     else
-      buf = @_flush()
+      buf = @_flush_in()
       out = buf[0...max]
       rest = buf[max...]
       @_buffers = if rest.length then [ rest ] else []

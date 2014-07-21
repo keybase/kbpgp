@@ -97,9 +97,9 @@ exports.XbtOut = XbtOut = Packetizer
 class XbtIn extends PacketParser
 
   constructor : () ->
-    super 
+    super {}
 
-  _parse_header : () ->
+  _parse_header : (cb) ->
     esc = make_esc cb, "XbtIn::Depacketizer"
     err = null
     await @_read_uint8  esc defer format
@@ -111,7 +111,11 @@ class XbtIn extends PacketParser
       rmd.literal = { format, filename, date }
     cb err
 
-  _flow : ({data, eof}, cb) -> cb null, data
+  _flow : ({data, eof}, cb) -> 
+    console.log "flowing data..."
+    console.log eof
+    console.log data
+    cb null, data
 
 #=================================================================================
 

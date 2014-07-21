@@ -2,6 +2,7 @@
 xbt = require '../../xbt'
 {bufcat} = require '../../util'
 C = require('../../const').openpgp
+{make_esc} = require 'iced-error'
 
 #=================================================================================
 
@@ -41,7 +42,7 @@ class PgpReadBufferer extends xbt.ReadBufferer
 exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
   constructor : ( { @packet_version, @packet_xbt } ) ->
-    super()
+    super {}
     @_total = 0
     @_flow_rem = 0
     @packet_xbt.set_parent(@)
@@ -62,7 +63,7 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
     await @_read_uint8 esc defer tag
     err = ret = null
     final = true
-    if @packet_version is C.packet_versions.old
+    if @packet_version is C.packet_version.old
       nxt = switch (tag & 0x03)
         when 0 then @_read_uint8.bind(@)
         when 1 then @_read_uint16.bind(@)
@@ -104,7 +105,9 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       await @_read { max : rem, min : 1}, esc defer data
       rem -= data.length
       eof = final and (rem is 0)
-      await @_packet_xbt.chunk { data, eof }, esc defer out
+      console.log "Ok, here's the data Johnny!"
+      console.log data
+      await @packet_xbt.chunk { data, eof }, esc defer out
       @_buffer_out_data out
     cb null
 

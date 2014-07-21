@@ -33,9 +33,13 @@ exports.BaseBurner = class BaseBurner
 
   #-----------------
 
+  can_pass_through : () -> False
+
+  #-----------------
+
   _assert_one : (cb) ->
     err = null
-    if not(@signing_key?) and not(@encryption_key?)
+    if not(@signing_key?) and not(@encryption_key?) and not(@can_pass_through())
       err = new Error "need either an encryption or signing key, or both"
     cb err
 

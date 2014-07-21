@@ -10,7 +10,7 @@ xbt = require '../xbt'
 {Compressed} = require './packet/compressed'
 {SEIPD} = require './packet/sess'
 {Demux} = require './parser'
-{XbtSmartDearmorer,XbtArmorer} = require './armor'
+{XbtDearmorDemux,XbtArmorer} = require './armor'
 
 #===========================================================================
 
@@ -24,6 +24,10 @@ class BoxTransformEngine extends BaseBurner
 
     @chain = new xbt.Chain
     @stream = new xbt.StreamAdapter { xbt: @chain }
+
+  #--------------------------------
+
+  can_pass_through : () -> true
 
   #--------------------------------
 
@@ -81,7 +85,7 @@ class UnboxTransformEngine
   #---------------------------------------
 
   init : (cb) ->
-    @chain.push_xbt(new XbtSmartDearmorer {})
+    @chain.push_xbt(new XbtDearmorDemux {})
           .push_xbt(new Demux {})
     cb null, @stream
 

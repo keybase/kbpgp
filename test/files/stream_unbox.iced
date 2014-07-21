@@ -5,15 +5,15 @@ main = require '../../'
 
 #===================================================================
 
-input = Buffer.concat ((new Buffer[0...i]) for i in [0...255])
+input = Buffer.concat ((new Buffer [0...i]) for i in [0...255])
 
 #===================================================================
 
-oneshot = (data, stream, cb) ->
+oneshot = (data, xform, cb) ->
   f = new Faucet data
   d = new Drain()
-  f.pipe(stream)
-  stream.pipe(d)
+  f.pipe(xform)
+  xform.pipe(d)
   d.once 'finish', () ->
     cb null, d.data()
   d.once 'err', (err) ->
@@ -23,8 +23,12 @@ oneshot = (data, stream, cb) ->
 
 exports.literal_roundtrip = (T,cb) ->
   await stream.box {}, defer err, xform
-  await oneshot input, stream, defer err, pgp
   T.no_error err
+  await oneshot input, xform, defer err, pgp
+  T.no_error err
+  await stream.unbox {}, defer err, xform
+  await oneshot pgp, xform, defer err, msg
+  console.log msg
   cb()
 
 
