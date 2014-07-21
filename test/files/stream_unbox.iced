@@ -1,16 +1,17 @@
 
 main = require '../../'
 {util,stream} = main
-{Faucet,Drain} = require 'iced-stream'
+{SlowFaucet,Drain} = require 'iced-stream'
 
 #===================================================================
 
-input = Buffer.concat ((new Buffer [0...i]) for i in [0...255])
+med = Buffer.concat ((new Buffer [0...i]) for i in [0...255])
+small = Buffer.concat ((new Buffer [0...i]) for i in [0...11])
 
 #===================================================================
 
-oneshot = (data, xform, faucet_opts, cb) ->
-  f = new Faucet data, faucet_opts
+oneshot = (faucet_args, xform, cb) ->
+  f = new SlowFaucet faucet_args
   d = new Drain()
   f.pipe(xform)
   xform.pipe(d)
@@ -21,17 +22,23 @@ oneshot = (data, xform, faucet_opts, cb) ->
 
 #===================================================================
 
-roundtrip = (T, box_args, unbox_args, faucet_args, cb) ->
+R = (T, input, box_args, unbox_args, faucet_args, cb) ->
   await stream.box box_args, defer err, xform
   T.no_error err
-  await oneshot input, xform, {}, defer err, pgp
+  await oneshot { buf : input}, xform, defer err, pgp
   T.no_error err
   await stream.unbox unbox_args, defer err, xform
-  await oneshot pgp, xform, faucet_args, defer err, output
+  faucet_args.buf = pgp
+  await oneshot faucet_args, xform, defer err, output
   T.assert util.bufeq_fast(input, output), "input != output after literal roundtrip"
   cb()
 
 #===================================================================
 
-exports.binary_literal = (T,cb) -> roundtrip(T, {}, {}, {}, cb)
-exports.base64_literal = (T,cb) -> roundtrip(T, { opts : { armor: 'generic' }}, {}, {}, cb)
+module.exports =
+ binary_literal : (T,cb)            -> R(T, med, {}, {}, {}, cb)
+ base64_literal : (T,cb)            -> R(T, med, { opts : { armor: 'generic' }}, {}, {}, cb)
+ slow_binary_literal : (T,cb)       -> R(T, med, {}, {}, {blocksize : 137, wait_msec : 1}, cb)
+ slow_base64_literal : (T,cb)       -> R(T, med, { opts : { armor : 'generic' } }, {}, {blocksize : 137, wait_msec : 1}, cb)
+ small_slow_binary_literal : (T,cb) -> R(T, small, {}, {}, {blocksize : 3, wait_msec : 1}, cb)
+ small_slow_base64_literal : (T,cb) -> R(T, small, { opts : { armor : 'generic' } }, {}, {blocksize : 3, wait_msec : 1}, cb)

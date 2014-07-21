@@ -50,6 +50,7 @@ class Chain extends Base
 
   constructor : () ->
     @links = []
+    super()
 
   push_xbt : (link) ->
     @links.push link
