@@ -9,6 +9,7 @@ stream = require 'stream'
 xbt = require '../xbt'
 {Compressed} = require './packet/compressed'
 {SEIPD} = require './packet/sess'
+{Demux} = require './parser'
 {XbtSmartDearmorer,XbtArmorer} = require './armor'
 
 #===========================================================================
@@ -81,10 +82,7 @@ class UnboxTransformEngine
 
   init : (cb) ->
     @chain.push_xbt(new XbtSmartDearmorer {})
-          .push_xbt(SEIPD.new_parse_xbt { @keyfetch })
-          .push_xbt(Compressed.new_parse_xbt {})
-          .push_xbt(OnePassSignature.new_parse_xbt {})
-          .push_xbt(Literal.new_parse_xbt {})
+          .push_xbt(new Demux {})
     cb null, @stream
 
 #===========================================================================
