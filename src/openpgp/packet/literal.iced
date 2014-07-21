@@ -4,7 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 {uint_to_buffer} = require '../../util'
 {Packetizer} = require './xbt_packetizer'
-{Depacketizer} = require './xbt_depacketizer'
+{PacketParser} = require './xbt_depacketizer'
 {make_esc} = require 'iced-error'
 
 #=================================================================================
@@ -64,6 +64,7 @@ class Literal extends Packet
   #--------
 
   new_xbt : () -> new XbtOut { packet : @ }
+  @new_xbt_parser : (arg) -> new XbtIn arg
 
 #=================================================================================
 
@@ -93,19 +94,18 @@ exports.XbtOut = XbtOut = Packetizer
 
 #=================================================================================
 
-class XbtIn extends Depacketizer
+class XbtIn extends PacketParser
 
   constructor : () ->
     super 
 
-  _parse_header : (cb) ->
+  _parse_header : () ->
     esc = make_esc cb, "XbtIn::Depacketizer"
     err = null
     await @_read_uint8  esc defer format
     await @_read_string esc defer filename
     await @_read_uint32 esc defer date
-    rmd = @get_root_metadata()
-    if rmd.literal?
+    if (rmd = @get_root_metadata())?
       err = new Error "Cannot have >1 literal in a stream"
     else 
       rmd.literal = { format, filename, date }

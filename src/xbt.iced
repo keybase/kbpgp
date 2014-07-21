@@ -87,6 +87,13 @@ class SimpleInit extends Base
 
 #=========================================================
 
+#
+# An XBT that splits a stream into fixed-sized blocks, and
+# returns only blocks of that size.  With every block to be
+# emitted, it calls _v_inblock_chunk.  This is mainly used
+# with outputting to Base64-armoring, since we want to encode
+# blocks of 48-bytes into lines of 64-byte output.
+#
 class InBlocker extends SimpleInit
 
   constructor : (@block_size) ->
@@ -195,6 +202,146 @@ class InBlocker extends SimpleInit
 
 #=========================================================
 
+# A class that allows a subclass to pull at will, and not to have
+# data constantly pushed at it.  To change from a pushee to a puller,
+# we need a buffer in between.
+#
+# Note this XBT can be in one of two states: pull mode, which is the default,
+# and flow mode, which can be turned on, and just causes data to flow as 
+# in a normal XBT. Parsers that parse headers and then flow data will want to 
+# start in the first mode, and switch to flow.
+class ReadBufferer extends Base
+
+  constructor : ({capacity}) ->
+    @_capacity = capacity or 0x10000
+    @_flow_mode = false
+    @_buffers = []
+    @_dlen = 0
+    @_eof = false
+    @_err = null
+    @_pusher_cb = @_puller_cb = null
+    @_flow_data_prepend = null
+    @_first = true
+    @_outbufs = []
+
+  #-------------------------------
+
+  _fire : (which, args = []) ->
+    if (cb = @[which])?
+      @[which] = null
+      cb args...
+
+  #-------------------------------
+
+  _read : ({min,max,exactly}, cb) ->
+    if exactly? then min = max = exactly
+    @_capacity = Math.max @_capacity, min
+
+    while min > @_dlen and not(@_eof) and not(@_err?)
+      await @_puller_cb = defer()
+
+    out = null
+
+    if @_err then # noop
+    else if eof and min > @_dlen then @_err = new Error "EOF before read satisfied"
+    else
+      buf = @_flush()
+      out = buf[0...max]
+      rest = buf[max...]
+      @_buffers = if rest.length then [ rest ] else []
+      @_dlen = rest.length
+
+    @_fire '_pusher_cb'
+    cb @_err, out
+
+  #-------------------------------
+
+  _flush_out : () ->
+    out = Buffer.concat @_outbufs
+    @_outbufs = []
+    out
+
+  #-------------------------------
+
+  _flush_in : () ->
+    @_dlen = 0
+    @_fire '_pusher_cb'
+    out = Buffer.concat @_buffers
+    @_dlen = 0
+    @_buffers = []
+    out
+
+  #-------------------------------
+
+  _switch_to_flow_mode : () ->
+    @_flow_mode = true
+
+  #-------------------------------
+
+  _switch_to_parse_mode : (buf) ->
+    @_flow_mode = false
+
+  #-------------------------------
+
+  _finish_parse : () ->
+    @_fire '_finish_parse_cb', [ @_err, @_flush_out() ]
+
+  #-------------------------------
+
+  _chunk_parse_mode : ({data, eof}, cb) ->
+    if data?.length
+      while (@_dlen > @_capacity) and not(@_err?) and not(@_flow_mode)
+        await @_pusher_cb = defer()
+      @_buffer_in_data(data)
+    @_eof = true if eof
+    @_fire '_puller_cb'
+    if eof
+      @_finish_parse_cb = cb
+    else
+      cb null, @_flush_out()
+
+  #-------------------------------
+
+  _buffer_out_data : (buf) ->
+    if buf?.length
+      @_outbufs.push buf
+
+  #-------------------------------
+
+  _buffer_in_data : (buf) ->
+    if buf?.length
+      @_buffers.push buf
+      @_dlen += buf.length
+
+  #-------------------------------
+
+  _run_parse_loop : () ->
+    if @_first
+      @_first = false
+      await @_parse_loop defer @_err
+      @_finish_parse()
+
+  #-------------------------------
+
+  chunk : ( {data, eof}, cb) ->
+    @_run_parse_loop()
+
+    # Once we're stuck in an error situation, we can't proceed.
+    if @_err then            cb @_err, null
+    else if @_flow_mode then @_chunk_flow_mode { data, eof}, cb
+    else                     @_chunk_parse_mode { data, eof}, cb
+
+  #-------------------------------
+
+  _chunk_flow_mode : ({data, eof}, cb) ->
+    data = bufcat [ @_flush_in(), data ]
+    @_flow_data_prepend = null
+    await @_flow { data, eof }, defer err, out
+    out = bufcat [ @_flush_out(), out ]
+    cb err, out
+
+#=========================================================
+
 class Demux extends Base
 
   #----------------
@@ -203,14 +350,25 @@ class Demux extends Base
     @_buffers = []
     @_dlen = 0
     @_sink = null
+    @_outbufs = []
     super()
 
   #----------------
 
-  _remux : ({data}) ->
-    @_buffers.push data
-    @_dlen += data.length
+  _remux : ({data, outdata}) ->
+    if indata?.length
+      @_buffers.push indata
+      @_dlen += indata.length
+    if outdata.length?
+      @_outbufs.push outdata
     @_sink = null
+
+  #----------------
+
+  _flush_out : () ->
+    out = Buffer.concat @_outbufs
+    @_outbufs = []
+    out
 
   #----------------
 
@@ -236,6 +394,7 @@ class Demux extends Base
     # Once we have a sink, we shunt the data down into the sink.
     if @_sink?
       await @_sink.chunk { data, eof }, defer err, out
+      out = bufcat [ @_flush_out(), out ]
 
     cb err, out
 

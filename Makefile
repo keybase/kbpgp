@@ -67,6 +67,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/userid.js \
 	lib/openpgp/packet/user_attribute.js \
 	lib/openpgp/packet/xbt_packetizer.js \
+	lib/openpgp/packet/xbt_depacketizer.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
 	lib/openpgp/s2k.js \

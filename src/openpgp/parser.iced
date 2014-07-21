@@ -13,6 +13,7 @@ C = require('../const').openpgp
 {Literal} = require './packet/literal'
 {inspect} = require 'util'
 xbt = require '../xbt'
+{Depacketizer} = require './packet/xbt_depacketizer'
 
 #==================================================================================================
 
@@ -156,23 +157,9 @@ exports.Demux = class Demux extends xbt.Demux
         else
           err = new Error "Can't stream packet type=#{tag}"
     if klass?
-      xbt = klass.new_xbt_parser { packet_version }
-    cb err, xbt, data[1...]
-
-#============================================================================
-
-exports.Depacketizer = class Depacketizer extends xbt.Base
-
-  constructor : ({@packet_version}) ->
-    @_state = 0
-
-  _read_packet_chunks : (cb) ->
-
-
-  chunk : ({data, eof}, cb) ->
-    if @packet_version
-
-
+      packet_xbt = klass.new_xbt_parser {}
+      xbt = new Depacketizer { packet_xbt, packet_version }
+    cb err, xbt, data
 
 #============================================================================
 
