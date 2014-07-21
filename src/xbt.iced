@@ -438,8 +438,9 @@ class Gets extends Base
       @_dlen = rest.length
 
     else if data? or eof 
-      @_buffers.push data
-      @_dlen += data.length
+      if data?
+        @_buffers.push data
+        @_dlen += data.length
       chunk = null
       if @_maxline and (@_dlen > @_maxline)
         buf = Buffer.concat @_buffers

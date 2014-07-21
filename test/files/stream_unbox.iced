@@ -9,8 +9,8 @@ input = Buffer.concat ((new Buffer [0...i]) for i in [0...255])
 
 #===================================================================
 
-oneshot = (data, xform, cb) ->
-  f = new Faucet data
+oneshot = (data, xform, faucet_opts, cb) ->
+  f = new Faucet data, faucet_opts
   d = new Drain()
   f.pipe(xform)
   xform.pipe(d)
@@ -21,14 +21,17 @@ oneshot = (data, xform, cb) ->
 
 #===================================================================
 
-exports.literal_roundtrip = (T,cb) ->
-  await stream.box { opts : { armor : null } }, defer err, xform
+roundtrip = (T, box_args, unbox_args, faucet_args, cb) ->
+  await stream.box box_args, defer err, xform
   T.no_error err
-  await oneshot input, xform, defer err, pgp
+  await oneshot input, xform, {}, defer err, pgp
   T.no_error err
-  await stream.unbox {}, defer err, xform
-  await oneshot pgp, xform, defer err, output
+  await stream.unbox unbox_args, defer err, xform
+  await oneshot pgp, xform, faucet_args, defer err, output
   T.assert util.bufeq_fast(input, output), "input != output after literal roundtrip"
   cb()
 
+#===================================================================
 
+exports.binary_literal = (T,cb) -> roundtrip(T, {}, {}, {}, cb)
+exports.base64_literal = (T,cb) -> roundtrip(T, { opts : { armor: 'generic' }}, {}, {}, cb)

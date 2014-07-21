@@ -81,7 +81,7 @@ exports.XbtDearmorDemux = class XbtDearmorDemux extends xbt.Demux
   peek_bytes : () -> @_prefix.length
 
   _demux : ({data, eof}, cb) ->
-    if data? and data.toString('utf8') is @_prefix
+    if data? and data.toString('utf8').indexOf(@_prefix) is 0
       ret = new XbtDearmorer()
     else
       ret = new xbt.Passthrough()
@@ -102,7 +102,7 @@ class XbtTokenizer extends xbt.Gets
         { type : 'frame', begin : (m[1] is 'BEGIN'), msg_type : m[2] }
       else if (m = s.match /^(\w+): (.*)$/)?
         { type : 'comment', name : m[1], value : m[2] }
-      else if (m = s.match /^=([a-zA-Z0-9+/]){4}/ )
+      else if (m = s.match /^=([a-zA-Z0-9+/]{4})/ )
         { type : 'checksum', value : m[1] }
       else if data.length is 0
         { type : 'empty' }
@@ -153,7 +153,7 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
             out = new Buffer tok.value, 'base64'
             @_crc24 = armor.compute_crc24 out, @_crc24
           else if (tok.type is 'checksum')
-            @_checksum = new Buffer tok.value, 'base64'
+            @_checksum = tok.value
             @_state++
           else
             err = new Error "Got bad data on #{@_lineno}"
