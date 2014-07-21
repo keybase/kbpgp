@@ -6,16 +6,61 @@ xbt = require '../../xbt'
 
 class ReadBuffer
 
-  constructor : (@capacity) ->
+  constructor : (@_capacity = 0x1000) ->
     @_buffers = []
     @_dlen = 0
     @_eof = false
     @_err = null
+    @_pusher_cb = @_puller_cb = null
+
+  #-------------------------------
+
+  fire : (which) ->
+    if (cb = @[which])?
+      @[which] = null
+      cb()
+
+  #-------------------------------
+
+  read : (len, cb) ->
+    @_capacity = Math.max @_capacity, len
+
+    while len > @_dlen and not(@_eof) and not(@_err?)
+      await @_puller_cb = defer()
+
+    out = null
+
+    if @_err then # noop
+    else if eof and len > @_dlen then @_err = new Error "EOF before read satisfied"
+    else
+      buf = @flush()
+      out = buf[0...len]
+      rest = buf[len...]
+      @_buffers = [ rest ]
+      @_dlen = rest.length
+
+    @fire '_pusher_cb'
+    cb @_err, out
+
+  #-------------------------------
+
+  flush : () ->
+    out = Buffer.concat @_buffers
+    @_dlen = 0
+    @_buffers = []
+    out
+
+  #-------------------------------
 
   push : ({data, eof}, cb) ->
-    while (@_dlen > @_capacity) and not(@_err?)
-      await 
-        @_pusher_cb = defer()
+    if data?.length
+      while (@_dlen > @_capacity) and not(@_err?)
+        await @_pusher_cb = defer()
+      @_buffers.push data
+      @_dlen += data.length
+      @fire '_puller_cb'
+    @_eof = true if eof
+    cb null
 
 #=================================================================================
 
