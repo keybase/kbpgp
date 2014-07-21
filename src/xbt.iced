@@ -525,5 +525,6 @@ exports.InBlocker = InBlocker
 exports.Demux = Demux
 exports.Passthrough = Passthrough
 exports.Gets = Gets
+exports.ReadBufferer = ReadBufferer
 
 #=========================================================
