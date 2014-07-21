@@ -112,9 +112,6 @@ class XbtIn extends PacketParser
     cb err
 
   _flow : ({data, eof}, cb) -> 
-    console.log "flowing data..."
-    console.log eof
-    console.log data
     cb null, data
 
 #=================================================================================

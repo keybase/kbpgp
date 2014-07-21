@@ -22,7 +22,7 @@ oneshot = (data, xform, cb) ->
 #===================================================================
 
 exports.literal_roundtrip = (T,cb) ->
-  await stream.box {}, defer err, xform
+  await stream.box { opts : { armor : null } }, defer err, xform
   T.no_error err
   await oneshot input, xform, defer err, pgp
   T.no_error err

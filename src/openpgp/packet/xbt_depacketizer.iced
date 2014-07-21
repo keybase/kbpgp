@@ -46,7 +46,6 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
     @_total = 0
     @_flow_rem = 0
     @packet_xbt.set_parent(@)
-    @_V = true
 
   #-------------------------------------
 
@@ -106,11 +105,7 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       await @_read { max : rem, min : 1}, esc defer data
       rem -= data.length
       eof = final and (rem is 0)
-      console.log "Ok, here's the data Johnny!"
-      console.log data
       await @packet_xbt.chunk { data, eof }, esc defer out
-      console.log "and the data out --->"
-      console.log out
       @_buffer_out_data out
     cb null
 
@@ -132,9 +127,7 @@ exports.PacketParser = class PacketParser extends PgpReadBufferer
     super {}
 
   _parse_loop : (cb) ->
-    console.log "parsing header.."
     await @_parse_header defer err
-    console.log "parsed header...."
     @_switch_to_flow_mode()
     cb err
 

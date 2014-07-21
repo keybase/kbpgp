@@ -277,16 +277,11 @@ class ReadBufferer extends Base
   #-------------------------------
 
   _switch_to_flow_mode : () ->
-    if @_V then console.log "Switching to flow mode..."
     @_flow_mode = true
 
   #-------------------------------
 
   _chunk_parse_mode : ({data, eof}, cb) ->
-    if @_V
-      console.log "CPM"
-      console.log eof
-      console.log data
     if data?.length
       while (@_dlen > @_capacity) and not(@_err?) and not(@_flow_mode)
         await @_pusher_cb = defer()
@@ -323,7 +318,6 @@ class ReadBufferer extends Base
       if (tmp = @_last_cb)
         @_last_cb = null
         if @_flow_mode
-          if @_V then console.log "ok, going to flow!"
           @_chunk_flow_mode { eof : true }, tmp
         else
           tmp @_err, @_flush_out()
@@ -332,10 +326,6 @@ class ReadBufferer extends Base
 
   chunk : ( {data, eof}, cb) ->
     @_run_parse_loop()
-    if @_V
-      console.log "got chunk..."
-      console.log eof
-      console.log data
 
     # Once we're stuck in an error situation, we can't proceed.
     if @_err then            cb @_err, null
