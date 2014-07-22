@@ -140,8 +140,7 @@ exports.Demux = class Demux extends xbt.Demux
 
   _demux : ( { data, eof}, cb) ->
     err = xbt = packet_version = null
-    if eof then err = new Error "EOF when looking for a new PGP packet"
-    else if not data? then # noop
+    if not data? then # noop
     else if ((c = data.readUInt8(0)) & 0x80) is 0
       err = new Error "This doesn't look like a binary PGP packet (c=#{c})"
     else if (c & 0x40) is 0
@@ -154,10 +153,12 @@ exports.Demux = class Demux extends xbt.Demux
       PT = C.packet_tags
       klass = switch tag
         when PT.literal then Literal
+        when PT.compressed then Compressed
         else
           err = new Error "Can't stream packet type=#{tag}"
+    else if eof then err = new Error "EOF when looking for a new PGP packet"
     if klass?
-      packet_xbt = klass.new_xbt_parser {}
+      packet_xbt = klass.new_xbt_parser { demux_klass : Demux }
       xbt = new Depacketizer { packet_xbt, packet_version }
     cb err, xbt, data
 

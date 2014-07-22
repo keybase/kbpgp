@@ -494,7 +494,7 @@ class ReverseAdapter extends Base
       false
 
   _transform : (data, cb) ->
-    await @stream.write data, defer()
+    await @stream.write data, defer err
     while (diff = @_hiwat - @_dlen) > 0 
       break unless @_push_data @stream.read diff
     cb()

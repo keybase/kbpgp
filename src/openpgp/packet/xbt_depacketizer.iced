@@ -123,13 +123,27 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
 exports.PacketParser = class PacketParser extends PgpReadBufferer
 
-  constructor : () ->
+  constructor : ({@demux_klass}) ->
     super {}
+
+  _get_next_demux : () ->
+    unless (@_next_xbt)?
+      @_next_xbt = new @demux_klass {}
+      @_next_xbt.set_parent(@)
+    @_next_xbt
 
   _parse_loop : (cb) ->
     await @_parse_header defer err
     @_switch_to_flow_mode()
     cb err
+
+  _flow_demux : ({data, eof}, cb) ->
+    console.log "flow demux"
+    console.log eof
+    console.log data
+    console.log data.length
+    await @_get_next_demux().chunk {data, eof}, defer err, data
+    cb err, data
 
 #=================================================================================
 

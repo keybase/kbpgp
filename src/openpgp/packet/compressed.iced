@@ -8,6 +8,7 @@ compressjs = require 'keybase-compressjs'
 {Packetizer} = require './xbt_packetizer'
 {ReverseAdapter} = require '../../xbt'
 {make_esc} = require 'iced-error'
+{PacketParser} = require './xbt_depacketizer'
 
 #=================================================================================
 
@@ -90,6 +91,7 @@ class Compressed extends Packet
   #--------
 
   new_xbt : () -> new XbtOut { packet : @ }
+  @new_xbt_parser : (arg) -> new XbtIn arg
 
 #=================================================================================
 
@@ -129,6 +131,36 @@ exports.XbtOut = class XbtOut extends Packetizer
     esc = make_esc cb, "compresed.XbtOut._v_chunk"
     await @_stream.chunk { data, eof }, esc defer data
     super { data, eof }, cb
+
+#=================================================================================
+
+class XbtIn extends PacketParser
+
+  #----------------------
+
+  constructor : (arg) -> 
+    super arg
+    @inflater = null
+
+  #----------------------
+
+  _parse_header : (cb) ->
+    err = null
+    esc = make_esc cb, "_parse_header"
+    await @_read_uint8 esc defer algo
+    @inflater = switch algo
+      when C.compression.zlib then new ReverseAdapter { stream : zlib.createInflate() }
+      else
+        err = new Error "unhanalded streaming inflation algorithn: #{algo}" 
+    cb err
+
+  #----------------------
+
+  _flow : ({data, eof}, cb) ->
+    esc = make_esc cb, 'XbtIn::_flow'
+    await @inflater.chunk {data, eof}, esc defer data
+    await @_flow_demux { data, eof }, esc defer data
+    cb null, data
 
 #=================================================================================
 
