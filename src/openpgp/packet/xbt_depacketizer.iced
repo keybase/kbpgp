@@ -52,6 +52,7 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
   _depacketize_1 : (cb) ->
     esc = make_esc cb, "_depacketize_1"
     await @_find_length esc defer final, len
+    console.log "OK NEW PACKET #{len} #{final}"
     await @_stream_packet final, len, esc defer()
     @_total += len
     cb null, final

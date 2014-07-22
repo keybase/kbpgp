@@ -51,6 +51,7 @@ class Chain extends Base
   constructor : () ->
     @links = []
     super()
+    @_iters = 0
 
   push_xbt : (link) ->
     @links.push link
@@ -61,14 +62,15 @@ class Chain extends Base
     esc = make_esc cb, "Chain::chunk"
     out = null
     for l,i in @links
-      console.log "link #{i}"
+      console.log "+ #{@_iters}.#{i} CHAIN link"
       console.log "in chunk..."
       console.log eof
       console.log data
       await l.chunk {data,eof}, esc defer data
-      console.log "out chunk..."
+      console.log "- #{@_iters++}.#{i} CHAIN link"
       console.log data
       out = data
+    console.log "chunk chain is done! -> #{eof} -> #{out?.length} -> #{out?.toString('hex')}"
     cb null, out
 
 #=========================================================
@@ -219,6 +221,8 @@ class InBlocker extends SimpleInit
 # start in the first mode, and switch to flow.
 class ReadBufferer extends Base
 
+  @RBC = 0
+
   constructor : ({capacity}) ->
     @_capacity = capacity or 0x10000
     @_flow_mode = false
@@ -231,6 +235,7 @@ class ReadBufferer extends Base
     @_first = true
     @_outbufs = []
     @_last_cb = null
+    @_rbc = ReadBufferer.RBC++
     super()
 
   #-------------------------------
@@ -284,6 +289,7 @@ class ReadBufferer extends Base
   #-------------------------------
 
   _switch_to_flow_mode : () ->
+    console.log "switch to flow mode..."
     @_flow_mode = true
 
   #-------------------------------
@@ -333,21 +339,32 @@ class ReadBufferer extends Base
 
   chunk : ( {data, eof}, cb) ->
     @_run_parse_loop()
+    console.log "+ #{@_rbc} (#{@_flow_mode}) Chunk in ReadBufferer..."
+    err = out = null
 
     # Once we're stuck in an error situation, we can't proceed.
-    if @_err then            cb @_err, null
-    else if @_flow_mode then @_chunk_flow_mode { data, eof}, cb
-    else                     @_chunk_parse_mode { data, eof}, cb
+    if @_err
+      console.log "A0"
+      err =  @_err
+    else if @_flow_mode 
+      console.log "A1"
+      await @_chunk_flow_mode { data, eof}, defer err, out
+    else
+      console.log "A2"
+      await @_chunk_parse_mode { data, eof}, defer err, out
+    console.log "- #{@_rbc} Chunk in ReadBufferer"
+    cb err, out
 
   #-------------------------------
 
   _chunk_flow_mode : ({data, eof}, cb) ->
     data = bufcat [ @_flush_in(), data ]
     @_flow_data_prepend = null
+    console.log "flow A"
     await @_flow { data, eof }, defer err, out
+    console.log "flow B"
     out = bufcat [ @_flush_out(), out ]
-    console.log "got flow out ---> "
-    console.log out
+    console.log "got flow out ---> eof=#{eof} --> len=#{out.length} --> #{out.toString('hex')}"
     cb err, out
 
 #=========================================================
@@ -405,6 +422,7 @@ class Demux extends Base
     if @_sink?
       await @_sink.chunk { data, eof }, defer err, out
       out = bufcat [ @_flush_out(), out ]
+      console.log "demux out --> #{out.length} -> #{out.toString('hex')}"
 
     cb err, out
 

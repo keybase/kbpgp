@@ -98,6 +98,7 @@ class XbtIn extends PacketParser
 
   constructor : () ->
     super {}
+    @_tot = 0
 
   _parse_header : (cb) ->
     esc = make_esc cb, "XbtIn::Depacketizer"
@@ -115,7 +116,11 @@ class XbtIn extends PacketParser
 
   _flow : ({data, eof}, cb) -> 
     console.log "ok, got here to FLOW city"
-    console.log data
+    console.log "EOF is -> " + eof
+    console.log "Data is -> " + data.toString('hex')
+    console.log "Data.length is -> " + data.length
+    @_tot += data.length
+    console.log "Data.total length is -> " + @_tot
     cb null, data
 
 #=================================================================================
