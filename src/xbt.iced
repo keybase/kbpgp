@@ -60,8 +60,14 @@ class Chain extends Base
   chunk : ({data,eof}, cb) ->
     esc = make_esc cb, "Chain::chunk"
     out = null
-    for l in @links
+    for l,i in @links
+      console.log "link #{i}"
+      console.log "in chunk..."
+      console.log eof
+      console.log data
       await l.chunk {data,eof}, esc defer data
+      console.log "out chunk..."
+      console.log data
       out = data
     cb null, out
 
@@ -340,6 +346,8 @@ class ReadBufferer extends Base
     @_flow_data_prepend = null
     await @_flow { data, eof }, defer err, out
     out = bufcat [ @_flush_out(), out ]
+    console.log "got flow out ---> "
+    console.log out
     cb err, out
 
 #=========================================================

@@ -159,7 +159,12 @@ class XbtIn extends PacketParser
   _flow : ({data, eof}, cb) ->
     esc = make_esc cb, 'XbtIn::_flow'
     await @inflater.chunk {data, eof}, esc defer data
+    console.log "ok, inflated!"
+    console.log eof
+    console.log data
     await @_flow_demux { data, eof }, esc defer data
+    console.log "flow demuxed, and we are outta here"
+    console.log data
     cb null, data
 
 #=================================================================================

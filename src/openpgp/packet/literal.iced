@@ -102,6 +102,7 @@ class XbtIn extends PacketParser
   _parse_header : (cb) ->
     esc = make_esc cb, "XbtIn::Depacketizer"
     err = null
+    console.log "ok, here in the header..."
     await @_read_uint8  esc defer format
     await @_read_string esc defer filename
     await @_read_uint32 esc defer date
@@ -109,9 +110,12 @@ class XbtIn extends PacketParser
       err = new Error "Cannot have >1 literal in a stream"
     else 
       rmd.literal = { format, filename, date }
+    console.log "Done in literal land"
     cb err
 
   _flow : ({data, eof}, cb) -> 
+    console.log "ok, got here to FLOW city"
+    console.log data
     cb null, data
 
 #=================================================================================
