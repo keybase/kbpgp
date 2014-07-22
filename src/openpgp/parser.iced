@@ -130,18 +130,33 @@ class PacketParser
 
 #============================================================================
 
-exports.Demux = class Demux extends xbt.Demux
+exports.DemuxSequence = class DemuxSequence extends xbt.PullBase
+
+  run : (cb) ->
+    esc = make_esc cb, "DemuxSequence::_process"
+    until @_is_eof()
+      d = new Demux {}
+      await @_stream_to d, esc defer()
+    cb null
+
+#============================================================================
+
+exports.Demux = class Demux extends xbt.PullBase
 
   #---------------
 
-  peek_bytes : () -> 1
+  run : (cb) ->
+    esc = make_esc cb, "Demux::_process"
+    await @_peek 1, esc defer b
+    await @_demux b[0], esc defer next
+    await @_stream_to next, esc defer()
+    cb null
 
   #---------------
 
-  _demux : ( { data, eof}, cb) ->
+  _demux : (c, cb) ->
     err = xbt = packet_version = null
-    if not data? then # noop
-    else if ((c = data.readUInt8(0)) & 0x80) is 0
+    if ((c = data.readUInt8(0)) & 0x80) is 0
       err = new Error "This doesn't look like a binary PGP packet (c=#{c})"
     else if (c & 0x40) is 0
       tag = (c & 0x3f) >> 2
@@ -158,8 +173,9 @@ exports.Demux = class Demux extends xbt.Demux
           err = new Error "Can't stream packet type=#{tag}"
     else if eof then err = new Error "EOF when looking for a new PGP packet"
     if klass?
-      packet_xbt = klass.new_xbt_parser { demux_klass : Demux }
-      xbt = new Depacketizer { packet_xbt, packet_version }
+      depacketizer_xbt = new Depacketizer { packet_version }
+      packet_xbt = klass.new_xbt_parser {}
+      xbt = new PullChain [ depacketizer_xbt, packet_xbt ]
     cb err, xbt, data
 
 #============================================================================

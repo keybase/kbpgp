@@ -6,7 +6,7 @@ C = require('../../const').openpgp
 
 #=================================================================================
 
-class PgpReadBufferer extends xbt.ReadBufferer
+class PgpReadBufferer extends xbt.PullBase
 
   #-------------------------
 
@@ -41,21 +41,21 @@ class PgpReadBufferer extends xbt.ReadBufferer
 
 exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
-  constructor : ( { @packet_version, @packet_xbt } ) ->
+  constructor : ( { @packet_version } ) ->
     super {}
     @_total = 0
-    @_flow_rem = 0
-    @packet_xbt.set_parent(@)
 
   #-------------------------------------
 
-  _depacketize_1 : (cb) ->
+  run : (cb) ->
+    final = false
     esc = make_esc cb, "_depacketize_1"
-    await @_find_length esc defer final, len
-    console.log "OK NEW PACKET #{len} #{final}"
-    await @_stream_packet final, len, esc defer()
-    @_total += len
-    cb null, final
+    until final
+      await @_find_length esc defer final, len
+      await @_read len, esc defer data
+      @_total += len
+      await @_emit { data, eof : final }, esc defer()
+    cb null
 
   #-------------------------------------
 
@@ -88,63 +88,18 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
         final = false
     cb err, final, ret
 
-  #-------------------------------------
-
-  _depacketize_all : (cb) ->
-    esc = make_esc cb, "_depacketize_all"
-    final = false
-    until final
-      await @_depacketize_1 esc defer final
-    cb null
-
-  #-------------------------------------
-
-  _stream_packet : (final, len, cb) ->
-    rem = len
-    esc = make_esc cb, "_stream_packet"
-    while rem > 0
-      await @_read { max : rem, min : 1}, esc defer data
-      rem -= data.length
-      eof = final and (rem is 0)
-      await @packet_xbt.chunk { data, eof }, esc defer out
-      @_buffer_out_data out
-    cb null
-
-  #-------------------------------------
-
-  _parse_loop : (cb) ->
-    await @_depacketize_all defer err
-    cb err
-    if not(@_err?) and not(@_eof)
-      # At the end of a packet, we probably need to find the next packet, so we
-      # call back to our parent (which has to be a Demux!) to do its next demux.
-      @get_parent()._remux { indata : @_flush_in(), outdata : @_flush_out() }
-
 #=================================================================================
 
 exports.PacketParser = class PacketParser extends PgpReadBufferer
 
-  constructor : ({@demux_klass}) ->
+  constructor : () ->
     super {}
 
-  _get_next_demux : () ->
-    unless (@_next_xbt)?
-      @_next_xbt = new @demux_klass {}
-      @_next_xbt.set_parent(@)
-    @_next_xbt
-
-  _parse_loop : (cb) ->
-    await @_parse_header defer err
-    @_switch_to_flow_mode()
-    cb err
-
-  _flow_demux : ({data, eof}, cb) ->
-    console.log "flow demux"
-    console.log eof
-    console.log data
-    console.log data.length
-    await @_get_next_demux().chunk {data, eof}, defer err, data
-    cb err, data
-
+  run : (cb) ->
+    esc = make_esc cb, "PacketParser::_process"
+    await @_process_header esc defer()
+    await @_pass_through esc defer()
+    cb null
+    
 #=================================================================================
 

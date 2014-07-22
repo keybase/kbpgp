@@ -9,7 +9,7 @@ stream = require 'stream'
 xbt = require '../xbt'
 {Compressed} = require './packet/compressed'
 {SEIPD} = require './packet/sess'
-{Demux} = require './parser'
+{DemuxSequence} = require './parser'
 {XbtDearmorDemux,XbtArmorer} = require './armor'
 
 #===========================================================================
@@ -79,14 +79,13 @@ class UnboxTransformEngine
   #---------------------------------------
 
   constructor : ({@opts, @keyfetch}) ->
-    @chain = new xbt.Chain
+    @chain = new xbt.PullChain
     @stream = new xbt.StreamAdapter { xbt : @chain }
 
   #---------------------------------------
 
   init : (cb) ->
-    @chain.push_xbt(new XbtDearmorDemux {})
-          .push_xbt(new Demux {})
+    @chain.push_xbt(new XbtDearmorDemux {}).push_xbt(new DemuxSequence {})
     cb null, @stream
 
 #===========================================================================
