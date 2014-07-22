@@ -118,8 +118,7 @@ class Queue
 
 class PullBase extends Base
 
-  constructor : ({source, sink, bufsz}) ->
-    @_source = source
+  constructor : ({sink, bufsz}) ->
     @_sink = sink
     @_bufsz = bufsz or 0x10000
     @_inq = new Queue @_bufsz
@@ -169,7 +168,23 @@ class PullBase extends Base
 
   #---------------------------
 
-  run : (cb) -> cb new Error "unimplemented!"
+  run : (cb) -> throw new Error "unimplemented!"
+
+  #---------------------------
+
+  _run_main_loop : () ->
+    unless @_running
+      @_running = true
+      await @run defer err
+      @_call_final_emit_cb err
+
+  #---------------------------
+
+  chunk : ({data, eof}, cb) ->
+    @_run_main_loop()
+    @_source_eof = true if eof
+    await @push_data { data, eof}, defer err
+    @_push_emit_cb cb
 
   #---------------------------
 
