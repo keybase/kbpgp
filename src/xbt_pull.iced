@@ -148,13 +148,8 @@ class PullBase extends Base
   #---------------------------
 
   _pass_through : (cb) ->
-    eof = false
-    until eof
-      unless eof = @_source_eof
-        await @_inq.wait_for_data 1, null, defer()
-      data = @_inq.flush()
-      await @_sink.push_data { buf, eof }, esc defer()
-    cb null
+    @_do_pass_through = true
+    @_eof_cb = cb
 
   #---------------------------
 
@@ -167,8 +162,10 @@ class PullBase extends Base
 
   _stream_to : (next, cb) ->
     next.set { source : @_source, inq : @_inq, sink : @_sink }
-    await @next.run defer err
-    cb err
+    next._inq = @_inq
+    @_sink = next
+    if @_source_eof then cb @_err
+    else @_eof_cb = cb
 
   #---------------------------
 
@@ -190,11 +187,18 @@ class PullBase extends Base
   chunk : ({data, eof}, cb) ->
     @_run_main_loop()
     @_source_eof = true if eof
-    await @push_data { data, eof}, defer err
-    if not(@_source_eof) or @_main_done
-      cb null, @_outq.flush()
+    if @_sink?
+      await @_sink.chunk { data, eof}, defer err, data
+      cb err, data
+      if eof and (tmp = @_eof_cb)?
+        @_eof_cb = null
+        tmp @_err
     else
-      @_final_cb = cb
+      await @push_data { data, eof }, defer err
+      if not(@_source_eof) or @_main_done
+        cb null, @_outq.flush()
+      else
+        @_final_cb = cb
 
   #---------------------------
 
