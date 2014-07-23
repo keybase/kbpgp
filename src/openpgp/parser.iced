@@ -14,6 +14,7 @@ C = require('../const').openpgp
 {inspect} = require 'util'
 xbt = require '../xbt'
 {Depacketizer} = require './packet/xbt_depacketizer'
+{make_esc} = require 'iced-error'
 
 #==================================================================================================
 
@@ -148,6 +149,8 @@ exports.Demux = class Demux extends xbt.ReadBufferer
   run : (cb) ->
     esc = make_esc cb, "Demux::_process"
     await @_peek 1, esc defer b
+    console.log "peeked!"
+    console.log b
     await @_demux b[0], esc defer next
     await @_stream_to next, esc defer()
     cb null
@@ -156,7 +159,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
 
   _demux : (c, cb) ->
     err = out = packet_version = null
-    if ((c = data.readUInt8(0)) & 0x80) is 0
+    if (c & 0x80) is 0
       err = new Error "This doesn't look like a binary PGP packet (c=#{c})"
     else if (c & 0x40) is 0
       tag = (c & 0x3f) >> 2
@@ -176,7 +179,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
       depacketizer_xbt = new Depacketizer { packet_version }
       packet_xbt = klass.new_xbt_parser {}
       out = new xbt.Chain [ depacketizer_xbt, packet_xbt ]
-    cb err, out, data
+    cb err, out
 
 #============================================================================
 

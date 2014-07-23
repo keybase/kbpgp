@@ -211,164 +211,6 @@ class InBlocker extends SimpleInit
 
 #=========================================================
 
-# A class that allows a subclass to pull at will, and not to have
-# data constantly pushed at it.  To change from a pushee to a puller,
-# we need a buffer in between.
-#
-# Note this XBT can be in one of two states: pull mode, which is the default,
-# and flow mode, which can be turned on, and just causes data to flow as 
-# in a normal XBT. Parsers that parse headers and then flow data will want to 
-# start in the first mode, and switch to flow.
-class ReadBufferer extends Base
-
-  @RBC = 0
-
-  constructor : ({capacity}) ->
-    @_capacity = capacity or 0x10000
-    @_flow_mode = false
-    @_buffers = []
-    @_dlen = 0
-    @_eof = false
-    @_err = null
-    @_pusher_cb = @_puller_cb = null
-    @_flow_data_prepend = null
-    @_first = true
-    @_outbufs = []
-    @_last_cb = null
-    @_rbc = ReadBufferer.RBC++
-    super()
-
-  #-------------------------------
-
-  _fire : (which, args = []) ->
-    if (cb = @[which])?
-      @[which] = null
-      cb args...
-
-  #-------------------------------
-
-  _read : ({min,max,exactly}, cb) ->
-    if exactly? then min = max = exactly
-    @_capacity = Math.max @_capacity, min
-
-    while min > @_dlen and not(@_eof) and not(@_err?)
-      await @_puller_cb = defer()
-
-    out = null
-
-    if @_err then # noop
-    else if @_eof and min > @_dlen 
-      @_err = new Error "EOF before read satisfied"
-    else
-      buf = @_flush_in()
-      out = buf[0...max]
-      rest = buf[max...]
-      @_buffers = if rest.length then [ rest ] else []
-      @_dlen = rest.length
-
-    @_fire '_pusher_cb'
-    cb @_err, out
-
-  #-------------------------------
-
-  _flush_out : () ->
-    out = Buffer.concat @_outbufs
-    @_outbufs = []
-    out
-
-  #-------------------------------
-
-  _flush_in : () ->
-    @_dlen = 0
-    @_fire '_pusher_cb'
-    out = Buffer.concat @_buffers
-    @_dlen = 0
-    @_buffers = []
-    out
-
-  #-------------------------------
-
-  _switch_to_flow_mode : () ->
-    console.log "switch to flow mode..."
-    @_flow_mode = true
-
-  #-------------------------------
-
-  _chunk_parse_mode : ({data, eof}, cb) ->
-    if data?.length
-      while (@_dlen > @_capacity) and not(@_err?) and not(@_flow_mode)
-        await @_pusher_cb = defer()
-      @_buffer_in_data(data)
-    @_eof = true if eof
-    # Tricky; we need to set this before we poke the puller back into action,
-    # in case the puller uses up the rest of the parsed data and then moves
-    # into flow mode.
-    if eof
-      @_last_cb = cb
-    @_fire '_puller_cb'
-    if not eof
-      cb null, @_flush_out()
-
-  #-------------------------------
-
-  _buffer_out_data : (buf) ->
-    if buf?.length
-      @_outbufs.push buf
-
-  #-------------------------------
-
-  _buffer_in_data : (buf) ->
-    if buf?.length
-      @_buffers.push buf
-      @_dlen += buf.length
-
-  #-------------------------------
-
-  _run_parse_loop : () ->
-    if @_first
-      @_first = false
-      await @_parse_loop defer @_err
-      if (tmp = @_last_cb)
-        @_last_cb = null
-        if @_flow_mode
-          @_chunk_flow_mode { eof : true }, tmp
-        else
-          tmp @_err, @_flush_out()
-
-  #-------------------------------
-
-  chunk : ( {data, eof}, cb) ->
-    @_run_parse_loop()
-    console.log "+ #{@_rbc} (#{@_flow_mode}) Chunk in ReadBufferer..."
-    err = out = null
-
-    # Once we're stuck in an error situation, we can't proceed.
-    if @_err
-      console.log "A0"
-      err =  @_err
-    else if @_flow_mode 
-      console.log "A1"
-      await @_chunk_flow_mode { data, eof}, defer err, out
-    else
-      console.log "A2"
-      await @_chunk_parse_mode { data, eof}, defer err, out
-    console.log "- #{@_rbc} Chunk in ReadBufferer"
-    cb err, out
-
-  #-------------------------------
-
-  _chunk_flow_mode : ({data, eof}, cb) ->
-    data = bufcat [ @_flush_in(), data ]
-    @_flow_data_prepend = null
-    console.log "flow A"
-    await @_flow { data, eof }, defer err, out
-    console.log "flow B"
-    out = bufcat [ @_flush_out(), out ]
-    console.log "got flow out ---> eof=#{eof} --> len=#{out.length} --> #{out.toString('hex')}"
-    cb err, out
-
-#=========================================================
-
 class Demux extends Base
 
   #----------------
@@ -544,9 +386,6 @@ class ReverseAdapter extends Base
     cb null, @_consume_bufs()
 
 
-
-{Base} = require './xbt'
-
 #==============================================================
 
 class Queue
@@ -583,9 +422,11 @@ class Queue
   #---------
 
   pull : (n,peek) ->
-    if n >= @n_bytes() then @flush(peek)
-    else @_pull(n,peel)
+    console.log "pull #{n} #{peek} #{@n_bytes()}"
+    ret = if n >= @n_bytes() then @flush(peek)
+    else @_pull(n,peek)
     if n > 0 and not peek then @_made_room()
+    return ret
 
   #---------
 
@@ -627,6 +468,8 @@ class Queue
   _pull : (n, peek) ->
     slices = []
     total = 0
+    console.log "@_pull"
+    console.log @_buffers
 
     getbuf = (buf, start, end) ->
       if not start and not end? then buf
@@ -636,24 +479,33 @@ class Queue
     for b,i in @_buffers
       start = if i is 0 then @_i else 0
       stuff = b.length - start
-      leftover = total + stuff - block_size
+      leftover = total + stuff - n
+      console.log "leftover ... #{leftover}..."
       if leftover < 0
+        console.log "Case A"
         slices.push getbuf b, start
         total += stuff
       else if leftover is 0
+        console.log "case B"
         slices.push getbuf b, start
         total += stuff
         @_buffers = @_buffers[(i+1)...]
         @_i = 0
         break
       else
+        console.log "case C"
         end = b.length - leftover
+        console.log b
+        console.log start
+        console.log end
         slices.push getbuf b, start, end
         @_buffers = @_buffers[i...]
         @_i = end
         break
 
     out = Buffer.concat slices
+    console.log "slices..."
+    console.log slices
     assert (out.length is n)
     if peek
       @_buffers.unshift out
@@ -681,10 +533,10 @@ class Waitpoint
 
 #==============================================================
 
+
 class ReadBufferer extends Base
 
-  constructor : ({sink, bufsz}) ->
-    @_sink = sink
+  constructor : ({bufsz}) ->
     @_inq = new Queue bufsz
     @_outq = new Queue 
     @_source_eof = false
@@ -693,6 +545,7 @@ class ReadBufferer extends Base
     @_main_done = false
     @_done_main_waitpoint = new Waitpoint
     @_source_eof_waitpoint = new Waitpoint
+    super()
 
   #---------------------------
 
@@ -711,10 +564,7 @@ class ReadBufferer extends Base
 
   #---------------------------
 
-  set : ({source, inq, sink}) ->
-    @_source = source if source?
-    @_inq = inq if inq?
-    @_sink = sink if sink?
+  _is_eof : () -> @_source_eof
 
   #---------------------------
 
@@ -726,8 +576,6 @@ class ReadBufferer extends Base
   #---------------------------
 
   _stream_to : (next, cb) ->
-    @_do_pass_through = true
-    next._inq = @_inq
     @_sink = next
     await @_source_eof_waitpoint.wait defer()
     cb null
@@ -752,7 +600,7 @@ class ReadBufferer extends Base
     outdata = null
 
     if @_sink?
-      data = [ @_inq.flush(), data ]
+      data = bufcat [ @_inq.flush(), data ]
       await @_sink.chunk { data, eof }, defer err, outdata
     else
       await @_push_data { data, eof  }, defer err
@@ -773,7 +621,11 @@ class ReadBufferer extends Base
     if exactly? then min = max = exactly
     @_inq.elongate min
     await @_inq.wait_for_data min, ( () => @_source_eof ), defer err
+    console.log "Read it yo!"
+    console.log err
     data = if err? then null else @_inq.pull(max, peek)
+    console.log "done reading..."
+    console.log data
     cb err, data
 
 #==============================================================

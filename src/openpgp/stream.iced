@@ -79,7 +79,7 @@ class UnboxTransformEngine
   #---------------------------------------
 
   constructor : ({@opts, @keyfetch}) ->
-    @chain = new xbt.PullChain
+    @chain = new xbt.Chain
     @stream = new xbt.StreamAdapter { xbt : @chain }
 
   #---------------------------------------

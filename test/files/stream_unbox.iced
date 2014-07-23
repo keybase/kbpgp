@@ -45,9 +45,10 @@ R = (T, input, box_args, unbox_args, faucet_args, cb) ->
 #===================================================================
 
 module.exports =
- binary_literal : (T,cb)            -> R(T, med, {}, {}, {}, cb)
+ small_binary_literal : (T,cb)       -> R(T, small, {}, {}, {}, cb)
+ #binary_literal : (T,cb)             -> R(T, med, {}, {}, {}, cb)
  #base64_literal : (T,cb)            -> R(T, med, { opts : { armor: 'generic' }}, {}, {}, cb)
- slow_binary_literal : (T,cb)       -> R(T, med, {}, {}, {blocksize : 137, wait_msec : 1}, cb)
+ #slow_binary_literal : (T,cb)       -> R(T, med, {}, {}, {blocksize : 137, wait_msec : 1}, cb)
  #slow_base64_literal : (T,cb)       -> R(T, med, { opts : { armor : 'generic' } }, {}, {blocksize : 137, wait_msec : 1}, cb)
  #small_slow_binary_literal : (T,cb) -> R(T, small, {}, {}, {blocksize : 2, wait_msec : 3}, cb)
  #small_slow_base64_literal : (T,cb) -> R(T, small, { opts : { armor : 'generic' } }, {}, {blocksize : 1, wait_msec : 4}, cb)
