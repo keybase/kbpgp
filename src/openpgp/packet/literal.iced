@@ -106,11 +106,9 @@ class XbtIn extends PacketParser
     await @_read_uint8  esc defer format
     await @_read_string esc defer filename
     await @_read_uint32 esc defer date
-    if (rmd = @get_root_metadata()).literal?
-      err = new Error "Cannot have >1 literal in a stream"
-    else 
-      rmd.literal = { format, filename, date }
-    cb err
+    literal = new Literal { format, filename, date }
+    await @set_root_metadata { slice : 'literal', value : literal }, esc defer()
+    cb null
 
   _run_body : (cb) ->
     await @_pass_through defer err

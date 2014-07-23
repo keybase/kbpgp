@@ -140,7 +140,7 @@ class XbtIn extends PacketParser
 
   constructor : (arg) -> 
     super arg
-    @_inflate_stream = zlib.createInflate()
+    @_inflate_stream = null
 
   #----------------------
 

@@ -6,6 +6,7 @@ hash = require '../../hash'
 {uint_to_buffer} = require '../../util'
 xbt = require '../../xbt'
 {make_esc} = require 'iced-error'
+{PacketParser} = require './xbt_depacketizer'
 
 #=================================================================================
 
@@ -55,15 +56,30 @@ class OPS_Parser
   #     operating in Cipher Feedback mode with shift amount equal to the
   #     block size of the cipher (CFB-n where n is the block size).
   parse : () -> 
-    unless (v = @slice.read_uint8()) is C.versions.one_pass_sig
-      throw new Error "Unknown OnePassSignature version #{v}"
+    version = @slice.read_uint8()
     sig_type = @slice.read_uint8()
-    hasher = hash.alloc_or_throw @slice.read_uint8()
-    sig_klass = asymmetric.get_class @slice.read_uint8() 
+    hasher = @slice.read_uint8()
+    sig_klass = @slice.read_uint8() 
     key_id = @slice.read_buffer 8
     is_final = @slice.read_uint8()
-    ret = new OnePassSignature { sig_type, hasher, sig_klass, key_id, is_final }
-    return ret
+    _alloc { version, sig_type, hasher, sig_klass, key_id, is_final }
+
+  #----------------
+
+  _alloc : ({version, sig_type, hasher, sig_klass, key_id, is_final}) ->
+    unless version is C.versions.one_pass_sig
+      throw new Error "Unknown OnePassSignature version #{version}"
+    hasher = hash.alloc_or_throw @slice.read_uint8()
+    sig_klass = asymmetric.get_class @slice.read_uint8() 
+    new OnePassSignature { sig_type, hasher, sig_klass, key_id, is_final }
+
+  #----------------
+
+  alloc : (args, cb) ->
+    ret = err = null
+    try ret = @_alloc(args)
+    catch e then err = e
+    cb err, ret
 
 #=================================================================================
 
@@ -91,5 +107,25 @@ exports.XbtOut = class XbtOut extends xbt.SimpleInit
       await @footer.write (new Buffer []), esc defer ftr
       bufs.push ftr
     cb null, (Buffer.concat bufs)
+
+#=================================================================================
+
+exports.XbtIn = class XbtIn extends PacketParser
+
+  constructor : (arg) ->
+    super arg
+
+  _parse_header : (cb) ->
+    err = null
+    esc = make_esc cb, "_parse_header"
+    await @_read_uint8 esc defer version
+    await @_read_uint8 esc defer sig_type
+    await @_read_uint8 esc defer hasher
+    await @_read_uint8 esc defer sig_klass
+    await @_read { exactly : 8 }, esc defer key_id
+    await @_read_uint8 esc defer is_final
+    await OPS_Parser.alloc { version, sig_type, hasher, sig_klass, key_id, is_final }, esc defer packet
+    await @set_root_metadata { slice : 'ops', value : packet }, esc defer()
+    cb null
 
 #=================================================================================

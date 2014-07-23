@@ -34,6 +34,13 @@ class Base
     if slice? then (md[slice] or= def)
     else md
 
+  set_root_metadata : ({slice, value}, cb) ->
+    rmd = @get_root_metadata()
+    err = null
+    if (rmd[slice])? then err = new Error "Cannot have >1 '#{slice}' packets"
+    else rmd[slice] = value
+    cb err
+
   # Work up the root of the XBT tree. 
   root : () ->
     p = @get_parent()
