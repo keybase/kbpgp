@@ -6,7 +6,7 @@ C = require('../../const').openpgp
 
 #=================================================================================
 
-class PgpReadBufferer extends xbt.PullBase
+class PgpReadBufferer extends xbt.ReadBufferer
 
   #-------------------------
 

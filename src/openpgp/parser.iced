@@ -130,7 +130,7 @@ class PacketParser
 
 #============================================================================
 
-exports.DemuxSequence = class DemuxSequence extends xbt.PullBase
+exports.DemuxSequence = class DemuxSequence extends xbt.ReadBufferer
 
   run : (cb) ->
     esc = make_esc cb, "DemuxSequence::_process"
@@ -141,7 +141,7 @@ exports.DemuxSequence = class DemuxSequence extends xbt.PullBase
 
 #============================================================================
 
-exports.Demux = class Demux extends xbt.PullBase
+exports.Demux = class Demux extends xbt.ReadBufferer
 
   #---------------
 
