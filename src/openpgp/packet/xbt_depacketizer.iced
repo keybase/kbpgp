@@ -86,10 +86,6 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       else
         ret = 1 << (first & 0x1f)
         final = false
-    console.log "_find_length --->"
-    console.log err
-    console.log final
-    console.log ret
     cb err, final, ret
 
 #=================================================================================

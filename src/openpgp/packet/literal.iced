@@ -112,6 +112,7 @@ class XbtIn extends PacketParser
     else 
       rmd.literal = { format, filename, date }
     console.log "parsed!!!"
+    console.log rmd.literal
     cb err
 
 #=================================================================================

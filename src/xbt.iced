@@ -42,7 +42,10 @@ class Base
 #=========================================================
 
 class Passthrough extends Base
-  chunk : ({data, eof}, cb) -> cb null, data
+  chunk : ({data, eof}, cb) -> 
+    console.log "just passing through!"
+    console.log data
+    cb null, data
 
 #=========================================================
 
@@ -423,7 +426,6 @@ class Queue
 
   pull : (n,peek) ->
     throw new Error "Bad argument to pull: #{n}" unless n?
-    console.log "pull #{n} #{peek} #{@n_bytes()}"
     ret = if n >= @n_bytes() then @flush(peek)
     else @_pull(n,peek)
     if n > 0 and not peek then @_made_room()
@@ -432,9 +434,6 @@ class Queue
   #---------
 
   flush : (peek) ->
-    console.log "flush go!"
-    console.log @_i
-    console.log @_buffers
     list = if @_buffers.length and @_i then [ @_buffers[0][@_i...] ].concat(@_buffers[1...])
     else @_buffers
     out = Buffer.concat list
@@ -444,8 +443,6 @@ class Queue
     else
       @_dlen = 0
       @_buffers = []
-    console.log "flushed"
-    console.log out
     out
 
   #---------
@@ -474,9 +471,6 @@ class Queue
   _pull : (n, peek) ->
     slices = []
     total = 0
-    console.log "---> READ #{n} #{peek}"
-    console.log @_buffers
-    console.log @_i
 
     getbuf = (buf, start, end) ->
       if not start and not end? then buf
@@ -508,11 +502,6 @@ class Queue
     assert (out.length is n)
     unless peek
       @_dlen -= n
-
-    console.log "---> READ ---> "
-    console.log out
-    console.log @_buffers
-    console.log @_i
 
     return out
 
@@ -580,6 +569,8 @@ class ReadBufferer extends Base
 
   _stream_to : (next, cb) ->
     @_sink = next
+    await @_sink.chunk { data : @_inq.flush(), eof : @_source_eof }, defer @_err, out
+    await @_emit { data : out, eof : false }, defer()
     await @_source_eof_waitpoint.wait defer()
     cb null
 
@@ -603,7 +594,6 @@ class ReadBufferer extends Base
     outdata = null
 
     if @_sink?
-      data = bufcat [ @_inq.flush(), data ]
       console.log "ok, sinking data down the hole!"
       console.log data
       await @_sink.chunk { data, eof }, defer err, outdata
@@ -612,8 +602,10 @@ class ReadBufferer extends Base
       await @_push_data { data, eof  }, defer err
 
     if eof
+      console.log "chilling in EOF waitland"
       @_source_eof_waitpoint.trigger()
       await @_done_main_waitpoint.wait defer()
+    console.log "ok, ready to rock"
 
     cb @_err, bufcat [ @_outq.flush(), outdata ]
 
