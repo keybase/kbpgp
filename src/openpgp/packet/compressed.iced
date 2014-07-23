@@ -151,7 +151,7 @@ class XbtIn extends PacketParser
     @_inflate_stream = switch algo
       when C.compression.zlib then zlib.createInflate()
       else
-        err = new Error "unhanalded streaming inflation algorithn: #{algo}" 
+        err = new Error "unhandled streaming inflation algorithn: #{algo}" 
     cb err
 
   #----------------------

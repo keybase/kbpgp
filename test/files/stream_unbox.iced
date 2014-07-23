@@ -5,8 +5,8 @@ main = require '../../'
 
 #===================================================================
 
-med = Buffer.concat ((new Buffer [0...i]) for i in [0...92])
-small = Buffer.concat ((new Buffer [0...i]) for i in [0...5])
+med = Buffer.concat ((new Buffer [0...i]) for i in [0...200])
+small = Buffer.concat ((new Buffer [0...i]) for i in [0...30])
 
 #===================================================================
 
@@ -16,7 +16,6 @@ oneshot = (faucet_args, xform, cb) ->
   f.pipe(xform)
   xform.pipe(d)
   d.once 'finish', () ->
-    console.log "and we are done!"
     cb null, d.data()
   d.once 'err', (err) ->
     cb err, null

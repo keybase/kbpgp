@@ -100,54 +100,15 @@ class InBlocker extends SimpleInit
 
   constructor : (@block_size) ->
     super()
+    @_inq = new Queue()
     @_buffers = []
-    @_dlen = 0
     @_p = 0
     @_input_len = 0
 
   #----------------------
 
-  _push_data : (b) ->
-    if b?.length
-      @_buffers.push b
-      @_dlen += b.length
-
-  #----------------------
-
-  _pop_block : (block_size) ->
-    total = 0
-    slices = []
-
-    block_size or= @block_size
-
-    getbuf = (buf, start, end) ->
-      if not start and not end? then buf
-      else if not end? then buf[start...]
-      else buf[start...end]
-
-    for b,i in @_buffers
-      start = if i is 0 then @_p else 0
-      stuff = b.length - start
-      leftover = total + stuff - block_size
-      if leftover < 0
-        slices.push getbuf b, start
-        total += stuff
-      else if leftover is 0
-        slices.push getbuf b, start
-        total += stuff
-        @_buffers = @_buffers[(i+1)...]
-        @_p = 0
-        break
-      else
-        end = b.length - leftover
-        slices.push getbuf b, start, end
-        @_buffers = @_buffers[i...]
-        @_p = end
-        break
-
-    out = Buffer.concat slices
-    assert (out.length is block_size)
-    return out
+  _push_data : (b) -> @_inq.push(b)
+  _pop_block : () -> @_inq.pull(@block_size)
 
   #----------------------
   
@@ -157,7 +118,7 @@ class InBlocker extends SimpleInit
     err = out = null
     if eof
       await @_handle_eof defer err, out
-    else if @_dlen >= @block_size
+    else if @_inq.n_bytes() >= @block_size
       await @_handle_block defer err, out
     cb err, out
 
@@ -167,21 +128,7 @@ class InBlocker extends SimpleInit
     esc = make_esc cb, "InBlocker::_v_chunk"
     i = 0
     outbufs = []
-
-    bufs = []
-
-    # First pop of the first partial buffer (if it's partial)
-    bufs.push(@_buffers.shift()[@_p...]) if @_buffers.length and @_p > 0
-
-    # Now consider all of the full buffers, and concat them
-    # together into one.
-    bufs = bufs.concat @_buffers
-    buf = Buffer.concat bufs
-
-    # Reset the internal state
-    @_buffers = []
-    @_dlen = 0
-    @_p = 0
+    buf = @_inq.flush()
 
     eof = false
     until eof
@@ -257,7 +204,6 @@ class Demux extends Base
     if @_sink?
       await @_sink.chunk { data, eof }, defer err, out
       out = bufcat [ @_flush_out(), out ]
-      console.log "demux out --> #{out.length} -> #{out.toString('hex')}"
 
     cb err, out
 
