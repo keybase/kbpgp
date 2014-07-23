@@ -515,7 +515,6 @@ class ReadBufferer extends Base
     await @_inq.wait_for_room defer()
     if @_SHIT
       console.log "PUSHING FUCK"
-      console.log @constructor
       console.log eof
       console.log data
     @_inq.push data 
@@ -538,11 +537,12 @@ class ReadBufferer extends Base
     @_sink = next
     console.log "FUUUCUUSDK SDF SDF "
     data = @_inq.flush()
-    console.log data
     await @_sink.chunk { data, eof : @_source_eof }, defer @_err, out
-    console.log out
+    console.log "1A"
     await @_emit { data : out, eof : false }, defer()
+    console.log "1B"
     await @_source_eof_waitpoint.wait defer()
+    console.log "1C"
     cb null
 
   #---------------------------

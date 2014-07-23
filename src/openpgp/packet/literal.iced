@@ -123,9 +123,9 @@ class XbtIn extends PacketParser
 
   _run_body : (cb) ->
     console.log "RUN BODY in Literal!"
-    #hasher = new Passthrough() # HashThrough @get_root().hashers()
-    #await @_stream_to hasher, defer err
-    await @_pass_through defer err
+    hasher = new Passthrough() # HashThrough @get_root().hashers()
+    await @_stream_to hasher, defer err
+    #await @_pass_through defer err
     console.log "RUN BODY DONE"
     cb null
 
