@@ -172,6 +172,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
         when PT.compressed then Compressed
         else
           err = new Error "Can't stream packet type=#{tag}"
+          null
     else if eof then err = new Error "EOF when looking for a new PGP packet"
     if klass?
       depacketizer_xbt = new Depacketizer { packet_version }

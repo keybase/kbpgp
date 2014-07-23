@@ -19,6 +19,8 @@ oneshot = (faucet_args, xform, cb) ->
     cb null, d.data()
   d.once 'err', (err) ->
     cb err, null
+  xform.on 'error', (err) ->
+    console.log "Error in transform: #{err}"
 
 #===================================================================
 
