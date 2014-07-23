@@ -8,6 +8,7 @@ class Queue
   #---------
   
   constructor : (@_capacity) ->
+    @_capacity or= 0x10000
     @_buffers = []
     @_dlen = 0
     @_i = 0
@@ -122,9 +123,12 @@ class PullBase extends Base
     @_sink = sink
     @_bufsz = bufsz or 0x10000
     @_inq = new Queue @_bufsz
+    @_outq = new Queue 
     @_source_eof = false
     @_internal_eof = false
     @_err = null
+    @_main_done = false
+    @_final_cb = null
 
   #---------------------------
 
@@ -175,8 +179,11 @@ class PullBase extends Base
   _run_main_loop : () ->
     unless @_running
       @_running = true
-      await @run defer err
-      @_call_final_emit_cb err
+      await @run defer @_err
+      @_main_done = true
+      if (cb = @_final_cb)?
+        @_final_cb = null
+        cb @_err, @_outq.flush()
 
   #---------------------------
 
@@ -184,7 +191,10 @@ class PullBase extends Base
     @_run_main_loop()
     @_source_eof = true if eof
     await @push_data { data, eof}, defer err
-    @_push_emit_cb cb
+    if not(@_source_eof) or @_main_done
+      cb null, @_outq.flush()
+    else
+      @_final_cb = cb
 
   #---------------------------
 
