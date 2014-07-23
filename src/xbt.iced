@@ -48,8 +48,8 @@ class Passthrough extends Base
 
 class Chain extends Base
 
-  constructor : () ->
-    @links = []
+  constructor : (links = []) ->
+    @links = links
     super()
     @_iters = 0
 

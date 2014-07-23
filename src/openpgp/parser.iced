@@ -155,7 +155,7 @@ exports.Demux = class Demux extends xbt.PullBase
   #---------------
 
   _demux : (c, cb) ->
-    err = xbt = packet_version = null
+    err = out = packet_version = null
     if ((c = data.readUInt8(0)) & 0x80) is 0
       err = new Error "This doesn't look like a binary PGP packet (c=#{c})"
     else if (c & 0x40) is 0
@@ -175,8 +175,8 @@ exports.Demux = class Demux extends xbt.PullBase
     if klass?
       depacketizer_xbt = new Depacketizer { packet_version }
       packet_xbt = klass.new_xbt_parser {}
-      xbt = new PullChain [ depacketizer_xbt, packet_xbt ]
-    cb err, xbt, data
+      out = new xbt.Chain [ depacketizer_xbt, packet_xbt ]
+    cb err, out, data
 
 #============================================================================
 
