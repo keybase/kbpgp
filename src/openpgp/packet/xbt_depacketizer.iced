@@ -52,7 +52,7 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
     esc = make_esc cb, "_depacketize_1"
     until final
       await @_find_length esc defer final, len
-      await @_read len, esc defer data
+      await @_read { exactly : len}, esc defer data
       @_total += len
       await @_emit { data, eof : final }, esc defer()
     cb null
@@ -86,6 +86,10 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       else
         ret = 1 << (first & 0x1f)
         final = false
+    console.log "_find_length --->"
+    console.log err
+    console.log final
+    console.log ret
     cb err, final, ret
 
 #=================================================================================
@@ -97,7 +101,7 @@ exports.PacketParser = class PacketParser extends PgpReadBufferer
 
   run : (cb) ->
     esc = make_esc cb, "PacketParser::_process"
-    await @_process_header esc defer()
+    await @_parse_header esc defer()
     await @_pass_through esc defer()
     cb null
     

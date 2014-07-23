@@ -101,6 +101,7 @@ class XbtIn extends PacketParser
     @_tot = 0
 
   _parse_header : (cb) ->
+    console.log "parse it yo!"
     esc = make_esc cb, "XbtIn::parse_header"
     err = null
     await @_read_uint8  esc defer format
@@ -110,6 +111,7 @@ class XbtIn extends PacketParser
       err = new Error "Cannot have >1 literal in a stream"
     else 
       rmd.literal = { format, filename, date }
+    console.log "parsed!!!"
     cb err
 
 #=================================================================================

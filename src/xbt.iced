@@ -422,6 +422,7 @@ class Queue
   #---------
 
   pull : (n,peek) ->
+    throw new Error "Bad argument to pull: #{n}" unless n?
     console.log "pull #{n} #{peek} #{@n_bytes()}"
     ret = if n >= @n_bytes() then @flush(peek)
     else @_pull(n,peek)
@@ -431,7 +432,10 @@ class Queue
   #---------
 
   flush : (peek) ->
-    list = if @_buffers.length and @_i then [ @_buffers[0][@_i...], @_buffers[1...] ]
+    console.log "flush go!"
+    console.log @_i
+    console.log @_buffers
+    list = if @_buffers.length and @_i then [ @_buffers[0][@_i...] ].concat(@_buffers[1...])
     else @_buffers
     out = Buffer.concat list
     @_i = 0
@@ -440,6 +444,8 @@ class Queue
     else
       @_dlen = 0
       @_buffers = []
+    console.log "flushed"
+    console.log out
     out
 
   #---------
@@ -468,8 +474,9 @@ class Queue
   _pull : (n, peek) ->
     slices = []
     total = 0
-    console.log "@_pull"
+    console.log "---> READ #{n} #{peek}"
     console.log @_buffers
+    console.log @_i
 
     getbuf = (buf, start, end) ->
       if not start and not end? then buf
@@ -480,37 +487,33 @@ class Queue
       start = if i is 0 then @_i else 0
       stuff = b.length - start
       leftover = total + stuff - n
-      console.log "leftover ... #{leftover}..."
       if leftover < 0
-        console.log "Case A"
-        slices.push getbuf b, start
         total += stuff
+        slices.push getbuf b, start
       else if leftover is 0
-        console.log "case B"
         slices.push getbuf b, start
-        total += stuff
-        @_buffers = @_buffers[(i+1)...]
-        @_i = 0
+        unless peek
+          @_buffers = @_buffers[(i+1)...]
+          @_i = 0
         break
       else
-        console.log "case C"
         end = b.length - leftover
-        console.log b
-        console.log start
-        console.log end
         slices.push getbuf b, start, end
-        @_buffers = @_buffers[i...]
-        @_i = end
+        unless peek
+          @_buffers = @_buffers[i...]
+          @_i = end
         break
 
     out = Buffer.concat slices
-    console.log "slices..."
-    console.log slices
     assert (out.length is n)
-    if peek
-      @_buffers.unshift out
-    else
+    unless peek
       @_dlen -= n
+
+    console.log "---> READ ---> "
+    console.log out
+    console.log @_buffers
+    console.log @_i
+
     return out
 
 #==============================================================
@@ -601,7 +604,10 @@ class ReadBufferer extends Base
 
     if @_sink?
       data = bufcat [ @_inq.flush(), data ]
+      console.log "ok, sinking data down the hole!"
+      console.log data
       await @_sink.chunk { data, eof }, defer err, outdata
+      console.log "well that worked out ok"
     else
       await @_push_data { data, eof  }, defer err
 
@@ -618,6 +624,7 @@ class ReadBufferer extends Base
   #---------------------------
 
   _read : ({min,max,exactly,peek},cb) ->
+    throw new Error "Bad arguments to _read" unless exactly? or (min? and max?)
     if exactly? then min = max = exactly
     @_inq.elongate min
     await @_inq.wait_for_data min, ( () => @_source_eof ), defer err

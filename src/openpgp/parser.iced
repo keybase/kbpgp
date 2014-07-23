@@ -152,7 +152,9 @@ exports.Demux = class Demux extends xbt.ReadBufferer
     console.log "peeked!"
     console.log b
     await @_demux b[0], esc defer next
+    console.log "Demux is a go on #{b[0]}"
     await @_stream_to next, esc defer()
+    console.log "streamed to next, no worries..."
     cb null
 
   #---------------
