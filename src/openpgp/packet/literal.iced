@@ -6,7 +6,7 @@ asymmetric = require '../../asymmetric'
 {Packetizer} = require './xbt_packetizer'
 {PacketParser} = require './xbt_depacketizer'
 {make_esc} = require 'iced-error'
-{HashThrough} = require '../../xbt'
+{Passthrough,HashThrough} = require '../../xbt'
 
 #=================================================================================
 
@@ -102,19 +102,32 @@ class XbtIn extends PacketParser
     @_tot = 0
 
   _parse_header : (cb) ->
+    console.log "FUUUUCK PARSE HAEDER IN LITERAL:where"
+    console.log @_inq
+    console.log @_source_eof
     esc = make_esc cb, "XbtIn::parse_header"
     err = null
+    @_SHIT = true
     await @_read_uint8  esc defer format
+    console.log @_inq
+    console.log "A"
     await @_read_string esc defer filename
+    console.log "B"
     await @_read_uint32 esc defer date
+    console.log "C"
     literal = new Literal { format, filename, date }
+    console.log "D"
     await @set_root_metadata { slice : 'literal', value : literal }, esc defer()
+    console.log "FJSDFOISODF SODF SD DINE WITH WHTAT ASHTISDKFSODFK"
     cb null
 
   _run_body : (cb) ->
-    hasher = new HashThrough @get_root().hashers()
-    await @_stream_to hasher, defer err
-    cb err
+    console.log "RUN BODY in Literal!"
+    #hasher = new Passthrough() # HashThrough @get_root().hashers()
+    #await @_stream_to hasher, defer err
+    await @_pass_through defer err
+    console.log "RUN BODY DONE"
+    cb null
 
 #=================================================================================
 

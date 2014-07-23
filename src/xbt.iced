@@ -61,6 +61,7 @@ class Passthrough extends Base
 class HashThrough extends Base
 
   constructor : (@_hashers) ->
+    super()
 
   chunk : ({data, eof}, cb) ->
     for h in @_hashers
@@ -480,7 +481,9 @@ class Waitpoint
 
   wait : (cb) ->
     if @_hit then cb()
-    else @_cb = cb
+    else 
+      throw err "Can't wait, someone is already waiting!" if @_cb?
+      @_cb = cb
 
 #==============================================================
 
@@ -510,6 +513,11 @@ class ReadBufferer extends Base
 
   _push_data : ({data, eof}, cb) ->
     await @_inq.wait_for_room defer()
+    if @_SHIT
+      console.log "PUSHING FUCK"
+      console.log @constructor
+      console.log eof
+      console.log data
     @_inq.push data 
     cb null
 
@@ -528,7 +536,11 @@ class ReadBufferer extends Base
 
   _stream_to : (next, cb) ->
     @_sink = next
-    await @_sink.chunk { data : @_inq.flush(), eof : @_source_eof }, defer @_err, out
+    console.log "FUUUCUUSDK SDF SDF "
+    data = @_inq.flush()
+    console.log data
+    await @_sink.chunk { data, eof : @_source_eof }, defer @_err, out
+    console.log out
     await @_emit { data : out, eof : false }, defer()
     await @_source_eof_waitpoint.wait defer()
     cb null
@@ -569,11 +581,19 @@ class ReadBufferer extends Base
 
   #---------------------------
 
+  @_I : 0
+
   _read : ({min,max,exactly,peek},cb) ->
+    i = ReadBufferer._I++
     throw new Error "Bad arguments to _read" unless exactly? or (min? and max?)
     if exactly? then min = max = exactly
     @_inq.elongate min
+    console.log "Waiting for data FUCKS #{i}"
     await @_inq.wait_for_data min, ( () => @_source_eof ), defer err
+    console.log "OK THAT WAT IT #{i}"
+    console.log cb
+    console.log err
+    console.log @_inq
     data = if err? then null else @_inq.pull(max, peek)
     cb err, data
 
