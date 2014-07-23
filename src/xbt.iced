@@ -42,10 +42,7 @@ class Base
 #=========================================================
 
 class Passthrough extends Base
-  chunk : ({data, eof}, cb) -> 
-    console.log "just passing through!"
-    console.log data
-    cb null, data
+  chunk : ({data, eof}, cb) -> cb null, data
 
 #=========================================================
 
@@ -65,15 +62,8 @@ class Chain extends Base
     esc = make_esc cb, "Chain::chunk"
     out = null
     for l,i in @links
-      console.log "+ #{@_iters}.#{i} CHAIN link"
-      console.log "in chunk..."
-      console.log eof
-      console.log data
       await l.chunk {data,eof}, esc defer data
-      console.log "- #{@_iters++}.#{i} CHAIN link"
-      console.log data
       out = data
-    console.log "chunk chain is done! -> #{eof} -> #{out?.length} -> #{out?.toString('hex')}"
     cb null, out
 
 #=========================================================
@@ -594,18 +584,13 @@ class ReadBufferer extends Base
     outdata = null
 
     if @_sink?
-      console.log "ok, sinking data down the hole!"
-      console.log data
       await @_sink.chunk { data, eof }, defer err, outdata
-      console.log "well that worked out ok"
     else
       await @_push_data { data, eof  }, defer err
 
     if eof
-      console.log "chilling in EOF waitland"
       @_source_eof_waitpoint.trigger()
       await @_done_main_waitpoint.wait defer()
-    console.log "ok, ready to rock"
 
     cb @_err, bufcat [ @_outq.flush(), outdata ]
 
@@ -620,11 +605,7 @@ class ReadBufferer extends Base
     if exactly? then min = max = exactly
     @_inq.elongate min
     await @_inq.wait_for_data min, ( () => @_source_eof ), defer err
-    console.log "Read it yo!"
-    console.log err
     data = if err? then null else @_inq.pull(max, peek)
-    console.log "done reading..."
-    console.log data
     cb err, data
 
 #==============================================================

@@ -92,13 +92,15 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
 exports.PacketParser = class PacketParser extends PgpReadBufferer
 
-  constructor : () ->
+  constructor : ({@substream_klass}) ->
     super {}
+
+  _run_body : (cb) -> cb new Error "not implemented!"
 
   run : (cb) ->
     esc = make_esc cb, "PacketParser::_process"
     await @_parse_header esc defer()
-    await @_pass_through esc defer()
+    await @_run_body esc defer()
     cb null
     
 #=================================================================================

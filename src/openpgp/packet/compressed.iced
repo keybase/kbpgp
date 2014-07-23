@@ -6,7 +6,7 @@ zlib = require 'zlib'
 {uint_to_buffer} = require '../../util'
 compressjs = require 'keybase-compressjs'
 {Packetizer} = require './xbt_packetizer'
-{ReverseAdapter} = require '../../xbt'
+{Chain,ReverseAdapter} = require '../../xbt'
 {make_esc} = require 'iced-error'
 {PacketParser} = require './xbt_depacketizer'
 
@@ -140,7 +140,7 @@ class XbtIn extends PacketParser
 
   constructor : (arg) -> 
     super arg
-    @inflater = null
+    @_inflate_stream = zlib.createInflate()
 
   #----------------------
 
@@ -148,24 +148,20 @@ class XbtIn extends PacketParser
     err = null
     esc = make_esc cb, "_parse_header"
     await @_read_uint8 esc defer algo
-    @inflater = switch algo
-      when C.compression.zlib then new ReverseAdapter { stream : zlib.createInflate() }
+    @_inflate_stream = switch algo
+      when C.compression.zlib then zlib.createInflate()
       else
         err = new Error "unhanalded streaming inflation algorithn: #{algo}" 
     cb err
 
   #----------------------
 
-  _flow : ({data, eof}, cb) ->
-    esc = make_esc cb, 'XbtIn::_flow'
-    await @inflater.chunk {data, eof}, esc defer data
-    console.log "ok, inflated!"
-    console.log eof
-    console.log data
-    await @_flow_demux { data, eof }, esc defer data
-    console.log "flow demuxed, and we are outta here"
-    console.log data
-    cb null, data
+  _run_body : (cb) ->
+    inflate_xbt = new ReverseAdapter { stream : @_inflate_stream }
+    demux_xbt = new @substream_klass {}
+    chain = new Chain [ inflate_xbt, demux_xbt ]
+    await @_stream_to chain, defer err
+    cb err
 
 #=================================================================================
 

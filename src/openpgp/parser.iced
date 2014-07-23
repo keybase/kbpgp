@@ -149,12 +149,8 @@ exports.Demux = class Demux extends xbt.ReadBufferer
   run : (cb) ->
     esc = make_esc cb, "Demux::_process"
     await @_peek 1, esc defer b
-    console.log "peeked!"
-    console.log b
     await @_demux b[0], esc defer next
-    console.log "Demux is a go on #{b[0]}"
     await @_stream_to next, esc defer()
-    console.log "streamed to next, no worries..."
     cb null
 
   #---------------
@@ -179,7 +175,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
     else if eof then err = new Error "EOF when looking for a new PGP packet"
     if klass?
       depacketizer_xbt = new Depacketizer { packet_version }
-      packet_xbt = klass.new_xbt_parser {}
+      packet_xbt = klass.new_xbt_parser { substream_klass : DemuxSequence }
       out = new xbt.Chain [ depacketizer_xbt, packet_xbt ]
     cb err, out
 
