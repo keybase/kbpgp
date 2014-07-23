@@ -66,10 +66,10 @@ class OPS_Parser
 
   #----------------
 
-  _alloc : ({version, sig_type, hasher, sig_klass, key_id, is_final}) ->
+  _alloc : ({version, sig_type, hasher, sig_klass, key_id, is_final, streaming}) ->
     unless version is C.versions.one_pass_sig
       throw new Error "Unknown OnePassSignature version #{version}"
-    hasher = hash.alloc_or_throw @slice.read_uint8()
+    hasher = hash.alloc_or_throw @slice.read_uint8(), streaming
     sig_klass = asymmetric.get_class @slice.read_uint8() 
     new OnePassSignature { sig_type, hasher, sig_klass, key_id, is_final }
 
@@ -124,7 +124,9 @@ exports.XbtIn = class XbtIn extends PacketParser
     await @_read_uint8 esc defer sig_klass
     await @_read { exactly : 8 }, esc defer key_id
     await @_read_uint8 esc defer is_final
-    await OPS_Parser.alloc { version, sig_type, hasher, sig_klass, key_id, is_final }, esc defer packet
+    aargs = { streaming : true, version, sig_type, hasher, sig_klass, key_id, is_final }
+    await OPS_Parser.alloc args, esc defer packet
+    @get_root().push_hasher packet.hasher
     await @set_root_metadata { slice : 'ops', value : packet }, esc defer()
     cb null
 

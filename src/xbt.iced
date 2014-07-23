@@ -22,6 +22,7 @@ class Base
   constructor : () ->
     @_parent = null
     @_metadata = {}
+    @_hashers = []
 
   chunk : ({data, eof}, cb) -> cb new Error "unimplemented!"
 
@@ -30,7 +31,7 @@ class Base
   get_metadata : () -> @_metadata
   get_root_metadata : (slice, def) -> 
     def or= {}
-    md = @root()?.get_metadata() or {}
+    md = @get_root()?.get_metadata() or {}
     if slice? then (md[slice] or= def)
     else md
 
@@ -42,14 +43,29 @@ class Base
     cb err
 
   # Work up the root of the XBT tree. 
-  root : () ->
+  get_root : () ->
     p = @get_parent()
-    if not p? then @ else p.root()
+    if not p? then @ else p.get_root()
+
+  push_hasher : (h) -> @_hashers.push(h)
+  pop_hasher : (h) -> @_hashers.pop()
+  hashers : () -> @_hashers
 
 #=========================================================
 
 class Passthrough extends Base
   chunk : ({data, eof}, cb) -> cb null, data
+
+#=========================================================
+
+class HashThrough extends Base
+
+  constructor : (@_hashers) ->
+
+  chunk : ({data, eof}, cb) ->
+    for h in @_hashers
+      h.update(data)
+    cb null, data
 
 #=========================================================
 
@@ -573,5 +589,6 @@ exports.Demux = Demux
 exports.Passthrough = Passthrough
 exports.Gets = Gets
 exports.ReadBufferer = ReadBufferer
+exports.HashThrough = HashThrough
 
 #===============================================================

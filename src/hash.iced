@@ -52,17 +52,19 @@ for k,v of C.hash_algorithms
 
 #--------------------
 
-exports.alloc = alloc = (typ) ->
+exports.alloc = alloc = (typ, streaming) ->
   ret = null
   name = _lookup[typ]
   klass = algos[name] if name?
-  ret = make_hasher(klass,name,typ) if klass?
+  ret = if not klass? then null
+  else if streaming then make_stream(klass,name,typ)
+  else make_hasher(klass,name,typ)
   ret
 
 #--------------------
 
-exports.alloc_or_throw = alloc_or_throw = (typ) ->
-  ret = alloc typ
+exports.alloc_or_throw = alloc_or_throw = (typ, streaming) ->
+  ret = alloc typ, streaming
   throw new Error "unknown hash type: #{typ}" unless ret
   ret
 

@@ -6,6 +6,7 @@ asymmetric = require '../../asymmetric'
 {Packetizer} = require './xbt_packetizer'
 {PacketParser} = require './xbt_depacketizer'
 {make_esc} = require 'iced-error'
+{HashThrough} = require '../../xbt'
 
 #=================================================================================
 
@@ -111,7 +112,8 @@ class XbtIn extends PacketParser
     cb null
 
   _run_body : (cb) ->
-    await @_pass_through defer err
+    hasher = new HashThrough @get_root().hashers()
+    await @_stream_to hasher, defer err
     cb err
 
 #=================================================================================
