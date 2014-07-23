@@ -19,10 +19,13 @@ assert = require 'assert'
 
 class Base
 
+  OBJ_ID : 0
+
   constructor : () ->
     @_parent = null
     @_metadata = {}
     @_hashers = []
+    @_obj_id = Base.OBJ_ID++
 
   chunk : ({data, eof}, cb) -> cb new Error "unimplemented!"
 
@@ -51,10 +54,24 @@ class Base
   pop_hasher : (h) -> @_hashers.pop()
   hashers : () -> @_hashers
 
+  _chunk_debug_pre : ({data, eof}) ->
+    @_chunk_debug_msg "+", "#{eof}:#{data?.toString 'hex'}"
+  _chunk_debug_post : ({err, data}) ->
+    @_chunk_debug_msg "-", "(#{err?.message}) #{data?.toString('hex')}"
+  _chunk_debug_msg : (pre,post) ->
+    console.log [ pre, "#{@_xbt_type}##{@_obj_id}", post ].join ' '
+
 #=========================================================
 
 class Passthrough extends Base
-  chunk : ({data, eof}, cb) -> cb null, data
+  constructor : (args) ->
+    super args
+    @_xbt_type = "Passthrough"
+
+  chunk : ({data, eof}, cb) -> 
+    @_chunk_debug_msg { data, eof }
+    @_chunk_debug_post { err : null, data }
+    cb null, data
 
 #=========================================================
 
@@ -62,10 +79,13 @@ class HashThrough extends Base
 
   constructor : (@_hashers) ->
     super()
+    @_xbt_type = "HashThrough"
 
   chunk : ({data, eof}, cb) ->
+    @_chunk_debug_pre { data, eof }
     for h in @_hashers
       h.update(data)
+    @_chunk_debug_post { err : null, data }
     cb null, data
 
 #=========================================================
@@ -76,6 +96,7 @@ class Chain extends Base
     @links = links
     super()
     @_iters = 0
+    @_xbt_type = "Chain"
 
   push_xbt : (link) ->
     @links.push link
@@ -85,9 +106,11 @@ class Chain extends Base
   chunk : ({data,eof}, cb) ->
     esc = make_esc cb, "Chain::chunk"
     out = null
+    @_chunk_debug_pre { data, eof }
     for l,i in @links
       await l.chunk {data,eof}, esc defer data
       out = data
+    @_chunk_debug_post { err : null, data : out }
     cb null, out
 
 #=========================================================
@@ -96,6 +119,8 @@ class SimpleInit extends Base
 
   constructor : () ->
     @_did_init = false
+    super()
+    @_xbt_type = "SimpleInit"
 
   init : (cb) ->
     err = data = null
@@ -105,10 +130,12 @@ class SimpleInit extends Base
     cb err, data
 
   chunk : ({data,eof}, cb) ->
+    @_chunk_debug_pre { data, eof }
     esc = make_esc cb, "SimpleInit::chunk"
     await @init esc defer init_data
     await @_v_chunk { data, eof }, esc defer out
     out = bufcat [ init_data, out ]
+    @_chunk_debug_post { err : null , data : out }
     cb null, out
 
 #=========================================================
@@ -128,6 +155,7 @@ class InBlocker extends SimpleInit
     @_buffers = []
     @_p = 0
     @_input_len = 0
+    @_xbt_type = "InBlocker"
 
   #----------------------
 
@@ -137,6 +165,7 @@ class InBlocker extends SimpleInit
   #----------------------
   
   _v_chunk : ({data, eof}, cb) ->
+    @_chunk_debug_pre { data, eof }
     @_input_len += data.length if data?
     @_push_data data
     err = out = null
@@ -144,6 +173,7 @@ class InBlocker extends SimpleInit
       await @_handle_eof defer err, out
     else if @_inq.n_bytes() >= @block_size
       await @_handle_block defer err, out
+    @_chunk_debug_post { err, data : out }
     cb err, out
 
   #----------------------
@@ -185,6 +215,7 @@ class Demux extends Base
     @_sink = null
     @_outbufs = []
     super()
+    @_xbt_type = "xbt.Demux"
 
   #----------------
 
@@ -207,6 +238,7 @@ class Demux extends Base
 
   chunk : ({data,eof}, cb) ->
     err = out = null
+    @_chunk_debug_pre { data, eof }
 
     # IF we don't yet have a sink, we keep slurping in bytes until
     # we can demux
@@ -229,6 +261,7 @@ class Demux extends Base
       await @_sink.chunk { data, eof }, defer err, out
       out = bufcat [ @_flush_out(), out ]
 
+    @_chunk_debug_post { err, data : out }
     cb err, out
 
 #=========================================================
@@ -245,12 +278,14 @@ class Gets extends Base
     @_dummy_mode = false
     @_lineno = 0
     super()
+    @_xbt_type = "Gets"
 
   #-----------------------
 
   chunk : ({data, eof}, cb) ->
     err = null
     outbufs = []
+    @_chunk_debug_pre { eof, data }
     esc = make_esc cb, "Gets::chunk"
 
     if data? and (v = buf_indices_of(data, "\n".charCodeAt(0))).length
@@ -285,7 +320,9 @@ class Gets extends Base
         await @_v_line_chunk { data : chunk, newline : false, eof }, esc defer tmp
         outbufs.push tmp
 
-    cb err, bufcat(outbufs)
+    data = bufcat(outbufs)
+    @_chunk_debug_post { err, data }
+    cb err, data
 
 #=========================================================
 
@@ -315,6 +352,7 @@ class ReverseAdapter extends Base
     @_buffers = []
     @_dlen = 0
     @_hiwat = hiwat or 0x10000
+    @_xbt_type = "ReverseAdapter"
 
   _push_data : (data) -> 
     if data? and data.length
@@ -344,9 +382,12 @@ class ReverseAdapter extends Base
 
   chunk : ({data, eof}, cb) ->
     esc = make_esc cb, "ReverseAdapter::chunk"
+    @_chunk_debug_pre { data, eof} 
     await @_transform data, esc defer() if data?
     await @_flush esc defer() if eof
-    cb null, @_consume_bufs()
+    @_chunk_debug_post { err, data }
+    data = @_consume_bufs()
+    cb null, data
 
 
 #==============================================================
@@ -500,6 +541,7 @@ class ReadBufferer extends Base
     @_done_main_waitpoint = new Waitpoint
     @_source_eof_waitpoint = new Waitpoint
     super()
+    @_xbt_type = "ReadBufferrer"
 
   #---------------------------
 
@@ -513,10 +555,6 @@ class ReadBufferer extends Base
 
   _push_data : ({data, eof}, cb) ->
     await @_inq.wait_for_room defer()
-    if @_SHIT
-      console.log "PUSHING FUCK"
-      console.log eof
-      console.log data
     @_inq.push data 
     cb null
 
@@ -535,14 +573,10 @@ class ReadBufferer extends Base
 
   _stream_to : (next, cb) ->
     @_sink = next
-    console.log "FUUUCUUSDK SDF SDF "
     data = @_inq.flush()
     await @_sink.chunk { data, eof : @_source_eof }, defer @_err, out
-    console.log "1A"
     await @_emit { data : out, eof : false }, defer()
-    console.log "1B"
     await @_source_eof_waitpoint.wait defer()
-    console.log "1C"
     cb null
 
   #---------------------------
@@ -560,6 +594,7 @@ class ReadBufferer extends Base
   #---------------------------
 
   chunk : ({data, eof}, cb) ->
+    @_chunk_debug_pre { data, eof}
     @_run_main_loop()
     @_source_eof = true if eof
     outdata = null
@@ -573,7 +608,10 @@ class ReadBufferer extends Base
       @_source_eof_waitpoint.trigger()
       await @_done_main_waitpoint.wait defer()
 
-    cb @_err, bufcat [ @_outq.flush(), outdata ]
+    err = @_err
+    data = bufcat [ @_outq.flush(), outdata ]
+    @_chunk_debug_post { err, data }
+    cb err, data
 
   #---------------------------
 
@@ -581,19 +619,12 @@ class ReadBufferer extends Base
 
   #---------------------------
 
-  @_I : 0
-
   _read : ({min,max,exactly,peek},cb) ->
     i = ReadBufferer._I++
     throw new Error "Bad arguments to _read" unless exactly? or (min? and max?)
     if exactly? then min = max = exactly
     @_inq.elongate min
-    console.log "Waiting for data FUCKS #{i}"
     await @_inq.wait_for_data min, ( () => @_source_eof ), defer err
-    console.log "OK THAT WAT IT #{i}"
-    console.log cb
-    console.log err
-    console.log @_inq
     data = if err? then null else @_inq.pull(max, peek)
     cb err, data
 
