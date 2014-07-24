@@ -62,6 +62,11 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       @_debug_msg "|", "Depacketizer.run <-- read #{@_debug_buffer(data)}"
       @_total += len
       await @_emit { data, eof : final }, esc defer()
+
+    # there still might be a lot of data in the pipe, but we're going to stop
+    # off here and someone else pick up where we left off.
+    console.log "Stopping stopping..."
+    @get_parent()._stop_waitpoint.trigger()
     cb null
 
   #-------------------------------------

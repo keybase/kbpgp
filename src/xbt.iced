@@ -30,6 +30,9 @@ class Base
     @_hashers = []
     @_obj_id = Base.OBJ_ID++
     @_debug = 0
+    @_stop_waitpoint = new Waitpoint
+
+  #----------
 
   chunk : ({data, eof}, cb) -> cb new Error "unimplemented!"
 
@@ -671,7 +674,15 @@ class ReadBufferer extends Base
     await @_sink.chunk { data, eof : @_source_eof }, defer err, out
     unless err?
       await @_emit { data : out, eof : false }, defer()
-    await @_source_eof_waitpoint.wait defer()
+
+    rv = new iced.Rendezvous()
+    @_source_eof_waitpoint.wait rv.id(0).defer()
+    @_sink._stop_waitpoint.wait rv.id(1).defer()
+    await rv.wait defer which
+    console.log which
+    if which is 1
+      console.log "it stoppped!!!"
+
     cb err
 
   #---------------------------
