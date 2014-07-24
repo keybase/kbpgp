@@ -63,7 +63,8 @@ class Base extends xbt.InBlocker
   constructor : ({@block_cipher_class, key, @cipher, @resync}) ->
     @block_cipher_class or= AES
     @cipher or= new @block_cipher_class WordArray.from_buffer key
-    block_size = @cipher.blockSize
+    @c_block_size = @cipher.blockSize
+    block_size = @c_block_size * 2 # don't just do one block at time!
     @out_bufs = []
     @bytes_flushed = 0
     super block_size
@@ -107,7 +108,7 @@ class Encryptor extends Base
   #-------------
 
   _emit_buf : (buf) ->
-    wa = WordArray.from_buffer buf[0...@block_size]
+    wa = WordArray.from_buffer buf[0...@c_block_size]
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
     @out_bufs.push buf
@@ -118,7 +119,7 @@ class Encryptor extends Base
   _init_iv : (prefixrandom) ->
 
     # 1. The feedback register (FR) is set to the IV, which is all zeros.
-    @FR = new Buffer(0 for i in [0...@block_size]) 
+    @FR = new Buffer(0 for i in [0...@c_block_size]) 
     prefixrandom = repeat prefixrandom, 2 
 
     # 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the
@@ -140,13 +141,13 @@ class Encryptor extends Base
     #     data that were prefixed to the plaintext.  This produces C[BS+1]
     #     and C[BS+2], the next two octets of ciphertext.
     b = @FRE.to_buffer()
-    canary = new Buffer((b.readUInt8(i) ^ prefixrandom.readUInt8(@block_size+i)) for i in [0...2])
+    canary = new Buffer((b.readUInt8(i) ^ prefixrandom.readUInt8(@c_block_size+i)) for i in [0...2])
     @out_bufs.push canary
 
     # 7.  (The resync step) FR is loaded with C3-C10.
     offset = if @resync then 2 else 0
     ct = @compact()
-    ct.copy(@FR,0,offset,offset+@block_size)
+    ct.copy(@FR,0,offset,offset+@c_block_size)
 
     # 8.  FR is encrypted to produce FRE.
     @_enc()
@@ -164,13 +165,17 @@ class Encryptor extends Base
 
   _pad : ({data, eof}) ->
     err = null
-    if (a = data.length) > (b = @block_size) 
-      err = new Error "Got overgrown data block; this should never happen: #{a} > #{b}"
-    else if a is b then # noop
+    if (a = data.length) % (b = @c_block_size) is 0 then # noop
+    rem = a % b
+    if rem is 0 then # noop
     else if not(eof) 
-      err = new Error "blocking error; got a block of size #{a} != #{b} midstream"
+      err = new Error "blocking error; got a block of size (#{a} % #{b} = #{rem}) midstream"
     else
-      data = Buffer.concat [ data, (new Buffer(0 for [0...(b-a)])) ]
+      data = Buffer.concat [ data, (new Buffer(0 for [0...(b - rem )])) ]
+      console.log "pad it"
+      console.log data
+      console.log data.length
+      console.log data.toString('hex')
     [err, data]
 
   #-------------
@@ -181,8 +186,8 @@ class Encryptor extends Base
     unless err?
       if @_first
         @_first = false
-        @_do_first data
-        data = null
+        @_do_first data[0...@c_block_size]
+        data = data[@c_block_size...]
       if data?.length
         @_do_block data
       [err, out] = @_flush_and_trunc eof
@@ -202,13 +207,15 @@ class Encryptor extends Base
       buf = wa.to_buffer()[2...]
       @out_bufs.push buf
       ct = @compact()
-      ct.copy(@FR,0,ct.length - @block_size,ct.length)
+      ct.copy(@FR,0,ct.length - @c_block_size,ct.length)
 
   #-------------
 
   _do_block : (data, cb) ->
-    @_enc()
-    @_emit_buf data
+    for i in [0...data.length] by @c_block_size
+      console.log i
+      @_enc()
+      @_emit_buf data[i...(i+@c_block_size)]
 
   #-------------
 
@@ -216,7 +223,7 @@ class Encryptor extends Base
     out = @_flush()
     err = null
     if eof
-      n_wanted = @_input_len + @block_size + 2
+      n_wanted = @_input_len + @c_block_size + 2
       if (overage = @bytes_flushed - n_wanted) < 0
         err = new Error "Internal error: flushed #{@bytes_flushed} but needed #{n_wanted}"
       else if overage > out.length
