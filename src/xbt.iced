@@ -19,7 +19,7 @@ assert = require 'assert'
 
 class Base
 
-  OBJ_ID : 0
+  @OBJ_ID : 0
 
   constructor : () ->
     @_parent = null
@@ -57,7 +57,7 @@ class Base
   _chunk_debug_pre : ({data, eof}) ->
     @_chunk_debug_msg "+", "#{eof}:#{data?.toString 'hex'}"
   _chunk_debug_post : ({err, data}) ->
-    @_chunk_debug_msg "-", "(#{err?.message}) #{data?.toString('hex')}"
+    @_chunk_debug_msg "-", "#{if err? then 'ERR=(' + err?.message + ')' else ''} #{data?.toString('hex')}"
   _chunk_debug_msg : (pre,post) ->
     console.log [ pre, "#{@_xbt_type}##{@_obj_id}", post ].join ' '
 
@@ -69,8 +69,7 @@ class Passthrough extends Base
     @_xbt_type = "Passthrough"
 
   chunk : ({data, eof}, cb) -> 
-    @_chunk_debug_msg { data, eof }
-    @_chunk_debug_post { err : null, data }
+    @_chunk_debug_pre { data, eof }
     cb null, data
 
 #=========================================================
@@ -351,7 +350,7 @@ class ReverseAdapter extends Base
     super()
     @_buffers = []
     @_dlen = 0
-    @_hiwat = hiwat or 0x10000
+    @_hiwat = hiwat or 0x1000
     @_xbt_type = "ReverseAdapter"
 
   _push_data : (data) -> 
