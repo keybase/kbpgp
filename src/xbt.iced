@@ -66,24 +66,16 @@ class Base
 
   #----------
 
-  get_debug : () ->
-    unless @_debug_info?
-      @_debug_info = @_get_debug_info()
-    return @_debug_info
-
-  #-----------
-
   _get_debug_info : () ->
-    if not DEBUG then null
-    else
-      p = @get_parent()
-      if p?
-        if (d = p._get_debug_info())?
-          d.level++
-          d
-        else null
-      else if @_debug then { level : 0, debug : @_debug }
-      else null
+    unless @_debug_info?
+      @_debug_info = if not DEBUG then {}
+      else if not (p = @get_parent())? 
+        if @_debug then { level : 0, debug : @_debug }
+        else {}
+      else if (di = p._get_debug_info())? and di.debug
+        { level : di.level + 1, debug : di.debug }
+      else {}
+    return @_debug_info
 
   #----------
 
@@ -92,30 +84,30 @@ class Base
   #----------
 
   _debug_prefix : (c) ->
-    (c for [0..@get_debug().level]).join('')
+    (c for [0..@_get_debug_info().level]).join('')
 
   #----------
 
   _debug_buffer : (b) ->
-    if (di = @get_debug())?
-      if b?
-        hex = b.toString 'hex'
-        col = 80
-        dat = if di.debug is 1 then (hex[0...col] + (if hex.length > col then "..." else '')) else hex
-        "[#{b.length}]{#{dat}}"
-      else "[]"
+    if not (di = @_get_debug_info()).debug then null
+    else if b?
+      hex = b.toString 'hex'
+      col = 80
+      dat = if di.debug is 1 then (hex[0...col] + (if hex.length > col then "..." else '')) else hex
+      "[#{b.length}]{#{dat}}"
+    else "[]"
 
   #----------
 
   _chunk_debug_pre : ({data, eof}) ->
-    if (di = @get_debug())?
+    if (di = @_get_debug_info()).debug
       prfx = @_debug_prefix("+")
       @_chunk_debug_msg prfx, "eof=#{eof}: #{@_debug_buffer(data)}"
 
   #----------
 
   _chunk_debug_post : ({err, data}) ->
-    if (di = @get_debug())?
+    if (di = @_get_debug_info()).debug
       prfx = @_debug_prefix("-")
       msg_parts = []
       if err? then msg_parts.push "ERR=(#{err?.message})"
@@ -130,7 +122,7 @@ class Base
   #----------
 
   _debug_msg : (c, msg) ->
-    if (di = @get_debug())?
+    if (di = @_get_debug_info()).debug
       prfx = @_debug_prefix(c)
       console.log [prfx, msg].join(" ")
 
