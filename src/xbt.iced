@@ -15,6 +15,8 @@ stream = require 'stream'
 assert = require 'assert'
 {buf_indices_of,bufcat} = require './util'
 
+DEBUG = 1
+
 #=========================================================
 
 class Base
@@ -26,6 +28,7 @@ class Base
     @_metadata = {}
     @_hashers = []
     @_obj_id = Base.OBJ_ID++
+    @_debug = 0
 
   chunk : ({data, eof}, cb) -> cb new Error "unimplemented!"
 
@@ -50,14 +53,43 @@ class Base
     p = @get_parent()
     if not p? then @ else p.get_root()
 
+  get_debug : () ->
+    if not DEBUG then null
+    else
+      p = @get_parent()
+      if not p? then { level : 0, debug : @_debug }
+      else 
+        d = p.get_debug()
+        d.level++
+        d
+
+  set_debug : (d) -> @get_root()._debug = d
+
   push_hasher : (h) -> @_hashers.push(h)
   pop_hasher : (h) -> @_hashers.pop()
   hashers : () -> @_hashers
 
+  _debug_buffer : (b, debug) ->
+    if b?
+      hex = b.toString 'hex'
+      col = 80
+      dat = if debug is 1 then (hex[0...col] + (if hex.length > col then "..." else '')) else hex
+      "[#{b.length}]{#{dat}}"
+    else "[]"
+
   _chunk_debug_pre : ({data, eof}) ->
-    @_chunk_debug_msg "+", "#{eof}:#{data?.toString 'hex'}"
+    if (di = @get_debug())?
+      prfx = ("+" for [0..di.level]).join('')
+      @_chunk_debug_msg prfx, "eof=#{eof}: #{@_debug_buffer(data, di.debug)}"
+
   _chunk_debug_post : ({err, data}) ->
-    @_chunk_debug_msg "-", "#{if err? then 'ERR=(' + err?.message + ')' else ''} #{data?.toString('hex')}"
+    if (di = @get_debug())?
+      prfx = ("-" for [0..di.level]).join('')
+      msg_parts = []
+      if err? then msg_parts.push "ERR=(#{err?.message})"
+      msg_parts.push @_debug_buffer(data, di.debug)
+      @_chunk_debug_msg prfx, msg_parts.join(": ")
+
   _chunk_debug_msg : (pre,post) ->
     console.log [ pre, "#{@_xbt_type}##{@_obj_id}", post ].join ' '
 
