@@ -130,7 +130,7 @@ tests =
   small_binary_literal_trunc : (T,cb) -> truncated(T, small, {}, {}, {}, cb) 
   med_base64_literal_trunc : (T,cb)   -> truncated(T, med, { opts : { armor : 'generic'}}, {}, {}, cb) 
   med_base64_compressed_trunc : (T,cb) -> truncated(T, small, { opts : { armor : 'generic', compression : 'zlib'}}, {}, {}, cb) 
-  #small_signed_literal : (T,cb)       -> R(T, small, { sign_with : km }, {}, {}, cb)
+  small_signed_literal : (T,cb)       -> R(T, small, { sign_with : km }, {xbt_debug : 1}, {}, cb)
 
 #===================================================================
 

@@ -138,21 +138,7 @@ class Passthrough extends Base
     @_chunk_debug_pre { data, eof }
     cb null, data
 
-#=========================================================
 
-class HashThrough extends Base
-
-  constructor : (@_hashers) ->
-    super()
-
-  xbt_type : () -> "HashThrough"
-
-  chunk : ({data, eof}, cb) ->
-    @_chunk_debug_pre { data, eof }
-    for h in @_hashers
-      h.update(data)
-    @_chunk_debug_post { err : null, data }
-    cb null, data
 
 #=========================================================
 
@@ -222,8 +208,6 @@ class InBlocker extends SimpleInit
   constructor : (@block_size) ->
     super()
     @_inq = new Queue()
-    @_buffers = []
-    @_p = 0
     @_input_len = 0
 
   xbt_type : () -> "InBlocker"
@@ -242,8 +226,13 @@ class InBlocker extends SimpleInit
     err = out = null
     if eof
       await @_handle_eof defer err, out
-    else if @_inq.n_bytes() >= @block_size
-      await @_handle_block defer err, out
+    else 
+      outbufs = []
+      err = null
+      while @_inq.n_bytes() >= @block_size and not err?
+        await @_handle_block defer err, buf
+        outbufs.push buf
+      out = Buffer.concat outbufs
     @_chunk_debug_post { err, data : out }
     cb err, out
 
@@ -735,6 +724,5 @@ exports.Demux = Demux
 exports.Passthrough = Passthrough
 exports.Gets = Gets
 exports.ReadBufferer = ReadBufferer
-exports.HashThrough = HashThrough
 
 #===============================================================

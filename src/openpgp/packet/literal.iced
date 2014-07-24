@@ -6,7 +6,7 @@ asymmetric = require '../../asymmetric'
 {Packetizer} = require './xbt_packetizer'
 {PacketParser} = require './xbt_depacketizer'
 {make_esc} = require 'iced-error'
-{Passthrough,HashThrough} = require '../../xbt'
+xbt = require '../../xbt'
 
 #=================================================================================
 
@@ -91,7 +91,9 @@ class LiteralParser
 
 #=================================================================================
 
-exports.XbtOut = XbtOut = Packetizer
+exports.XbtOut = class XbtOut extends Packetizer
+
+  xbt_type : () -> "Literal.XbtOut"
 
 #=================================================================================
 
@@ -114,14 +116,30 @@ class XbtIn extends PacketParser
     cb null
 
   _run_body : (cb) ->
-    hasher = new Passthrough() # HashThrough @get_root().hashers()
+    hasher = new HashThrough @get_root().hashers()
     await @_stream_to hasher, defer err
-    #await @_pass_through defer err
     cb null
+
+##=========================================================
+
+class HashThrough extends xbt.Base
+
+  constructor : (@_hashers) ->
+    super()
+
+  xbt_type : () -> "HashThrough"
+
+  chunk : ({data, eof}, cb) ->
+    @_chunk_debug_pre { data, eof }
+    for h in @_hashers
+      h.update(data)
+    @_chunk_debug_post { err : null, data }
+    cb null, data
 
 #=================================================================================
 
 exports.Literal = Literal
+exports.HashThrough = HashThrough
 
 #=================================================================================
 

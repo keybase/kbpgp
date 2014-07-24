@@ -2,7 +2,7 @@
 main = require '../../'
 {keyring,unbox,KeyManager,stream,util} = main
 C = main.const
-{Faucet,Drain} = require 'iced-stream'
+{Faucet,SlowFaucet,Drain} = require 'iced-stream'
 
 #----------------------------------------------------------------
 
@@ -75,7 +75,7 @@ box = ({T,sign_with, encrypt_for,plaintext,opts}, cb) ->
   await stream.box { sign_with, encrypt_for, opts}, defer err, xform
   T.no_error err
   buf = new Buffer(plaintext, 'utf8')
-  f = new Faucet buf
+  f = new SlowFaucet { buf, blocksize : 1024*16, wait_msec : 0 }
   d = new Drain()
   f.pipe(xform)
   xform.pipe(d)
@@ -92,6 +92,7 @@ box = ({T,sign_with, encrypt_for,plaintext,opts}, cb) ->
 unbox2 = ({T,plaintext, armored, km, signed }, cb) ->
   await unbox { armored, keyfetch }, defer err, msg
   T.no_error err
+  throw err if err?
   T.equal plaintext, msg[0].toString(), "output literal was right"
   if signed
     T.assert km.is_pgp_same_key(msg[0].get_data_signer().km, km), "the right signing key"
@@ -111,9 +112,9 @@ round_trip = (cfg, T,plaintext,cb) ->
       when 'z'
         arg.opts = { compression : 'zlib' } 
   await box arg, defer arg.armored
-  T.waypoint "sign"
+  T.waypoint "box"
   await unbox2 arg, defer()
-  T.waypoint "verify"
+  T.waypoint "unbox"
   cb()
 
 #----------------------------------------------------------------
@@ -122,13 +123,13 @@ exports.encrypt_shortie = (T,cb) -> round_trip "e", T, short, cb
 exports.encrypt_med = (T,cb) -> round_trip "e", T, med, cb
 exports.encrypt_med_zlib = (T,cb) -> round_trip "ez", T, med, cb
 
-#----------------------------------------------------------------
+##----------------------------------------------------------------
 
 exports.sign_and_verify_shortie = (T,cb) -> round_trip "s", T, short, cb
 exports.sign_and_verify_med = (T,cb) -> round_trip "s", T, med, cb
 exports.sign_and_verify_zlib = (T,cb) -> round_trip "sz", T, med, cb
 
-#----------------------------------------------------------------
+##----------------------------------------------------------------
 
 exports.signcrypt_shortie = (T,cb) -> round_trip "es", T, short, cb
 exports.signcrypt_med = (T,cb) -> round_trip "es", T, med, cb

@@ -177,6 +177,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
       klass = switch tag
         when PT.literal then Literal
         when PT.compressed then Compressed
+        when PT.one_pass_sig then OnePassSignature
         else
           err = new Error "Can't stream packet type=#{tag}"
           null

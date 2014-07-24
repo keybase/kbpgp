@@ -108,6 +108,11 @@ exports.SEIPD_XbtOut = class SEIPD_XbtOut extends Packetizer
     @_mdc = new MDC { }
     @_mdc_xbt = @_mdc.new_xbt { prefixrandom }
     @_ocfb = new Encryptor { cipher, prefixrandom }
+    @_ocfb.set_parent(@)
+
+  #----------------
+
+  xbt_type : () -> "SEIPD.XbtOut"
 
   #----------------
 
@@ -171,6 +176,8 @@ exports.MDC_XbtOut = class MDC_XbtOut extends xbt.Base
     @hasher = hashmod.streamers.SHA1()
     @hasher.update prefixrandom
     @hasher.update prefixrandom[-2...]
+
+  xbt_type : () -> "MDC.XbtOut"
 
   chunk : ( {data, eof}, cb) ->
     esc = make_esc cb, "MDC_XbtOut::chunk"

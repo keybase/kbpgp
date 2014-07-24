@@ -96,6 +96,10 @@ class Encryptor extends Base
 
   #-------------
 
+  xbt_type : () -> "Encryptor"
+
+  #-------------
+
   _enc : () ->
     @FRE = WordArray.from_buffer @FR
     @cipher.encryptBlock @FRE.words, 0

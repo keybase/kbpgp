@@ -27,6 +27,7 @@ class OnePassSignature extends Packet
   #---------------
 
   new_xbt : ({sig, literal}) -> new XbtOut { header : @, footer : sig, literal }
+  @new_xbt_parser : (arg) -> new XbtIn arg
 
   #---------------
 
@@ -62,20 +63,20 @@ class OPS_Parser
     sig_klass = @slice.read_uint8() 
     key_id = @slice.read_buffer 8
     is_final = @slice.read_uint8()
-    _alloc { version, sig_type, hasher, sig_klass, key_id, is_final }
+    OPS_Parser._alloc { version, sig_type, hasher, sig_klass, key_id, is_final }
 
   #----------------
 
-  _alloc : ({version, sig_type, hasher, sig_klass, key_id, is_final, streaming}) ->
+  @_alloc : ({version, sig_type, hasher, sig_klass, key_id, is_final, streaming}) ->
     unless version is C.versions.one_pass_sig
       throw new Error "Unknown OnePassSignature version #{version}"
-    hasher = hash.alloc_or_throw @slice.read_uint8(), streaming
-    sig_klass = asymmetric.get_class @slice.read_uint8() 
+    hasher = hash.alloc_or_throw hasher, streaming
+    sig_klass = asymmetric.get_class sig_klass
     new OnePassSignature { sig_type, hasher, sig_klass, key_id, is_final }
 
   #----------------
 
-  alloc : (args, cb) ->
+  @alloc : (args, cb) ->
     ret = err = null
     try ret = @_alloc(args)
     catch e then err = e
@@ -115,6 +116,8 @@ exports.XbtIn = class XbtIn extends PacketParser
   constructor : (arg) ->
     super arg
 
+  xbt_type : () -> "OnePassSignature.XbtIn"
+
   _parse_header : (cb) ->
     err = null
     esc = make_esc cb, "_parse_header"
@@ -125,9 +128,12 @@ exports.XbtIn = class XbtIn extends PacketParser
     await @_read { exactly : 8 }, esc defer key_id
     await @_read_uint8 esc defer is_final
     aargs = { streaming : true, version, sig_type, hasher, sig_klass, key_id, is_final }
-    await OPS_Parser.alloc args, esc defer packet
+    await OPS_Parser.alloc aargs, esc defer packet
     @get_root().push_hasher packet.hasher
     await @set_root_metadata { slice : 'ops', value : packet }, esc defer()
     cb null
+
+  # No 'body' of a one-pass-signature packet, it's all Header.
+  _run_body : (cb) -> cb null
 
 #=================================================================================

@@ -57,7 +57,7 @@ exports.alloc = alloc = (typ, streaming) ->
   name = _lookup[typ]
   klass = algos[name] if name?
   ret = if not klass? then null
-  else if streaming then make_stream(klass,name,typ)
+  else if streaming then make_streamer(klass,name,typ)
   else make_hasher(klass,name,typ)
   ret
 

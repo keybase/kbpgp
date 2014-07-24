@@ -52,6 +52,8 @@ exports.XbtArmorer = class XbtArmorer extends xbt.InBlocker
     super @_in_width
     @_crc = null
 
+  xbt_type : () -> "Armorer"
+
   _v_init : (cb) ->
     unless @_err?
       hdr = @_frame.begin.concat(@_enc.header(), "\n")
