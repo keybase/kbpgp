@@ -57,11 +57,13 @@ class Base
     if not DEBUG then null
     else
       p = @get_parent()
-      if not p? then { level : 0, debug : @_debug }
-      else 
-        d = p.get_debug()
-        d.level++
-        d
+      if p?
+        if (d = p.get_debug())?
+          d.level++
+          d
+        else null
+      else if @_debug then { level : 0, debug : @_debug }
+      else null
 
   set_debug : (d) -> @get_root()._debug = d
 
@@ -91,14 +93,15 @@ class Base
       @_chunk_debug_msg prfx, msg_parts.join(": ")
 
   _chunk_debug_msg : (pre,post) ->
-    console.log [ pre, "#{@_xbt_type}##{@_obj_id}", post ].join ' '
+    console.log [ pre, "#{@xbt_type()}##{@_obj_id}", post ].join ' '
 
 #=========================================================
 
 class Passthrough extends Base
   constructor : (args) ->
     super args
-    @_xbt_type = "Passthrough"
+
+  xbt_type : () -> "Passthrough"
 
   chunk : ({data, eof}, cb) -> 
     @_chunk_debug_pre { data, eof }
@@ -110,7 +113,8 @@ class HashThrough extends Base
 
   constructor : (@_hashers) ->
     super()
-    @_xbt_type = "HashThrough"
+
+  xbt_type : () -> "HashThrough"
 
   chunk : ({data, eof}, cb) ->
     @_chunk_debug_pre { data, eof }
@@ -125,9 +129,12 @@ class Chain extends Base
 
   constructor : (links = []) ->
     @links = links
+    for l in links
+      l.set_parent(@)
     super()
     @_iters = 0
-    @_xbt_type = "Chain"
+
+  xbt_type : () -> "Chain"
 
   push_xbt : (link) ->
     @links.push link
@@ -151,7 +158,8 @@ class SimpleInit extends Base
   constructor : () ->
     @_did_init = false
     super()
-    @_xbt_type = "SimpleInit"
+  
+  xbt_type : () -> "SimpleInit"
 
   init : (cb) ->
     err = data = null
@@ -186,7 +194,8 @@ class InBlocker extends SimpleInit
     @_buffers = []
     @_p = 0
     @_input_len = 0
-    @_xbt_type = "InBlocker"
+
+  xbt_type : () -> "InBlocker"
 
   #----------------------
 
@@ -246,7 +255,10 @@ class Demux extends Base
     @_sink = null
     @_outbufs = []
     super()
-    @_xbt_type = "xbt.Demux"
+
+  #----------------
+
+  xbt_type : () -> "xbt.Demux"
 
   #----------------
 
@@ -309,7 +321,10 @@ class Gets extends Base
     @_dummy_mode = false
     @_lineno = 0
     super()
-    @_xbt_type = "Gets"
+
+  #-----------------------
+
+  xbt_type : () -> "Gets"
 
   #-----------------------
 
@@ -383,7 +398,8 @@ class ReverseAdapter extends Base
     @_buffers = []
     @_dlen = 0
     @_hiwat = hiwat or 0x1000
-    @_xbt_type = "ReverseAdapter"
+
+  xbt_type : () -> "ReverseAdapter"
 
   _push_data : (data) -> 
     if data? and data.length
@@ -416,9 +432,10 @@ class ReverseAdapter extends Base
     @_chunk_debug_pre { data, eof} 
     await @_transform data, esc defer() if data?
     await @_flush esc defer() if eof
-    @_chunk_debug_post { err, data }
+    err = null
     data = @_consume_bufs()
-    cb null, data
+    @_chunk_debug_post { err, data }
+    cb err, data
 
 
 #==============================================================
@@ -572,7 +589,10 @@ class ReadBufferer extends Base
     @_done_main_waitpoint = new Waitpoint
     @_source_eof_waitpoint = new Waitpoint
     super()
-    @_xbt_type = "ReadBufferrer"
+
+  #---------------------------
+
+  xbt_type : () -> "ReadBufferrer"
 
   #---------------------------
 

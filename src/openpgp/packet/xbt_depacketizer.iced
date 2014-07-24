@@ -43,9 +43,12 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
   constructor : ( { @packet_version } ) ->
     super {}
-    @_xbt_type = "Depacketizer"
     @_total = 0
 
+  #-------------------------------------
+
+  xbt_type  : () -> "Depacketizer"
+  
   #-------------------------------------
 
   run : (cb) ->
@@ -95,7 +98,8 @@ exports.PacketParser = class PacketParser extends PgpReadBufferer
 
   constructor : ({@substream_klass}) ->
     super {}
-    @_xbt_type = "PacketParser"
+
+  xbt_type  : () -> "PacketParser"
 
   _run_body : (cb) -> cb new Error "not implemented!"
 

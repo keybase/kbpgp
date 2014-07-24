@@ -100,7 +100,8 @@ class XbtIn extends PacketParser
   constructor : () ->
     super {}
     @_tot = 0
-    @_xbt_type = "Literal.XbtIn"
+
+  xbt_type : () -> "Literal.XbtIn"
 
   _parse_header : (cb) ->
     esc = make_esc cb, "XbtIn::parse_header"

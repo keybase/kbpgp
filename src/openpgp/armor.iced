@@ -78,6 +78,9 @@ exports.XbtDearmorDemux = class XbtDearmorDemux extends xbt.Demux
     @_prefix = "-----BEGIN PGP"
     super
 
+
+  xbt_type : () -> "XbtDearmorDemux"
+
   peek_bytes : () -> @_prefix.length
 
   _demux : ({data, eof}, cb) ->
@@ -93,6 +96,8 @@ class XbtTokenizer extends xbt.Gets
 
   constructor : () ->
     super { maxline : 4096, mod : 4 }
+
+  xbt_type : () -> "XbtTokenizer"
 
   _v_line_chunk : ({data, newline, eof}, cb) ->
     tok = if not data? then null
@@ -123,6 +128,10 @@ exports.XbtDearmorer = class XbtDearmorer extends XbtTokenizer
     @_msg_type = null
     @_crc24 = null
     super()
+
+  #---------------------------
+
+  xbt_type : () -> "XbtDearmor"
 
   #---------------------------
 
