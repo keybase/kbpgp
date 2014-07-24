@@ -69,6 +69,8 @@ exports.BaseBurner = class BaseBurner
     @_cipher_algo = C.symmetric_key_algorithms.AES256
     @_cipher_info = get_cipher @_cipher_algo
     await SRF().random_bytes @_cipher_info.key_size, defer @_session_key
+    console.log "DEBUG HORRIBLE SECURITY"
+    @_session_key = new Buffer(i for i in [0...@_cipher_info.key_size])
     @cipher = new @_cipher_info.klass WordArray.from_buffer @_session_key
     cb null
 
@@ -97,6 +99,8 @@ exports.BaseBurner = class BaseBurner
 
   _generate_iv : (cb) ->
     await SRF().random_bytes @cipher.blockSize, defer @prefixrandom
+    console.log "DEBUG HORRIBLE SECURITY"
+    @prefixrandom = new Buffer((i+128) for i in [0...@cipher.blockSize])
     cb null
 
   #-----------------
