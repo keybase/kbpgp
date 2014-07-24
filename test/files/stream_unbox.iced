@@ -20,7 +20,7 @@ oneshot = (faucet_args, xform, cb) ->
   d.once 'err', (err) ->
     cb err, null
   xform.on 'error', (err) ->
-    console.log "Error in transform: #{err}"
+    cb err, null
 
 #===================================================================
 
@@ -127,7 +127,9 @@ tests =
   base64_compressed : (T,cb)          -> R(T, med, { opts : { armor: 'generic', compression : 'zlib' }}, {}, {}, cb)
   slow_binary_compressed : (T,cb)     -> R(T, med, { opts : { compression : 'zlib' }}, {}, {}, cb)
   slow_base64_compressed : (T,cb)     -> R(T, med, { opts : { armor: 'generic', compression : 'zlib' }}, {}, {blocksize: 200, wait_msec :1}, cb)
-  small_binary_literal_trunc : (T,cb) -> truncated(T, small, {}, {xbt_debug : 1}, {}, cb) 
+  small_binary_literal_trunc : (T,cb) -> truncated(T, small, {}, {}, {}, cb) 
+  med_base64_literal_trunc : (T,cb)   -> truncated(T, med, { opts : { armor : 'generic'}}, {}, {}, cb) 
+  med_base64_compressed_trunc : (T,cb) -> truncated(T, small, { opts : { armor : 'generic', compression : 'zlib'}}, {}, {}, cb) 
   #small_signed_literal : (T,cb)       -> R(T, small, { sign_with : km }, {}, {}, cb)
 
 #===================================================================

@@ -668,10 +668,11 @@ class ReadBufferer extends Base
   _stream_to : (next, cb) ->
     @_sink = next
     data = @_inq.flush()
-    await @_sink.chunk { data, eof : @_source_eof }, defer @_err, out
-    await @_emit { data : out, eof : false }, defer()
+    await @_sink.chunk { data, eof : @_source_eof }, defer err, out
+    unless err?
+      await @_emit { data : out, eof : false }, defer()
     await @_source_eof_waitpoint.wait defer()
-    cb null
+    cb err
 
   #---------------------------
 
@@ -683,11 +684,6 @@ class ReadBufferer extends Base
     unless @_running
       @_running = true
       await @run defer @_err
-      if @_err?
-        console.log "ERROR BACK!"
-        console.log @_err
-        console.log @xbt_type() 
-        console.log @_obj_id
       @_done_main_waitpoint.trigger()
 
   #---------------------------
@@ -707,7 +703,7 @@ class ReadBufferer extends Base
       @_source_eof_waitpoint.trigger()
       await @_done_main_waitpoint.wait defer()
 
-    err = @_err
+    err = @_err if not err?
     data = bufcat [ @_outq.flush(), outdata ]
     @_chunk_debug_post { err, data }
     cb err, data
