@@ -64,7 +64,7 @@ class Base extends xbt.InBlocker
     @block_cipher_class or= AES
     @cipher or= new @block_cipher_class WordArray.from_buffer key
     @c_block_size = @cipher.blockSize
-    block_size = @c_block_size * 1 # don't just do one block at time!
+    block_size = @c_block_size *  1024*8 # don't just do one block at time!
     @out_bufs = []
     @bytes_flushed = 0
     super block_size
@@ -108,11 +108,11 @@ class Encryptor extends Base
   #-------------
 
   _emit_buf : (buf) ->
-    console.log "EB"
-    console.log buf
+    #console.log "IB #{buf.toString('hex')}"
     wa = WordArray.from_buffer buf[0...@c_block_size]
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
+    #console.log "OB #{buf.toString('hex')}"
     @out_bufs.push buf
     @FR = new Buffer buf
 
@@ -174,10 +174,6 @@ class Encryptor extends Base
       err = new Error "blocking error; got a block of size (#{a} % #{b} = #{rem}) midstream"
     else
       data = Buffer.concat [ data, (new Buffer(0 for [0...(b - rem )])) ]
-      console.log "pad it"
-      console.log data
-      console.log data.length
-      console.log data.toString('hex')
     [err, data]
 
   #-------------
@@ -185,16 +181,11 @@ class Encryptor extends Base
   _v_inblock_chunk : ({data, eof}, cb) ->
     out = null
     [err,data] = @_pad { data, eof }
-    console.log "data in"
-    console.log data
-    console.log data.toString 'hex'
     unless err?
       if @_first
         @_first = false
         @_do_first data[0...@c_block_size]
         data = data[@c_block_size...]
-        console.log "shifted data..."
-        console.log data
       if data?.length
         @_do_block data
       [err, out] = @_flush_and_trunc eof
@@ -203,7 +194,6 @@ class Encryptor extends Base
   #-------------
 
   _do_first : (data, cb) ->
-    console.log "doblock #{data.toString('hex')}"
     if @resync
       @_emit_buf data
     else
@@ -221,7 +211,6 @@ class Encryptor extends Base
 
   _do_block : (data, cb) ->
     for i in [0...data.length] by @c_block_size
-      console.log "doblock " + data[i...(i+@c_block_size)].toString('hex')
       @_enc()
       @_emit_buf data[i...(i+@c_block_size)]
 
@@ -261,7 +250,7 @@ class Decryptor extends Base
 
   #-------------
 
-  next_block : () -> WordArray.from_buffer @sb.read_buffer_at_most @block_size
+  next_block : () -> WordArray.from_buffer @sb.read_buffer_at_most @c_block_size
 
   #-------------
 
@@ -271,7 +260,7 @@ class Decryptor extends Base
 
   check : () ->
     @reset()
-    iblock = new WordArray(0 for i in [0...@block_size/4])
+    iblock = new WordArray(0 for i in [0...@c_block_size/4])
     @cipher.encryptBlock iblock.words, 0
     ablock = @next_block()
     iblock.xor ablock, {}

@@ -13,7 +13,7 @@ Metropolitan poetry here and there,
 In the park sit pauper and rentier,
 The screaming children, the motor-car
 """ + "\n"
-med = "".concat (short for [0...1000])...
+med = "".concat (short for [0...10000])...
 userid = "Delmore Schwartz"
 keyfetch = null
 
@@ -123,13 +123,13 @@ exports.encrypt_shortie = (T,cb) -> round_trip "e", T, short, cb
 exports.encrypt_med = (T,cb) -> round_trip "e", T, med, cb
 exports.encrypt_med_zlib = (T,cb) -> round_trip "ez", T, med, cb
 
-##----------------------------------------------------------------
+#----------------------------------------------------------------
 
 exports.sign_and_verify_shortie = (T,cb) -> round_trip "s", T, short, cb
 exports.sign_and_verify_med = (T,cb) -> round_trip "s", T, med, cb
 exports.sign_and_verify_zlib = (T,cb) -> round_trip "sz", T, med, cb
 
-##----------------------------------------------------------------
+#----------------------------------------------------------------
 
 exports.signcrypt_shortie = (T,cb) -> round_trip "es", T, short, cb
 exports.signcrypt_med = (T,cb) -> round_trip "es", T, med, cb
