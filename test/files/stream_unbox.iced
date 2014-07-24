@@ -33,6 +33,7 @@ R = (T, input, box_args, unbox_args, faucet_args, cb) ->
   xform.xbt.set_debug unbox_args.xbt_debug
   faucet_args.buf = pgp
   await oneshot faucet_args, xform, defer err, output
+  T.no_error err
   if not util.bufeq_fast(input, output)
     console.log input
     console.log output
@@ -42,6 +43,20 @@ R = (T, input, box_args, unbox_args, faucet_args, cb) ->
       if util.bufeq_fast(input[0...output.length], output)
         console.log "tis but an error of omission"
     T.assert false , "failed equality assertion"
+  cb()
+
+#===================================================================
+
+truncated = (T,input,box_args,unbox_args,faucet_args,cb) ->
+  await stream.box box_args, defer err, xform
+  T.no_error err
+  await oneshot { buf : input}, xform, defer err, pgp
+  T.no_error err
+  await stream.unbox unbox_args, defer err, xform
+  xform.xbt.set_debug unbox_args.xbt_debug
+  faucet_args.buf = pgp[0...(pgp.length >> 1)]
+  await oneshot faucet_args, xform, defer err, output
+  T.assert err, "truncation error needed!"
   cb()
 
 #===================================================================
@@ -100,19 +115,24 @@ exports.import_key = (T,cb) ->
 #===================================================================
 
 tests = 
- small_binary_literal : (T,cb)       -> R(T, small, {}, {}, {}, cb)
- small_base64_literal : (T,cb)       -> R(T, small, { opts : { armor: 'generic' }}, {}, {}, cb)
- med_binary_literal : (T,cb)         -> R(T, med, {}, {}, {}, cb)
- base64_literal : (T,cb)             -> R(T, med, { opts : { armor: 'generic' }}, {}, {}, cb)
- slow_binary_literal : (T,cb)        -> R(T, med, {}, {}, {blocksize : 137, wait_msec : 1}, cb)
- slow_base64_literal : (T,cb)        -> R(T, med, { opts : { armor : 'generic' } }, {}, {blocksize : 137, wait_msec : 1}, cb)
- small_slow_binary_literal : (T,cb)  -> R(T, small, {}, {}, {blocksize : 2, wait_msec : 3}, cb)
- small_slow_base64_literal : (T,cb)  -> R(T, small, { opts : { armor : 'generic' } }, { }, {blocksize : 3, wait_msec : 1}, cb)
- binary_compressed : (T,cb)          -> R(T, med, { opts : { compression : 'zlib' }}, {}, {}, cb)
- base64_compressed : (T,cb)          -> R(T, med, { opts : { armor: 'generic', compression : 'zlib' }}, {}, {}, cb)
- slow_binary_compressed : (T,cb)     -> R(T, med, { opts : { compression : 'zlib' }}, {}, {}, cb)
- slow_base64_compressed : (T,cb)     -> R(T, med, { opts : { armor: 'generic', compression : 'zlib' }}, {}, {blocksize: 200, wait_msec :1}, cb)
- #small_signed_literal : (T,cb)       -> R(T, small, { sign_with : km }, {}, {}, cb)
+  small_binary_literal : (T,cb)       -> R(T, small, {}, {}, {}, cb)
+  small_base64_literal : (T,cb)       -> R(T, small, { opts : { armor: 'generic' }}, {}, {}, cb)
+  med_binary_literal : (T,cb)         -> R(T, med, {}, {}, {}, cb)
+  base64_literal : (T,cb)             -> R(T, med, { opts : { armor: 'generic' }}, {}, {}, cb)
+  slow_binary_literal : (T,cb)        -> R(T, med, {}, {}, {blocksize : 137, wait_msec : 1}, cb)
+  slow_base64_literal : (T,cb)        -> R(T, med, { opts : { armor : 'generic' } }, {}, {blocksize : 137, wait_msec : 1}, cb)
+  small_slow_binary_literal : (T,cb)  -> R(T, small, {}, {}, {blocksize : 2, wait_msec : 3}, cb)
+  small_slow_base64_literal : (T,cb)  -> R(T, small, { opts : { armor : 'generic' } }, { }, {blocksize : 3, wait_msec : 1}, cb)
+  binary_compressed : (T,cb)          -> R(T, med, { opts : { compression : 'zlib' }}, {}, {}, cb)
+  base64_compressed : (T,cb)          -> R(T, med, { opts : { armor: 'generic', compression : 'zlib' }}, {}, {}, cb)
+  slow_binary_compressed : (T,cb)     -> R(T, med, { opts : { compression : 'zlib' }}, {}, {}, cb)
+  slow_base64_compressed : (T,cb)     -> R(T, med, { opts : { armor: 'generic', compression : 'zlib' }}, {}, {blocksize: 200, wait_msec :1}, cb)
+  small_binary_literal_trunc : (T,cb) -> truncated(T, small, {}, {xbt_debug : 1}, {}, cb) 
+  #small_signed_literal : (T,cb)       -> R(T, small, { sign_with : km }, {}, {}, cb)
+
+#===================================================================
 
 for k,v of tests
   exports[k] = v
+
+

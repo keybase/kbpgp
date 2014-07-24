@@ -683,6 +683,11 @@ class ReadBufferer extends Base
     unless @_running
       @_running = true
       await @run defer @_err
+      if @_err?
+        console.log "ERROR BACK!"
+        console.log @_err
+        console.log @xbt_type() 
+        console.log @_obj_id
       @_done_main_waitpoint.trigger()
 
   #---------------------------
