@@ -55,8 +55,11 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
     final = false
     esc = make_esc cb, "_depacketize_1"
     until final
+      @_debug_msg "|", "Depacketizer.run --> find_length"
       await @_find_length esc defer final, len
+      @_debug_msg "|", "Depacketizer.run <-- #{final} #{len}"
       await @_read { exactly : len}, esc defer data
+      @_debug_msg "|", "Depacketizer.run <-- read #{@_debug_buffer(data)}"
       @_total += len
       await @_emit { data, eof : final }, esc defer()
     cb null

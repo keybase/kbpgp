@@ -14,6 +14,7 @@ stream = require 'stream'
 {make_esc} = require 'iced-error'
 assert = require 'assert'
 {buf_indices_of,bufcat} = require './util'
+{Lock} = require './lock'
 
 DEBUG = 1
 
@@ -53,17 +54,26 @@ class Base
     p = @get_parent()
     if not p? then @ else p.get_root()
 
+  #----------
+
   get_debug : () ->
+    unless @_debug_info?
+      @_debug_info = @_get_debug_info()
+    return @_debug_info
+
+  _get_debug_info : () ->
     if not DEBUG then null
     else
       p = @get_parent()
       if p?
-        if (d = p.get_debug())?
+        if (d = p._get_debug_info())?
           d.level++
           d
         else null
       else if @_debug then { level : 0, debug : @_debug }
       else null
+
+  #----------
 
   set_debug : (d) -> @get_root()._debug = d
 
@@ -71,29 +81,38 @@ class Base
   pop_hasher : (h) -> @_hashers.pop()
   hashers : () -> @_hashers
 
-  _debug_buffer : (b, debug) ->
-    if b?
-      hex = b.toString 'hex'
-      col = 80
-      dat = if debug is 1 then (hex[0...col] + (if hex.length > col then "..." else '')) else hex
-      "[#{b.length}]{#{dat}}"
-    else "[]"
+  _debug_prefix : (c) ->
+    (c for [0..@get_debug().level]).join('')
+
+  _debug_buffer : (b) ->
+    if (di = @get_debug())?
+      if b?
+        hex = b.toString 'hex'
+        col = 80
+        dat = if di.debug is 1 then (hex[0...col] + (if hex.length > col then "..." else '')) else hex
+        "[#{b.length}]{#{dat}}"
+      else "[]"
 
   _chunk_debug_pre : ({data, eof}) ->
     if (di = @get_debug())?
-      prfx = ("+" for [0..di.level]).join('')
-      @_chunk_debug_msg prfx, "eof=#{eof}: #{@_debug_buffer(data, di.debug)}"
+      prfx = @_debug_prefix("+")
+      @_chunk_debug_msg prfx, "eof=#{eof}: #{@_debug_buffer(data)}"
 
   _chunk_debug_post : ({err, data}) ->
     if (di = @get_debug())?
-      prfx = ("-" for [0..di.level]).join('')
+      prfx = @_debug_prefix("-")
       msg_parts = []
       if err? then msg_parts.push "ERR=(#{err?.message})"
-      msg_parts.push @_debug_buffer(data, di.debug)
+      msg_parts.push @_debug_buffer(data)
       @_chunk_debug_msg prfx, msg_parts.join(": ")
 
   _chunk_debug_msg : (pre,post) ->
     console.log [ pre, "#{@xbt_type()}##{@_obj_id}", post ].join ' '
+
+  _debug_msg : (c, msg) ->
+    if (di = @get_debug())?
+      prfx = @_debug_prefix(c)
+      console.log [prfx, msg].join(" ")
 
 #=========================================================
 
@@ -451,6 +470,7 @@ class Queue
     @_i = 0
     @_wcb = null
     @_rcb = null
+    @_wlock = new Lock
 
   #---------
 
@@ -503,14 +523,27 @@ class Queue
 
   #---------
 
+  wait_then_push : (data, cb) ->
+    await @_wlock.acquire defer()
+    await @wait_for_room defer()
+    @push data
+    @_wlock.release()
+    cb()
+
+  #---------
+
   wait_for_room : (cb) ->
-    if @n_bytes() < @_capacity then cb()
-    else @_wcb = cb
+    if @n_bytes() < @_capacity 
+      cb()
+    else 
+      throw new Error "Can't ovewrite @_wcb in buffer" if @_wcb
+      @_wcb = cb
 
   #---------
 
   wait_for_data : (n, is_eof, cb) ->
     while @n_bytes() < n and (not(is_eof) or not(is_eof()))
+      throw new Error "refusing to overwrite @_rcb" if @_rcb?
       await @_rcb = defer()
     err = if @n_bytes() < n then new Error "EOF before #{n} bytes" else null
     cb err
@@ -576,7 +609,6 @@ class Waitpoint
 
 #==============================================================
 
-
 class ReadBufferer extends Base
 
   constructor : ({bufsz}) ->
@@ -605,8 +637,7 @@ class ReadBufferer extends Base
   #---------------------------
 
   _push_data : ({data, eof}, cb) ->
-    await @_inq.wait_for_room defer()
-    @_inq.push data 
+    await @_inq.wait_then_push data, defer()
     cb null
 
   #---------------------------

@@ -6,7 +6,7 @@ main = require '../../'
 #===================================================================
 
 med = Buffer.concat ((new Buffer [0...i]) for i in [0...200])
-small = Buffer.concat ((new Buffer [0...i]) for i in [0...23])
+small = Buffer.concat ((new Buffer [0...i]) for i in [0...30])
 
 #===================================================================
 
