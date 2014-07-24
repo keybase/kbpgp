@@ -42,12 +42,16 @@ class Base
     if slice? then (md[slice] or= def)
     else md
 
+  #----------
+
   set_root_metadata : ({slice, value}, cb) ->
     rmd = @get_root_metadata()
     err = null
     if (rmd[slice])? then err = new Error "Cannot have >1 '#{slice}' packets"
     else rmd[slice] = value
     cb err
+
+  #----------
 
   # Work up the root of the XBT tree. 
   get_root : () ->
@@ -56,10 +60,18 @@ class Base
 
   #----------
 
+  push_hasher : (h) -> @_hashers.push(h)
+  pop_hasher : (h) -> @_hashers.pop()
+  hashers : () -> @_hashers
+
+  #----------
+
   get_debug : () ->
     unless @_debug_info?
       @_debug_info = @_get_debug_info()
     return @_debug_info
+
+  #-----------
 
   _get_debug_info : () ->
     if not DEBUG then null
@@ -77,12 +89,12 @@ class Base
 
   set_debug : (d) -> @get_root()._debug = d
 
-  push_hasher : (h) -> @_hashers.push(h)
-  pop_hasher : (h) -> @_hashers.pop()
-  hashers : () -> @_hashers
+  #----------
 
   _debug_prefix : (c) ->
     (c for [0..@get_debug().level]).join('')
+
+  #----------
 
   _debug_buffer : (b) ->
     if (di = @get_debug())?
@@ -93,10 +105,14 @@ class Base
         "[#{b.length}]{#{dat}}"
       else "[]"
 
+  #----------
+
   _chunk_debug_pre : ({data, eof}) ->
     if (di = @get_debug())?
       prfx = @_debug_prefix("+")
       @_chunk_debug_msg prfx, "eof=#{eof}: #{@_debug_buffer(data)}"
+
+  #----------
 
   _chunk_debug_post : ({err, data}) ->
     if (di = @get_debug())?
@@ -106,8 +122,12 @@ class Base
       msg_parts.push @_debug_buffer(data)
       @_chunk_debug_msg prfx, msg_parts.join(": ")
 
+  #----------
+
   _chunk_debug_msg : (pre,post) ->
     console.log [ pre, "#{@xbt_type()}##{@_obj_id}", post ].join ' '
+
+  #----------
 
   _debug_msg : (c, msg) ->
     if (di = @get_debug())?
