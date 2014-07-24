@@ -472,6 +472,7 @@ class Queue
     @_wcb = null
     @_rcb = null
     @_wlock = new Lock
+    @_rlock = new Lock
 
   #---------
 
@@ -530,6 +531,16 @@ class Queue
     @push data
     @_wlock.release()
     cb()
+
+  #---------
+
+  wait_then_read : ({min,max,peek, is_eof}, cb) ->
+    await @_rlock.acquire defer()
+    @elongate min
+    await @wait_for_data min, is_eof, defer err
+    data = if err? then null else @pull(max, peek)
+    @_rlock.release()
+    cb err, data
 
   #---------
 
@@ -704,12 +715,10 @@ class ReadBufferer extends Base
   #---------------------------
 
   _read : ({min,max,exactly,peek},cb) ->
-    i = ReadBufferer._I++
     throw new Error "Bad arguments to _read" unless exactly? or (min? and max?)
     if exactly? then min = max = exactly
-    @_inq.elongate min
-    await @_inq.wait_for_data min, ( () => @_source_eof ), defer err
-    data = if err? then null else @_inq.pull(max, peek)
+    is_eof = () => @_source_eof
+    await @_inq.wait_then_read { min, max, peek, is_eof }, defer err, data
     cb err, data
 
 #==============================================================
