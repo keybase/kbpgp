@@ -63,8 +63,8 @@ class Base extends xbt.InBlocker
   constructor : ({@block_cipher_class, key, @cipher, @resync}) ->
     @block_cipher_class or= AES
     @cipher or= new @block_cipher_class WordArray.from_buffer key
-    @c_block_size = @cipher.blockSize
-    block_size = @c_block_size *  1024*8 # don't just do one block at time!
+    @c_block_size = @cipher.blockSize     # cipher block size
+    block_size = @c_block_size * 1024*8   # the bigger block size for speed
     @out_bufs = []
     @bytes_flushed = 0
     super block_size
