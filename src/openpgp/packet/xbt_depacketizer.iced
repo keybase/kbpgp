@@ -37,7 +37,7 @@ class PgpReadBufferer extends xbt.ReadBufferer
     await @_read_uint8 esc defer len
     await @_read { exactly : len}, esc defer buf
     cb null, buf
-  
+
 #=================================================================================
 
 class BaseDepacketizer extends PgpReadBufferer
@@ -49,7 +49,7 @@ class BaseDepacketizer extends PgpReadBufferer
   #-------------------------------------
 
   xbt_type  : () -> "BaseDepacketizer"
-  
+
   #-------------------------------------
 
   _next : (cb) ->
@@ -96,7 +96,7 @@ class BaseDepacketizer extends PgpReadBufferer
           null
       if nxt?
         await nxt esc defer ret
-    else 
+    else
       # discard 'tag', it's not needed in this case
       await @_read_uint8 esc defer first
       if first < 192 then ret = first
@@ -114,18 +114,20 @@ class BaseDepacketizer extends PgpReadBufferer
 
 exports.StreamingDepacketizer = class StreamingDepacketizer extends BaseDepacketizer
 
-  constructor : ( { packet_version, demux_klass } ) ->
+  constructor : ( { packet_version, demux_klass, @packet_xbt } ) ->
     super { packet_version, demux_klass }
+    @packet_xbt.set_parent(@)
     @_total = 0
 
   #-------------------------------------
 
   xbt_type  : () -> "StreamingDepacketizer"
-  
+
   #-------------------------------------
 
   _pkt_emit : ( { data, eof}, cb) ->
-    await @_emit { data, eof }, defer err
+    await @packet_xbt.chunk { data, eof }, defer err, data
+    await @_emit { data, eof}, defer()
     cb err
 
   #-------------------------------------
@@ -180,6 +182,6 @@ exports.PacketParser = class PacketParser extends PgpReadBufferer
     await @_parse_header esc defer()
     await @_run_body esc defer()
     cb null
-    
+
 #=================================================================================
 

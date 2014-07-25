@@ -18,11 +18,11 @@ xbt = require '../xbt'
 
 #==================================================================================================
 
-class MessageParser 
+class MessageParser
   constructor : (@slice) ->
   parse : () -> (@parse_packet() while @slice.rem())
   parse_packet : () -> (new PacketParser @slice).parse()
-   
+
 #==================================================================================================
 
 class PacketParser
@@ -101,7 +101,7 @@ class PacketParser
 
   #----------------
 
-  parse_tag_len_new : () -> 
+  parse_tag_len_new : () ->
     go = true
     segments = []
     @len = 0
@@ -112,13 +112,13 @@ class PacketParser
 
       lastlen = if (c < 192) then c
       else if (c is 255) then @slice.read_uint32()
-      else if (c < 224) 
+      else if (c < 224)
         d = @slice.read_uint8()
         ((c - 192) << 8) + (d + 192)
       else
         @header_len or= @slice.offset()
         packet_length = 1 << (c & 0x1f)
-        segments.push @slice.read_buffer packet_length 
+        segments.push @slice.read_buffer packet_length
         go = true
         packet_length
 
@@ -138,7 +138,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
   xbt_type : () -> "parser.Demux"
 
   #---------------
-  
+
   run : (cb) ->
     esc = make_esc cb, "Demux::_process"
     console.log "#{@_obj_id} peeeking..."
@@ -158,7 +158,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
     else if (c & 0x40) is 0
       tag = (c & 0x3f) >> 2
       packet_version = C.packet_version.old
-    else 
+    else
       tag = (c & 0x3f)
       packet_version = C.packet_version.modern
     if tag?
@@ -175,10 +175,9 @@ exports.Demux = class Demux extends xbt.ReadBufferer
 
     if not klass? then # noop
     else if klass.new_xbt_parser?
-      depacketizer_xbt = new StreamingDepacketizer { packet_version, demux_klass : Demux }
       packet_xbt = klass.new_xbt_parser { demux_klass : Demux }
-      out = new xbt.Chain [ depacketizer_xbt, packet_xbt ]
-    else 
+      out = new StreamingDepacketizer { packet_version, demux_klass : Demux, packet_xbt }
+    else
       out = new SmallDepacketizer { packet_version, demux_klass : Demux, packet_klass : klass }
     out.set_parent(@) if out?
     cb err, out
@@ -186,7 +185,7 @@ exports.Demux = class Demux extends xbt.ReadBufferer
 #============================================================================
 
 
-exports.parse = parse = (buf) -> 
+exports.parse = parse = (buf) ->
   util.katch () ->
     (new MessageParser new SlicerBuffer buf).parse()
 

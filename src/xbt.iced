@@ -4,7 +4,7 @@
 #
 #    Transforms in which the buffering is explicit.  If you want to buffer,
 #    it's up to you, but there's no buffering by default.
-#   
+#
 #    You can use a StreamAdapter to turn one of these into a Node.js-style
 #    stream
 #
@@ -36,7 +36,7 @@ class Base
   set_parent : (p) -> @_parent = p
   get_parent : () -> @_parent
   get_metadata : () -> @_metadata
-  get_root_metadata : (slice, def) -> 
+  get_root_metadata : (slice, def) ->
     def or= {}
     md = @get_root()?.get_metadata() or {}
     if slice? then (md[slice] or= def)
@@ -53,7 +53,7 @@ class Base
 
   #----------
 
-  # Work up the root of the XBT tree. 
+  # Work up the root of the XBT tree.
   get_root : () ->
     p = @get_parent()
     if not p? then @ else p.get_root()
@@ -69,7 +69,7 @@ class Base
   _get_debug_info : () ->
     unless @_debug_info?
       @_debug_info = if not DEBUG then {}
-      else if not (p = @get_parent())? 
+      else if not (p = @get_parent())?
         if @_debug then { level : 0, debug : @_debug }
         else {}
       else if (di = p._get_debug_info())? and di.debug
@@ -134,7 +134,7 @@ class Passthrough extends Base
 
   xbt_type : () -> "Passthrough"
 
-  chunk : ({data, eof}, cb) -> 
+  chunk : ({data, eof}, cb) ->
     @_chunk_debug_pre { data, eof }
     cb null, data
 
@@ -175,7 +175,7 @@ class SimpleInit extends Base
   constructor : () ->
     @_did_init = false
     super()
-  
+
   xbt_type : () -> "SimpleInit"
 
   init : (cb) ->
@@ -218,7 +218,7 @@ class InBlocker extends SimpleInit
   _pop_block : () -> @_inq.pull(@block_size)
 
   #----------------------
-  
+
   _v_chunk : ({data, eof}, cb) ->
     @_chunk_debug_pre { data, eof }
     @_input_len += data.length if data?
@@ -226,7 +226,7 @@ class InBlocker extends SimpleInit
     err = out = null
     if eof
       await @_handle_eof defer err, out
-    else 
+    else
       outbufs = []
       err = null
       while @_inq.n_bytes() >= @block_size and not err?
@@ -237,8 +237,8 @@ class InBlocker extends SimpleInit
     cb err, out
 
   #----------------------
-  
-  _handle_eof : (cb) -> 
+
+  _handle_eof : (cb) ->
     esc = make_esc cb, "InBlocker::_v_chunk"
     i = 0
     outbufs = []
@@ -252,7 +252,7 @@ class InBlocker extends SimpleInit
       await @_v_inblock_chunk { data, eof }, esc defer out
       outbufs.push out
       i = end
-      
+
     out = Buffer.concat outbufs
     cb null, out
 
@@ -370,7 +370,7 @@ class Gets extends Base
       @_buffers = [ rest ]
       @_dlen = rest.length
 
-    else if data? or eof 
+    else if data? or eof
       if data?
         @_buffers.push data
         @_dlen += data.length
@@ -421,7 +421,7 @@ class ReverseAdapter extends Base
 
   xbt_type : () -> "ReverseAdapter"
 
-  _push_data : (data) -> 
+  _push_data : (data) ->
     if data? and data.length
       @_buffers.push data
       @_dlen += data.length
@@ -431,7 +431,7 @@ class ReverseAdapter extends Base
 
   _transform : (data, cb) ->
     await @stream.write data, defer err
-    while (diff = @_hiwat - @_dlen) > 0 
+    while (diff = @_hiwat - @_dlen) > 0
       break unless @_push_data @stream.read diff
     cb()
 
@@ -449,7 +449,7 @@ class ReverseAdapter extends Base
 
   chunk : ({data, eof}, cb) ->
     esc = make_esc cb, "ReverseAdapter::chunk"
-    @_chunk_debug_pre { data, eof} 
+    @_chunk_debug_pre { data, eof}
     await @_transform data, esc defer() if data?
     await @_flush esc defer() if eof
     err = null
@@ -463,7 +463,7 @@ class ReverseAdapter extends Base
 class Queue
 
   #---------
-  
+
   constructor : (@_capacity) ->
     @_capacity or= 0x10000
     @_buffers = []
@@ -480,7 +480,7 @@ class Queue
     @_capacity = Math.max n, @_capacity
 
   #---------
-  
+
   push : (d) ->
     if d?.length
       @_buffers.push d
@@ -545,9 +545,9 @@ class Queue
   #---------
 
   wait_for_room : (cb) ->
-    if @n_bytes() < @_capacity 
+    if @n_bytes() < @_capacity
       cb()
-    else 
+    else
       throw new Error "Can't ovewrite @_wcb in buffer" if @_wcb
       @_wcb = cb
 
@@ -615,7 +615,7 @@ class Waitpoint
 
   wait : (cb) ->
     if @_hit then cb()
-    else 
+    else
       throw err "Can't wait, someone is already waiting!" if @_cb?
       @_cb = cb
 
@@ -625,7 +625,7 @@ class ReadBufferer extends Base
 
   constructor : ({bufsz}) ->
     @_inq = new Queue bufsz
-    @_outq = new Queue 
+    @_outq = new Queue
     @_source_eof = false
     @_internal_eof = false
     @_err = null
@@ -642,8 +642,7 @@ class ReadBufferer extends Base
 
   _emit : ({data, eof}, cb) ->
     @_internal_eof = eof
-    await @_outq.wait_for_room defer()
-    @_outq.push(data)
+    await @_outq.wait_then_push data, defer()
     cb null
 
   #---------------------------
