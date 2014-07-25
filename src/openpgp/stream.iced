@@ -1,8 +1,9 @@
 
 {BaseBurner} = require './baseburner'
 hashmod = require '../hash'
-C = require('../const').openpgp
-{unix_time} = require '../util'
+konst = require '../const'
+C = konst.openpgp
+{athrow,bufeq_secure,unix_time} = require '../util'
 {Literal} = require './packet/literal'
 stream = require 'stream'
 {make_esc} = require 'iced-error'
@@ -18,7 +19,7 @@ class BoxTransformEngine extends BaseBurner
 
   #--------------------------------
 
-  constructor : ({@opts, sign_with, encrypt_for, signing_key, encryption_key}) -> 
+  constructor : ({@opts, sign_with, encrypt_for, signing_key, encryption_key}) ->
     super { sign_with, encrypt_for, signing_key, encryption_key }
     @packets = []
 
@@ -39,10 +40,10 @@ class BoxTransformEngine extends BaseBurner
     v = @opts?.encoding or 'binary'
     if not (@encoding = C.literal_formats[v])? then err = new Error "no known encoding: #{v}"
 
-    # PGP armoring 
-    if (v = @opts?.armor) and not (@armor = C.message_types[v])? 
+    # PGP armoring
+    if (v = @opts?.armor) and not (@armor = C.message_types[v])?
       err = new Error "bad armor message type: #{v}"
-      
+
     cb err
 
   #--------------------------------
@@ -78,15 +79,45 @@ class UnboxTransformEngine
 
   #---------------------------------------
 
-  constructor : ({@xbt_opts, @keyfetch}) ->
-    @chain = new xbt.Chain 
+  constructor : ({@keyfetch}) ->
+    @chain = new xbt.Chain
     @stream = new xbt.StreamAdapter { xbt : @chain }
 
   #---------------------------------------
 
   init : (cb) ->
+    @chain.verify_sig = @verify_sig.bind(@)
     @chain.push_xbt(new XbtDearmorDemux {}).push_xbt(new Demux {})
     cb null, @stream
+
+  #---------------------------------------
+
+  verify_sig : (cb) ->
+    esc = make_esc cb , "UnboxTransformEngine::verify_sig"
+    {ops,sig} = @chain.get_metadata()
+
+    if not ops? or not sig?
+      err = new Error "Can only verify a OnePassSig/Signature configuration in streaming mode"
+    else if not (hasher = @chain.pop_hasher())?
+      err = new Error "No running hasher going, can't proceed"
+    else if (a = hasher.type) isnt (b = sig.hasher.type)
+      err = new Error "Hasher type mismatch: #{a} != #{b}"
+    else if not bufeq_secure (a = ops.key_id), (b = sig.get_key_id())
+      err = new Error "Key mismatch: #{a?.toString('hex')} v #{b?.toString('hex')}"
+    else if not @keyfetch
+      err = new Error "Cannot verify a signature without a keyfetch"
+
+    await athrow err, esc defer() if err?
+
+    await @keyfetch.fetch [a], konst.ops.verify, esc defer key_material, i, obj
+    sig.key = key_material.key
+    sig.keyfetch_obj = obj
+    sig.hasher = hasher
+
+    await sig.verify [], esc defer()
+    sig.verified = true
+
+    cb null
 
 #===========================================================================
 

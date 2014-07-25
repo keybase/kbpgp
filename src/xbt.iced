@@ -33,6 +33,8 @@ class Base
 
   chunk : ({data, eof}, cb) -> cb new Error "unimplemented!"
 
+  #----------
+
   set_parent : (p) -> @_parent = p
   get_parent : () -> @_parent
   get_metadata : () -> @_metadata
