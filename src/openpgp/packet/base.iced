@@ -14,12 +14,12 @@ class Packet
 
   #----------------------
 
-  tagbuf : (tag) -> 
+  tagbuf : (tag) ->
     tag or= @TAG
     new Buffer [ (0xc0 | tag) ]
 
   #----------------------
-   
+
   frame_packet : (tag, body) ->
     bufs = [
       @tagbuf(tag),
@@ -30,7 +30,7 @@ class Packet
 
   #----------------------
 
-  write : (cb) -> 
+  write : (cb) ->
     err = ret = null
     await @write_unframed defer err, raw
     ret = @frame_packet @TAG, raw unless err?
@@ -75,7 +75,7 @@ class Packet
   get_psc : () -> @_psc
 
   #----------------------
-  
+
   get_data_signer  : () -> @get_psc().get_data_signer()
   get_data_signers : () -> @get_psc().get_data_signers()
 
@@ -86,6 +86,10 @@ class Packet
   get_signed_userids : () -> []
   get_subkey_binding : () -> null
   is_self_signed : () -> false
+
+  #----------------------
+
+  set_xbt_root_metadata : (xbt, cb) -> cb null
 
 #==================================================================================================
 

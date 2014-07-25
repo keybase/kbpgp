@@ -32,8 +32,8 @@ class Literal extends Packet
   #--------
 
   buffer_format : () ->
-    switch @format 
-      when C.literal_formats.text then 'ascii' 
+    switch @format
+      when C.literal_formats.text then 'ascii'
       when C.literal_formats.utf8 then 'utf8'
       else 'binary'
 
@@ -69,7 +69,7 @@ class Literal extends Packet
 
 #=================================================================================
 
-class LiteralParser 
+class LiteralParser
 
   constructor : (@slice) ->
 
@@ -124,14 +124,13 @@ class XbtIn extends PacketParser
 
 class HashThrough extends xbt.Base
 
-  constructor : (@_hashers) ->
+  constructor : (hashers) ->
     super()
+    @_hashers = hashers
 
   xbt_type : () -> "HashThrough"
 
   chunk : ({data, eof}, cb) ->
-    console.log "chunk!"
-    console.log @_hashers
     @_chunk_debug_pre { data, eof }
     for h in @_hashers
       h.update(data)

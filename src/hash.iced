@@ -13,13 +13,13 @@ decorate = (f, klass, name, type) ->
   f.algname = name
   f.output_length = klass.output_size
   f.klass = klass
-  f 
+  f
 
 #--------------------
 
 # By default, hashing is one-shot. You call the function once, on a giant
 # buffer, and it returns the hash.
-make_hasher = (klass, name, type) -> 
+make_hasher = (klass, name, type) ->
   if klass?
     f = (x) -> (new klass).bufhash x
     decorate(f, klass, name, type)
@@ -35,8 +35,8 @@ make_streamer = (klass, name, type) -> () ->
 
   # Clone in case we need to hash ourselves multiple times...
   ret = (buf) -> obj.clone().finalize(if buf? then WordArray.from_buffer(buf) else null).to_buffer()
-  
-  ret.update = (buf) -> 
+
+  ret.update = (buf) ->
     obj.update(WordArray.from_buffer(buf)) if buf?
     @
   decorate(ret, klass, name, type)
@@ -57,7 +57,7 @@ exports.alloc = alloc = (typ, streaming) ->
   name = _lookup[typ]
   klass = algos[name] if name?
   ret = if not klass? then null
-  else if streaming then make_streamer(klass,name,typ)
+  else if streaming then make_streamer(klass,name,typ)()
   else make_hasher(klass,name,typ)
   ret
 

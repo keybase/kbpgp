@@ -22,18 +22,25 @@ class OnePassSignature extends Packet
 
   #---------------
 
-  @parse : (slice) -> (new OPS_Parser slice).parse()
+  @parse : (slice, {streaming}) -> (new OPS_Parser slice, {streaming}).parse()
 
   #---------------
 
   new_xbt : ({sig, literal}) -> new XbtOut { header : @, footer : sig, literal }
-  # @new_xbt_parser : (arg) -> new XbtIn arg
+
+  #---------------
+
+  set_xbt_root_metadata : (xbt, cb) ->
+    await xbt.set_root_metadata { slice : 'ops', value : @ }, defer err
+    console.log @hasher
+    xbt.get_root().push_hasher @hasher
+    cb err
 
   #---------------
 
   write_unframed : (cb) ->
     vals = [
-      C.versions.one_pass_sig, 
+      C.versions.one_pass_sig,
       @sig_type,
       @hasher.type,
       @sig_klass.type
@@ -46,9 +53,9 @@ class OnePassSignature extends Packet
 
 #=================================================================================
 
-class OPS_Parser 
+class OPS_Parser
 
-  constructor : (@slice) ->
+  constructor : (@slice, {@streaming} ) ->
 
   #  The body of this packet consists of:
   #
@@ -56,14 +63,14 @@ class OPS_Parser
   #   - Encrypted data, the output of the selected symmetric-key cipher
   #     operating in Cipher Feedback mode with shift amount equal to the
   #     block size of the cipher (CFB-n where n is the block size).
-  parse : () -> 
+  parse : () ->
     version = @slice.read_uint8()
     sig_type = @slice.read_uint8()
     hasher = @slice.read_uint8()
-    sig_klass = @slice.read_uint8() 
+    sig_klass = @slice.read_uint8()
     key_id = @slice.read_buffer 8
     is_final = @slice.read_uint8()
-    OPS_Parser._alloc { version, sig_type, hasher, sig_klass, key_id, is_final }
+    OPS_Parser._alloc { version, sig_type, hasher, sig_klass, key_id, is_final, @streaming }
 
   #----------------
 
@@ -94,7 +101,7 @@ exports.XbtOut = class XbtOut extends xbt.SimpleInit
     super()
     @_literal_xbt = literal.new_xbt()
 
-  _v_init : (cb) -> 
+  _v_init : (cb) ->
     await @header.write defer err, buf
     cb err, buf
 
@@ -111,32 +118,3 @@ exports.XbtOut = class XbtOut extends xbt.SimpleInit
 
 #=================================================================================
 
-exports.XbtIn = class XbtIn extends PacketParser
-
-  constructor : (arg) ->
-    super arg
-
-  xbt_type : () -> "OnePassSignature.XbtIn"
-
-  _parse_header : (cb) ->
-    err = null
-    esc = make_esc cb, "_parse_header"
-    await @_read_uint8 esc defer version
-    await @_read_uint8 esc defer sig_type
-    await @_read_uint8 esc defer hasher
-    await @_read_uint8 esc defer sig_klass
-    await @_read { exactly : 8 }, esc defer key_id
-    await @_read_uint8 esc defer is_final
-    aargs = { streaming : true, version, sig_type, hasher, sig_klass, key_id, is_final }
-    await OPS_Parser.alloc aargs, esc defer packet
-    @get_root().push_hasher packet.hasher
-    console.log "all done, got packet ->"
-    console.log packet
-    console.log @_inq
-    await @set_root_metadata { slice : 'ops', value : packet }, esc defer()
-    cb null
-
-  # No 'body' of a one-pass-signature packet, it's all Header.
-  _run_body : (cb) -> cb null
-
-#=================================================================================

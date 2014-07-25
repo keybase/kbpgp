@@ -160,8 +160,8 @@ exports.SmallDepacketizer = class SmallDepacketizer extends BaseDepacketizer
     buf = Buffer.concat @_bufs
     @_bufs = []
     sb = new SlicerBuffer buf
-    await akatch ( () => @packet_klass.parse sb ), esc defer packet
-    ## XX TODO -- do something with the packet
+    await akatch ( () => @packet_klass.parse sb, {streaming : true }), esc defer packet
+    await packet.set_xbt_root_metadata @, esc defer()
     cb null
 
   #-------------------------------------
