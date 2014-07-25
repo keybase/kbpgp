@@ -41,7 +41,7 @@ class PgpReadBufferer extends xbt.ReadBufferer
 
 exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
-  constructor : ( { @packet_version } ) ->
+  constructor : ( { @packet_version, @demux_klass } ) ->
     super {}
     @_total = 0
 
@@ -62,6 +62,12 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       @_debug_msg "|", "Depacketizer.run <-- read #{@_debug_buffer(data)}"
       @_total += len
       await @_emit { data, eof : final }, esc defer()
+
+    if not @_is_eof() or @_inq.n_bytes()
+      demux = new @demux_klass {}
+      demux.set_parent(@)
+      await @_stream_to demux, esc defer()
+
     cb null
 
   #-------------------------------------
@@ -99,7 +105,7 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
 exports.PacketParser = class PacketParser extends PgpReadBufferer
 
-  constructor : ({@substream_klass}) ->
+  constructor : ({@demux_klass}) ->
     super {}
 
   xbt_type  : () -> "PacketParser"

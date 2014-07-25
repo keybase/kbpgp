@@ -9,7 +9,7 @@ stream = require 'stream'
 xbt = require '../xbt'
 {Compressed} = require './packet/compressed'
 {SEIPD} = require './packet/sess'
-{DemuxSequence} = require './parser'
+{Demux} = require './parser'
 {XbtDearmorDemux,XbtArmorer} = require './armor'
 
 #===========================================================================
@@ -85,7 +85,7 @@ class UnboxTransformEngine
   #---------------------------------------
 
   init : (cb) ->
-    @chain.push_xbt(new XbtDearmorDemux {}).push_xbt(new DemuxSequence {})
+    @chain.push_xbt(new XbtDearmorDemux {}).push_xbt(new Demux {})
     cb null, @stream
 
 #===========================================================================

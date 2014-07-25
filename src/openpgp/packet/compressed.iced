@@ -158,7 +158,7 @@ class XbtIn extends PacketParser
 
   _run_body : (cb) ->
     inflate_xbt = new ReverseAdapter { stream : @_inflate_stream }
-    demux_xbt = new @substream_klass {}
+    demux_xbt = new @demux_klass {}
     chain = new Chain [ inflate_xbt, demux_xbt ]
     await @_stream_to chain, defer err
     cb err

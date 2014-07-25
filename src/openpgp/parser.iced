@@ -131,20 +131,6 @@ class PacketParser
 
 #============================================================================
 
-exports.DemuxSequence = class DemuxSequence extends xbt.ReadBufferer
-
-  xbt_type : () -> "DemuxSequence"
-
-  run : (cb) ->
-    esc = make_esc cb, "DemuxSequence::_process"
-    until @_is_eof()
-      d = new Demux {}
-      d.set_parent(@)
-      await @_stream_to d, esc defer()
-    cb null
-
-#============================================================================
-
 exports.Demux = class Demux extends xbt.ReadBufferer
 
   #---------------
@@ -156,8 +142,9 @@ exports.Demux = class Demux extends xbt.ReadBufferer
   run : (cb) ->
     esc = make_esc cb, "Demux::_process"
     await @_peek 1, esc defer b
-    await @_demux b[0], esc defer next
-    await @_stream_to next, esc defer()
+    if b?.length
+      await @_demux b[0], esc defer next
+      await @_stream_to next, esc defer()
     cb null
 
   #---------------
@@ -183,8 +170,8 @@ exports.Demux = class Demux extends xbt.ReadBufferer
           null
     else if eof then err = new Error "EOF when looking for a new PGP packet"
     if klass?
-      depacketizer_xbt = new Depacketizer { packet_version }
-      packet_xbt = klass.new_xbt_parser { substream_klass : DemuxSequence }
+      depacketizer_xbt = new Depacketizer { packet_version, demux_klass : Demux }
+      packet_xbt = klass.new_xbt_parser { demux_klass : Demux }
       out = new xbt.Chain [ depacketizer_xbt, packet_xbt ]
       out.set_parent(@)
     cb err, out

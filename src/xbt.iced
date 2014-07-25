@@ -535,6 +535,7 @@ class Queue
   #---------
 
   wait_then_read : ({min,max,peek, is_eof}, cb) ->
+    is_eof = null if peek
     await @_rlock.acquire defer()
     @elongate min
     await @wait_for_data min, is_eof, defer err
