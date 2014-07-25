@@ -141,7 +141,9 @@ exports.Demux = class Demux extends xbt.ReadBufferer
   
   run : (cb) ->
     esc = make_esc cb, "Demux::_process"
+    console.log "#{@_obj_id} peeeking..."
     await @_peek 1, esc defer b
+    console.log "#{@_obj_id} peeked #{b?.toString('hex')}"
     if b?.length
       await @_demux b[0], esc defer next
       await @_stream_to next, esc defer()

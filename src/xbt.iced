@@ -535,10 +535,9 @@ class Queue
   #---------
 
   wait_then_read : ({min,max,peek, is_eof}, cb) ->
-    is_eof = null if peek
     await @_rlock.acquire defer()
     @elongate min
-    await @wait_for_data min, is_eof, defer err
+    await @wait_for_data {n : min, is_eof, peek}, defer err
     data = if err? then null else @pull(max, peek)
     @_rlock.release()
     cb err, data
@@ -554,11 +553,11 @@ class Queue
 
   #---------
 
-  wait_for_data : (n, is_eof, cb) ->
+  wait_for_data : ({n, is_eof, peek}, cb) ->
     while @n_bytes() < n and (not(is_eof) or not(is_eof()))
       throw new Error "refusing to overwrite @_rcb" if @_rcb?
       await @_rcb = defer()
-    err = if @n_bytes() < n then new Error "EOF before #{n} bytes" else null
+    err = if (@n_bytes() >= n) or peek then null else new Error "EOF before #{n} bytes"
     cb err
 
   #---------

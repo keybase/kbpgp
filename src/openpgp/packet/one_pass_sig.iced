@@ -130,6 +130,9 @@ exports.XbtIn = class XbtIn extends PacketParser
     aargs = { streaming : true, version, sig_type, hasher, sig_klass, key_id, is_final }
     await OPS_Parser.alloc aargs, esc defer packet
     @get_root().push_hasher packet.hasher
+    console.log "all done, got packet ->"
+    console.log packet
+    console.log @_inq
     await @set_root_metadata { slice : 'ops', value : packet }, esc defer()
     cb null
 
