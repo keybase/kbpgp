@@ -32,7 +32,6 @@ class OnePassSignature extends Packet
 
   set_xbt_root_metadata : (xbt, cb) ->
     await xbt.set_root_metadata { slice : 'ops', value : @ }, defer err
-    console.log @hasher
     xbt.get_root().push_hasher @hasher
     cb err
 
