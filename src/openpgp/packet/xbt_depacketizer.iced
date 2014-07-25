@@ -1,8 +1,9 @@
 
 xbt = require '../../xbt'
-{bufcat} = require '../../util'
+{akatch,bufcat} = require '../../util'
 C = require('../../const').openpgp
 {make_esc} = require 'iced-error'
+{SlicerBuffer} = require '../buffer'
 
 #=================================================================================
 
@@ -36,10 +37,10 @@ class PgpReadBufferer extends xbt.ReadBufferer
     await @_read_uint8 esc defer len
     await @_read { exactly : len}, esc defer buf
     cb null, buf
-
+  
 #=================================================================================
 
-exports.Depacketizer = class Depacketizer extends PgpReadBufferer
+class BaseDepacketizer extends PgpReadBufferer
 
   constructor : ( { @packet_version, @demux_klass } ) ->
     super {}
@@ -47,8 +48,18 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
 
   #-------------------------------------
 
-  xbt_type  : () -> "Depacketizer"
+  xbt_type  : () -> "BaseDepacketizer"
   
+  #-------------------------------------
+
+  _next : (cb) ->
+    err = null
+    if not @_is_eof() or @_inq.n_bytes()
+      demux = new @demux_klass {}
+      demux.set_parent(@)
+      await @_stream_to demux, defer err
+    cb err
+
   #-------------------------------------
 
   run : (cb) ->
@@ -61,12 +72,10 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
       await @_read { exactly : len}, esc defer data
       @_debug_msg "|", "Depacketizer.run <-- read #{@_debug_buffer(data)}"
       @_total += len
-      await @_emit { data, eof : final }, esc defer()
+      await @_pkt_emit { data, eof : final }, esc defer()
 
-    if not @_is_eof() or @_inq.n_bytes()
-      demux = new @demux_klass {}
-      demux.set_parent(@)
-      await @_stream_to demux, esc defer()
+    await @_pkt_eof esc defer()
+    await @_next esc defer()
 
     cb null
 
@@ -100,6 +109,60 @@ exports.Depacketizer = class Depacketizer extends PgpReadBufferer
         ret = 1 << (first & 0x1f)
         final = false
     cb err, final, ret
+
+#=================================================================================
+
+exports.StreamingDepacketizer = class StreamingDepacketizer extends BaseDepacketizer
+
+  constructor : ( { packet_version, demux_klass } ) ->
+    super { packet_version, demux_klass }
+    @_total = 0
+
+  #-------------------------------------
+
+  xbt_type  : () -> "StreamingDepacketizer"
+  
+  #-------------------------------------
+
+  _pkt_emit : ( { data, eof}, cb) ->
+    await @_emit { data, eof }, defer err
+    cb err
+
+  #-------------------------------------
+
+  _pkt_eof : (cb) -> cb null
+
+#=================================================================================
+
+exports.SmallDepacketizer = class SmallDepacketizer extends BaseDepacketizer
+
+  constructor : ( { packet_version, demux_klass, @packet_klass } ) ->
+    super { packet_version, demux_klass }
+    @_total = 0
+    @_bufs = []
+
+  #-------------------------------------
+
+  xbt_type  : () -> "SmallDepacketizer"
+
+  #-------------------------------------
+
+  _pkt_emit : ( { data, eof}, cb) ->
+    @_bufs.push data
+    cb null
+
+  #-------------------------------------
+
+  _pkt_eof : (cb) ->
+    esc = make_esc cb, "SmallDepacketizer::_pkt_eof"
+    buf = Buffer.concat @_bufs
+    @_bufs = []
+    sb = new SlicerBuffer buf
+    await akatch ( () => @packet_klass.parse sb ), esc defer packet
+    ## XX TODO -- do something with the packet
+    cb null
+
+  #-------------------------------------
 
 #=================================================================================
 

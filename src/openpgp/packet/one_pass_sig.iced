@@ -27,7 +27,7 @@ class OnePassSignature extends Packet
   #---------------
 
   new_xbt : ({sig, literal}) -> new XbtOut { header : @, footer : sig, literal }
-  @new_xbt_parser : (arg) -> new XbtIn arg
+  # @new_xbt_parser : (arg) -> new XbtIn arg
 
   #---------------
 

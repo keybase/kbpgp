@@ -130,6 +130,8 @@ class HashThrough extends xbt.Base
   xbt_type : () -> "HashThrough"
 
   chunk : ({data, eof}, cb) ->
+    console.log "chunk!"
+    console.log @_hashers
     @_chunk_debug_pre { data, eof }
     for h in @_hashers
       h.update(data)

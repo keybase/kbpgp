@@ -13,7 +13,7 @@ C = require('../const').openpgp
 {Literal} = require './packet/literal'
 {inspect} = require 'util'
 xbt = require '../xbt'
-{Depacketizer} = require './packet/xbt_depacketizer'
+{StreamingDepacketizer,SmallDepacketizer} = require './packet/xbt_depacketizer'
 {make_esc} = require 'iced-error'
 
 #==================================================================================================
@@ -167,15 +167,20 @@ exports.Demux = class Demux extends xbt.ReadBufferer
         when PT.literal then Literal
         when PT.compressed then Compressed
         when PT.one_pass_sig then OnePassSignature
+        when PT.signature then Signature
         else
           err = new Error "Can't stream packet type=#{tag}"
           null
     else if eof then err = new Error "EOF when looking for a new PGP packet"
-    if klass?
-      depacketizer_xbt = new Depacketizer { packet_version, demux_klass : Demux }
+
+    if not klass? then # noop
+    else if klass.new_xbt_parser?
+      depacketizer_xbt = new StreamingDepacketizer { packet_version, demux_klass : Demux }
       packet_xbt = klass.new_xbt_parser { demux_klass : Demux }
       out = new xbt.Chain [ depacketizer_xbt, packet_xbt ]
-      out.set_parent(@)
+    else 
+      out = new SmallDepacketizer { packet_version, demux_klass : Demux, packet_klass : klass }
+    out.set_parent(@) if out?
     cb err, out
 
 #============================================================================
