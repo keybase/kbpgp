@@ -69,24 +69,13 @@ class OPS_Parser
     sig_klass = @slice.read_uint8()
     key_id = @slice.read_buffer 8
     is_final = @slice.read_uint8()
-    OPS_Parser._alloc { version, sig_type, hasher, sig_klass, key_id, is_final, @streaming }
 
-  #----------------
-
-  @_alloc : ({version, sig_type, hasher, sig_klass, key_id, is_final, streaming}) ->
     unless version is C.versions.one_pass_sig
       throw new Error "Unknown OnePassSignature version #{version}"
-    hasher = hash.alloc_or_throw hasher, streaming
+    hasher = hash.alloc_or_throw hasher, @streaming
     sig_klass = asymmetric.get_class sig_klass
+
     new OnePassSignature { sig_type, hasher, sig_klass, key_id, is_final }
-
-  #----------------
-
-  @alloc : (args, cb) ->
-    ret = err = null
-    try ret = @_alloc(args)
-    catch e then err = e
-    cb err, ret
 
 #=================================================================================
 
