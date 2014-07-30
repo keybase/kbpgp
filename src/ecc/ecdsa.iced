@@ -39,9 +39,9 @@ class Pub extends BaseEccKey
     err = null
     hi = @trunc_hash(h)
 
-    if (r.signum() is 0 or r.compareTo(@curve.p) > 0)
+    if ((r.signum() <= 0) or (r.compareTo(@curve.p) > 0))
       err = new Error "bad r"
-    else if (r.signum() is 0 or s.compareTo(@curve.p) > 0)
+    else if ((r.signum() <= 0) or (s.compareTo(@curve.p) > 0))
       err = new Error "bad s"
     else
 
