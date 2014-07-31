@@ -28,11 +28,12 @@ class PgpKeyRing extends KeyFetcher
   fetch : (key_ids, ops, cb) -> 
     key_material = err = obj = null
     key_ids = (hexkid(k) for k in key_ids)
-    for id,i in key_ids when not ret?
+    for id,i in key_ids
       k = @_keys[id]
       if k?.key?.can_perform ops
         ret_i = i
         obj = k
+        break
     if obj?
       key_material = obj.key_material
     else
