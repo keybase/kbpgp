@@ -389,7 +389,7 @@ class KeyManager extends KeyFetcher
 
   #------------
 
-  @generate_std : ({asp, userid}, cb) ->
+  @generate_rsa : ({asp, userid}, cb) ->
     F = C.key_flags
     primary = {
       flags : F.certify_keys
@@ -575,6 +575,7 @@ class KeyManager extends KeyFetcher
     else if not (err = @_assert_signed())?
       msg = @pgp.export_keys({private : true, passphrase})
     cb err, msg
+  export_pgp_private : (args) -> @export_pgp_private_to_client args...
 
   #-----
 

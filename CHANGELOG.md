@@ -1,3 +1,10 @@
+## 0.3.1
+
+Tweaks:
+  
+  - Rename generate_std to generate_rsa
+  - Alias KeyManager.export_pgp_private
+
 ## 0.3.0
 
 Tweaks:
