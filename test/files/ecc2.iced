@@ -103,7 +103,7 @@ slides by on grease.
   T.no_error err
   T.equal plaintext, msg[0].toString(), "roundtrip worked!"
   T.assert (msg[0].get_data_signer()?), "was signed!"
-  sign_fp = msg[0].get_data_signer().sig.keyfetch_obj.get_fingerprint()
+  sign_fp = msg[0].get_data_signer().sig.key_manager.get_pgp_fingerprint()
   start_fp = km.get_pgp_fingerprint()
   T.equal sign_fp.toString('hex'), start_fp.toString('hex'), "signed by the right person"
   cb()

@@ -147,9 +147,10 @@ class Message
 
     if key_ids.length
       enc = true
-      await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, key_material, index
+      await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, km, index
       unless err?
         packet = esk_packets[index]
+        key_material = km.find_pgp_key_material(key_ids[index])
         fingerprint = key_material.get_fingerprint()
         privk = key_material.key
         await privk.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey, pkcs5
@@ -243,13 +244,14 @@ class Message
       err = new Error "signature mismatch open v close: #{a?.toString('hex')} != #{b?.toString('hex')}"
 
     unless err?
-      await @keyfetch.fetch [ a ], konst.ops.verify, defer err, key_material, i, obj
+      await @keyfetch.fetch [ a ], konst.ops.verify, defer err, km, i
 
     unless err?
+      key_material = km.find_pgp_key_material(a)
       sig.close.key = key_material.key
 
       # This is used by the front-end in keybase, though nowhere else in kbpgpg
-      sig.close.keyfetch_obj = obj
+      sig.close.key_manager = km
 
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
@@ -349,8 +351,10 @@ exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data}, cb) 
   err = msg = null
   if armored?
     [err,msg] = armor.decode armored
-  else
+  else if raw?
     msg = raw
+  else
+    err = new Error "No input to do_message; need either 'armored' or 'raw' input"
   unless err?
     proc = new Message { keyfetch, data_fn, data }
     await proc.parse_and_process msg, defer err, literals

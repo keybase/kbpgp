@@ -14,9 +14,9 @@ exports.Base = class Base
   #-----------------------
 
   _find_signature : (cb) ->
-    err = if (n = @packets.length) isnt 1 
+    err = if (n = @packets.length) isnt 1
       new Error "Expected one signature packet; got #{n}"
-    else if (@_sig = @packets[0]).tag isnt C.packet_tags.signature 
+    else if (@_sig = @packets[0]).tag isnt C.packet_tags.signature
       new Error "Expected a signature packet; but got type=#{@packets[0].tag}"
     else
       null
@@ -25,11 +25,13 @@ exports.Base = class Base
   #-----------------------
 
   _fetch_key : (cb) ->
-    await @keyfetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, keymat, i, obj
+    key_id = @_sig.get_key_id()
+    await @keyfetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, obj, i
     unless err?
+      keymat = obj.find_pgp_key_material key_id
       @_sig.key = keymat.key
       @_sig.keyfetch_obj = obj
     cb err
-  
+
 #======================================================
 

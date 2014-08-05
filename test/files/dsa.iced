@@ -56,7 +56,7 @@ exports.verify_sigs = (T,cb) ->
     lit = literals[0]
     signer = lit.get_data_signer()
     T.assert signer?, "we were signed"
-    fp3 = signer.sig.keyfetch_obj.get_fingerprint().toString('hex').toUpperCase()
+    fp3 = signer.sig.key_manager.get_pgp_fingerprint().toString('hex').toUpperCase()
     T.equal fp, fp3, "the literal data packet was signed with the right key"
   cb()
 
@@ -85,11 +85,11 @@ twCfebPu3y0/Ll7OdCw5fcXuzbCUbjY=
 -----END PGP PRIVATE KEY BLOCK-----
 """,
   msg : """
-We have just won the most terrible war in history, yet here is 
+We have just won the most terrible war in history, yet here is
 a Frenchman who misses his target 6 out of 7 times at point-blank
-range. Of course this fellow must be punished for the careless 
-use of a dangerous weapon and for poor marksmanship. I suggest 
-that he be locked up for eight years, with intensive training 
+range. Of course this fellow must be punished for the careless
+use of a dangerous weapon and for poor marksmanship. I suggest
+that he be locked up for eight years, with intensive training
 in a shooting gallery."""
 
 }
@@ -103,7 +103,7 @@ exports.dsa_round_trip = (T,cb) ->
   key = km.find_signing_pgp_key()
   await burn { msg : gbc.msg, signing_key : key }, defer err, asc
   T.no_error err
-  await do_message { armormed : asc, keyfetch : km }, defer esc 
+  await do_message { armored : asc, keyfetch : km }, defer esc
   T.no_error err
   cb()
 

@@ -19,7 +19,7 @@ opkts = require './openpgp/packet/all'
 
 ##
 ## KeyManager
-## 
+##
 ##   Manage the generation, import and export of keys, in either OpenPGP or
 ##   keybase form.  For now, we're only using PGP form, for convenience
 ##   of the different clients (since otherwise they'd need to reimplement
@@ -28,7 +28,7 @@ opkts = require './openpgp/packet/all'
 #=================================================================
 
 class Engine
-  constructor : ({@primary, @subkeys, @userids}) ->
+  constructor : ({@primary, @subkeys, @userids, @key_manager}) ->
     @packets = []
     @messages = []
     @_allocate_key_packets()
@@ -48,7 +48,7 @@ class Engine
   ekid : (k) -> @key(k).ekid()
 
   #---------
-  
+
   _allocate_key_packets : () ->
     @_v_allocate_key_packet @primary, { subkey : false }
     for key in @subkeys
@@ -66,7 +66,7 @@ class Engine
 
   #--------
 
-  sign_subkeys : ({asp}, cb) -> 
+  sign_subkeys : ({asp}, cb) ->
     err = null
     for subkey in @subkeys when not err?
       await @_v_sign_subkey {asp, subkey}, defer err
@@ -135,7 +135,7 @@ class Engine
     else if not ((ekid = @ekid(k2)))? then new Error "Subkey #{i} is malformed"
     else if not ((k = @_index[ekid]))? then new Error "Subkey #{i} wasn't found in public key"
     else if @_merge_1_private(k, k2) then null
-    else new Error "subkey #{i} can't be merged" 
+    else new Error "subkey #{i} can't be merged"
     return err
 
   #--------
@@ -150,11 +150,11 @@ class Engine
   #--------
 
   export_keys_to_keyring : (km) ->
-    x = (key_wrapper, is_primary) => { 
+    x = (key_wrapper, is_primary) => {
       km,
-      is_primary, 
-      key_wrapper, 
-      key_material : @key(key_wrapper), 
+      is_primary,
+      key_wrapper,
+      key_material : @key(key_wrapper),
       key : @key(key_wrapper).key
     }
     [ x(@primary, true) ].concat( x(k,false) for k in @subkeys )
@@ -173,32 +173,32 @@ class Engine
 class PgpEngine extends Engine
 
   #--------
-  
-  constructor : ({primary, subkeys, userids, @user_attributes}) ->
-    super { primary, subkeys, userids }
+
+  constructor : ({primary, subkeys, userids, @user_attributes, key_manager}) ->
+    super { primary, subkeys, userids, key_manager }
 
   #--------
 
   key : (k) -> k._pgp
-  
+
   #--------
-  
+
   _v_allocate_key_packet : (key, opts) ->
     unless key._pgp?
-      key._pgp = new opkts.KeyMaterial { 
-        key : key.key, 
-        timestamp : key.lifespan.generated, 
+      key._pgp = new opkts.KeyMaterial {
+        key : key.key,
+        timestamp : key.lifespan.generated,
         flags : key.flags,
         opts }
 
   #--------
-  
+
   _v_self_sign_primary : ({asp, raw_payload}, cb) ->
     await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids, raw_payload }, defer err, sigs
     cb err, sigs
 
   #--------
-  
+
   _v_sign_subkey : ({asp, subkey}, cb) ->
     await @key(@primary).sign_subkey { subkey : @key(subkey), lifespan : subkey.lifespan }, defer err
     cb err
@@ -233,7 +233,7 @@ class PgpEngine extends Engine
   #--------
 
   export_to_p3skb : () ->
-    pub = @_export_keys_to_binary { private : false } 
+    pub = @_export_keys_to_binary { private : false }
     priv_clear = @_export_keys_to_binary { private : true }
     new P3SKB { pub, priv_clear }
 
@@ -242,8 +242,14 @@ class PgpEngine extends Engine
   find_key : (key_id) ->
     for k in @_all_keys()
       if bufeq_secure @key(k).get_key_id(), key_id
-        return k 
+        return k
     return null
+
+  #--------
+
+  find_key_material : (key_id) ->
+    key = @find_key key_id
+    if key? then @key(key) else null
 
   #--------
 
@@ -257,7 +263,7 @@ class PgpEngine extends Engine
   find_best_key : (flags, need_priv = false) ->
     wrapper = null
 
-    check = (k) => 
+    check = (k) =>
       km = @key(k) # KeyMaterial
       ok1 = km.fulfills_flags(flags) or ((k.flags & flags) is flags)
       ok2 = not(need_priv) or km.has_private()
@@ -267,7 +273,7 @@ class PgpEngine extends Engine
       if check(k) then wrapper = k
     if not wrapper? and check(@primary) then wrapper = @primary
     return (if wrapper? then @key(wrapper) else null)
-    
+
   #--------
   #
   # So this class fits the KeyFetcher template.
@@ -276,7 +282,7 @@ class PgpEngine extends Engine
   # @param {Number} op_mask A bitmask of Ops that we need to perform with this key,
   #    taken from kbpgp.const.ops
   # @param {callback} cb Callback with `err, key, i, @`
-  fetch : (key_ids, op_mask, cb) -> 
+  fetch : (key_ids, op_mask, cb) ->
     flags = ops_to_keyflags op_mask
 
     err = key = ret = null
@@ -289,19 +295,19 @@ class PgpEngine extends Engine
 
     if not key?
       err = new Error "No keys match the given fingerprint"
-    else if not @key(key).fulfills_flags flags 
+    else if not @key(key).fulfills_flags flags
       err = new Error "We don't have a key for the requested PGP ops"
     else
       ret = @key(key)
 
-    cb err, ret, ret_i, @
+    cb err, @key_manager, ret_i
 
 #=================================================================
 
 class KeyManager extends KeyFetcher
 
   constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private, @user_attributes}) ->
-    @pgp = new PgpEngine { @primary, @subkeys, @userids, @user_attributes }
+    @pgp = new PgpEngine { @primary, @subkeys, @userids, @user_attributes, key_manager : @ }
     @engines = [ @pgp ]
     @_signed = false
     @p3skb = null
@@ -333,11 +339,11 @@ class KeyManager extends KeyFetcher
   # @param {number} nsubs The number of subkeys to create, all with the standard panel
   #    of keyflags.  If you want to specify the keyflags for each subkey, then you should
   #    use the sub_flags above, which take precedence. [DEPRECATED]
-  # @param {number} primary_flags The flags to use for the primary, which defaults 
+  # @param {number} primary_flags The flags to use for the primary, which defaults
   #    to nearly all of them [DEPRECATED]
   # @param {number} nbits The number of bits to use for all keys.  If left unspecified, then assume
   #   defaults of 4096 for the master, and 2048 for the subkeys [DEPRECATED]
-  # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED] 
+  # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED]
   #
   @generate : ({asp, userid, primary, subkeys, ecc,
                  sub_flags, nsubs, primary_flags, nbits, expire_in}, cb) ->
@@ -346,7 +352,7 @@ class KeyManager extends KeyFetcher
     KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
     KEY_FLAGS_PRIMARY = KEY_FLAGS_STD | F.certify_keys
 
-    primary or= {} 
+    primary or= {}
     primary.flags or= primary_flags or KEY_FLAGS_PRIMARY
     primary.expire_in or= expire_in?.primary or K.key_defaults.primary.expire_in
     primary.algo or= (if ecc then ECDSA else RSA)
@@ -427,7 +433,7 @@ class KeyManager extends KeyFetcher
   set_enc : (e) -> @tsenc = e
 
   #------------
- 
+
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   # Also works for an armored PGP PRIVATE KEY BLOCK
   @import_from_armored_pgp : ({raw, asp}, cb) ->
@@ -492,9 +498,9 @@ class KeyManager extends KeyFetcher
       await kb.process defer err
       warnings = kb.warnings
     unless err?
-      bundle = new KeyManager { 
-        primary : KeyManager._wrap_pgp(Primary, kb.primary), 
-        subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys), 
+      bundle = new KeyManager {
+        primary : KeyManager._wrap_pgp(Primary, kb.primary),
+        subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys),
         armored_pgp_public : msg.raw(),
         user_attributes : kb.user_attributes,
         userids : kb.userids }
@@ -517,7 +523,7 @@ class KeyManager extends KeyFetcher
   check_pgp_public_eq : (km2) -> @pgp.check_eq km2.pgp
 
   #------------
- 
+
   # Open the private PGP key with the given passphrase
   # (which is going to be different from our strong keybase passphrase).
   unlock_pgp : ({passphrase}, cb) ->
@@ -534,7 +540,7 @@ class KeyManager extends KeyFetcher
   is_p3skb_locked : () -> @p3skb?.is_locked()
 
   #-----
-  
+
   # Open the private MPIs of the secret key, and check for sanity.
   # Use the given triplesec.Encryptor / password object.
   unlock_keybase : ({tsenc, asp}, cb) ->
@@ -543,7 +549,7 @@ class KeyManager extends KeyFetcher
     cb err
 
   #-----
-  
+
   # A private export consists of:
   #   1. The PGP public key block
   #   2. The PGP private key block (Public and private keys, triplesec'ed)
@@ -558,7 +564,7 @@ class KeyManager extends KeyFetcher
     cb err, ret
 
   #-----
-  
+
   # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
   # We'll need to reencrypt with a derived key
   export_pgp_private_to_client : ({passphrase, asp, regen}, cb) ->
@@ -571,7 +577,7 @@ class KeyManager extends KeyFetcher
     cb err, msg
 
   #-----
-  
+
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
   # to the client...
   export_pgp_public : ({asp, regen}, cb) ->
@@ -665,6 +671,7 @@ class KeyManager extends KeyFetcher
   fetch : (key_ids, flags, cb) -> @pgp.fetch key_ids, flags, cb
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
+  find_pgp_key_material : (key_id) -> @pgp.find_key_material key_id
   find_best_pgp_key : (flags, need_priv) -> @pgp.find_best_key flags, need_priv
   find_signing_pgp_key : () -> @find_best_pgp_key C.key_flags.sign_data, true
   find_crypt_pgp_key : (need_priv = false) -> @find_best_pgp_key C.key_flags.encrypt_comm, need_priv
@@ -677,7 +684,7 @@ class KeyManager extends KeyFetcher
 
   #--------
 
-  # Get all of the subkey material for each of the PGP subkeys  
+  # Get all of the subkey material for each of the PGP subkeys
   get_all_pgp_key_materials : -> @pgp.get_all_key_materials()
 
   #--------
@@ -687,10 +694,10 @@ class KeyManager extends KeyFetcher
   get_pgp_key_id : () -> @pgp.get_key_id()
   get_pgp_short_key_id : () -> @pgp.get_short_key_id()
   get_pgp_fingerprint : () -> @pgp.get_fingerprint()
-  
+
   # /Public Interface
   #========================
-  
+
   _apply_to_engines : ({args, meth}, cb) ->
     err = null
     for e in @engines when not err
@@ -706,8 +713,8 @@ class KeyManager extends KeyFetcher
 
   # @param {openpgp.KeyMaterial} kmp An openpgp KeyMaterial packet
   @_wrap_pgp : (klass, kmp) ->
-    new klass { 
-      key : kmp.key, 
+    new klass {
+      key : kmp.key,
       lifespan : new Lifespan { generated : kmp.timestamp }
       _pgp : kmp
     }
