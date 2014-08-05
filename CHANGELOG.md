@@ -1,3 +1,12 @@
+## 0.3.0
+
+Tweaks:
+
+  - Change the KeyFetcher::fetch interface.  Callback now callsback 
+    with (err, key_manager, index) triple rather than the shmorgasbord 
+    of parameters we had before.  Do a minor version update to show lack
+    of compatibility with previous 0.2.0 release
+
 ## 0.2.0
 
 Features:

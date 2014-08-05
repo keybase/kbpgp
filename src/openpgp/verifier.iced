@@ -26,11 +26,11 @@ exports.Base = class Base
 
   _fetch_key : (cb) ->
     key_id = @_sig.get_key_id()
-    await @keyfetch.fetch [ @_sig.get_key_id() ], konst.ops.verify, defer err, obj, i
+    await @keyfetch.fetch [ key_id ], konst.ops.verify, defer err, km, i
     unless err?
-      keymat = obj.find_pgp_key_material key_id
+      keymat = km.find_pgp_key_material key_id
       @_sig.key = keymat.key
-      @_sig.keyfetch_obj = obj
+      @_sig.key_manager = km
     cb err
 
 #======================================================
