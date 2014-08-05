@@ -38,14 +38,14 @@ class KeyBlock
     #  console.log p.get_fingerprint().toString('hex')
     if not @packets.length
       err = new Error "No packets; cannot extract a key"
-    else if not (@primary = @packets[0]).is_primary() 
+    else if not (@primary = @packets[0]).is_primary()
       err = new Error "First packet must be the primary key"
     else
       for p,i in @packets[1...] when (p.is_key_material() and not err?)
         if p.key.is_toxic() then @warnings.push "Ignoring toxic subkey (ElGamal Encrypt+Sign)"
         else if not p.is_primary() then @subkeys.push p
         # Google End-to-End seems to write the public key twice
-        else if bufeq_secure(p.get_fingerprint(), @primary.get_fingerprint()) 
+        else if bufeq_secure(p.get_fingerprint(), @primary.get_fingerprint())
           p.set_duplicate_primary()
         else err = new Error "cannot have 2 primary keys"
     err
@@ -61,20 +61,20 @@ class KeyBlock
       new Error "no valid primary key self-signature"
     else if (@userids = @primary.get_signed_userids()).length is 0
       new Error "no valid Userid signed into key"
-    else 
+    else
       @user_attributes = @primary.get_signed_user_attributes()
       null
 
   #--------------------
 
   _check_subkeys : () ->
-    subkeys = @subkeys 
+    subkeys = @subkeys
     err = null
     @subkeys = []
     for k,i in subkeys when not err?
       if k.is_signed_subkey_of @primary
         @subkeys.push k
-      else 
+      else
         msg = "Subkey #{i} was invalid; discarding"
         @warnings.push msg
     err
@@ -95,7 +95,7 @@ class KeyBlock
     n_sigs = 0
     # No sense in processing packet 1, since it's the primary key!
     for p,i in @packets[1...] when not err?
-      if not p.is_signature() 
+      if not p.is_signature()
         if n_sigs > 0
           n_sigs = 0
           working_set = []
@@ -120,7 +120,7 @@ class KeyBlock
 
 #==========================================================================================
 
-class Message 
+class Message
 
   #---------
 
@@ -145,7 +145,7 @@ class Message
       @packets.shift()
       p.get_key_id()
 
-    if key_ids.length 
+    if key_ids.length
       enc = true
       await @keyfetch.fetch key_ids, konst.ops.decrypt, defer err, key_material, index
       unless err?
@@ -195,7 +195,7 @@ class Message
       await @_decrypt_with_session_key sesskey, edat, pkcs5, esc defer plaintext
       await @_parse plaintext, esc defer packets
       @packets = packets.concat @packets
-    cb err 
+    cb err
 
   #---------
 
@@ -204,7 +204,7 @@ class Message
     esc = make_esc cb, "Message::_inflate"
     for p in @packets
       await p.inflate esc defer inflated
-      if inflated? 
+      if inflated?
         await @_parse inflated, esc defer p
         packets.push p...
       else packets.push p
@@ -221,14 +221,14 @@ class Message
     stack = []
     payload = []
     for p in @packets
-      if p.tag is C.packet_tags.one_pass_sig 
+      if p.tag is C.packet_tags.one_pass_sig
         stack.push { open : p }
       else if not stack.length then # noop
       else if p.tag is C.packet_tags.signature
         o = stack.pop()
         o.close = p
         ret.push o
-      else 
+      else
         payload.push p
 
     for o in ret
@@ -272,7 +272,7 @@ class Message
     (p for p in @packets when p.tag is C.packet_tags.literal)
 
   #---------
-  
+
   _process_generic : ({packets}, cb) ->
     @packets = packets
     esc = make_esc cb, "Message:process"
@@ -293,7 +293,7 @@ class Message
   #---------
 
   parse_and_process : (msg, cb) ->
-    esc = make_esc cb, "Message::parse_and_process" 
+    esc = make_esc cb, "Message::parse_and_process"
     await @_parse msg.body, esc defer packets
     await @_process {msg, packets}, esc defer literals
     cb null, literals
@@ -303,7 +303,7 @@ class Message
   _verify_signature : ({packets}, cb) ->
     if not(@data? or @data_fn?)
       err = new Error "Cannot verify detached signature without data input"
-    else 
+    else
       await verify_detached { packets, @data, @data_fn, @keyfetch}, defer err
     cb err
 
@@ -334,6 +334,7 @@ exports.Message = Message
 # verify any signatures.
 #
 # @param {string} armored The armored PGP generic message.
+# @param {Buffer} raw The raw buffer, without PGP armoring
 # @param {KeyFetcher} keyfetch A KeyFetch object that is called to get keys
 #    for decyrption and signature verification.
 # @param {Function} data_fn A function to call with data. Used in the case
@@ -343,9 +344,13 @@ exports.Message = Message
 #    a static buffer, to check against the given signature.
 # @param {callback} cb Callback with an `err, Array<Literals>` pairs. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
-exports.do_message = do_message = ({armored, keyfetch, data_fn, data}, cb) ->
+exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data}, cb) ->
   literals = null
-  [err,msg] = armor.decode armored
+  err = msg = null
+  if armored?
+    [err,msg] = armor.decode armored
+  else
+    msg = raw
   unless err?
     proc = new Message { keyfetch, data_fn, data }
     await proc.parse_and_process msg, defer err, literals

@@ -12,7 +12,7 @@ class Packet
     @_psc = new packetsigs.Collection()
 
   #----------------------
-   
+
   frame_packet : (tag, body) ->
     bufs = [
       new Buffer([ (0xc0 | tag) ]),
@@ -60,7 +60,7 @@ class Packet
   get_psc : () -> @_psc
 
   #----------------------
-  
+
   get_data_signer  : () -> @get_psc().get_data_signer()
   get_data_signers : () -> @get_psc().get_data_signers()
 
