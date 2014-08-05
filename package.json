@@ -31,13 +31,13 @@
     "triplesec": ">=3.0.16"
   },
   "devDependencies": {
-    "browserify": "3.32.1",
+    "browserify": "^5.9.1",
     "colors": "0.6.2",
-    "iced-test": "0.0.10",
-    "optimist": "0.6.1",
-    "icsify": "0.6.0",
     "iced-coffee-script": "1.7.1-c",
+    "iced-test": "0.0.10",
+    "icsify": "0.6.0",
     "minimist": "0.0.8",
+    "optimist": "0.6.1",
     "uglify-js": "^2.4.13"
   }
 }
