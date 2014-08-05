@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJT4PDZAAoJEJgKPw0B/gTfh/cIAMRd1fBZaohcS3C93yl1EVZE
-3s6mCJ6yXyycvYVLTk4hXSh2Y3nMjbyFVTOuQksfFtxEJhaPkOY/+jqHAWPH37AI
-86AZUw+CAcGFR9kQ6uRB6byDzh0/rGYDEJZ40n96+UMulvl9fkoJpIOQsXTa7RFX
-bQUA6pqqh/Y1myF/awh2BigOzWazCpEK8YX6p55GKMJJ8x/CZpObxag3t70LFCsr
-aTgnAHtV1kCdS6t2xGl4B2J5x2MJ0jbCAvFghUz2m2HZHzN3Ddr84RR9J28UBPrZ
-kwesQPXrycKeJx4YUh8YRZmFyBDq/1cFHCCpIQYLE5YAKKpsdh+NKkmTXRZNfSM=
-=aueL
+iQEcBAABCgAGBQJT4PrOAAoJEJgKPw0B/gTfjxkIAITmkC/EILnByvSTpZ23lUXA
+3rJo9uWw+GQqaHED9TblZoXnDwu/qSWa6MWl+dWkIX4DV6QUscxs6t3vDeb4vk/L
+xRNNx1GMi6lBRN0qUE3jVjAtX56cYtyXHVGU6EbuAL4Z68AgnQbUOwC3gk8MhmLJ
+wr7hGzpBDNLxa5jEMn4pa1OiUqwgfUznzCoPO8gzMh94C1/22aVPnQ0+HQGF4Qcj
+GLPoiF34ypmDhv3GdALVRaAewkd0Ee+kj3wsjoGTplAVDoPuK0pEDhN1/Dtjfcah
+oLCKmA3451Dgn4jrhgbz0vk0fNE7lhSTCmgQNcxKjj7PByfwMN4KbWTSx38uFNc=
+=i/2r
 -----END PGP SIGNATURE-----
 
 ```
@@ -33,7 +33,7 @@ size     exec  file                                  contents
                  bench/                                                                                                                                                               
 83                 main.js                           083729d8233d3d24bc1bc77e1fc9005cf4cb0022d873301be3a156976113220d                                                                 
                  browser/                                                                                                                                                             
-1247393            kbpgp.js                          67622a7d7249737f87edacba7171a89913d6afd2d59591952b7535dd14479d71|d60ec881841701ad4d3cf451c3c7980bbc9dc0dd97001deaa9f46f8ed3c7d6b5
+1521046            kbpgp.js                          2dc8a1240eb0da5f72510287707d64c91f02e7424e1a8222cff2b116f311d145                                                                 
                  dev/                                                                                                                                                                 
 329                bdecode_hex.iced                  9792d642d4fa9b1551f09b055f24c61f222754716f33d1370096e74b384cb92d                                                                 
 753                c5.iced                           352c5f659a9b7f3e45af8c5ff72b448c3524715286fa7dde86a235bd09a294bf                                                                 
@@ -125,7 +125,7 @@ size     exec  file                                  contents
 29426              rsa.js                            6213e27f51f0a5abaa1f5fc9cf94af2d7922f37662fd83dafcdf07e704bd5dc0                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1003             package.json                        810f0d2c054f02f508b0eeba80cc09faf350dd624ac52d3bada24a52a60a9374                                                                 
+1003             package.json                        2e44863581d9a615127e684dea7a65d66ad61ee60c071b47bfe171e18f6cef19                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|abd5e66e46aa8f1005a942a39acba0e7950cc7d6fec09dec80526aede74a2f7c
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -136,6 +136,8 @@ size     exec  file                                  contents
 1171371            kbpgp-0.1.19.js                   bd03528931a40966742e203c8764f625e81c32e39c6d398164943923f06f5d17|e5097f78db6cb88a814576df859f290198eb14fbabf4a4ddfa3b8bce1fddc423
 805687             kbpgp-0.2.0-min.js                b4a878a738f83c33fa497323a0257dec27d8d13f53b6dd14aed1fd8716eba226                                                                 
 1247393            kbpgp-0.2.0.js                    67622a7d7249737f87edacba7171a89913d6afd2d59591952b7535dd14479d71|d60ec881841701ad4d3cf451c3c7980bbc9dc0dd97001deaa9f46f8ed3c7d6b5
+904269             kbpgp-0.3.0-min.js                fd4c4024fe68674c491fb9955d996fc0958a6d11f207040c17ff2908e9ec8fcb                                                                 
+1521046            kbpgp-0.3.0.js                    2dc8a1240eb0da5f72510287707d64c91f02e7424e1a8222cff2b116f311d145                                                                 
                  src/                                                                                                                                                                 
 591                asymmetric.iced                   f9819323225e9be460c5aa991b99021018f575556ddef2e326316d022ca2c5c8                                                                 
 2951               basekeypair.iced                  52e1812d76abc1730588cccc9ec5288fc12de6f2924784da137b58dc6d97b264                                                                 
