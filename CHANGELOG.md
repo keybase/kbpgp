@@ -5,6 +5,13 @@ Tweaks:
   - Rename generate_std to generate_rsa
   - Alias KeyManager.export_pgp_private
 
+Bugfixes:
+
+  - Close keybase/keybase-issues#921 -- fix a zip/browserify bug by ignoring
+    an error that seems harmless.  This might break in the future, so keep
+    on eye on it. The break will be that valid messages refuse to decrypt
+    and inflate.
+
 ## 0.3.0
 
 Tweaks:
