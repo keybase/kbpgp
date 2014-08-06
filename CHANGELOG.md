@@ -1,4 +1,10 @@
-## 0.3.1
+## 0.3.2 
+
+Bugfixes:
+
+  - Strip out stray debug message
+
+## 0.3.1 (2014-08-06)
 
 Tweaks:
   
