@@ -436,7 +436,8 @@ class KeyManager extends KeyFetcher
 
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   # Also works for an armored PGP PRIVATE KEY BLOCK
-  @import_from_armored_pgp : ({raw, asp}, cb) ->
+  @import_from_armored_pgp : ({armored, raw, asp}, cb) ->
+    raw or= armored
     asp = ASP.make asp
     warnings = null
     ret = null

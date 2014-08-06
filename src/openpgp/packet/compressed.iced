@@ -8,14 +8,62 @@ compressjs = require 'keybase-compressjs'
 
 #=================================================================================
 
+#
+# Workaround browserify bug, not in use, see note right below.
+#
+#fake_zip_inflate = (buf, cb) ->
+#  pako = require 'pako'
+#  buf = Buffer.concat [ new Buffer([0x78,0x9c]), buf ]
+#  ret = null
+#  try
+#    ret = new Buffer pako.inflate buf
+#  catch e
+#    err = e
+#  cb err, ret
+
+# Address keybase/keybase-issues#921.
+#
+# I didn't track it all the way down, but there's an issue with browserify-zlib decrypting
+# our fake ZIP archives.  When the "flush" is sent with 0 in bytes, it returns a Z_BUF_ERROR,
+# as if it still wants more data.  I think it's safe to ignore this error, but we should recheck
+# this assumption.  If we turn out to be wrong, we might need to call into pako directly
+# as shown above.  Calling into pako directly has problems, though, since it will be included
+# in the node.js setting which will increase code bloat.
+#
 fake_zip_inflate = (buf, cb) ->
   buf = Buffer.concat [ new Buffer([0x78,0x9c]), buf ]
-  await zlib.inflate buf, defer err, ret
-  cb err, ret
+  inflater = zlib.createInflate { flush : zlib.Z_FULL_FLUSH }
+  bufs = []
+
+  call_end = (err) ->
+    if (tmp = cb)?
+      # This actually isn't an error, so we're OK to ignore it... I think....
+      if err? and err.code is "Z_BUF_ERROR" then err = null
+      cb = null
+      if err? then ret = null else ret = Buffer.concat(bufs)
+      tmp err, ret
+
+  inflater.on 'readable', () ->
+    read_buf = inflater.read()
+    bufs.push read_buf
+  inflater.on 'end', () ->
+    call_end null
+  inflater.on 'error', (e) ->
+    call_end e
+
+  await inflater.write buf, defer err
+  unless err?
+    await inflater.end err
+  if err?
+    call_end err
+
+#-----------------
 
 fix_zip_deflate = (buf, cb) ->
   await zlib.deflate buf, defer err, ret
   cb err, ret
+
+#-----------------
 
 bzip_inflate = (buf, cb) ->
   err = null
@@ -90,7 +138,7 @@ class Compressed extends Packet
 
 #=================================================================================
 
-class CompressionParser 
+class CompressionParser
 
   constructor : (@slice) ->
 
