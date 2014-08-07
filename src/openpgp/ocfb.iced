@@ -1,13 +1,13 @@
-##  Modified by Recurity Labs GmbH 
+##  Modified by Recurity Labs GmbH
 ##  modified version of http://www.hanewin.net/encrypt/PGdecode.js:
 ##  OpenPGP encryption using RSA/AES
 ##  Copyright 2005-2006 Herbert Hanewinkel, www.haneWIN.de
 ##  version 2.0, check www.haneWIN.de for the latest version
 ##
-##  This software is provided as-is, without express or implied warranty.  
+##  This software is provided as-is, without express or implied warranty.
 ##  Permission to use, copy, modify, distribute or sell this software, with or
 ##  without fee, for any purpose and by any individual or organization, is hereby
-##  granted, provided that the above copyright notice and this paragraph appear 
+##  granted, provided that the above copyright notice and this paragraph appear
 ##  in all copies. Distribution as a part of an application or binary must
 ##  include the above copyright notice in the documentation and/or other
 ##  materials provided with the application or distribution.
@@ -25,19 +25,19 @@
 ## /
 ##  --------------------------------------
 ## *
-##  This function encrypts a given with the specified prefixrandom 
+##  This function encrypts a given with the specified prefixrandom
 ##  using the specified blockcipher to encrypt a message
-##  @param {String} prefixrandom random bytes of block_size length provided 
+##  @param {String} prefixrandom random bytes of block_size length provided
 ##   as a string to be used in prefixing the data
 ##  @param {openpgp_cipher_block_fn} blockcipherfn the algorithm encrypt function to encrypt
-##   data in one block_size encryption. 
+##   data in one block_size encryption.
 ##  @param {Integer} block_size the block size in bytes of the algorithm used
 ##  @param {String} plaintext data to be encrypted provided as a string
-##  @param {openpgp_byte_array} key key to be used to encrypt the data. This will be passed to the 
+##  @param {openpgp_byte_array} key key to be used to encrypt the data. This will be passed to the
 ##   blockcipherfn
-##  @param {Boolean} resync a boolean value specifying if a resync of the 
-##   IV should be used or not. The encrypteddatapacket uses the 
-##   "old" style with a resync. Encryption within an 
+##  @param {Boolean} resync a boolean value specifying if a resync of the
+##   IV should be used or not. The encrypteddatapacket uses the
+##   "old" style with a resync. Encryption within an
 ##   encryptedintegrityprotecteddata packet is not resyncing the IV.
 ##  @return {String} a string with the encrypted data
 ## /
@@ -46,6 +46,8 @@
 {SlicerBuffer} = require './buffer'
 triplesec = require 'triplesec'
 {AES} = triplesec.ciphers
+{ASP} = require('pgp-utils').util
+{make_esc} = require 'iced-error'
 
 #===============================================================================
 
@@ -53,21 +55,22 @@ repeat = (b, n) -> Buffer.concat [ b, b[(b.length - n)...] ]
 
 #===============================================================================
 
-class Base 
+class Base
 
   #-------------
 
-  constructor : ({@block_cipher_class, key, @cipher, @resync}) ->
+  constructor : ({@block_cipher_class, key, @cipher, @resync, asp}) ->
     @block_cipher_class or= AES
     @cipher or= new @block_cipher_class WordArray.from_buffer key
     @block_size = @cipher.blockSize
     @out_bufs = []
+    @asp = ASP.make asp
 
   #-------------
 
   compact : () ->
     b = Buffer.concat @out_bufs
-    @out_bufs = [ b ] 
+    @out_bufs = [ b ]
     b
 
 #===============================================================================
@@ -76,8 +79,8 @@ class Encryptor extends Base
 
   #-------------
 
-  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync}) ->
-    super { block_cipher_class, key, cipher, resync }
+  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync, asp}) ->
+    super { block_cipher_class, key, cipher, resync, asp}
     @_init prefixrandom
 
   #-------------
@@ -109,8 +112,8 @@ class Encryptor extends Base
   _init : (prefixrandom) ->
 
     # 1. The feedback register (FR) is set to the IV, which is all zeros.
-    @FR = new Buffer(0 for i in [0...@block_size]) 
-    prefixrandom = repeat prefixrandom, 2 
+    @FR = new Buffer(0 for i in [0...@block_size])
+    prefixrandom = repeat prefixrandom, 2
 
     # 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the
     #     encryption of an all-zero value.
@@ -144,8 +147,9 @@ class Encryptor extends Base
 
   #-------------
 
-  enc : (plaintext) -> 
+  enc : (plaintext, cb) ->
     sb = new SlicerBuffer plaintext
+    esc = make_esc cb, "Encryptor::enc"
 
     if @resync
       @_emit_sb sb
@@ -161,13 +165,23 @@ class Encryptor extends Base
       ct = @compact()
       ct.copy(@FR,0,ct.length - @block_size,ct.length)
 
-    while sb.rem()
-      @_enc()
-      @_emit_sb sb
+    total = sb.rem()
+    await @asp.progress { what : "ofcb encryption", i : 0, total }, esc defer()
+
+    while (j = sb.rem())
+
+      for [0...4096]
+        @_enc()
+        @_emit_sb sb
+        break unless (j = sb.rem())
+
+      await @asp.progress { what : "ofcb encryption", i : (total - j), total }, esc defer()
 
     ret = @compact()
     n_wanted = plaintext.length + @block_size + 2
-    ret[0...n_wanted]
+    ret = ret[0...n_wanted]
+
+    cb null, ret
 
 #===============================================================================
 
@@ -175,8 +189,8 @@ class Decryptor extends Base
 
   #-------------
 
-  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync, @ciphertext}) ->
-    super { block_cipher_class, key, cipher, resync }
+  constructor : ({block_cipher_class, key, cipher, prefixrandom, resync, @ciphertext, asp}) ->
+    super { block_cipher_class, key, cipher, resync, asp}
     @_init()
 
   #-------------
@@ -198,7 +212,7 @@ class Decryptor extends Base
 
   #-------------
 
-  check : () ->
+  check : (cb) ->
     @reset()
     iblock = new WordArray(0 for i in [0...@block_size/4])
     @cipher.encryptBlock iblock.words, 0
@@ -211,38 +225,49 @@ class Decryptor extends Base
     lhs = (iblock.words[-1...][0] & 0xffff)
     rhs = (ablock.words[0] >>> 16) ^ (@sb.peek_uint16())
 
-    if lhs is rhs then null else new Error "Canary block mismatch: #{lhs} != #{rhs}"
+    err = if lhs is rhs then null else new Error "Canary block mismatch: #{lhs} != #{rhs}"
+    cb err
 
   #-------------
 
-  dec : () ->
+  dec : (cb) ->
     @reset()
     if @resync then @sb.advance 2
     iblock = @next_block()
-    while @sb.rem()
-      ablock = iblock
-      @cipher.encryptBlock ablock.words, 0
-      iblock = @next_block()
-      ablock.xor iblock, {}
-      @out_bufs.push ablock.to_buffer()[0...iblock.sigBytes]
+    esc = make_esc cb, "Decryption::dec"
+
+    total = @sb.rem()
+    await @asp.progress { what : "ofcb decrypt", i : 0, total }, esc defer()
+
+    while (j = @sb.rem())
+
+      for [0...4096]
+        ablock = iblock
+        @cipher.encryptBlock ablock.words, 0
+        iblock = @next_block()
+        ablock.xor iblock, {}
+        @out_bufs.push ablock.to_buffer()[0...iblock.sigBytes]
+        break unless (j = @sb.rem())
+
+      await @asp.progress { what : "ofcb decrypt", i :  (total - j), total }, esc defer()
 
     out = @compact()
     if not @resync then out = out[2...]
-    out
+    cb null, out
 
 #===============================================================================
 
-encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext} ) ->
-  eng = new Encryptor { block_cipher_class, key, cipher, prefixrandom, resync }
-  eng.enc plaintext
+encrypt = ({block_cipher_class, key, cipher, prefixrandom, resync, plaintext, asp}, cb) ->
+  eng = new Encryptor { block_cipher_class, key, cipher, prefixrandom, resync, asp }
+  eng.enc plaintext, cb
 
 #===============================================================================
 
-decrypt = ({block_cipher_class, key, cipher, resync, ciphertext}) ->
-  eng = new Decryptor { block_cipher_class, key, cipher, resync, ciphertext }
-  err = eng.check()
-  throw err if err?
-  eng.dec()
+decrypt = ({block_cipher_class, key, cipher, resync, ciphertext, asp}, cb) ->
+  eng = new Decryptor { block_cipher_class, key, cipher, resync, ciphertext, asp }
+  await eng.check defer err
+  await eng.dec defer err, pt unless err?
+  cb err, pt
 
 #===============================================================================
 

@@ -3,7 +3,7 @@
 {OPS} = require '../keyfetch'
 konst = require '../const'
 C = konst.openpgp
-{unix_time,athrow,Warnings,bufeq_secure} = require '../util'
+{katch,unix_time,athrow,Warnings,bufeq_secure} = require '../util'
 {parse} = require './parser'
 {import_key_pgp} = require '../symmetric'
 util = require 'util'
@@ -171,12 +171,9 @@ class Message
   #---------
 
   _decrypt_with_session_key : (sesskey, edat, pkcs5, cb) ->
-    err = null
-    try
-      cipher = import_key_pgp sesskey, pkcs5
-      ret = edat.decrypt cipher
-    catch e
-      err = e
+    [err,cipher] = katch () -> import_key_pgp sesskey, pkcs5
+    unless err?
+      await edat.decrypt {cipher}, defer err, ret
     cb err, ret
 
   #---------

@@ -1,5 +1,6 @@
 
 {make_esc} = require 'iced-error'
+{ASP} = require('pgp-utils').util
 
 #==========================================================
 
@@ -7,7 +8,8 @@ exports.BaseBurner = class BaseBurner
 
   #-----------------
 
-  constructor : ({@sign_with, @encrypt_for, @signing_key, @encryption_key} ) ->
+  constructor : ({@sign_with, @encrypt_for, @signing_key, @encryption_key, @asp} ) ->
+    @asp = ASP.make @asp
 
   #-----------------
 
@@ -30,7 +32,7 @@ exports.BaseBurner = class BaseBurner
 
   _find_signing_key : (cb) ->
     err = null
-    if @sign_with? and @signing_key? 
+    if @sign_with? and @signing_key?
       err = new Error "specify either `sign_with` or `signing_key` but not both"
     else if @sign_with? and not (@signing_key = @sign_with.find_signing_pgp_key())?
       err = new Error "cannot sign with the given KeyManager"
@@ -40,7 +42,7 @@ exports.BaseBurner = class BaseBurner
 
   _find_encryption_key : (cb) ->
     err = null
-    if @encrypt_for? and @encryption_key? 
+    if @encrypt_for? and @encryption_key?
       err = new Error "specify either `encrypt_for` or `encryption_key` but not both"
     else if @encrypt_for? and not (@encryption_key = @encrypt_for.find_crypt_pgp_key())?
       err = new Error "cannot encrypt with the given KeyManager"

@@ -1,13 +1,15 @@
-## 0.3.2 
+## 0.3.2
 
 Bugfixes:
 
   - Strip out stray debug message
+  - Use 'armored' rather than 'raw' in KeyManager interface, for consistency's sake.
+    Still allow 'raw' but mark it as DEPRECATED.
 
 ## 0.3.1 (2014-08-06)
 
 Tweaks:
-  
+
   - Rename generate_std to generate_rsa
   - Alias KeyManager.export_pgp_private
 
@@ -22,8 +24,8 @@ Bugfixes:
 
 Tweaks:
 
-  - Change the KeyFetcher::fetch interface.  Callback now callsback 
-    with (err, key_manager, index) triple rather than the shmorgasbord 
+  - Change the KeyFetcher::fetch interface.  Callback now callsback
+    with (err, key_manager, index) triple rather than the shmorgasbord
     of parameters we had before.  Do a minor version update to show lack
     of compatibility with previous 0.2.0 release
 
@@ -31,7 +33,7 @@ Tweaks:
 
 Features:
 
-  - RFC 6637: ECC crypto: ECDSA and ECDH. Experimental and not recommended, 
+  - RFC 6637: ECC crypto: ECDSA and ECDH. Experimental and not recommended,
     since more GPG clients do not support it.
   - Add new API entrance points for cleaner code and consistent metaphors.
     Don't throw away the old entrance points just yet
@@ -111,7 +113,7 @@ Features:
 ## 0.1.16 (2014-05-20)
 
 Features:
-  
+
   - Add an RSA hiding feature, to hide what the public key is.  Also, blind the output ciphertext.
 
 ## 0.1.15 (2014-05-15)
@@ -136,7 +138,7 @@ Bugfixes:
 Bugfixes:
 
   - Strip out some profane debugging info (sorry)
-  - Allow unlocking of keys that were not actually locked. 
+  - Allow unlocking of keys that were not actually locked.
 
 ## 0.1.12 (2014-04-24)
 
@@ -169,7 +171,7 @@ Bugfixes:
 Bugfixes:
 
   - Better support for private key merging --- don't require an exact-key-for-key
-    match, but rather, allow only some of the secret subkeys (and not the primary) to 
+    match, but rather, allow only some of the secret subkeys (and not the primary) to
     be merged. This addresses [Keybase Issue #216](https://github.com/keybase/keybase-issues/issues/216)
 
 ## 0.1.8 (2014-04-14)
@@ -265,7 +267,7 @@ Bugfixes:
 ## 0.0.23 (2014-03-18)
 
 Bugfixes:
- 
+
   - Close #38 - Handle ElGamal encrypt and sign. Throw it away, don't puke
     - Close keybase/keybase-issues#273 as well.
 
@@ -278,7 +280,7 @@ Bugfixes:
 ## 0.0.21 (2014-03-14)
 
 Features:
- 
+
   - Figure out which keyid is primary
 
 Bugfixes:
@@ -304,7 +306,7 @@ Bugfixes:
 
 Bugfixes:
 
-  - Close keybase/keybase-issues#196: better support for v3 signatures mixed in 
+  - Close keybase/keybase-issues#196: better support for v3 signatures mixed in
     with v4 signatures in public key blocks.
 
 ## 0.0.17 (2014-03-11)

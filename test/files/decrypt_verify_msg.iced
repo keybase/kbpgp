@@ -281,7 +281,7 @@ exports.run_test_msg_0 = (T, cb) ->
   T.no_error err
   T.waypoint "decrypted the session key"
   cipher = import_key_pgp sesskey
-  [err,pt] = katch () -> decrypt { cipher, ciphertext : packets[1].ciphertext }
+  await decrypt { cipher, ciphertext : packets[1].ciphertext }, defer err, pt
   T.no_error err
   T.waypoint "decrypted the message using the session key"
   [err, packets] = parse pt

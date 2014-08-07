@@ -3,7 +3,7 @@
 #
 #   A series of libraries for making your own OpenPGP messages.  Will do things
 #   like signatures and encryptions.
-# 
+#
 
 #==========================================================================================
 
@@ -28,7 +28,7 @@ detachsign = require './detachsign'
 
 #==========================================================================================
 
-dummy_key_id = new Buffer( 0 for [0...16] ) 
+dummy_key_id = new Buffer( 0 for [0...16] )
 
 #==========================================================================================
 
@@ -36,8 +36,8 @@ class Burner extends BaseBurner
 
   #------------
 
-  constructor : ({@literals, @opts, sign_with, encrypt_for, signing_key, encryption_key}) ->
-    super { sign_with, encrypt_for, signing_key, encryption_key }
+  constructor : ({@literals, @opts, sign_with, encrypt_for, signing_key, encryption_key, asp}) ->
+    super { sign_with, encrypt_for, signing_key, encryption_key, asp }
     @packets = []
     @opts or= {}
     @signed_payload = null
@@ -58,7 +58,7 @@ class Burner extends BaseBurner
 
   _sign : (cb) ->
     esc = make_esc cb, "Burner::_sign'"
-    ops = new OnePassSignature { 
+    ops = new OnePassSignature {
       sig_type : C.sig_types.binary_doc,
       hasher : SHA512
       sig_klass : @signing_key.get_klass()
@@ -72,12 +72,13 @@ class Burner extends BaseBurner
       hashed_subpackets : [ new CreationTime(unix_time()) ]
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
     }
-    await sig.write @signed_payload, defer err, fp
-    unless err?
-      @packets.unshift ops_framed
-      @packets.push fp
-    cb err
-    
+    await @asp.progress { what : 'sign',  i : 0, total : 1 }, esc defer()
+    await sig.write @signed_payload, esc defer fp
+    await @asp.progress { what : 'sign',  i : 1, total : 1 }, esc defer()
+    @packets.unshift ops_framed
+    @packets.push fp
+    cb null
+
   #------------
 
   collect_packets : () ->
@@ -88,12 +89,14 @@ class Burner extends BaseBurner
   #------------
 
   _compress : (cb) ->
+    esc = make_esc cb, "Burner::_compress"
     inflated = @collect_packets()
     pkt = new Compressed { algo : C.compression.zlib, inflated }
-    await pkt.write defer err, opkt
-    unless err?
-      @packets.push opkt
-    cb err
+    await @asp.progress { what : 'compress', i : 0, total : 1 }, esc defer()
+    await pkt.write esc defer opkt
+    await @asp.progress { what : 'compress', i : 1, total : 1 }, esc defer()
+    @packets.push opkt
+    cb null
 
   #------------
 
@@ -117,17 +120,21 @@ class Burner extends BaseBurner
     payload = export_key_pgp @_cipher_algo, @_session_key
     pub_k = @encryption_key.key
     fingerprint = @encryption_key.get_fingerprint()
+    await @asp.progress { what : 'session key encrypt', i : 0, total : 1 }, esc defer()
     await pub_k.pad_and_encrypt payload, {fingerprint}, esc defer ekey
+    await @asp.progress { what : 'session key encrypt', i : 1, total : 1 }, esc defer()
     if @opts.hide
-      key_id = dummy_key_id 
+      key_id = dummy_key_id
+      await @asp.progress { what : 'hide encryption', i : 0, total : 1 }, esc defer()
       await ekey.hide { max : @opts.hide?.max, slosh : @opts.hide?.slosh, key : pub_k }, esc defer()
-    else 
+      await @asp.progress { what : 'hide encryption', i : 1, total : 1 }, esc defer()
+    else
       key_id = @encryption_key.get_key_id()
-    pkt = new PKESK { 
+    pkt = new PKESK {
       crypto_type : pub_k.type,
       key_id : key_id,
       ekey : ekey
-    } 
+    }
     await pkt.write esc defer @_pkesk
     cb null
 
@@ -138,7 +145,8 @@ class Burner extends BaseBurner
     plaintext = @collect_packets()
     await SRF().random_bytes @_cipher.blockSize, defer prefixrandom
     pkt = new SEIPD {}
-    await pkt.encrypt { cipher : @_cipher, plaintext, prefixrandom }, esc defer()
+    asp = @asp.section 'encrypt payload'
+    await pkt.encrypt { cipher : @_cipher, plaintext, prefixrandom, asp }, esc defer()
     await pkt.write esc defer pkt
     scrub_buffer plaintext
     @packets = [ @_pkesk, pkt ]
@@ -158,7 +166,7 @@ class Burner extends BaseBurner
   scrub : () ->
 
   #------------
-  
+
   burn : (cb) ->
     esc = make_esc cb, "Burner::burn"
     await @_find_keys esc defer()
@@ -178,9 +186,9 @@ exports.Burner = Burner
 #==========================================================================================
 
 exports.make_simple_literals = make_simple_literals = (msg) ->
-  return [ new Literal { 
+  return [ new Literal {
     data : new Buffer(msg)
-    format : C.literal_formats.utf8 
+    format : C.literal_formats.utf8
     date : unix_time()
   }]
 
@@ -203,7 +211,7 @@ exports.detachsign = detachsign.sign
 #   open-PGP packets.
 #
 #   Can specify a signing_key OR sign_with if you want the message signed.
-# 
+#
 #   Can specify an encryption_key OR encrypt_for if you want the message encrypted.
 #
 # @param {String || Buffer} msg the payload, which will be made into literals
@@ -211,8 +219,8 @@ exports.detachsign = detachsign.sign
 #
 # @param {KeyManager} encrypt_for Who to encrypt for (optional)
 # @param {KeyManager} sign_by Who will sign it (optional)
-# @param {openpgp.packets.KeyMaterial} signing_key the key to sign with 
-# @param {openpgp.packets.KeyMaterial} encryption_key the key to encrypt with 
+# @param {openpgp.packets.KeyMaterial} signing_key the key to sign with
+# @param {openpgp.packets.KeyMaterial} encryption_key the key to encrypt with
 #
 # @param {Object} opts Various options to pass through.  So far:
 #          - hide --- include a dummy key in the packet, to protect the identity of the
@@ -224,9 +232,9 @@ exports.detachsign = detachsign.sign
 #    set if there was an error, otherwise, we'll get back the PGP output in first armored
 #    and then raw binary form.
 #
-exports.burn = ({msg, literals, sign_with, encrypt_for, signing_key, encryption_key, opts}, cb) ->
+exports.burn = ({msg, literals, sign_with, encrypt_for, signing_key, encryption_key, asp, opts}, cb) ->
   literals = make_simple_literals msg if msg? and not literals?
-  b = new Burner { literals, sign_with, encrypt_for, signing_key, encryption_key, opts }
+  b = new Burner { literals, sign_with, encrypt_for, signing_key, encryption_key, asp, opts }
   await b.burn defer err, raw
   b.scrub()
   aout = encode(C.message_types.generic, raw) if raw? and not err?

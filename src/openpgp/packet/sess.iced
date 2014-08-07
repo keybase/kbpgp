@@ -2,9 +2,11 @@
 {Packet} = require './base'
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
-{SHA1} = require '../../hash'
+{SHA1,streamers} = require '../../hash'
 {uint_to_buffer,bufeq_secure,bufeq_fast} = require '../../util'
 {encrypt,Decryptor} = require '../ocfb'
+{ASP} = require('pgp-utils').util
+{make_esc} = require 'iced-error'
 
 #=================================================================================
 
@@ -18,11 +20,11 @@ class PKESK extends Packet
   #------
 
   write_unframed : (cb) ->
-    bufs = [ 
+    bufs = [
       uint_to_buffer(8, C.versions.PKESK)
       @key_id,
       uint_to_buffer(8, @crypto_type),
-      @ekey.output() 
+      @ekey.output()
     ]
     ret = Buffer.concat bufs
     err = null
@@ -54,27 +56,32 @@ class SEIPD extends Packet
 
   #------
 
-  decrypt : (cipher) ->
-    eng = new Decryptor { cipher, ciphertext : @ciphertext }
-    err = eng.check()
-    throw err if err?
-    pt = eng.dec()
+  decrypt : ({cipher, asp}, cb) ->
+    eng = new Decryptor { cipher, ciphertext : @ciphertext, asp }
+    esc = make_esc cb, "SEIPD::decrypt"
+    asp = ASP.make asp
+
+    await eng.check esc defer()
+    await eng.dec esc defer pt
+
     [ mdc, plaintext ] = MDC.parse pt
     prefix = eng.get_prefix()
 
     # check that the hash matches what we fetched out of the message
-    mdc.compute { prefix, plaintext }
-    throw new Error "MDC mismatch" unless mdc.check()
+    await mdc.compute { prefix, plaintext, asp }, esc defer()
+    err = if mdc.check() then null else new Error "MDC mismatch"
 
-    plaintext
+    cb err, plaintext
 
   #------
 
-  encrypt : ({cipher, plaintext, prefixrandom }, cb) ->
+  encrypt : ({cipher, plaintext, prefixrandom , asp}, cb) ->
     mdc = new MDC {}
-    mdc_buf = mdc.compute { plaintext, prefix : prefixrandom }
+    esc = make_esc cb, "SEIPD::encrypt"
+    asp = ASP.make asp
+    await mdc.compute { plaintext, prefix : prefixrandom, asp }, esc defer mdc_buf
     plaintext = Buffer.concat [ plaintext, MDC.header, mdc_buf ]
-    @ciphertext = encrypt { cipher, plaintext, prefixrandom }
+    await encrypt { cipher, plaintext, prefixrandom }, esc defer @ciphertext
     cb null
 
   #------
@@ -102,16 +109,31 @@ class MDC extends Packet
   constructor : ({@digest}) ->
   @parse : (buf) -> (new MDC_Parser buf).parse()
 
-  compute : ({plaintext, prefix}) ->
-    @computed = SHA1 Buffer.concat [ prefix, prefix[-2...], plaintext, @header ]
-    @computed
+  #-----------------------
+
+  compute : ({plaintext, prefix, asp}, cb) ->
+    asp = ASP.make asp
+    hasher = streamers.SHA1()
+    hasher.update Buffer.concat [ prefix, prefix[-2...] ]
+    esc = make_esc cb, "MDC::compute"
+
+    step = 0x100000
+    for i in [0...plaintext.length] by step
+      hasher.update plaintext[i...(i+step)]
+      await asp.progress { what : "MDC", total : plaintext.length, i  }, esc defer()
+
+    hasher.update @header
+    @computed = hasher()
+
+    cb null, @computed
+
+  #-----------------------
 
   check : () -> bufeq_secure @digest, @computed
 
-
 #=================================================================================
 
-class MDC_Parser 
+class MDC_Parser
 
   #----------
 
@@ -130,7 +152,7 @@ class MDC_Parser
 
 #=================================================================================
 
-class SEIPD_Parser 
+class SEIPD_Parser
 
   constructor : (@slice) ->
 
@@ -145,7 +167,7 @@ class SEIPD_Parser
   parse : () ->
     throw new Error "Unknown SEIPD version #{v}" unless (v = @slice.read_uint8()) is C.versions.SEIPD
     ciphertext = @slice.consume_rest_to_buffer()
-    new SEIPD { ciphertext } 
+    new SEIPD { ciphertext }
 
 #=================================================================================
 
@@ -159,13 +181,13 @@ class PKESK_Parser
   #    - 8 byte Key Fingerprint
   #    - 1 byte CryptoSystem type
   #    - variable length MPIs
-  #   
+  #
   parse : () ->
     throw new Error "Unknown PKESK version: #{v}" unless (v = @slice.read_uint8()) is C.versions.PKESK
     key_id = @slice.read_buffer 8
     crypto_type = @slice.read_uint8()
     klass = asymmetric.get_class crypto_type
-    ekey = klass.parse_output @slice.consume_rest_to_buffer() 
+    ekey = klass.parse_output @slice.consume_rest_to_buffer()
     new PKESK { crypto_type, key_id, ekey }
 
 #=================================================================================

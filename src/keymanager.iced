@@ -328,7 +328,7 @@ class KeyManager extends KeyFetcher
   # @param {Array<object>} subkeys As for primary, specify the `flags`, `nbits`, and `expire_in`
   #   and `algo` for all subkeys.  Defaults are (sign|encrypt|auth), 2048, 8 years, and
   #   RSA respectively.
-  # @param {Boolbean} ecc Whether to use ECC or RSA.  Off by default.
+  # @param {Boolean} ecc Whether to use ECC or RSA.  Off by default.
   # @param {callback} cb Callback with <Error, KeyManager> pair.
   #
   # Deprecated options:
@@ -436,27 +436,43 @@ class KeyManager extends KeyFetcher
 
   # Start from an armored PGP PUBLIC KEY BLOCK, and parse it into packets.
   # Also works for an armored PGP PRIVATE KEY BLOCK
-  @import_from_armored_pgp : ({armored, raw, asp}, cb) ->
-    raw or= armored
-    asp = ASP.make asp
-    warnings = null
-    ret = null
-    [err,msg] = decode raw
-    unless err?
-      if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
-        err = new Error "Wanted a public or private key; got: #{msg.type}"
+  #
+  # @param {Buffer|String} armored The armored PGP string
+  # @param {Buffer} binary The decoded raw binary PGP message
+  # @param {Buffer|String} raw Synonym for 'armored' above (DEPRECATED).
+  # @param {ASP} asp
+  # @param {callback<err,KeyManager,Warnings>} cb Callback with the result;
+  #    On success, we'll get an actual KeyManager.
+  #
+  @import_from_armored_pgp : ({armored, raw, binary, asp}, cb) ->
+    msg = binary
+    err = null
+
+    unless msg?
+      raw or= armored
+      asp = ASP.make asp
+      warnings = null
+      ret = null
+      [err,msg] = decode raw
+      unless err?
+        if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
+          err = new Error "Wanted a public or private key; got: #{msg.type}"
+
     unless err?
       await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret, warnings
+
     cb err, ret, warnings
 
   #--------------
 
-  # @param {string} raw A string that has the base64-encoded P3SKB format
-  @import_from_p3skb : ({raw, asp}, cb) ->
+  # @param {string} armored A string that has the base64-encoded P3SKB format
+  # @param {string} raw A synonym for 'armored' (DEPRECATED)
+  @import_from_p3skb : ({raw, armored, asp}, cb) ->
+    armored or= raw
     asp = ASP.make asp
     km = null
     warnings = null
-    [err, p3skb] = katch () -> P3SKB.alloc unbox read_base64 raw
+    [err, p3skb] = katch () -> P3SKB.alloc unbox read_base64 armored
     unless err?
       msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
       await KeyManager.import_from_pgp_message {msg, asp}, defer err, km, warnings
@@ -512,9 +528,9 @@ class KeyManager extends KeyFetcher
   # After importing the public portion of the key previously,
   # add the private portions with this call.  And again, verify
   # signatures.  And check that the public portions agree.
-  merge_pgp_private : ({raw, asp}, cb) ->
+  merge_pgp_private : ({armored, raw, asp}, cb) ->
     asp = ASP.make asp
-    await KeyManager.import_from_armored_pgp { raw, asp }, defer err, b2
+    await KeyManager.import_from_armored_pgp { armored, raw, asp }, defer err, b2
     err = @pgp.merge_private b2.pgp unless err?
     cb err
 
@@ -576,6 +592,7 @@ class KeyManager extends KeyFetcher
     else if not (err = @_assert_signed())?
       msg = @pgp.export_keys({private : true, passphrase})
     cb err, msg
+
   export_pgp_private : (args) -> @export_pgp_private_to_client args...
 
   #-----
@@ -664,12 +681,12 @@ class KeyManager extends KeyFetcher
 
   #--------
 
-  #
   # So this class fits the KeyFetcher template.
   #
   # @param {Array<String>} key_ids A list of PGP Key Ids, as an array of strings
   # @param {Array<Number>} flags an Array of flags that can be flattened into one
   # @param {callback} cb Callback with `err, key`
+  #
   fetch : (key_ids, flags, cb) -> @pgp.fetch key_ids, flags, cb
 
   find_pgp_key : (key_id) -> @pgp.find_key key_id
