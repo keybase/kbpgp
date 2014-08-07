@@ -56,7 +56,7 @@ exports.verify_sigs = (T,cb) ->
     lit = literals[0]
     signer = lit.get_data_signer()
     T.assert signer?, "we were signed"
-    fp3 = signer.sig.key_manager.get_pgp_fingerprint().toString('hex').toUpperCase()
+    fp3 = signer.get_key_manager().get_pgp_fingerprint().toString('hex').toUpperCase()
     T.equal fp, fp3, "the literal data packet was signed with the right key"
   cb()
 

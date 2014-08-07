@@ -1,11 +1,12 @@
 
 #---------------------------------------
 
-mods = [ 
+mods = [
  require("./keymanager"),
  require("./basex"),
  require("./openpgp/burner")
  require("./openpgp/hilev")
+ require("./openpgp/keyfetch")
 ]
 for m in mods
   for k,v of m

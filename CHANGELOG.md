@@ -9,6 +9,7 @@ Bugfixes:
 Features:
 
   - ASPs now accepted and supported in box/unbox operations
+  - API streamlining: easier to get the key_manager from a packetsig
 
 ## 0.3.1 (2014-08-06)
 

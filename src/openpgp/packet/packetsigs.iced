@@ -2,7 +2,7 @@
 # Classes used to represent the verified signatures on packets.
 # Only one a signature checks out do we go through and apply these
 # packetsig objects onto the packets that they cover.
-# 
+#
 #===================================================
 
 class Base
@@ -30,16 +30,17 @@ class SubkeyBinding extends Base
 class Data extends Base
   constructor : ({@key, sig}) -> super {sig}
   typ : () -> "data"
+  get_key_manager : () -> @sig?.key_manager
 
 #===================================================
 
-class Collection 
+class Collection
 
   #-------------------
-  
+
   constructor : () ->
     @all             = []
-    @lookup          = 
+    @lookup          =
       self_sig       : []
       subkey_binding : []
       data           : []
@@ -56,7 +57,7 @@ class Collection
   # See if this data packet has signatures saying that it's a signed subkey
   # of the given primary.  We're only checking that the primary has signed the
   # subkey (a **down**ward signature).  We're not checking the upward signature.
-  #  
+  #
   # See Issue #19 for further details...
   #
   is_signed_subkey_of : (primary) ->

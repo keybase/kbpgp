@@ -14,11 +14,12 @@ class Literal extends Packet
 
   @parse : (slice) -> (new LiteralParser slice).parse()
 
-  toString : () -> @data.toString @buffer_format()
+  toString : (encoding = null) -> @data.toString (encoding or @buffer_format())
+  toBuffer : () -> @data
 
   buffer_format : () ->
-    switch @format 
-      when C.literal_formats.text then 'ascii' 
+    switch @format
+      when C.literal_formats.text then 'ascii'
       when C.literal_formats.utf8 then 'utf8'
       else 'binary'
 
@@ -46,7 +47,7 @@ class Literal extends Packet
 
 #=================================================================================
 
-class LiteralParser 
+class LiteralParser
 
   constructor : (@slice) ->
 
