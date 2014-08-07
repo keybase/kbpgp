@@ -6,6 +6,10 @@ Bugfixes:
   - Use 'armored' rather than 'raw' in KeyManager interface, for consistency's sake.
     Still allow 'raw' but mark it as DEPRECATED.
 
+Features:
+
+  - ASPs now accepted and supported in box/unbox operations
+
 ## 0.3.1 (2014-08-06)
 
 Tweaks:
