@@ -5,6 +5,8 @@ Bugfixes:
   - Strip out stray debug message
   - Use 'armored' rather than 'raw' in KeyManager interface, for consistency's sake.
     Still allow 'raw' but mark it as DEPRECATED.
+  - Don't require unlock_pgp() to be called on an unlocked key. Do it internally
+    so as not to confuse people.
 
 Features:
 
