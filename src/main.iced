@@ -6,7 +6,7 @@ mods = [
  require("./basex"),
  require("./openpgp/burner")
  require("./openpgp/hilev")
- require("./openpgp/keyfetch")
+ require("./keyfetch")
 ]
 for m in mods
   for k,v of m
