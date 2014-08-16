@@ -7,6 +7,7 @@ Bugfixes:
     Still allow 'raw' but mark it as DEPRECATED.
   - Don't require unlock_pgp() to be called on an unlocked key. Do it internally
     so as not to confuse people.
+  - Upgrade to Triplesec v3.0.18 for less-wasteful entropy generation
 
 Features:
 
