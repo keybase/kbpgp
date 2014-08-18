@@ -461,6 +461,12 @@ class KeyManager extends KeyFetcher
     unless err?
       await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret, warnings
 
+    # For keys that have unprotected secret key data, just unlock
+    # the secret key material by default, that way we don't have to 
+    # call unlock_pgp() on an unlocked key (which is confusing).
+    if not(err?) and ret.has_pgp_private() and not ret.is_pgp_locked()
+      await ret.unlock_pgp {}, defer err
+
     cb err, ret, warnings
 
   #--------------
