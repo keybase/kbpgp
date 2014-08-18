@@ -1,3 +1,13 @@
+## 1.0.1 (2014-08-18)
+
+Bugfixes:
+
+  - Address errant iced-coffee-script inclusion via triplesec@3.0.18 upgrade
+
+## 1.0.0 (2014-08-18)
+
+  - Official release!
+
 ## 0.3.2 (2014-08-16)
 
 Bugfixes:
