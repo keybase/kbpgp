@@ -223,7 +223,7 @@
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/basekeypair.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/basekeypair.iced",
                 funcname: "BaseKeyPair.hide"
               });
               SRF().random_nbit(r_bits, __iced_deferrals.defer({
@@ -830,7 +830,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/dsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/dsa.iced",
             funcname: "Priv.sign"
           });
           SRF().random_zn(q.subtract(bn.nbv(2)), __iced_deferrals.defer({
@@ -915,7 +915,7 @@
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/dsa.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/dsa.iced",
                 funcname: "Pair.verify_unpad_and_check_hash"
               });
               _this.pub.verify(sig, hash, __iced_deferrals.defer({
@@ -949,7 +949,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/dsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/dsa.iced",
             funcname: "Pair.pad_and_sign"
           });
           _this.priv.sign(h, __iced_deferrals.defer({
@@ -1095,7 +1095,7 @@
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/ecc/base.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/ecc/base.iced",
               funcname: "generate"
             });
             curve.random_scalar(__iced_deferrals.defer({
@@ -1248,7 +1248,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/ecc/curves.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/ecc/curves.iced",
             funcname: "Curve.random_scalar"
           });
           SRF().random_zn(_this.n.subtract(bn.nbv(2)), __iced_deferrals.defer({
@@ -1484,7 +1484,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/ecc/ecdh.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdh.iced",
             funcname: "Pub.encrypt"
           });
           _this.curve.random_scalar(__iced_deferrals.defer({
@@ -1557,7 +1557,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/ecc/ecdh.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdh.iced",
             funcname: "Priv.decrypt"
           });
           c.load_V(curve, esc(__iced_deferrals.defer({
@@ -1649,7 +1649,7 @@
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/ecc/ecdh.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdh.iced",
                 funcname: "Pair.pad_and_encrypt"
               });
               _this.pub.encrypt(m, {
@@ -1692,7 +1692,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/ecc/ecdh.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdh.iced",
             funcname: "Pair.decrypt_and_unpad"
           });
           _this.priv.decrypt(ciphertext, {
@@ -1732,7 +1732,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/ecc/ecdh.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdh.iced",
             funcname: "Pair.generate"
           });
           generate({
@@ -1936,7 +1936,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/ecc/ecdsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdsa.iced",
             funcname: "Priv.sign"
           });
           _this.pub.curve.random_scalar(__iced_deferrals.defer({
@@ -2032,7 +2032,7 @@
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/ecc/ecdsa.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdsa.iced",
                 funcname: "Pair.verify_unpad_and_check_hash"
               });
               _this.pub.verify(sig, hash, __iced_deferrals.defer({
@@ -2066,7 +2066,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/ecc/ecdsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/ecc/ecdsa.iced",
             funcname: "Pair.pad_and_sign"
           });
           _this.priv.sign(h, __iced_deferrals.defer({
@@ -2209,7 +2209,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/elgamal.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/elgamal.iced",
             funcname: "Pub.encrypt"
           });
           SRF().random_zn(_this.p.subtract(bn.nbv(2)), __iced_deferrals.defer({
@@ -2322,7 +2322,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/elgamal.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/elgamal.iced",
             funcname: "Pair.pad_and_encrypt"
           });
           eme_pkcs1_encode(data, _this.pub.p.mpi_byte_length(), __iced_deferrals.defer({
@@ -2343,7 +2343,7 @@
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/elgamal.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/elgamal.iced",
                   funcname: "Pair.pad_and_encrypt"
                 });
                 _this.pub.encrypt(m, __iced_deferrals.defer({
@@ -2379,7 +2379,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/elgamal.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/elgamal.iced",
             funcname: "Pair.decrypt_and_unpad"
           });
           _this.priv.decrypt(ciphertext.c(), __iced_deferrals.defer({
@@ -2487,7 +2487,7 @@
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/elgamal.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/elgamal.iced",
                   funcname: "Output.hide"
                 });
                 key.hide({
@@ -3020,7 +3020,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/keybase/packet/keymaterial.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keybase/packet/keymaterial.iced",
                 funcname: "KeyMaterial.export_key"
               });
               _this.export_private(opts, __iced_deferrals.defer({
@@ -3058,7 +3058,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/keybase/packet/keymaterial.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keybase/packet/keymaterial.iced",
                 funcname: "KeyMaterial.export_private"
               });
               tsenc.run({
@@ -3171,7 +3171,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/Users/max/src/kbpgp/src/keybase/packet/keymaterial.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/keybase/packet/keymaterial.iced",
                       funcname: "KeyMaterial.unlock"
                     });
                     dec.run({
@@ -3279,7 +3279,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/keybase/packet/p3skb.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keybase/packet/p3skb.iced",
             funcname: "P3SKB.lock"
           });
           tsenc.run({
@@ -3325,7 +3325,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/keybase/packet/p3skb.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/keybase/packet/p3skb.iced",
                   funcname: "P3SKB.unlock"
                 });
                 dec.run({
@@ -3455,7 +3455,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/keybase/sign.iced"
+              filename: "/Users/max/src/keybase/kbpgp/src/keybase/sign.iced"
             });
             key.pad_and_sign(payload, {
               hasher: hasher
@@ -3506,7 +3506,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/keybase/sign.iced"
+              filename: "/Users/max/src/keybase/kbpgp/src/keybase/sign.iced"
             });
             key.verify_unpad_and_check_hash({
               sig: sig.sig,
@@ -3710,7 +3710,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                     funcname: "Engine.sign_subkeys"
                   });
                   _this._v_sign_subkey({
@@ -3784,7 +3784,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "Engine.sign"
           });
           _this.self_sign_primary({
@@ -3806,7 +3806,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                   funcname: "Engine.sign"
                 });
                 _this.sign_subkeys({
@@ -3889,7 +3889,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "Engine.unlock_keys"
           });
           _this.key(_this.primary).unlock({
@@ -3932,7 +3932,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                       funcname: "Engine.unlock_keys"
                     });
                     _this.key(subkey).unlock({
@@ -4033,7 +4033,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "PgpEngine._v_self_sign_primary"
           });
           _this.key(_this.primary).self_sign_key({
@@ -4067,7 +4067,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "PgpEngine._v_sign_subkey"
           });
           _this.key(_this.primary).sign_subkey({
@@ -4308,7 +4308,7 @@ _break()
           return (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral1,
-              filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced"
+              filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced"
             });
             params.algo.generate({
               asp: asp,
@@ -4346,7 +4346,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "KeyManager.generate"
           });
           gen({
@@ -4394,7 +4394,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                     funcname: "KeyManager.generate"
                   });
                   gen({
@@ -4509,7 +4509,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                 funcname: "KeyManager.import_from_armored_pgp"
               });
               KeyManager.import_from_pgp_message({
@@ -4538,7 +4538,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                   funcname: "KeyManager.import_from_armored_pgp"
                 });
                 ret.unlock_pgp({}, __iced_deferrals.defer({
@@ -4583,7 +4583,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                 funcname: "KeyManager.import_from_p3skb"
               });
               KeyManager.import_from_pgp_message({
@@ -4629,7 +4629,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "KeyManager.unlock_p3skb"
           });
           _this.p3skb.unlock({
@@ -4656,7 +4656,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                   funcname: "KeyManager.unlock_p3skb"
                 });
                 KeyManager.import_from_pgp_message({
@@ -4686,7 +4686,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                     funcname: "KeyManager.unlock_p3skb"
                   });
                   _this.unlock_pgp({
@@ -4730,7 +4730,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                 funcname: "KeyManager.import_from_pgp_message"
               });
               kb.process(__iced_deferrals.defer({
@@ -4784,7 +4784,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "KeyManager.merge_pgp_private"
           });
           KeyManager.import_from_armored_pgp({
@@ -4825,7 +4825,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "KeyManager.unlock_pgp"
           });
           _this.pgp.unlock_keys({
@@ -4883,7 +4883,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "KeyManager.unlock_keybase"
           });
           _this.keybase.unlock_keys({
@@ -4920,7 +4920,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                 funcname: "KeyManager.export_private_to_server"
               });
               p3skb.lock({
@@ -5005,7 +5005,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                 funcname: "KeyManager.export_private"
               });
               _this.export_private_to_server({
@@ -5026,7 +5026,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                 funcname: "KeyManager.export_private"
               });
               _this.export_pgp_private_to_client({
@@ -5076,7 +5076,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
             funcname: "KeyManager.sign"
           });
           _this.sign_pgp({
@@ -5254,7 +5254,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/keymanager.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                     funcname: "KeyManager._apply_to_engines"
                   });
                   meth.call(e, args, __iced_deferrals.defer({
@@ -5575,7 +5575,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/lock.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/lock.iced",
                 funcname: "Table.acquire"
               });
               l.acquire(__iced_deferrals.defer({
@@ -5767,7 +5767,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/baseburner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/baseburner.iced",
             funcname: "BaseBurner._find_keys"
           });
           _this._find_signing_key(esc(__iced_deferrals.defer({
@@ -5780,7 +5780,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/baseburner.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/baseburner.iced",
               funcname: "BaseBurner._find_keys"
             });
             _this._find_encryption_key(esc(__iced_deferrals.defer({
@@ -5791,7 +5791,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/baseburner.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/baseburner.iced",
                 funcname: "BaseBurner._find_keys"
               });
               _this._assert_one(esc(__iced_deferrals.defer({
@@ -6090,7 +6090,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                   funcname: "Burner._frame_literals"
                 });
                 l.write(esc(__iced_deferrals.defer({
@@ -6133,7 +6133,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
             funcname: "Burner._sign"
           });
           ops.write(esc(__iced_deferrals.defer({
@@ -6157,7 +6157,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
               funcname: "Burner._sign"
             });
             _this.asp.progress({
@@ -6172,7 +6172,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                 funcname: "Burner._sign"
               });
               sig.write(_this.signed_payload, esc(__iced_deferrals.defer({
@@ -6188,7 +6188,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                   funcname: "Burner._sign"
                 });
                 _this.asp.progress({
@@ -6231,7 +6231,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
             funcname: "Burner._compress"
           });
           _this.asp.progress({
@@ -6248,7 +6248,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
               funcname: "Burner._compress"
             });
             pkt.write(esc(__iced_deferrals.defer({
@@ -6264,7 +6264,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                 funcname: "Burner._compress"
               });
               _this.asp.progress({
@@ -6294,7 +6294,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
             funcname: "Burner._make_session_key"
           });
           SRF().random_bytes(_this._cipher_info.key_size, __iced_deferrals.defer({
@@ -6336,7 +6336,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
             funcname: "Burner._encrypt_session_key"
           });
           _this.asp.progress({
@@ -6353,7 +6353,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
               funcname: "Burner._encrypt_session_key"
             });
             pub_k.pad_and_encrypt(payload, {
@@ -6371,7 +6371,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                 funcname: "Burner._encrypt_session_key"
               });
               _this.asp.progress({
@@ -6389,7 +6389,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                       funcname: "Burner._encrypt_session_key"
                     });
                     _this.asp.progress({
@@ -6405,7 +6405,7 @@ _break()
                       var _ref3, _ref4;
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                        filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                         funcname: "Burner._encrypt_session_key"
                       });
                       ekey.hide({
@@ -6420,7 +6420,7 @@ _break()
                       (function(__iced_k) {
                         __iced_deferrals = new iced.Deferrals(__iced_k, {
                           parent: ___iced_passed_deferral,
-                          filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                           funcname: "Burner._encrypt_session_key"
                         });
                         _this.asp.progress({
@@ -6446,7 +6446,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                     funcname: "Burner._encrypt_session_key"
                   });
                   pkt.write(esc(__iced_deferrals.defer({
@@ -6478,7 +6478,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
             funcname: "Burner._encrypt_payload"
           });
           SRF().random_bytes(_this._cipher.blockSize, __iced_deferrals.defer({
@@ -6498,7 +6498,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
               funcname: "Burner._encrypt_payload"
             });
             pkt.encrypt({
@@ -6514,7 +6514,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                 funcname: "Burner._encrypt_payload"
               });
               pkt.write(esc(__iced_deferrals.defer({
@@ -6545,7 +6545,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
             funcname: "Burner._encrypt"
           });
           _this._make_session_key(esc(__iced_deferrals.defer({
@@ -6558,7 +6558,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
               funcname: "Burner._encrypt"
             });
             _this._encrypt_session_key(esc(__iced_deferrals.defer({
@@ -6569,7 +6569,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                 funcname: "Burner._encrypt"
               });
               _this._encrypt_payload(esc(__iced_deferrals.defer({
@@ -6595,7 +6595,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
             funcname: "Burner.burn"
           });
           _this._find_keys(esc(__iced_deferrals.defer({
@@ -6608,7 +6608,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
               funcname: "Burner.burn"
             });
             _this._frame_literals(esc(__iced_deferrals.defer({
@@ -6621,7 +6621,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                     funcname: "Burner.burn"
                   });
                   _this._sign(esc(__iced_deferrals.defer({
@@ -6636,7 +6636,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                   funcname: "Burner.burn"
                 });
                 _this._compress(esc(__iced_deferrals.defer({
@@ -6649,7 +6649,7 @@ _break()
                     (function(__iced_k) {
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+                        filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
                         funcname: "Burner.burn"
                       });
                       _this._encrypt(esc(__iced_deferrals.defer({
@@ -6712,7 +6712,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/home/max/src/keybase/kbpgp/src/openpgp/burner.iced",
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/burner.iced",
           funcname: "burn"
         });
         b.burn(__iced_deferrals.defer({
@@ -7335,7 +7335,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
             funcname: "ClearSigner._sign_msg"
           });
           _this.sig.write(_this._cleartext.sign, __iced_deferrals.defer({
@@ -7378,7 +7378,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
             funcname: "ClearSigner.run"
           });
           _this._fix_msg(esc(__iced_deferrals.defer({
@@ -7391,7 +7391,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
               funcname: "ClearSigner.run"
             });
             _this._sign_msg(esc(__iced_deferrals.defer({
@@ -7407,7 +7407,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
                 funcname: "ClearSigner.run"
               });
               _this._encode(esc(__iced_deferrals.defer({
@@ -7472,7 +7472,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
             funcname: "Verifier._verify"
           });
           _this._sig.verify([_this._literal], __iced_deferrals.defer({
@@ -7515,7 +7515,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
             funcname: "Verifier.run"
           });
           _this._check_headers(esc(__iced_deferrals.defer({
@@ -7528,7 +7528,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
               funcname: "Verifier.run"
             });
             _this._find_signature(esc(__iced_deferrals.defer({
@@ -7539,7 +7539,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
                 funcname: "Verifier.run"
               });
               _this._reformat_text(esc(__iced_deferrals.defer({
@@ -7550,7 +7550,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
                   funcname: "Verifier.run"
                 });
                 _this._fetch_key(esc(__iced_deferrals.defer({
@@ -7561,7 +7561,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
                     funcname: "Verifier.run"
                   });
                   _this._make_hasher(esc(__iced_deferrals.defer({
@@ -7572,7 +7572,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
                       funcname: "Verifier.run"
                     });
                     _this._verify(esc(__iced_deferrals.defer({
@@ -7607,7 +7607,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
           funcname: "sign"
         });
         b.run(__iced_deferrals.defer({
@@ -7644,7 +7644,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/Users/max/src/kbpgp/src/openpgp/clearsign.iced",
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/clearsign.iced",
           funcname: "verify"
         });
         v.run(__iced_deferrals.defer({
@@ -7722,7 +7722,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
             funcname: "Signer.run"
           });
           _this._run_hash(esc(__iced_deferrals.defer({
@@ -7735,7 +7735,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
               funcname: "Signer.run"
             });
             _this._sign(esc(__iced_deferrals.defer({
@@ -7751,7 +7751,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
                 funcname: "Signer.run"
               });
               _this._encode(esc(__iced_deferrals.defer({
@@ -7789,7 +7789,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
             funcname: "Signer._sign"
           });
           _this.sig.write(emptybuf, __iced_deferrals.defer({
@@ -7885,7 +7885,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
                       funcname: "Verifier._consume_data"
                     });
                     _this.data_fn(buf_hasher, __iced_deferrals.defer({
@@ -7931,7 +7931,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
             funcname: "Verifier._verify"
           });
           _this._sig.verify(data, __iced_deferrals.defer({
@@ -7960,7 +7960,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
             funcname: "Verifier.run"
           });
           _this._find_signature(esc(__iced_deferrals.defer({
@@ -7973,7 +7973,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
               funcname: "Verifier.run"
             });
             _this._fetch_key(esc(__iced_deferrals.defer({
@@ -7984,7 +7984,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
                 funcname: "Verifier.run"
               });
               _this._consume_data(esc(__iced_deferrals.defer({
@@ -7995,7 +7995,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
                   funcname: "Verifier.run"
                 });
                 _this._verify(esc(__iced_deferrals.defer({
@@ -8029,7 +8029,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
           funcname: "sign"
         });
         s.run(__iced_deferrals.defer({
@@ -8067,7 +8067,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/Users/max/src/kbpgp/src/openpgp/detachsign.iced",
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/detachsign.iced",
           funcname: "verify"
         });
         v.run(__iced_deferrals.defer({
@@ -8122,7 +8122,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/hilev.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/hilev.iced",
                 funcname: "SignatureEngine.box"
               });
               burn({
@@ -8317,7 +8317,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
             funcname: "Encryptor.enc"
           });
           _this.asp.progress({
@@ -8361,7 +8361,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
                     funcname: "Encryptor.enc"
                   });
                   _this.asp.progress({
@@ -8459,7 +8459,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
             funcname: "Decryptor.dec"
           });
           _this.asp.progress({
@@ -8506,7 +8506,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/openpgp/ocfb.iced",
                     funcname: "Decryptor.dec"
                   });
                   _this.asp.progress({
@@ -8567,7 +8567,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/home/max/src/keybase/kbpgp/src/openpgp/ocfb.iced"
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/ocfb.iced"
         });
         eng.check(__iced_deferrals.defer({
           assign_fn: (function() {
@@ -8586,7 +8586,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/ocfb.iced"
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/ocfb.iced"
               });
               eng.dec(__iced_deferrals.defer({
                 assign_fn: (function() {
@@ -8825,7 +8825,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced"
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced"
         });
         inflater.write(buf, __iced_deferrals.defer({
           assign_fn: (function() {
@@ -8844,7 +8844,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced"
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced"
               });
               inflater.end(err);
               __iced_deferrals._fulfill();
@@ -8869,7 +8869,7 @@ _break()
       return (function(__iced_k) {
         __iced_deferrals = new iced.Deferrals(__iced_k, {
           parent: ___iced_passed_deferral,
-          filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced"
+          filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced"
         });
         zlib.deflate(buf, __iced_deferrals.defer({
           assign_fn: (function() {
@@ -8929,7 +8929,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
                   funcname: "Compressed.inflate"
                 });
                 zlib.inflate(_this.compressed, __iced_deferrals.defer({
@@ -8948,7 +8948,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
                   funcname: "Compressed.inflate"
                 });
                 fake_zip_inflate(_this.compressed, __iced_deferrals.defer({
@@ -8967,7 +8967,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
                   funcname: "Compressed.inflate"
                 });
                 bzip_inflate(_this.compressed, __iced_deferrals.defer({
@@ -9007,7 +9007,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
                   funcname: "Compressed.deflate"
                 });
                 zlib.deflate(_this.inflated, __iced_deferrals.defer({
@@ -9026,7 +9026,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
                   funcname: "Compressed.deflate"
                 });
                 fake_zip_deflate(_this.inflated, __iced_deferrals.defer({
@@ -9061,7 +9061,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
             funcname: "Compressed.write_unframed"
           });
           _this.deflate(__iced_deferrals.defer({
@@ -9095,7 +9095,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/compressed.iced",
             funcname: "Compressed.write"
           });
           _this.write_unframed(__iced_deferrals.defer({
@@ -9397,7 +9397,7 @@ _break()
                     (function(__iced_k) {
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/Users/max/src/kbpgp/src/openpgp/packet/keymaterial.iced",
+                        filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/keymaterial.iced",
                         funcname: "KeyMaterial.self_sign_key"
                       });
                       _this._self_sign_key({
@@ -9460,7 +9460,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/packet/keymaterial.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/keymaterial.iced",
                 funcname: "KeyMaterial._self_sign_key"
               });
               sig.write(payload, __iced_deferrals.defer({
@@ -9504,7 +9504,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/packet/keymaterial.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/keymaterial.iced",
                 funcname: "KeyMaterial.sign_subkey"
               });
               _this._sign_subkey({
@@ -9543,7 +9543,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/packet/keymaterial.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/keymaterial.iced",
                 funcname: "KeyMaterial._sign_subkey"
               });
               subkey._sign_primary_with_subkey({
@@ -9571,7 +9571,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/openpgp/packet/keymaterial.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/keymaterial.iced",
                   funcname: "KeyMaterial._sign_subkey"
                 });
                 _this._sign_subkey_with_primary({
@@ -9624,7 +9624,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/packet/keymaterial.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/keymaterial.iced",
             funcname: "KeyMaterial._sign_primary_with_subkey"
           });
           sig.write_unframed(payload, __iced_deferrals.defer({
@@ -9667,7 +9667,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/packet/keymaterial.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/keymaterial.iced",
             funcname: "KeyMaterial._sign_subkey_with_primary"
           });
           sig.write(payload, __iced_deferrals.defer({
@@ -10032,7 +10032,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/literal.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/literal.iced",
             funcname: "Literal.write"
           });
           _this.write_unframed(__iced_deferrals.defer({
@@ -10163,7 +10163,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/packet/one_pass_sig.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/one_pass_sig.iced",
             funcname: "OnePassSignature.write"
           });
           _this.write_unframed(__iced_deferrals.defer({
@@ -10493,7 +10493,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
             funcname: "PKESK.write"
           });
           _this.write_unframed(__iced_deferrals.defer({
@@ -10554,7 +10554,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
             funcname: "SEIPD.decrypt"
           });
           eng.check(esc(__iced_deferrals.defer({
@@ -10567,7 +10567,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
               funcname: "SEIPD.decrypt"
             });
             eng.dec(esc(__iced_deferrals.defer({
@@ -10586,7 +10586,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
                 funcname: "SEIPD.decrypt"
               });
               mdc.compute({
@@ -10618,7 +10618,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
             funcname: "SEIPD.encrypt"
           });
           mdc.compute({
@@ -10641,7 +10641,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
               funcname: "SEIPD.encrypt"
             });
             encrypt({
@@ -10680,7 +10680,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
             funcname: "SEIPD.write"
           });
           _this.write_unframed(__iced_deferrals.defer({
@@ -10768,7 +10768,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/sess.iced",
                   funcname: "MDC.compute"
                 });
                 asp.progress({
@@ -10983,7 +10983,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/packet/signature.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/signature.iced",
                 funcname: "Signature_v2_or_v3.verify"
               });
               _this.key.verify_unpad_and_check_hash({
@@ -11137,7 +11137,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/packet/signature.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/signature.iced",
             funcname: "Signature.write_unframed"
           });
           _this.key.pad_and_sign(payload, {
@@ -11169,7 +11169,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/packet/signature.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/signature.iced",
             funcname: "Signature.write"
           });
           _this.write_unframed(data, __iced_deferrals.defer({
@@ -11224,7 +11224,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/openpgp/packet/signature.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/signature.iced",
             funcname: "Signature.verify"
           });
           _this._verify(data_packets, __iced_deferrals.defer({
@@ -11279,7 +11279,7 @@ _break()
                           (function(__iced_k) {
                             __iced_deferrals = new iced.Deferrals(__iced_k, {
                               parent: ___iced_passed_deferral,
-                              filename: "/Users/max/src/kbpgp/src/openpgp/packet/signature.iced",
+                              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/signature.iced",
                               funcname: "Signature.verify"
                             });
                             s._verify([subkey], __iced_deferrals.defer({
@@ -11372,7 +11372,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/openpgp/packet/signature.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/packet/signature.iced",
                 funcname: "Signature._verify"
               });
               _this.key.verify_unpad_and_check_hash({
@@ -12791,7 +12791,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                 funcname: "KeyBlock.process"
               });
               _this._verify_sigs(__iced_deferrals.defer({
@@ -12871,7 +12871,7 @@ _break()
                         (function(__iced_k) {
                           __iced_deferrals = new iced.Deferrals(__iced_k, {
                             parent: ___iced_passed_deferral,
-                            filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                             funcname: "KeyBlock._verify_sigs"
                           });
                           p.verify(working_set, __iced_deferrals.defer({
@@ -12940,7 +12940,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                 funcname: "Message._get_session_key"
               });
               _this.keyfetch.fetch(key_ids, konst.ops.decrypt, __iced_deferrals.defer({
@@ -12964,7 +12964,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                       funcname: "Message._get_session_key"
                     });
                     privk.decrypt_and_unpad(packet.ekey, {
@@ -13021,7 +13021,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                 funcname: "Message._decrypt_with_session_key"
               });
               edat.decrypt({
@@ -13064,7 +13064,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
             funcname: "Message._decrypt"
           });
           _this._get_session_key(esc(__iced_deferrals.defer({
@@ -13086,7 +13086,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                   funcname: "Message._decrypt"
                 });
                 _this._find_encrypted_data(esc(__iced_deferrals.defer({
@@ -13102,7 +13102,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                     funcname: "Message._decrypt"
                   });
                   _this._decrypt_with_session_key(sesskey, edat, pkcs5, esc(__iced_deferrals.defer({
@@ -13118,7 +13118,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                       funcname: "Message._decrypt"
                     });
                     _this._parse(plaintext, esc(__iced_deferrals.defer({
@@ -13180,7 +13180,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                   funcname: "Message._inflate"
                 });
                 p.inflate(esc(__iced_deferrals.defer({
@@ -13198,7 +13198,7 @@ _break()
                     (function(__iced_k) {
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                        filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                         funcname: "Message._inflate"
                       });
                       _this._parse(inflated, esc(__iced_deferrals.defer({
@@ -13273,7 +13273,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                 funcname: "Message._verify_sig"
               });
               _this.keyfetch.fetch([a], konst.ops.verify, __iced_deferrals.defer({
@@ -13302,7 +13302,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                   funcname: "Message._verify_sig"
                 });
                 sig.close.verify(sig.payload, __iced_deferrals.defer({
@@ -13360,7 +13360,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                   funcname: "Message._verify"
                 });
                 _this._verify_sig(sig, esc(__iced_deferrals.defer({
@@ -13403,7 +13403,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
             funcname: "Message._process_generic"
           });
           _this._decrypt(esc(__iced_deferrals.defer({
@@ -13416,7 +13416,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
               funcname: "Message._process_generic"
             });
             _this._inflate(esc(__iced_deferrals.defer({
@@ -13427,7 +13427,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                 funcname: "Message._process_generic"
               });
               _this._verify(esc(__iced_deferrals.defer({
@@ -13455,7 +13455,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                 funcname: "Message._verify_clearsign"
               });
               verify_clearsign({
@@ -13491,7 +13491,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
             funcname: "Message.parse_and_process"
           });
           _this._parse(msg.body, esc(__iced_deferrals.defer({
@@ -13509,7 +13509,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
               funcname: "Message.parse_and_process"
             });
             _this._process({
@@ -13544,7 +13544,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                 funcname: "Message._verify_signature"
               });
               verify_detached({
@@ -13584,7 +13584,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                   funcname: "Message._process"
                 });
                 _this._process_generic({
@@ -13605,7 +13605,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                   funcname: "Message._process"
                 });
                 _this._verify_clearsign({
@@ -13627,7 +13627,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced",
                   funcname: "Message._process"
                 });
                 _this._verify_signature({
@@ -13688,7 +13688,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/home/max/src/keybase/kbpgp/src/openpgp/processor.iced"
+              filename: "/Users/max/src/keybase/kbpgp/src/openpgp/processor.iced"
             });
             proc.parse_and_process(msg, __iced_deferrals.defer({
               assign_fn: (function() {
@@ -13969,7 +13969,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/home/max/src/keybase/kbpgp/src/openpgp/verifier.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/openpgp/verifier.iced",
             funcname: "Base._fetch_key"
           });
           _this.keyfetch.fetch([key_id], konst.ops.verify, __iced_deferrals.defer({
@@ -14117,7 +14117,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/pad.iced"
+                filename: "/Users/max/src/keybase/kbpgp/src/pad.iced"
               });
               SRF().random_bytes(diff, __iced_deferrals.defer({
                 assign_fn: (function() {
@@ -14163,7 +14163,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/pad.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/pad.iced",
               funcname: "eme_pkcs1_encode"
             });
             eme_random(n_randos, __iced_deferrals.defer({
@@ -14430,7 +14430,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                    filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
                   });
                   asp.progress({
                     what: "mr",
@@ -14465,7 +14465,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
               });
               asp.progress({
                 what: "mr",
@@ -14631,7 +14631,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
               });
               asp.progress({
                 what: "fermat",
@@ -14648,7 +14648,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                      filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
                     });
                     miller_rabin({
                       p: p,
@@ -14667,7 +14667,7 @@ _break()
                     (function(__iced_k) {
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                        filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
                       });
                       asp.progress({
                         what: "passed_mr",
@@ -14737,7 +14737,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
               });
               SRF().random_nbit(nbits, __iced_deferrals.defer({
                 assign_fn: (function() {
@@ -14755,7 +14755,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                      filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
                     });
                     asp.progress({
                       what: "guess",
@@ -14768,7 +14768,7 @@ _break()
                     (function(__iced_k) {
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/Users/max/src/kbpgp/src/primegen.iced"
+                        filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
                       });
                       prime_search({
                         start: p,
@@ -14803,7 +14803,7 @@ _break()
         (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/primegen.iced"
+            filename: "/Users/max/src/keybase/kbpgp/src/primegen.iced"
           });
           asp.progress({
             what: "found",
@@ -14909,7 +14909,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rand.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
             funcname: "StrongRandomFountain.random_word"
           });
           prng.generate(4, __iced_deferrals.defer({
@@ -14937,7 +14937,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rand.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
             funcname: "StrongRandomFountain.random_double"
           });
           prng.generate(8, __iced_deferrals.defer({
@@ -14965,7 +14965,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rand.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
             funcname: "StrongRandomFountain.rand_0_1"
           });
           _this.random_word(__iced_deferrals.defer({
@@ -14983,7 +14983,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/rand.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
               funcname: "StrongRandomFountain.rand_0_1"
             });
             _this.random_word(__iced_deferrals.defer({
@@ -15033,7 +15033,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/rand.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
                   funcname: "StrongRandomFountain.random_zn"
                 });
                 _this.random_nbit(n.bitLength(), __iced_deferrals.defer({
@@ -15078,7 +15078,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rand.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
             funcname: "StrongRandomFountain.random_word_array"
           });
           _this.lock.acquire(__iced_deferrals.defer({
@@ -15112,7 +15112,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/Users/max/src/kbpgp/src/rand.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
                     funcname: "StrongRandomFountain.random_word_array"
                   });
                   prng.generate(n, __iced_deferrals.defer({
@@ -15146,7 +15146,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rand.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
             funcname: "StrongRandomFountain.random_bytes"
           });
           _this.random_word_array(nbytes, __iced_deferrals.defer({
@@ -15175,7 +15175,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rand.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
             funcname: "StrongRandomFountain.random_nbit"
           });
           _this.random_bytes(nbytes, __iced_deferrals.defer({
@@ -15193,7 +15193,7 @@ _break()
           (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
               parent: ___iced_passed_deferral,
-              filename: "/Users/max/src/kbpgp/src/rand.iced",
+              filename: "/Users/max/src/keybase/kbpgp/src/rand.iced",
               funcname: "StrongRandomFountain.random_nbit"
             });
             _this.lock.acquire(__iced_deferrals.defer({
@@ -15380,7 +15380,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
             funcname: "Priv.decrypt"
           });
           _this.mod_pow_d_crt(c, __iced_deferrals.defer({
@@ -15525,7 +15525,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
             funcname: "Priv.mod_pow_d_crt"
           });
           SRF().random_zn(n, __iced_deferrals.defer({
@@ -15654,7 +15654,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                 funcname: "Pair.sanity_check"
               });
               _this.encrypt(x0, __iced_deferrals.defer({
@@ -15670,7 +15670,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                   funcname: "Pair.sanity_check"
                 });
                 _this.decrypt(x1, __iced_deferrals.defer({
@@ -15699,7 +15699,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                   funcname: "Pair.sanity_check"
                 });
                 _this.sign(y0, __iced_deferrals.defer({
@@ -15715,7 +15715,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                     funcname: "Pair.sanity_check"
                   });
                   _this.verify(y1, __iced_deferrals.defer({
@@ -15822,7 +15822,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
             funcname: "Pair.pad_and_encrypt"
           });
           eme_pkcs1_encode(data, _this.pub.n.mpi_byte_length(), __iced_deferrals.defer({
@@ -15843,7 +15843,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                   funcname: "Pair.pad_and_encrypt"
                 });
                 _this.encrypt(m, __iced_deferrals.defer({
@@ -15879,7 +15879,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
             funcname: "Pair.decrypt_and_unpad"
           });
           _this.decrypt(ciphertext.y(), __iced_deferrals.defer({
@@ -15919,7 +15919,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
             funcname: "Pair.pad_and_sign"
           });
           _this.sign(m, __iced_deferrals.defer({
@@ -15954,7 +15954,7 @@ _break()
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                 funcname: "Pair.verify_unpad_and_check_hash"
               });
               _this.verify(sig, __iced_deferrals.defer({
@@ -16021,7 +16021,7 @@ _break()
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                  filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                   funcname: "Pair.generate"
                 });
                 random_prime({
@@ -16042,7 +16042,7 @@ _break()
                 (function(__iced_k) {
                   __iced_deferrals = new iced.Deferrals(__iced_k, {
                     parent: ___iced_passed_deferral,
-                    filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                    filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                     funcname: "Pair.generate"
                   });
                   asp.progress({
@@ -16056,7 +16056,7 @@ _break()
                   (function(__iced_k) {
                     __iced_deferrals = new iced.Deferrals(__iced_k, {
                       parent: ___iced_passed_deferral,
-                      filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                      filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                       funcname: "Pair.generate"
                     });
                     random_prime({
@@ -16077,7 +16077,7 @@ _break()
                     (function(__iced_k) {
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/Users/max/src/kbpgp/src/rsa.iced",
+                        filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
                         funcname: "Pair.generate"
                       });
                       asp.progress({
@@ -16169,7 +16169,7 @@ _break()
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/max/src/kbpgp/src/rsa.iced",
+            filename: "/Users/max/src/keybase/kbpgp/src/rsa.iced",
             funcname: "Output.hide"
           });
           key.hide({

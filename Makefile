@@ -99,6 +99,7 @@ $(TEST_STAMP): test/browser/test.js
 	date > $@
 
 test: test-server test-browser
+	keybase dir verify
 
 $(BROWSER): lib/main.js $(BUILD_STAMP)
 	$(BROWSERIFY) -s kbpgp $< > $@
@@ -106,7 +107,18 @@ $(BROWSER): lib/main.js $(BUILD_STAMP)
 release: $(BROWSER)
 	V=`jsonpipe < package.json | grep version | awk '{ print $$2 }' | sed -e s/\"//g` ; \
 	cp $< rel/kbpgp-$$V.js ; \
-	$(UGLIFYJS) -c < rel/kbpgp-$$V.js > rel/kbpgp-$$V-min.js 
+	$(UGLIFYJS) -c < rel/kbpgp-$$V.js > rel/kbpgp-$$V-min.js ; \
+	rm -rf rel/kbpgp-$$V-signed-release.zip ; \
+	rm -rf rel/kbpgp ; \
+	mkdir rel/kbpgp ; \
+	cp rel/kbpgp-$$V.js     rel/kbpgp/ ; \
+	cp rel/kbpgp-$$V-min.js rel/kbpgp/ ; \
+	pushd rel/ ; \
+	keybase dir sign -p none kbpgp/ ; \
+	zip kbpgp-$$V-signed-release.zip kbpgp/*.js kbpgp/*.md ; \
+	popd ; \
+	rm -rf rel/kbpgp
+	keybase dir sign
 
 clean:
 	rm -rf lib/* $(BUILD_STAMP) $(TEST_STAMP) test/browser/test.js
