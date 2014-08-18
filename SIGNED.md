@@ -1,16 +1,15 @@
 ##### Signed by https://keybase.io/max
 ```
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
-Comment: GPGTools - https://gpgtools.org
+Version: GnuPG v2
 
-iQEcBAABCgAGBQJT8jdQAAoJEJgKPw0B/gTfXscH/RKdUCORu9SzVdFxiP3Q7xSZ
-3O1hNai8+stm+7ShS5RgX/gseeY95LzbL1Bx9+TyqBcqnXnfwWhOlPa7tf7H9tzF
-RB0k6t+zHxAbqf+DPtKfqYmUBH5veK9tNeb3PVyycuWeVCo9/gt6+M/cgf6ma++w
-pYMXVOchEFe3YFIyGSki3chsa8nJwiaGsz1cATq8m9j7RI2SEgw+32nmQNAL/Qcf
-HEbJAGEIoUiy8EAPnODS1kuPINMu3fiTDmv1aFAcrJ2yev89uLi+zltUQcQ998ZL
-z0u55N4BUMyjJx8l/NbxGTJeZsEfNtpw5vSHNRtXvp3WQ8K7bjur/m2qB7oG4gc=
-=LuJe
+iQEcBAABAgAGBQJT8ofjAAoJEJgKPw0B/gTfP3EH/2CUCYFfgW2217No1u9zQZnw
+g7SCXQnxWN5qdqcEGt1GM1QketgOAi9qwlkFk6aqNm8Q+Kb/okUf8bPMjaivTmKN
+C1Hk95RxdxlfJz+x8YdeLQK9euy/G1qOzX1qVh77ICJ/3Ui8222kbszsu+unJiQB
+xUKyGswyq3BDc0qC13SIyrVIQQNt6Cebx56L+H+P1kKWLZX170O8/Lrem8/Riwy1
+E/5b3rjYd0wFOzuGbSXdDO+gCGo9AT9hqAGMVYYhH+Kom7vPC4VbHL8XTtQH+Js9
+P4l7HOVlffFA6+Rb6CY6Pi+jlRx4IE6kS8Qwstay5Jaa1cVkjFj+RkJfnR6WYOk=
+=KWaK
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,10 +25,10 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-9513             CHANGELOG.md                        012a4b9aefae41c54ba6af4a1556434c103ba94389cf0315da54001c32ac0a2c                                                                 
+9671             CHANGELOG.md                        d74f679797aba8fce216663d6f10bb34459e3583e893759cccd4333e9e5ef01c                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3109             Makefile                            771bacfba1be35b15591ecce2c3cfb5657acfcffc9db340dfb8e4cb4af3b9815                                                                 
-135              README.md                           78e6510afee9d2d329aa500a24fcc064b97cd16dea4a96bef06773e60756e9ad                                                                 
+1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
                  bench/                                                                                                                                                               
 83                 main.js                           083729d8233d3d24bc1bc77e1fc9005cf4cb0022d873301be3a156976113220d                                                                 
                  browser/                                                                                                                                                             
@@ -125,18 +124,11 @@ size     exec  file                                  contents
 29554              rsa.js                            996abd58498470421f4f0e92b53111ad7b4a9b1ef6a82a026118a5464bd1ab19                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1003             package.json                        cd6eaa3cd41e3c27dd23b5cc9027c34d1fb842b56e96a02d8cfb801f348b94e3                                                                 
+1002             package.json                        f382387459341e271469a39a231423fbd74e3c8d79756ce1b0bdfa2243af7af5                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|abd5e66e46aa8f1005a942a39acba0e7950cc7d6fec09dec80526aede74a2f7c
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
                  rel/                                                                                                                                                                 
-743954             kbpgp-0.1.18-min.js               18e641a55e76ec6c784bbf7c43b5c52857cf5d28cdbf80b0c8697b31536a7c05                                                                 
-1156031            kbpgp-0.1.18.js                   0c1334ed7647f99127092e4032333376545e4b6770c7cd5b2f688066e2cce25a|e15b49f406ed5d75e32c8ca17e05b45e843e39d2f1d5b11f1467b8610ab43e56
-753933             kbpgp-0.1.19-min.js               1e582443a072f7d90de67864e2a0ffe921bbd9af7d467b7d4bdef5494c90c79c                                                                 
-1171371            kbpgp-0.1.19.js                   bd03528931a40966742e203c8764f625e81c32e39c6d398164943923f06f5d17|e5097f78db6cb88a814576df859f290198eb14fbabf4a4ddfa3b8bce1fddc423
-764209             kbpgp-0.1.22-min.js               02317cbf0f73700a90839c4d170fb76e693255d06b36aed8c4b4560e5ca77ceb                                                                 
-452762             kbpgp-0.1.22-signed-release.zip   9952e8ddc9bb5eefbff9e56c8c6a9b5df9884f429234f3f930b25623324e3494|a95274e299e3248d9131bf0353887dab6b60b0329d07ec6cad3700f0c0cd8ed0
-1187187            kbpgp-0.1.22.js                   e367caa04c89a0978531c4ca8c6767edc5557ab7f31740269384ba3e695fd339|d090cd97503c1bd6c39a042e55911a0e2c8b5439966e5186d81686d61862015b
 805687             kbpgp-0.2.0-min.js                b4a878a738f83c33fa497323a0257dec27d8d13f53b6dd14aed1fd8716eba226                                                                 
 1247393            kbpgp-0.2.0.js                    67622a7d7249737f87edacba7171a89913d6afd2d59591952b7535dd14479d71|d60ec881841701ad4d3cf451c3c7980bbc9dc0dd97001deaa9f46f8ed3c7d6b5
 904269             kbpgp-0.3.0-min.js                fd4c4024fe68674c491fb9955d996fc0958a6d11f207040c17ff2908e9ec8fcb                                                                 
