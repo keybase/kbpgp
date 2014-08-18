@@ -2,15 +2,15 @@
 ```
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
-Comment: GPGTools - http://gpgtools.org
+Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABAgAGBQJT72JZAAoJEJgKPw0B/gTfATMIALWz8ezKxTnhukDUjrX0NTV1
-5imQ34v3goUa539ZchdYC1u8t5c/4M4Z+FukH0bCm1H6SKsnFvCB7/4Q+aGN9X4S
-TvalUyXWV5EqM64pGKMmCKLgQWxpuueJhrP62y2e92nz1aFUpSeHfGUsE9rM81+z
-GcQXiJjQS5ep0tDXshTat13xe4pN/F61DIXnxd1QNzDP06c+047EBmDy7AVd0MkR
-Ori29SIeW46N57HZq5abj/vGfwX4A7gII6tI3Ok6Do04nDSKiVRykGfjydSGBsx+
-dbQsUmozsMHTFNnv1GlRhxpIWhjKcf/uaxf/NjBimYcRUKvHsmhjmrDkUQkd4PA=
-=hSwV
+iQEcBAABCgAGBQJT8jW7AAoJEJgKPw0B/gTfBFYH/1829WE2nAsd00CnBH6dPhWc
+e0Q6nQDCHvVKc5SUJH3p83w8hnCW0e4t7dJ406yvIYnZwOyM/+hmvkrajaojaqH4
+1rqZhcURIlQz4TRqAPYU2YdjkPiHC+Y9X7CqjvlkRRulShl+SSyfGOwZxUdMKL14
+lP4rQy+KmclGKj1Z2yiYdN0h7MvG14oRcHhyApbG9EyqOi2CwrNILyqt/GxbVfVV
+l2NDjDZpZwRHJxCIesQ1swEe+ckim1OdRQ21HvRsUDzra56KeCDd0gzzktJEa20Z
+S51Wt/w92fdtfxh+Z1FqTyGBrhPEwyrLM+8DMouXx5ZRdLA63IHrNbHqe1A2+yM=
+=BZw0
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,7 +26,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-9500             CHANGELOG.md                        f15a489cda8441de953e266d63edbb68da8d418b950ce93a3ab4b717fa33c375                                                                 
+9513             CHANGELOG.md                        012a4b9aefae41c54ba6af4a1556434c103ba94389cf0315da54001c32ac0a2c                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 2759             Makefile                            79277def75623d4146be210a7f3f3cf6d7839e2d95df434430fa8c5b58c7ce2f                                                                 
 135              README.md                           78e6510afee9d2d329aa500a24fcc064b97cd16dea4a96bef06773e60756e9ad                                                                 
@@ -125,7 +125,7 @@ size     exec  file                                  contents
 29426              rsa.js                            6213e27f51f0a5abaa1f5fc9cf94af2d7922f37662fd83dafcdf07e704bd5dc0                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1002             package.json                        30a9fefdb10f64d6bf533ee52df8ef0da10e5fc0fa63d76e2c007aedeacf6f1e                                                                 
+1003             package.json                        cd6eaa3cd41e3c27dd23b5cc9027c34d1fb842b56e96a02d8cfb801f348b94e3                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|abd5e66e46aa8f1005a942a39acba0e7950cc7d6fec09dec80526aede74a2f7c
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
