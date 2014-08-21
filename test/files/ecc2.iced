@@ -119,7 +119,7 @@ exports.generate_and_roundtrip = (T,cb) ->
   T.no_error err
   await km2.sign {}, defer err
   T.no_error err
-  await km2.export_pgp_private_to_client { passphrase : '' }, defer err, msg
+  await km2.export_pgp_private { passphrase : '' }, defer err, msg
   T.no_error err
   await roundtrip_sig_crypt T, km2, defer()
   cb()

@@ -50,7 +50,7 @@ exports.step3_export_pgp_private = (T,cb) ->
   T.no_error err
   unless err?
     passphrase = openpgp_pass
-    await bundle.export_pgp_private_to_client { passphrase, asp }, defer err, msg
+    await bundle.export_pgp_private { passphrase, asp }, defer err, msg
     T.no_error err
   unless err?
     T.waypoint "Generated new PGP Private key: #{msg.split(/\n/)[0...2].join(' ')}"
