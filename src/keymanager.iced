@@ -599,7 +599,7 @@ class KeyManager extends KeyFetcher
       msg = @pgp.export_keys({private : true, passphrase})
     cb err, msg
 
-  export_pgp_private : (args) -> @export_pgp_private_to_client args...
+  export_pgp_private : (args...) -> @export_pgp_private_to_client args...
 
   #-----
 

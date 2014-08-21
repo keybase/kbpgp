@@ -1,3 +1,9 @@
+## 1.0.2
+
+Bugfixes:
+
+  - Fix bug in `export_pgp_private` wrapper routine...
+
 ## 1.0.1 (2014-08-18)
 
 Bugfixes:
