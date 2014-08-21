@@ -1,15 +1,16 @@
 ##### Signed by https://keybase.io/max
 ```
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - http://gpgtools.org
 
-iQEcBAABAgAGBQJT8ofjAAoJEJgKPw0B/gTfP3EH/2CUCYFfgW2217No1u9zQZnw
-g7SCXQnxWN5qdqcEGt1GM1QketgOAi9qwlkFk6aqNm8Q+Kb/okUf8bPMjaivTmKN
-C1Hk95RxdxlfJz+x8YdeLQK9euy/G1qOzX1qVh77ICJ/3Ui8222kbszsu+unJiQB
-xUKyGswyq3BDc0qC13SIyrVIQQNt6Cebx56L+H+P1kKWLZX170O8/Lrem8/Riwy1
-E/5b3rjYd0wFOzuGbSXdDO+gCGo9AT9hqAGMVYYhH+Kom7vPC4VbHL8XTtQH+Js9
-P4l7HOVlffFA6+Rb6CY6Pi+jlRx4IE6kS8Qwstay5Jaa1cVkjFj+RkJfnR6WYOk=
-=KWaK
+iQEcBAABAgAGBQJT9mX9AAoJEJgKPw0B/gTfOUsH/jRXjIm2rxvRDqutmkruVeCr
+dXt93LLLy9qhRr0B0exMISPU7U4TLldAy/UehOabLe+ihdG1vXf3O5+ZIPqATwRC
+70Z7Mo//l/bzgbR6gJor1xPyhEzXUWgHU9cLrRS3u9Bl3YRNVkm1oNBXl4AdGuY6
+JPoccsbo80ZMZ6IVbcicESM8qYFI5rGrQb850L8+Q0pyOLx2S9sQtRwiLkmRK/bk
+ufyRcS6/BM0HndfXiOszGl1mgkOhNcZQEouR2Sl3M3yTC6EkVs7OZ8Pf5sltPkPi
+bwbab3HIm/oInHSPbzcDaob2TWK+0mi6zUbA+7hVaJ2ZOUF1wCTxPrkLl0m8HU8=
+=d7kF
 -----END PGP SIGNATURE-----
 
 ```
@@ -25,7 +26,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-9671             CHANGELOG.md                        d74f679797aba8fce216663d6f10bb34459e3583e893759cccd4333e9e5ef01c                                                                 
+9761             CHANGELOG.md                        f54a594eb3fc6dd86e76f9dbfd943affa60706898a1e4bbc9a48157144bd702c                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3109             Makefile                            771bacfba1be35b15591ecce2c3cfb5657acfcffc9db340dfb8e4cb4af3b9815                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -82,7 +83,7 @@ size     exec  file                                  contents
 918                    userid.js                     8d50af7907a66427d37cba19d456bed6e8adc3b752bd87f643bb511be4fd79c1                                                                 
 4936                 sign.js                         eee4a919b4ea106ec4fd5a5bc3726e29ad1ab162347c9bff1958e232ee07f985                                                                 
 330                keyfetch.js                       f8c05474c9e37b5d11c4ec991f20958d6f308a96703dfa939f3c85b9f6f19bc7                                                                 
-58241              keymanager.js                     c7cb96533b7aefaee2888943ccdd82276c2f0094268a2a3e920bad753e80dd4c                                                                 
+58147              keymanager.js                     ad2a2502d60bde3e93a5e78f661a130c5efa8c48c1906464bae2f4c0a622f673                                                                 
 2641               keyring.js                        df5afbb75be8b00a6a6326ce7615bf813a4ba65794d44bc3a4e3c7c4b9a1e437                                                                 
 2224               keywrapper.js                     04d92f8ae35e6321cbc8a312942915f7ea72f4c710031b5246b7d0b935fb805c                                                                 
 3203               lock.js                           5004e3d6451418224b5d87d605e7f2339a177cf14b68b33f48e1d5d13db5af69                                                                 
@@ -124,7 +125,7 @@ size     exec  file                                  contents
 29554              rsa.js                            996abd58498470421f4f0e92b53111ad7b4a9b1ef6a82a026118a5464bd1ab19                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1002             package.json                        f382387459341e271469a39a231423fbd74e3c8d79756ce1b0bdfa2243af7af5                                                                 
+1002             package.json                        dae66a34577a3dae0a7a5338beadca7b01c775decfbb919941250a93656d49d0                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|abd5e66e46aa8f1005a942a39acba0e7950cc7d6fec09dec80526aede74a2f7c
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -166,7 +167,7 @@ size     exec  file                                  contents
 466                    userid.iced                   b130b41ae3c94855d71d62aee9bf83b43710e9f029f5f4d89450f1ec1cc76e2f                                                                 
 1867                 sign.iced                       348ab35847af272f1ac62be1888e71550b4580ad4186b6c6029061b605ac4960                                                                 
 856                keyfetch.iced                     10037e667a57ab8bd04d8239836c4d3e97ebe2fc72166020ab4f73203d6a1963                                                                 
-23220              keymanager.iced                   1972f1527f7a4e0cb4711119660bc927f2382f93f1c0e2825d8cc46e32470769                                                                 
+23223              keymanager.iced                   2eb139e68921753a81e2b0e0217f69586f4c58e9ce1db844e3f8b38cc085e70b                                                                 
 1626               keyring.iced                      8357f83439f997d056163b79ff315a2a46e540c24e904422588520d043c18de9                                                                 
 1475               keywrapper.iced                   c4a522c888684a1a05b93e8faffdd3589eff9cc12fe98b62146194849dfb4128                                                                 
 1943               lock.iced                         69ffa5d4715acb25f06cbf4853dc50aa4124a3be00db6677321a9cecf715d37f                                                                 
@@ -233,13 +234,13 @@ size     exec  file                                  contents
 17584                decrypt_verify_msg.iced         c00ef85f2f7166db859cbd8400df1d09f69c103853b95f77f5a7d845f39c01f8                                                                 
 4396                 dsa.iced                        51c628e28c7e52a1a2ec75e6bdba9ebfd16329c9dae59bc0e82d54e2fb38610e                                                                 
 10269                ecc1.iced                       1cbbf415bfeedff0182ac4897dfc37417b92124a7e501c3de383e843462d2285                                                                 
-5626                 ecc2.iced                       769b221f770301a7d8b97724eb020b4a7e6e97a0cf61ae1237c730afed1debc1|a9b21d5854c38808dd3b5c2156704891b26f73e6943f9c375d1fb51207745d68
+5616                 ecc2.iced                       d089dd82c71c3ee1495db9785ce5f137b544a3dd10dd371e15b5f56ebae8c3b5|fc049196e884a74fbb36544f13062d7705666bcd12fc7a5915145afee9e8967f
 5930                 elgamal.iced                    ffdfdf66372fe923e80c97608d8c42993c7fee73608be4729107d8c30f605933                                                                 
 911                  fermat2.iced                    d4a842cb086b925e6aa2a4ec1fe7c077b785af8eea86b54a2a146c9ccc6ca1cd                                                                 
 834                  get_primary_uid.iced            2128390bfb4edc33834257bd847ec5b7848a32c0463bce4a6cb8ed04f195e1f5                                                                 
 6753                 google_end_to_end.iced          a1c705fa823665be8e822c535f5921ddcbdb7bc5b765c26c762291ee1218feef                                                                 
 4121                 hide.iced                       7e2be9a59cd494af52e10f817012c9034f76b2a7b8ee157c2ae858cce155f149                                                                 
-3520                 keymanager.iced                 6c278a538077393b1c689ae3d828120a1971480d7c2a01f8011ce5d3af1000f4                                                                 
+3510                 keymanager.iced                 73ea06287f50f390e258054ffa1b989e6aa48bc6ba0024e2fdf30a91f42eb536                                                                 
 810                  miller_rabin.iced               e0245e8b5aab47e9bd04d99469402d55321ba335137a0a02818edf9280eeee63                                                                 
 12402                msg_roundtrip.iced              e6795abe49861fcac67c3fe7b7cc9616b55a3a8df61d7d2a0bdf0a1e6dc8f0ab                                                                 
 7669                 openpgp_js_cure53_audit.iced    25ebfb3baffd338c68c3d8ca18a08f600c8a08fd3555f6b2300234a4c8057d52                                                                 
