@@ -41,7 +41,11 @@ exports.BaseEccKey = class BaseEccKey
     pub = len = err = null
     try [pub, len] = BaseEccKey._alloc klass, raw
     catch e then err = e
-    return [err, pub, len] 
+    return [err, pub, len]
+
+  #----------------
+
+  validity_check : (cb) -> cb null
 
 #===========================================================================
 

@@ -13,7 +13,7 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
-  box         : (msg, cb) -> 
+  box         : (msg, cb) ->
     out = {}
     if (signing_key = @km.find_signing_pgp_key())?
       await burn { msg, signing_key }, defer err, out.pgp, out.raw
@@ -22,7 +22,7 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
-  unbox       : (msg, cb) -> 
+  unbox       : (msg, cb) ->
     eng = new processor.Message { keyfetch : @km }
     eng.parse_and_process { body : msg.body }, cb
 

@@ -1,4 +1,4 @@
-{random_prime,nbs} = require './primegen'
+{naive_is_prime,random_prime,nbs} = require './primegen'
 bn = require './bn'
 {nbits,nbv,nbi,BigInteger} = bn
 {bufeq_secure,ASP} = require './util'
@@ -19,7 +19,7 @@ class Priv extends BaseKey
 
   #--------------------
 
-  decrypt : (c,cb) -> 
+  decrypt : (c,cb) ->
     await @mod_pow_d_crt c, defer x
     cb null, x
 
@@ -140,7 +140,7 @@ class Priv extends BaseKey
     # and x <- x*r_e mod n
     n = @pub.n
     await SRF().random_zn n, defer r
-    r_inv = r.modInverse(n) 
+    r_inv = r.modInverse(n)
     r_e = r.modPow(@pub.e,n)
     x_1 = x.multiply(r_e).mod(n)
 
@@ -188,6 +188,17 @@ class Pub extends BaseKey
   #----------------
 
   mod_pow : (x,d,cb) -> cb x.modPow(d,@n)
+
+  #----------------
+
+  validity_check : (cb) ->
+    err = if (not @n.gcd(@e).equals(BigInteger.ONE)) then new Error "gcd(n,e) != 1"
+    else if (not @n.mod(nbv(2)).equals(BigInteger.ONE)) then new Error "n % 2 != 1"
+    else if (@e.compareTo(BigInteger.ONE) <= 0) then new Error "e <= 1"
+    else if (@e.compareTo(nbv(0x10001)) > 0) then new Error "e > (2^16 + 1)"
+    else if not naive_is_prime(@e.intValue()) then new Error "e isn't prime!"
+    else null
+    cb err
 
 #=======================================================================
 
@@ -243,7 +254,7 @@ class Pair extends BaseKeyPair
   # @param {SlicerBuffer} slice The input slice
   # @return {BigInteger} the Signature
   # @throw {Error} an Error if there was an overrun of the packet.
-  @parse_sig : (slice) -> 
+  @parse_sig : (slice) ->
     [err, ret, raw, n] = bn.mpi_from_buffer slice.peek_rest_to_buffer()
     throw err if err?
     slice.advance(n)
@@ -294,13 +305,13 @@ class Pair extends BaseKeyPair
     await eme_pkcs1_encode data, @pub.n.mpi_byte_length(), defer err, m
     unless err?
       await @encrypt m, defer ct
-      ret = @export_output { y_mpi : ct } 
+      ret = @export_output { y_mpi : ct }
     cb err, ret
 
   #----------------
 
   # @param {Output} ciphertext A ciphertext in RSA::Output form
-  # 
+  #
   decrypt_and_unpad : (ciphertext, params, cb) ->
     err = ret = null
     await @decrypt ciphertext.y(), defer err, p
@@ -375,6 +386,10 @@ class Pair extends BaseKeyPair
 
   #----------------
 
+  validity_check : (cb) ->
+    await @pub.validity_check defer err
+    cb err
+
 #=======================================================================
 
 class Output
@@ -395,7 +410,7 @@ class Output
 
   #-------------------
 
-  hide : ({key, max, slosh}, cb) -> 
+  hide : ({key, max, slosh}, cb) ->
     max or= 8192
     slosh or= 128
     await key.hide { i : @y(), max, slosh }, defer err, i

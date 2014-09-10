@@ -1,3 +1,10 @@
+## 1.0.3 (2014-09-10)
+
+Security upgrade:
+
+  - Run various validity checks in incoming PGP keys;
+    - See this thread for more info: http://www.metzdowd.com/pipermail/cryptography/2014-September/022758.html
+
 ## 1.0.2 (2014-08-21)
 
 Bugfixes:

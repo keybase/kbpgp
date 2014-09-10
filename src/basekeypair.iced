@@ -22,10 +22,12 @@ exports.BaseKey = class BaseKey
 
   #----------------
 
-  serialize : () -> 
+  serialize : () ->
     Buffer.concat( @[e].to_mpi_buffer() for e in @ORDER )
 
   #----------------
+
+  validity_check : (cb) -> cb null
 
 #============================================================
 
@@ -57,7 +59,7 @@ exports.BaseKeyPair = class BaseKeyPair
 
   # @param {number} ops_mask A Mask of all of the ops requested of this key,
   #    whose individual bits are on kbpgp.const.ops
-  #   
+  #
   can_perform : (ops_mask) ->
     if (ops_mask & konst.ops.sign) and not @can_sign() then false
     else if (ops_mask & konst.ops.decrypt) and not @can_decrypt() then false
@@ -114,6 +116,10 @@ exports.BaseKeyPair = class BaseKeyPair
       ret = r.multiply(n).add(i)
 
     cb err, ret
+
+  #----------------
+
+  validity_check : (cb) -> @pub.validity_check cb
 
   #----------------
 

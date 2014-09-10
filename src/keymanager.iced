@@ -259,6 +259,15 @@ class PgpEngine extends Engine
 
   #--------
 
+  validity_check : (cb) ->
+    err = null
+    for k in @_all_keys()
+      await @key(k).validity_check defer err
+      break if err?
+    cb err
+
+  #--------
+
   # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
   find_best_key : (flags, need_priv = false) ->
     wrapper = null
@@ -462,7 +471,7 @@ class KeyManager extends KeyFetcher
       await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret, warnings
 
     # For keys that have unprotected secret key data, just unlock
-    # the secret key material by default, that way we don't have to 
+    # the secret key material by default, that way we don't have to
     # call unlock_pgp() on an unlocked key (which is confusing).
     if not(err?) and ret.has_pgp_private() and not ret.is_pgp_locked()
       await ret.unlock_pgp {}, defer err
@@ -527,6 +536,8 @@ class KeyManager extends KeyFetcher
         armored_pgp_public : msg.raw(),
         user_attributes : kb.user_attributes,
         userids : kb.userids }
+    unless err?
+      await bundle.check_pgp_validity defer err
     cb err, bundle, warnings
 
   #------------
@@ -719,6 +730,11 @@ class KeyManager extends KeyFetcher
   get_pgp_key_id : () -> @pgp.get_key_id()
   get_pgp_short_key_id : () -> @pgp.get_short_key_id()
   get_pgp_fingerprint : () -> @pgp.get_fingerprint()
+
+  #----------------
+
+  # Check the validity of all PGP keypairs
+  check_pgp_validity : (cb) -> @pgp.validity_check cb
 
   # /Public Interface
   #========================

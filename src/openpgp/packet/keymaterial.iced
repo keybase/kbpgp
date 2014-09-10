@@ -26,11 +26,11 @@ packetsigs = require './packetsigs'
 
 class KeyMaterial extends Packet
 
-  # 
+  #
   # @param {Pair} key a Keypair that can be used for signing, etc.
   # @param {number} timestamp Uint32 saying what time the key was born
   # @param {string|Buffer} passphrase The passphrase used to lock the key
-  # @param {SecretKeyMaterial} skm A wrapper around the {S2K} object; 
+  # @param {SecretKeyMaterial} skm A wrapper around the {S2K} object;
   #                  the encryption engine used to lock the secret parts of the key
   # @param {Object} opts a list of options
   # @param {number} flags The flags to grant this key
@@ -44,7 +44,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   _write_private_enc : (bufs, priv, pp) ->
-    bufs.push new Buffer [ 
+    bufs.push new Buffer [
       C.s2k_convention.sha1,                  # Indicates s2k with SHA1 checksum
       C.symmetric_key_algorithms.AES256,      # Sym algo used to encrypt
       C.s2k.salt_iter,                        # s2k salt+iterative
@@ -52,7 +52,7 @@ class KeyMaterial extends Packet
     ]
     sha1hash = (new SHA1).bufhash priv        # checksum of the cleartext MPIs
     salt = native_rng 8                       # 8 bytes of salt
-    bufs.push salt 
+    bufs.push salt
     c = 96
     bufs.push new Buffer [ c ]                # ??? translates to a count of 65336 ???
     ks = AES.keySize
@@ -62,10 +62,10 @@ class KeyMaterial extends Packet
     bufs.push iv                              # push the IV on before the ciphertext
 
     # horrible --- 'MAC' then encrypt :(
-    plaintext = Buffer.concat [ priv, sha1hash ]   
+    plaintext = Buffer.concat [ priv, sha1hash ]
 
     # Encrypt with CFB/mode + AES.  Use the expanded key from s2k
-    ct = encrypt { block_cipher_class : AES, key : k, plaintext, iv } 
+    ct = encrypt { block_cipher_class : AES, key : k, plaintext, iv }
 
     bufs.push ct
 
@@ -108,7 +108,7 @@ class KeyMaterial extends Packet
   add_flags : (v) -> @flags |= v
 
   #--------------------------
-  
+
   private_body : (opts) ->
     bufs = []
     @_write_public bufs
@@ -163,7 +163,7 @@ class KeyMaterial extends Packet
     else @public_framed opts
 
   #--------------------------
-  
+
   public_framed : (opts = {}) ->
     body = @public_body()
     T = C.packet_tags
@@ -203,32 +203,32 @@ class KeyMaterial extends Packet
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
     type = C.sig_types.positive
-    
+
     hsp = [
       new S.CreationTime(lifespan.generated)
       new S.KeyFlags([@flags])
       new S.PreferredSymmetricAlgorithms([C.symmetric_key_algorithms.AES256, C.symmetric_key_algorithms.AES128])
       new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
       new S.Features([C.features.modification_detection])
-      new S.KeyServerPreferences([C.key_server_preferences.no_modify])   
+      new S.KeyServerPreferences([C.key_server_preferences.no_modify])
     ]
 
     if lifespan.expire_in
       hsp.push new S.KeyExpirationTime(lifespan.expire_in)
 
-    sig = new Signature { 
+    sig = new Signature {
       type : type,
       key : @key,
       hashed_subpackets : hsp,
       unhashed_subpackets : [ new S.Issuer(@get_key_id()) ]
     }
- 
+
     # raw_payload is when we want to just output what would have been signed without actually
-    # signing it.  We need this for patching keys in the client.   
+    # signing it.  We need this for patching keys in the client.
     if raw_payload
       sig = payload
     else
-      # We just store the output in the signature object itself 
+      # We just store the output in the signature object itself
       await sig.write payload, defer err
 
       ps = new packetsigs.SelfSig { userid, type, sig, options : @flags }
@@ -259,7 +259,7 @@ class KeyMaterial extends Packet
       await @_sign_subkey_with_primary { subkey, lifespan, primary_binding }, defer err, sig
     unless err?
       SKB = packetsigs.SubkeyBinding
-      ps = new SKB { primary : @, sig, direction : SKB.DOWN } 
+      ps = new SKB { primary : @, sig, direction : SKB.DOWN }
       subkey.push_sig ps
     cb err
 
@@ -276,7 +276,7 @@ class KeyMaterial extends Packet
       unhashed_subpackets : [
         new S.Issuer(@get_key_id())
       ]}
-      
+
     # We put these as signature subpackets, so we don't want to frame them;
     # they already come with framing as a result of their placement in
     # the signature.  This is a bit of a hack, but it's OK for now.
@@ -303,13 +303,13 @@ class KeyMaterial extends Packet
       ],
       unhashed_subpackets
     }
-      
+
     await sig.write payload, defer err
     cb err, sig
 
   #--------------------------
 
-  merge_private : (k2) -> 
+  merge_private : (k2) ->
     @skm = k2.skm
 
   #--------------------------
@@ -319,7 +319,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   @parse_private_key : (slice, opts) -> (new Parser slice).parse_private_key opts
-  
+
   #--------------------------
 
   is_key_material : () -> true
@@ -334,6 +334,15 @@ class KeyMaterial extends Packet
   has_locked_private : () -> (@skm and @skm.has_private())
   has_unlocked_private : () -> @key.has_private()
   has_secret_key_material : () -> @skm?
+
+  #--------------------------
+
+  validity_check : (cb) ->
+    await @key.validity_check defer err
+    if err?
+      msg = "In key #{@get_fingerprint().toString('hex')}: #{err.message}"
+      err = new Error err
+    cb err
 
   #--------------------------
 
@@ -354,7 +363,7 @@ class KeyMaterial extends Packet
   # Open an OpenPGP key packet using the given passphrase
   #
   # @param {string} passphrase the passphrase in uft8
-  # 
+  #
   unlock : ({passphrase}, cb) ->
     passphrase = bufferify passphrase if passphrase?
     err = null
@@ -370,10 +379,10 @@ class KeyMaterial extends Packet
       null
     else
       key = @skm.s2k.produce_key passphrase, @skm.cipher.key_size
-      decrypt { 
+      decrypt {
         ciphertext : @skm.payload,
-        block_cipher_class : @skm.cipher.klass, 
-        iv : @skm.iv, 
+        block_cipher_class : @skm.cipher.klass,
+        iv : @skm.iv,
         key : key }
 
     if pt
@@ -401,7 +410,7 @@ class KeyMaterial extends Packet
 
   #-------------------
 
-  fulfills_flags : (flags) -> 
+  fulfills_flags : (flags) ->
     ((@get_all_key_flags() & flags) is flags) or @key.fulfills_flags(flags)
 
   get_signed_userids         : () -> @get_psc().get_signed_userids()
@@ -419,7 +428,7 @@ class KeyMaterial extends Packet
 class Parser
 
   #-------------------
-  
+
   constructor : (@slice) ->
     @key = null
 
@@ -431,17 +440,17 @@ class Parser
     @parse_public_key_mpis()
 
   #-------------------
-  
+
   parse_public_key_v4 : () ->
     @timestamp = @slice.read_uint32()
     @parse_public_key_mpis()
 
   #-------------------
-  
+
   parse_public_key_mpis: () ->
     @algorithm = @slice.read_uint8()
     A = C.public_key_algorithms
-    klass = switch @algorithm 
+    klass = switch @algorithm
       when A.RSA, A.RSA_ENCRYPT_ONLY, A.RSA_SIGN_ONLY then RSA
       when A.DSA then DSA
       when A.ELGAMAL then ElGamal
@@ -455,7 +464,7 @@ class Parser
     key
 
   #-------------------
-  
+
   # 5.5.2 Public-Key Packet Formats
   _parse_public_key : () ->
     switch (version = @slice.read_uint8())
@@ -464,7 +473,7 @@ class Parser
       else throw new Error "Unknown public key version: #{version}"
 
   #-------------------
-  
+
   parse_public_key : (opts) ->
     key = @_parse_public_key()
     new KeyMaterial { key, @timestamp, opts}
@@ -482,9 +491,9 @@ class Parser
     encrypted_private_key = true
     sym_enc_alg = null
 
-    if (skm.s2k_convention = @slice.read_uint8()) is C.s2k_convention.none 
+    if (skm.s2k_convention = @slice.read_uint8()) is C.s2k_convention.none
       encrypted_private_key = false
-    else 
+    else
       if skm.s2k_convention in [ C.s2k_convention.sha1, C.s2k_convention.checksum ]
         sym_enc_alg = @slice.read_uint8()
         skm.s2k = (new S2K).read @slice
@@ -495,7 +504,7 @@ class Parser
     # hidden.
     if (skm.s2k_convention isnt C.s2k_convention.none) and (skm.s2k.type is C.s2k.gnu_dummy)
       skm.payload = null
-    else 
+    else
       if sym_enc_alg
         skm.cipher = symmetric.get_cipher sym_enc_alg
         iv_len = skm.cipher.klass.blockSize

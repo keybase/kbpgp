@@ -11,9 +11,9 @@ native_rng = prng.native_rng
 
 #
 # Code for generating Random Primes, ported from SFS:
-#  
+#
 #  https://github.com/okws/sfslite/blob/master/crypt/random_prime.C
-# 
+#
 #  Originally:  Copyright (C) 1998 David Mazieres (dm@uun.org)
 #
 
@@ -28,7 +28,7 @@ class Avg
     @n = 0
   start : () ->
     @_t = Date.now()
-  stop : () -> 
+  stop : () ->
     s = (Date.now() - @_t)
     console.log "ran in #{s}"
     @tot += s
@@ -38,10 +38,10 @@ class Avg
 #=================================================================
 
 # Compute (p % d)
-# @param {BigInteger} p 
+# @param {BigInteger} p
 # @param {number} d
 # @return {number} p%d
-quickmod = (p, d) -> 
+quickmod = (p, d) ->
   p.modInt(d)
 
 #--------------
@@ -111,7 +111,7 @@ miller_rabin = ({p, iter, asp}, cb) ->
   iter or= 10
   esc = make_esc cb, "miller_rabin"
 
-  ret = _MR_small_check { p } 
+  ret = _MR_small_check { p }
 
   if ret
     p1 = p.subtract(BigInteger.ONE)
@@ -145,7 +145,7 @@ class PrimeFinder
 
   #-----------------------
 
-  setmax : (i) -> 
+  setmax : (i) ->
     throw new Error "can only setmax() once" unless @maxinc is -1
     @maxinc = i
 
@@ -164,14 +164,14 @@ class PrimeFinder
       while (@mods[i] + @inc >= sp)
         @mods[i] -= sp
         if (@mods[i] + @inc) is 0
-          return true 
+          return true
     return false
 
   #-----------------------
 
   #
   # Return the next weak prime > @p.  Basically runs a sieve to see
-  # if any of the small primes divide the next candidate, and keeps 
+  # if any of the small primes divide the next candidate, and keeps
   # advancing until we find one that seems prime w/r/t to the small primes.
   #
   # This is crazy-optimized, but let's leave it for now...
@@ -208,7 +208,7 @@ class PrimeFinder
 #=================================================================
 
 # Find a prime starting at the given start, and going up to start+range.
-# 
+#
 # Use the sieve for primality testing, which in the case of regular odd
 # primes is [1,2], and for strong primes is more interesting...
 #
@@ -226,7 +226,7 @@ prime_search = ({start, range, sieve, asp, iters}, cb) ->
 
     await asp.progress { what : "fermat", p }, esc defer()
     if not fermat2_test(p) then # noop
-    else 
+    else
       await miller_rabin { p, iters, asp }, esc defer is_prime
       await asp.progress { what : "passed_mr", p }, esc defer()
       if is_prime then ret = p
@@ -259,7 +259,7 @@ random_prime = ({nbits, iters, asp, e}, cb) ->
   range = nbits
   p = null
 
-  while go 
+  while go
     await SRF().random_nbit nbits, defer p
     p = p.setBit(0).setBit(nbits-1).setBit(nbits-2)
     if not e? or p.subtract(BigInteger.ONE).gcd(e).compareTo(BigInteger.ONE) is 0
@@ -272,6 +272,15 @@ random_prime = ({nbits, iters, asp, e}, cb) ->
 
 #=================================================================
 
+exports.naive_is_prime = naive_is_prime = (n) ->
+  biggest = Math.floor(Math.sqrt(n))
+  for p in small_primes
+    if p > biggest then return true
+    if (n % p) is 0 then return false
+  return false
+
+#=================================================================
+
 exports.fermat2_test = fermat2_test
 exports.nbs = nbs
 exports.small_primes = small_primes
@@ -279,4 +288,3 @@ exports.miller_rabin = miller_rabin
 exports.random_prime = random_prime
 
 #=================================================================
-
