@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJUEFUJAAoJEJgKPw0B/gTfEC0H/A2QLu49Xyns/o0+JAsVpSHC
-KMlfLdO+deRrLgdRNAFeKl3KeFtCICH2nHtS7svzuF84beW4pm8+h8s/gGYaM0Kn
-bdZS5r8I5FGc/1jk/mQ37eCbYGVFjRt/Hm+mOmyEOCvmhf89jqc0+6owX8E+29ds
-J1T1N5HanqjGNXYvcqYXLOAatjx9x4GY4sKDrJlF89iA53aX/TnKl7YwxY6X02w+
-94Zy+CtIEThkvp3YFY6wxXd7PKb2YEePVMSBfVv5O/mYjnRqMzINEnnCl07l6xW7
-UV6/iXiKuo//7sJYD6aFbYxqCwH+lyBz2RE08rxxIsSn4IwdTSNE3CNITCaOD6o=
-=1qEG
+iQEcBAABCgAGBQJUEFZ6AAoJEJgKPw0B/gTffl4IAJAfBzFSnXZ0qMlnkAnyE24X
+GJsdEAICrhRtcps5aGMnQJrNHluJFmhLp2AJLNXWI8oevEMmOBNNT178zHxVETE3
+GDd5nkTU6YG8hqJ27rC8FVhPgxM/COyxyqAGLCX0+SftqXf53DwZdadghHgb2QC/
+hE7aIBRel67mvCdVzXHU8eBw5P0W12hCZoVYTZFgjMxh8IDx/tE5qvzlkuGbIiKn
+Hu1Jw9DTkkn8xUI3qOQguCfThUEZ+4yG74G8PkbjpTEPkA1MFpE1VWhWfHkRtB/5
+pNHCcsTyxPg0UVNauuukV0rjOSOEG60+cCbpxc3fedyAtYq/mY3b9wPtM3vD+XE=
+=j1UO
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,7 +26,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-9761             CHANGELOG.md                        f54a594eb3fc6dd86e76f9dbfd943affa60706898a1e4bbc9a48157144bd702c                                                                 
+9969             CHANGELOG.md                        92df656d4d79745594093524908290ceb9d284cd65962b6df103895bbd291eeb                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3109             Makefile                            771bacfba1be35b15591ecce2c3cfb5657acfcffc9db340dfb8e4cb4af3b9815                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -125,7 +125,7 @@ size     exec  file                                  contents
 30990              rsa.js                            2d77641cae605aaab19ed584e8b3adbe47331154c3d2738735200b07a4ba36b3                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1002             package.json                        dae66a34577a3dae0a7a5338beadca7b01c775decfbb919941250a93656d49d0                                                                 
+1002             package.json                        ef4e6d5053a2a18f48a76427a3f58a338beb742c606959a5479f2fd2c307d546                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|abd5e66e46aa8f1005a942a39acba0e7950cc7d6fec09dec80526aede74a2f7c
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
