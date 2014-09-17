@@ -124,9 +124,10 @@ class Message
 
   #---------
 
-  constructor : ({@keyfetch, @data_fn, @data}) ->
+  constructor : ({@keyfetch, @data_fn, @data, @strict}) ->
     @literals = []
     @enc_data_packet = null
+    @warnings = new Warnings()
 
   #---------
 
@@ -243,7 +244,8 @@ class Message
     unless err?
       await @keyfetch.fetch [ a ], konst.ops.verify, defer err, km, i
 
-    unless err?
+    if not err?
+
       key_material = km.find_pgp_key_material(a)
       sig.close.key = key_material.key
 
@@ -253,6 +255,10 @@ class Message
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
       await sig.close.verify sig.payload, defer err
+
+    else if not @strict
+      @warnings.push "Problem fetching key #{a.toString('hex')}: #{err.toString()}"
+      err = null
 
     cb err
 
@@ -341,11 +347,14 @@ exports.Message = Message
 #    It calls back with (err,done).
 # @param {Buffer} data Instead of a streaming data_fn, you can also specify
 #    a static buffer, to check against the given signature.
-# @param {callback} cb Callback with an `err, Array<Literals>` pairs. On success,
+# @param {Boolean} strict In strict mode, all signatures must verify, and we're in
+#    strict mode by default.  In non-strict mode, sigs that we can't find keys for
+#    just generate warnings.
+# @param {callback} cb Callback with an `err, Array<Literals>, Warnings` triples. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
-exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data}, cb) ->
+exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data, strict}, cb) ->
   literals = null
-  err = msg = null
+  err = msg = warnings = null
   if armored?
     [err,msg] = armor.decode armored
   else if raw?
@@ -353,8 +362,10 @@ exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data}, cb) 
   else
     err = new Error "No input to do_message; need either 'armored' or 'raw' input"
   unless err?
-    proc = new Message { keyfetch, data_fn, data }
+    if not strict? then strict = true
+    proc = new Message { keyfetch, data_fn, data, strict }
     await proc.parse_and_process msg, defer err, literals
-  cb err, literals
+    warnings = proc.warnings
+  cb err, literals, warnings
 
 #==========================================================================================
