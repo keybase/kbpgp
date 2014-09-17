@@ -1,5 +1,6 @@
 
-mods = 
+mods =
+  unbox_cant_verify : require '../files/unbox_cant_verify.iced'
   zip : require '../files/zip.iced'
   ecc1 : require '../files/ecc1.iced'
   ecc2 : require '../files/ecc2.iced'
@@ -20,7 +21,7 @@ mods =
   elgamal : require '../files/elgamal.iced'
   dsa : require '../files/dsa.iced'
   rsa_8192 : require '../files/rsa_8192.iced'
-  buffer_shfit_right : require '../files/buffer_shift_right.iced' 
+  buffer_shfit_right : require '../files/buffer_shift_right.iced'
   verify_clearsign_sigs : require '../files/verify_clearsign_sigs.iced'
   decoder : require '../files/decoder.iced'
   userid : require '../files/userid.iced'

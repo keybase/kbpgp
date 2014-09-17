@@ -2,7 +2,7 @@
 
 Feature:
 
-  - Changes to unbox:
+  - Changes to unbox (in response to #42)
     - Can pass `{ strict : false }` to `unbox`, and it won't crap out if it can't
       verify signatures.
     - Now calls back with an `err, Array<Literals>, Warnings` triple.
