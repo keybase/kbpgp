@@ -17,6 +17,7 @@ exports.openpgp = openpgp =
   hash_algorithms :
     MD5    : 1
     SHA1   : 2
+    RIPEMD160 : 3
     SHA256 : 8
     SHA384 : 9
     SHA512 : 10

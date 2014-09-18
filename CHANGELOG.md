@@ -1,3 +1,10 @@
+## 1.0.5 (2014-09-18)
+
+Bugfix:
+
+  - Expose RipeMD160
+     - Address keybase/keybase-issues#1020
+
 ## 1.0.4 (2014-09-17)
 
 Feature:
