@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJUGuucAAoJEJgKPw0B/gTfJ88IAIfpLHrXKYgY6SkKzAPa/uQx
-Uv0eJLpbx0jM3iPJzQWgWOmiNseBCm09CN+gmiaRY2SMCVYxVZoe/+nn5Ec1zkAH
-5ZFF5jsy5LnImf97Qtr/LiV0/E2enP3SsU2OfmGXcCp0vmD2a3gyq8XSJ6aC5/Wy
-Tzoi4JDcAezUsGBfyczcEHv7Ht1P/tA8IaItnMyHNp65fwk2QC9gnVIqbDOJbdDP
-zytQJIpr9ejw+lIGgK/1Bl0qKExCn5mRyxSjicroJ+thW3mDFf9uhySpdokIhSk3
-vCDB9fh0PE5F/6eElwSX+bxDFm1cMBgkSXjwV6pWf0i0fxXyTmf4aGvFMQqu/pE=
-=hb3G
+iQEcBAABCgAGBQJUItORAAoJEJgKPw0B/gTfv94H/RrsgIE9cCwQ/tUHUztR4qG8
+Y7g5isOEaP5uOwNej2bT8okTug23yF6XB3PhqZV0TNdhBdnvb0JI2Bjk8SjE74Jp
+QDL9N06DlysOWCVZRcrDFEVRQjYJrF6LEM97YikteHvD5LiaR5y9HBSMvMM+TxmC
+zn2W9Sw22T/V/BHRblyf4/pIsz0N9NLQjzc0JL60wLFkTl+/PIqjw3dSqE7Eni74
+U5mOvcNuGhhWMDT5NwdEbFI/0IlqiizV1YKHw0Dl1YAOoNv5cPBAfxNT02rEtXc2
+vbi7jXjyHA1uql7nutjH+KMro4y6ji9lQyVj5z1JubAYSCowStNs6olB3oxUNQw=
+=X20Z
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,7 +26,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-10319            CHANGELOG.md                        38734603e48f54af6a7c31cb6e64972ed562d324c7e7166f8a54984426091c41                                                                 
+10537            CHANGELOG.md                        2bc6de8d9c8a5417eb6360e1bed01f3a7b88a3625b1cbd69c9b876436ebe79ba                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3109             Makefile                            771bacfba1be35b15591ecce2c3cfb5657acfcffc9db340dfb8e4cb4af3b9815                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -90,9 +90,9 @@ size     exec  file                                  contents
 901                main.js                           fbabe7a53ff0d5efd64b36705152074023c394aeaa72066529cae34ae7c5577e                                                                 
                    openpgp/                                                                                                                                                           
 2533                 armor.js                        45b5677fcbd83a729b216a3615459d5f65e3a3fd8754a2bab0c6bdae2c6f300b                                                                 
-3696                 baseburner.js                   115b95cd1fcf25da942d87a6a10859701f4870b38b43922a9d918b5625b636db                                                                 
+4850                 baseburner.js                   30151fda80acb900f26d0dc9187d2490fd89c65c1ec6b2d5bc7438dcc0318ba5                                                                 
 3407                 buffer.js                       f35590b328b6b8671516607691f9ef0695115c7ab5d1a10459326e50eb426c8f                                                                 
-27933                burner.js                       a8393a44fe3899bf86cd3b12f05d08739682d207c062657c27e10d7440a3bb5e                                                                 
+30107                burner.js                       21cd5f6febab9bde223eeed7bd0e2c7cb056a7fc2d1b64244cc8974f4a160e5c                                                                 
 36498                cast5.js                        6f5dd34f8e223fa58d6cd6f0c4fb3de322e5e708eb7b0becb9cfd61005d93b62                                                                 
 2485                 cfb.js                          965f142ee47a889b3dc5284061a674145aff2cbdff910563d949e6c8e808513a                                                                 
 16826                clearsign.js                    dfd2ed0c13735ff9771f89e6b5de9963ab807088a6e1bd0c118c19f86c6f1dc1                                                                 
@@ -125,7 +125,7 @@ size     exec  file                                  contents
 30990              rsa.js                            2d77641cae605aaab19ed584e8b3adbe47331154c3d2738735200b07a4ba36b3                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1002             package.json                        7213eaf8d6ed371193727a13585624b3840c00c2185ebbea4c6da7cab7b2ac23                                                                 
+1004             package.json                        e4b8b63da9d3b9671c31bde521f3308d04cb94e6a5a3208f6c9b859afe168150                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -186,9 +186,9 @@ size     exec  file                                  contents
 820                main.iced                         8942212ea84ed1dbf26ebfecfac5e1449c4ac162dda35fc8ed08c5e5f20e55d0                                                                 
                    openpgp/                                                                                                                                                           
 1860                 armor.iced                      844940075a814c94776068adf27d101f1e7023554bd12954b0a3923164600dcc                                                                 
-1484                 baseburner.iced                 0b91f43b55f3818271cb22d78690023ff60928fa279aa8211cfa23c10c1f623c                                                                 
+2029                 baseburner.iced                 381ffb8f3958ea8d8cce88e2137ca2eddea921c551d8a7871af13e36332e9216                                                                 
 1972                 buffer.iced                     f7869b08373cc7f603af1056c2a0e70eef20978217a05335df08be495f05b683                                                                 
-8205                 burner.iced                     5bdc02702376e4f20cd5f40dc09695fc7c8b273010544bc1efc13f88fb9fec61                                                                 
+8485                 burner.iced                     e8bec3f515679f204fae3ddecc1ea049c0de39372799c6e72c10e30d9ada7280                                                                 
 35636                cast5.iced                      9931b6c18476e8ee81b4597b10fe4dd95ba647e5370667cbb2505e633138b82e                                                                 
 2500                 cfb.iced                        a1a9d1aa336d99bb69de44cc77e925336fd0b2299c627290afead87d9aae204e                                                                 
 6818                 clearsign.iced                  eb741982fa621cf1ad6a6fec388b70c99730e5f0a3157e320e5555bae48e1cdc                                                                 
@@ -226,7 +226,7 @@ size     exec  file                                  contents
 498207               keybase.js                      644255a0bc4e925552de6cd686825c8f22f316bf93aff50ee26acee88f8ee9a5                                                                 
                    browser/                                                                                                                                                           
 287                  index.html                      d99a34d1e7a9ad710b90f2b0c3a1b8d786406ca5ad49856f6329d298aaba9d94                                                                 
-1896                 main.iced                       c81532fa1cc06729db52c418b6228830a7eb1f6c14fb6ad8ddc0b778003f07d1                                                                 
+1944                 main.iced                       ebd7fabc59b096668fd796785d4126641cc42072e9e114011f8bcab2114bc232                                                                 
                    data/                                                                                                                                                              
 29438                detached.iced                   2e36d202dd4336420345d5d55d0363abb6e23c9851adf95bd3241267df705bc6                                                                 
 659499               keys.iced                       a13f3490dec98834f038398384e00369780a5bd6ecb0227acba92152b1369021                                                                 
@@ -255,6 +255,7 @@ size     exec  file                                  contents
 3510                 keymanager.iced                 73ea06287f50f390e258054ffa1b989e6aa48bc6ba0024e2fdf30a91f42eb536                                                                 
 810                  miller_rabin.iced               e0245e8b5aab47e9bd04d99469402d55321ba335137a0a02818edf9280eeee63                                                                 
 12402                msg_roundtrip.iced              e6795abe49861fcac67c3fe7b7cc9616b55a3a8df61d7d2a0bdf0a1e6dc8f0ab                                                                 
+10431                multiples.iced                  fe1ef0254f99bff29a2d2fdc2fba9467043b3643d666d686b2d81339ee7f3cee                                                                 
 7669                 openpgp_js_cure53_audit.iced    25ebfb3baffd338c68c3d8ca18a08f600c8a08fd3555f6b2300234a4c8057d52                                                                 
 699                  rfc3394.iced                    9fb208f733554d5cb0eae023c35a7274c6817d13f4c88257feaaa569253de34e                                                                 
 1084                 rsa.iced                        d6def46bad9ad26ee2a828572d542d35c388523a9d8bf9ad483395eaef625687                                                                 
