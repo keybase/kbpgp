@@ -1,3 +1,11 @@
+## 1.1.0 (2014-09-25)
+
+Feature:
+
+  - The `encrypt_for` parameter to `box` can handle mutliple parties,
+    meaning messages can be encrypted for your friend and yourself.
+    ( this one was a long-time coming....)
+
 ## 1.0.5 (2014-09-18)
 
 Bugfix:

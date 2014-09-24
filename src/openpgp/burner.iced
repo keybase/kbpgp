@@ -115,11 +115,11 @@ class Burner extends BaseBurner
 
   #------------
 
-  _encrypt_session_key : (cb) ->
-    esc = make_esc cb, "_encrypt_session_key"
+  _encrypt_session_key_once : (encryption_key, cb) ->
+    esc = make_esc cb, "_encrypt_session_key_once"
     payload = export_key_pgp @_cipher_algo, @_session_key
-    pub_k = @encryption_key.key
-    fingerprint = @encryption_key.get_fingerprint()
+    pub_k = encryption_key.key
+    fingerprint = encryption_key.get_fingerprint()
     await @asp.progress { what : 'session key encrypt', i : 0, total : 1 }, esc defer()
     await pub_k.pad_and_encrypt payload, {fingerprint}, esc defer ekey
     await @asp.progress { what : 'session key encrypt', i : 1, total : 1 }, esc defer()
@@ -129,13 +129,23 @@ class Burner extends BaseBurner
       await ekey.hide { max : @opts.hide?.max, slosh : @opts.hide?.slosh, key : pub_k }, esc defer()
       await @asp.progress { what : 'hide encryption', i : 1, total : 1 }, esc defer()
     else
-      key_id = @encryption_key.get_key_id()
+      key_id = encryption_key.get_key_id()
     pkt = new PKESK {
       crypto_type : pub_k.type,
       key_id : key_id,
       ekey : ekey
     }
-    await pkt.write esc defer @_pkesk
+    await pkt.write esc defer pkesk
+    cb null, pkesk
+
+  #------------
+
+  _encrypt_session_key : (cb) ->
+    esc = make_esc cb, "_encrypt_session_key"
+    @_pkesks = []
+    for k in @encryption_keys
+      await @_encrypt_session_key_once k, esc defer pkesk
+      @_pkesks.push pkesk
     cb null
 
   #------------
@@ -149,7 +159,7 @@ class Burner extends BaseBurner
     await pkt.encrypt { cipher : @_cipher, plaintext, prefixrandom, asp }, esc defer()
     await pkt.write esc defer pkt
     scrub_buffer plaintext
-    @packets = [ @_pkesk, pkt ]
+    @packets = @_pkesks.concat [pkt ]
     cb null
 
   #------------

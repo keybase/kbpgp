@@ -42,10 +42,24 @@ exports.BaseBurner = class BaseBurner
 
   _find_encryption_key : (cb) ->
     err = null
-    if @encrypt_for? and @encryption_key?
-      err = new Error "specify either `encrypt_for` or `encryption_key` but not both"
-    else if @encrypt_for? and not (@encryption_key = @encrypt_for.find_crypt_pgp_key())?
-      err = new Error "cannot encrypt with the given KeyManager"
+
+    count_true = (v...) ->
+      i = 0
+      (i++ for e in v when e)
+      i
+
+    if count_true(@encrypt_for?, @encryption_key?, @encryption_keys?) > 1
+      err = new Error "specify only one of `encrypt_for`, `encryption_keys` and `encryption_key`"
+    else if @encrypt_for?
+      @encryption_keys = []
+      for f,i in (@encrypt_for = arrayize @encrypt_for)
+        if (k = f.find_crypt_pgp_key())?
+          @encryption_keys.push k
+        else
+          err = new Error "cannot encrypt with the given KeyManager (i=#{i})"
+          break
+    else if @encryption_key?
+      @encryption_keys = [ @encryption_key ]
     cb err
 
 #==========================================================
