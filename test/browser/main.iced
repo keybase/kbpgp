@@ -1,5 +1,6 @@
 
 mods =
+  multiples : require "../files/multiples.iced"
   unbox_cant_verify : require '../files/unbox_cant_verify.iced'
   zip : require '../files/zip.iced'
   ecc1 : require '../files/ecc1.iced'
