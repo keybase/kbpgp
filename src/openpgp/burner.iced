@@ -181,10 +181,10 @@ class Burner extends BaseBurner
     esc = make_esc cb, "Burner::burn"
     await @_find_keys esc defer()
     await @_frame_literals esc defer()
-    if @signing_key
+    if @signing_key?
       await @_sign esc defer()
     await @_compress esc defer()
-    if @encryption_key
+    if @encryption_keys?
       await @_encrypt esc defer()
     output = Buffer.concat @packets
     cb null, output
@@ -228,7 +228,7 @@ exports.detachsign = detachsign.sign
 # @param {Array<openpgp.packets.Literal>} literals the literal packets that make up the payload.
 #
 # @param {KeyManager} encrypt_for Who to encrypt for (optional)
-# @param {KeyManager} sign_by Who will sign it (optional)
+# @param {KeyManager} sign_with Who will sign it (optional)
 # @param {openpgp.packets.KeyMaterial} signing_key the key to sign with
 # @param {openpgp.packets.KeyMaterial} encryption_key the key to encrypt with
 #

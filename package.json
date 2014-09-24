@@ -34,7 +34,7 @@
     "browserify": "^5.9.1",
     "colors": "0.6.2",
     "iced-coffee-script": "1.7.1-c",
-    "iced-test": "0.0.10",
+    "iced-test": ">=0.0.21",
     "icsify": "0.6.0",
     "minimist": "0.0.8",
     "optimist": "0.6.1",

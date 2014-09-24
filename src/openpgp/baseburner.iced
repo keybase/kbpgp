@@ -24,7 +24,7 @@ exports.BaseBurner = class BaseBurner
 
   _assert_one : (cb) ->
     err = null
-    if not(@signing_key?) and not(@encryption_key?)
+    if not(@signing_key?) and not(@encryption_keys?)
       err = new Error "need either an encryption or signing key, or both"
     cb err
 
@@ -48,6 +48,11 @@ exports.BaseBurner = class BaseBurner
       (i++ for e in v when e)
       i
 
+    arrayize = (e) ->
+      if not e? then []
+      else if typeof(e) is 'object' and Array.isArray(e) then e
+      else [ e ]
+
     if count_true(@encrypt_for?, @encryption_key?, @encryption_keys?) > 1
       err = new Error "specify only one of `encrypt_for`, `encryption_keys` and `encryption_key`"
     else if @encrypt_for?
@@ -60,6 +65,8 @@ exports.BaseBurner = class BaseBurner
           break
     else if @encryption_key?
       @encryption_keys = [ @encryption_key ]
+    else if @encryption_keys?
+      @encryption_keys = arrayize @encryption_keys
     cb err
 
 #==========================================================
