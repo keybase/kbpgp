@@ -57,5 +57,6 @@ class PgpKeyRing extends KeyFetcher
 #=================================================================================
 
 exports.PgpKeyRing = PgpKeyRing
+exports.KeyRing = PgpKeyRing
 
 #=================================================================================

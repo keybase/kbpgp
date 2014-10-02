@@ -1,3 +1,9 @@
+## 1.1.1 (2014-10-03)
+
+Nit:
+
+  - Expose keyring.KeyRing, equivalent to keyring.PgpKeyRing
+
 ## 1.1.0 (2014-09-25)
 
 Feature:
