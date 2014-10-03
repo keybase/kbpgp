@@ -27,7 +27,7 @@ class Pub extends BaseKey
 
   #----------------
 
-  @alloc : (raw) -> 
+  @alloc : (raw) ->
     BaseKey.alloc Pub, raw
 
   #----------------
@@ -85,26 +85,28 @@ class Pair extends BaseKeyPair
   type : Pair.type
 
   #--------------------
-  
+
   # ElGamal keys are always game for encryption
-  fulfills_flags : (flags) -> 
-    good_for = (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+  fulfills_flags : (flags) ->
+    good_for = @good_for_flags()
     ((flags & good_for) is flags)
 
+  good_for_flags : () -> (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+
   #--------------------
-  
+
   constructor : ({ pub, priv }) -> super { pub, priv }
   can_sign : () -> false
-  @parse : (pub_raw) -> 
+  @parse : (pub_raw) ->
     ret = BaseKeyPair.parse Pair, pub_raw
     return ret
 
   #----------------
-  
+
   max_value : () -> @pub.p
 
   #----------------
-  
+
   pad_and_encrypt : (data, params, cb) ->
     err = ret = null
     await eme_pkcs1_encode data, @pub.p.mpi_byte_length(), defer err, m
@@ -137,9 +139,9 @@ class Output
   constructor : ({@c_mpis, @c_bufs}) ->
 
   #----------------------
-  
+
   @parse : (buf) ->
-    c_mpis = for i in [0...2] 
+    c_mpis = for i in [0...2]
       [err, ret, buf, n] = bn.mpi_from_buffer buf
       throw err if err?
       ret
@@ -147,7 +149,7 @@ class Output
     new Output { c_mpis }
 
   #----------------------
-  
+
   c : () -> @c_mpis
 
   #----------------------
@@ -171,13 +173,13 @@ class Output
     @c_mpis = (key.find(j) for j in @c_mpis)
 
   #----------------------
-  
+
   get_c_bufs : () ->
     if @c_bufs? then @c_bufs
     else (@c_bufs = (i.to_mpi_buffer() for i in @c_mpis))
 
   #----------------------
-  
+
   output : () -> Buffer.concat @get_c_bufs()
 
 #=======================================================================

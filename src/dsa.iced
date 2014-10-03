@@ -98,17 +98,21 @@ class Pair extends BaseKeyPair
   @klass_name : "DSA"
 
   #--------------------
-  
+
   constructor : ({ pub, priv }) -> super { pub, priv }
   @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
   can_encrypt : () -> false
 
   #----------------
-  
+
   # DSA keys are always game for verification
-  fulfills_flags : (flags) -> 
-    good_for = (C.key_flags.certify_keys | C.key_flags.sign_data)
+  fulfills_flags : (flags) ->
+    good_for = @good_for_flags()
     ((flags & good_for) is flags)
+
+  #----------------
+
+  good_for_flags : -> (C.key_flags.certify_keys | C.key_flags.sign_data)
 
   #----------------
 
@@ -138,7 +142,7 @@ class Pair extends BaseKeyPair
   # @param {SlicerBuffer} slice The input slice
   # @return {BigInteger} the Signature
   # @throw {Error} an Error if there was an overrun of the packet.
-  @parse_sig : (slice) -> 
+  @parse_sig : (slice) ->
     buf = slice.peek_rest_to_buffer()
     [err, ret, n] = Pair.read_sig_from_buf buf
     throw err if err?
@@ -154,7 +158,7 @@ class Pair extends BaseKeyPair
   # @return {Array<Error,Array<BigInteger,BigInteger>,n} a triple, consisting
   #  of an error (if one happened); the signature (a tuple of BigIntegers meaning 'r' and 's'),
   #  and finally the number of bytes consumed.
-  # 
+  #
   @read_sig_from_buf : (buf) ->
     orig_len = buf.length
     order = [ 'r', 's' ]

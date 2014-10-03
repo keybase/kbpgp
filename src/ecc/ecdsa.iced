@@ -102,21 +102,21 @@ class Pair extends BaseKeyPair
   @klass_name : "ECDSA"
 
   #--------------------
-  
+
   constructor : ({ pub, priv }) -> super { pub, priv }
   @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
   can_encrypt : () -> false
 
   #----------------
 
-  @subkey_algo : (flags) -> 
+  @subkey_algo : (flags) ->
     if (flags & (C.key_flags.certify_keys | C.key_flags.sign_data)) then Pair
     else ECDH
 
   #----------------
-  
+
   # DSA keys are always game for verification
-  fulfills_flags : (flags) -> 
+  fulfills_flags : (flags) ->
     good_for = (C.key_flags.certify_keys | C.key_flags.sign_data)
     ((flags & good_for) is flags)
 
@@ -148,7 +148,7 @@ class Pair extends BaseKeyPair
   # @param {SlicerBuffer} slice The input slice
   # @return {BigInteger} the Signature
   # @throw {Error} an Error if there was an overrun of the packet.
-  @parse_sig : (slice) -> 
+  @parse_sig : (slice) ->
     buf = slice.peek_rest_to_buffer()
     [err, ret, n] = Pair.read_sig_from_buf buf
     throw err if err?
@@ -164,7 +164,7 @@ class Pair extends BaseKeyPair
   # @return {Array<Error,Array<BigInteger,BigInteger>,n} a triple, consisting
   #  of an error (if one happened); the signature (a tuple of BigIntegers meaning 'r' and 's'),
   #  and finally the number of bytes consumed.
-  # 
+  #
   @read_sig_from_buf : (buf) ->
     orig_len = buf.length
     order = [ 'r', 's' ]
@@ -174,6 +174,10 @@ class Pair extends BaseKeyPair
       x
     n = orig_len - buf.length
     return [err, ret, n]
+
+  #----------------
+
+  good_for_flags : -> (C.key_flags.certify_keys | C.key_flags.sign_data)
 
   #----------------
 

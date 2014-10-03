@@ -31,7 +31,7 @@ class Pub extends BaseEccKey
     if (val = sb.read_uint8()) isnt (v = Const.ecdh.version)
       throw new Error "Cannot deal with future extensions, byte=#{val}; wanted #{v}"
 
-    # Will throw if either hasher or cipher cannot be found 
+    # Will throw if either hasher or cipher cannot be found
     @hasher = hashmod.alloc_or_throw sb.read_uint8()
     @cipher = sym.get_cipher sb.read_uint8()
 
@@ -44,7 +44,7 @@ class Pub extends BaseEccKey
 
   #----------------
 
-  serialize_params : () -> 
+  serialize_params : () ->
     Buffer.concat [
       uint_to_buffer(8,Const.ecdh.param_bytes),
       uint_to_buffer(8,Const.ecdh.version),
@@ -52,7 +52,7 @@ class Pub extends BaseEccKey
       uint_to_buffer(8,@cipher.type)
     ]
   #----------------
-  
+
   serialize : () -> Buffer.concat [ super(), @serialize_params() ]
 
   #----------------
@@ -76,7 +76,7 @@ class Pub extends BaseEccKey
   # o_bits is the size of the AES being used (via KeyWrap stuff).
   # No reason to pass it in
   kdf : ({X,params}) ->
-    o_bytes = @cipher.key_size 
+    o_bytes = @cipher.key_size
 
     # Write S = (x,y) and only output x to buffer
     # This is the "compact" representation of S, since y
@@ -97,7 +97,7 @@ class Pub extends BaseEccKey
   encrypt : (m, {fingerprint}, cb) ->
     {n,G} = @curve
 
-    # Pick a random v in Z_n 
+    # Pick a random v in Z_n
     await @curve.random_scalar defer v
     V = G.multiply v
 
@@ -106,7 +106,7 @@ class Pub extends BaseEccKey
     S = @R.multiply v
 
     params = @format_params { fingerprint }
-    key = @kdf { X : S, params } 
+    key = @kdf { X : S, params }
 
     # Now wrap the plaintext m (which is really an AES key)
     # with the shared key `key`
@@ -149,8 +149,8 @@ class Priv extends BaseKey
     key = @pub.kdf { X : S, params }
 
     [err, ret] = unwrap { key, ciphertext : c.C , cipher : @pub.cipher }
-    
-    cb err, ret 
+
+    cb err, ret
 
 #=================================================================
 
@@ -170,25 +170,25 @@ class Pair extends BaseKeyPair
   @klass_name : "ECDH"
 
   #--------------------
-  
+
   # ElGamal keys are always game for encryption
-  fulfills_flags : (flags) -> 
+  fulfills_flags : (flags) ->
     good_for = (Const.key_flags.encrypt_comm | Const.key_flags.encrypt_storage)
     ((flags & good_for) is flags)
 
   #--------------------
-  
+
   can_sign : () -> false
-  @parse : (pub_raw) -> 
+  @parse : (pub_raw) ->
     ret = BaseKeyPair.parse Pair, pub_raw
     return ret
 
   #----------------
-  
+
   max_value : () -> @pub.p
 
   #----------------
-  
+
   pad_and_encrypt : (data, {fingerprint}, cb) ->
     err = ret = null
     [err, m] = ecc_pkcs5_pad_data data
@@ -211,7 +211,7 @@ class Pair extends BaseKeyPair
 
   #----------------------
 
-  @generate : ({nbits, asp}, cb) -> 
+  @generate : ({nbits, asp}, cb) ->
     await generate { nbits, asp, Pair }, defer err, pair
     unless err?
       # Make sure we have algorithms for hasher and cipher
@@ -228,13 +228,13 @@ class Output
 
   #----------------------
 
-  load_V : (curve, cb) -> 
+  load_V : (curve, cb) ->
     @curve = curve
     [err, @V] = curve.mpi_point_from_buffer @V_buf
     cb err, @V
 
   #----------------------
-  
+
   @parse : (buf) ->
 
     # read the shared point S as a raw buffer, since we don't
@@ -269,9 +269,13 @@ class Output
   find : ({key}) ->  # noop
 
   #----------------------
-  
-  output : () -> 
-    Buffer.concat [ 
+
+  good_for_flags : () -> (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+
+  #----------------------
+
+  output : () ->
+    Buffer.concat [
       @get_V_buf(),
       uint_to_buffer(8, @C.length),
       @C

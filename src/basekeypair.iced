@@ -50,6 +50,7 @@ exports.BaseKeyPair = class BaseKeyPair
   fulfills_flags : (flags) -> false
   is_toxic : () -> false
   nbits : () -> @pub?.nbits()
+  good_for_flags : () -> (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage | C.key_flags.certify_keys | C.key_flags.sign_data)
 
   #----------------
 

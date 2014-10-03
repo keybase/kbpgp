@@ -411,7 +411,15 @@ class KeyMaterial extends Packet
   #-------------------
 
   fulfills_flags : (flags) ->
-    ((@get_all_key_flags() & flags) is flags) or @key.fulfills_flags(flags)
+    akf = @get_all_key_flags()
+    # - Lots of cases to consider.  First, we see if the key is explicitly deemed
+    #   appropriate for this sort of work, via a signature.
+    # - Then we check if this is a single-purpose key like DSA, in which case it's implied(-ish)
+    # - Finally, if no flags were supplied, and it's a primary key, then we assume it's
+    #   good regardless (assuming you can actually perform the crypto op with the key)
+    ((akf & flags) is flags) or
+       @key.fulfills_flags(flags) or
+       (@is_primary() and (akf is 0) and ((@key.good_for_flags() & flags) is flags))
 
   get_signed_userids         : () -> @get_psc().get_signed_userids()
   get_signed_user_attributes : () -> @get_psc().get_signed_user_attributes()

@@ -1,3 +1,10 @@
+## 1.1.2 (2014-10-04)
+
+Bugfixes:
+  - I can't find it in the RFC, but it seems as if we need to assume all reasonable
+    key flags for a primary if none were specified.
+      - This should address keybase/keybase-issues#1110
+
 ## 1.1.1 (2014-10-03)
 
 Nit:
