@@ -1,3 +1,10 @@
+## 1.1.3 (2014-10-08)
+
+Bugfixes:
+ - After merging a private key, try to "unlock" it if it's not
+   PW-protected. We were already doing the same for import, but
+   need it here for keybase's key_path.iced
+
 ## 1.1.2 (2014-10-04)
 
 Bugfixes:

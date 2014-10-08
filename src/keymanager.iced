@@ -473,10 +473,21 @@ class KeyManager extends KeyFetcher
     # For keys that have unprotected secret key data, just unlock
     # the secret key material by default, that way we don't have to
     # call unlock_pgp() on an unlocked key (which is confusing).
-    if not(err?) and ret.has_pgp_private() and not ret.is_pgp_locked()
-      await ret.unlock_pgp {}, defer err
+    if not(err?)
+      await ret.simple_unlock {}, defer err
 
     cb err, ret, warnings
+
+  #--------------
+
+  simple_unlock : (opts, cb) ->
+    err = null
+    # For keys that have unprotected secret key data, just unlock
+    # the secret key material by default, that way we don't have to
+    # call unlock_pgp() on an unlocked key (which is confusing).
+    if @has_pgp_private() and not @is_pgp_locked()
+      await @unlock_pgp {}, defer err
+    cb err
 
   #--------------
 
@@ -547,8 +558,10 @@ class KeyManager extends KeyFetcher
   # signatures.  And check that the public portions agree.
   merge_pgp_private : ({armored, raw, asp}, cb) ->
     asp = ASP.make asp
-    await KeyManager.import_from_armored_pgp { armored, raw, asp }, defer err, b2
-    err = @pgp.merge_private b2.pgp unless err?
+    esc = make_esc cb, "merge_pgp_private"
+    await KeyManager.import_from_armored_pgp { armored, raw, asp }, esc defer b2
+    err = @pgp.merge_private b2.pgp
+    await @simple_unlock {}, esc defer() unless err?
     cb err
 
   #------------
