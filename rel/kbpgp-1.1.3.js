@@ -151,6 +151,10 @@
       return (_ref = this.pub) != null ? _ref.nbits() : void 0;
     };
 
+    BaseKeyPair.prototype.good_for_flags = function() {
+      return C.key_flags.encrypt_comm | C.key_flags.encrypt_storage | C.key_flags.certify_keys | C.key_flags.sign_data;
+    };
+
     BaseKeyPair.prototype.eq = function(k2) {
       return (this.type === k2.type) && (bufeq_secure(this.serialize(), k2.serialize()));
     };
@@ -236,7 +240,7 @@
                     return r = arguments[0];
                   };
                 })(),
-                lineno: 114
+                lineno: 115
               }));
               __iced_deferrals._fulfill();
             })(function() {
@@ -902,8 +906,12 @@
 
     Pair.prototype.fulfills_flags = function(flags) {
       var good_for;
-      good_for = C.key_flags.certify_keys | C.key_flags.sign_data;
+      good_for = this.good_for_flags();
       return (flags & good_for) === flags;
+    };
+
+    Pair.prototype.good_for_flags = function() {
+      return C.key_flags.certify_keys | C.key_flags.sign_data;
     };
 
     Pair.prototype.verify_unpad_and_check_hash = function(_arg, cb) {
@@ -934,7 +942,7 @@
                     return v = arguments[1];
                   };
                 })(),
-                lineno: 121
+                lineno: 125
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -967,7 +975,7 @@
                 return sig = arguments[0];
               };
             })(),
-            lineno: 130
+            lineno: 134
           }));
           __iced_deferrals._fulfill();
         });
@@ -1825,6 +1833,10 @@
       key = _arg.key;
     };
 
+    Output.prototype.good_for_flags = function() {
+      return C.key_flags.encrypt_comm | C.key_flags.encrypt_storage;
+    };
+
     Output.prototype.output = function() {
       return Buffer.concat([this.get_V_buf(), uint_to_buffer(8, this.C.length), this.C]);
     };
@@ -2140,6 +2152,10 @@
       return [err, ret, n];
     };
 
+    Pair.prototype.good_for_flags = function() {
+      return C.key_flags.certify_keys | C.key_flags.sign_data;
+    };
+
     Pair.generate = function(_arg, cb) {
       var asp, nbits;
       nbits = _arg.nbits, asp = _arg.asp;
@@ -2299,8 +2315,12 @@
 
     Pair.prototype.fulfills_flags = function(flags) {
       var good_for;
-      good_for = C.key_flags.encrypt_comm | C.key_flags.encrypt_storage;
+      good_for = this.good_for_flags();
       return (flags & good_for) === flags;
+    };
+
+    Pair.prototype.good_for_flags = function() {
+      return C.key_flags.encrypt_comm | C.key_flags.encrypt_storage;
     };
 
     function Pair(_arg) {
@@ -2345,7 +2365,7 @@
                 return m = arguments[1];
               };
             })(),
-            lineno: 109
+            lineno: 111
           }));
           __iced_deferrals._fulfill();
         });
@@ -2365,7 +2385,7 @@
                       return c_mpis = arguments[0];
                     };
                   })(),
-                  lineno: 111
+                  lineno: 113
                 }));
                 __iced_deferrals._fulfill();
               })(function() {
@@ -2402,7 +2422,7 @@
                 return m = arguments[1];
               };
             })(),
-            lineno: 119
+            lineno: 121
           }));
           __iced_deferrals._fulfill();
         });
@@ -2514,7 +2534,7 @@
                       return tmp = arguments[1];
                     };
                   })(),
-                  lineno: 161
+                  lineno: 163
                 }));
                 __iced_deferrals._fulfill();
               })(function() {
@@ -4616,14 +4636,14 @@ _break()
       })(this)((function(_this) {
         return function() {
           (function(__iced_k) {
-            if (!(err != null) && ret.has_pgp_private() && !ret.is_pgp_locked()) {
+            if (!(err != null)) {
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
                   filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
                   funcname: "KeyManager.import_from_armored_pgp"
                 });
-                ret.unlock_pgp({}, __iced_deferrals.defer({
+                ret.simple_unlock({}, __iced_deferrals.defer({
                   assign_fn: (function() {
                     return function() {
                       return err = arguments[0];
@@ -4639,6 +4659,41 @@ _break()
           })(function() {
             return cb(err, ret, warnings);
           });
+        };
+      })(this));
+    };
+
+    KeyManager.prototype.simple_unlock = function(opts, cb) {
+      var err, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      __iced_k = __iced_k_noop;
+      ___iced_passed_deferral = iced.findDeferral(arguments);
+      err = null;
+      (function(_this) {
+        return (function(__iced_k) {
+          if (_this.has_pgp_private() && !_this.is_pgp_locked()) {
+            (function(__iced_k) {
+              __iced_deferrals = new iced.Deferrals(__iced_k, {
+                parent: ___iced_passed_deferral,
+                filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
+                funcname: "KeyManager.simple_unlock"
+              });
+              _this.unlock_pgp({}, __iced_deferrals.defer({
+                assign_fn: (function() {
+                  return function() {
+                    return err = arguments[0];
+                  };
+                })(),
+                lineno: 488
+              }));
+              __iced_deferrals._fulfill();
+            })(__iced_k);
+          } else {
+            return __iced_k();
+          }
+        });
+      })(this)((function(_this) {
+        return function() {
+          return cb(err);
         };
       })(this));
     };
@@ -4679,7 +4734,7 @@ _break()
                     return warnings = arguments[2];
                   };
                 })(),
-                lineno: 492
+                lineno: 503
               }));
               __iced_deferrals._fulfill();
             })(function() {
@@ -4723,7 +4778,7 @@ _break()
                 return err = arguments[0];
               };
             })(),
-            lineno: 502
+            lineno: 513
           }));
           __iced_deferrals._fulfill();
         });
@@ -4751,7 +4806,7 @@ _break()
                       return km = arguments[1];
                     };
                   })(),
-                  lineno: 505
+                  lineno: 516
                 }));
                 __iced_deferrals._fulfill();
               })(__iced_k);
@@ -4779,7 +4834,7 @@ _break()
                         return err = arguments[0];
                       };
                     })(),
-                    lineno: 514
+                    lineno: 525
                   }));
                   __iced_deferrals._fulfill();
                 })(__iced_k);
@@ -4821,7 +4876,7 @@ _break()
                     return err = arguments[0];
                   };
                 })(),
-                lineno: 529
+                lineno: 540
               }));
               __iced_deferrals._fulfill();
             })(function() {
@@ -4865,7 +4920,7 @@ _break()
                       return err = arguments[0];
                     };
                   })(),
-                  lineno: 539
+                  lineno: 550
                 }));
                 __iced_deferrals._fulfill();
               })(__iced_k);
@@ -4880,11 +4935,12 @@ _break()
     };
 
     KeyManager.prototype.merge_pgp_private = function(_arg, cb) {
-      var armored, asp, b2, err, raw, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      var armored, asp, b2, err, esc, raw, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
       armored = _arg.armored, raw = _arg.raw, asp = _arg.asp;
       asp = ASP.make(asp);
+      esc = make_esc(cb, "merge_pgp_private");
       (function(_this) {
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
@@ -4896,23 +4952,38 @@ _break()
             armored: armored,
             raw: raw,
             asp: asp
-          }, __iced_deferrals.defer({
+          }, esc(__iced_deferrals.defer({
             assign_fn: (function() {
               return function() {
-                err = arguments[0];
-                return b2 = arguments[1];
+                return b2 = arguments[0];
               };
             })(),
-            lineno: 549
-          }));
+            lineno: 561
+          })));
           __iced_deferrals._fulfill();
         });
       })(this)((function(_this) {
         return function() {
-          if (typeof err === "undefined" || err === null) {
-            err = _this.pgp.merge_private(b2.pgp);
-          }
-          return cb(err);
+          err = _this.pgp.merge_private(b2.pgp);
+          (function(__iced_k) {
+            if (err == null) {
+              (function(__iced_k) {
+                __iced_deferrals = new iced.Deferrals(__iced_k, {
+                  parent: ___iced_passed_deferral,
+                  filename: "/Users/max/src/keybase/kbpgp/src/keymanager.iced",
+                  funcname: "KeyManager.merge_pgp_private"
+                });
+                _this.simple_unlock({}, esc(__iced_deferrals.defer({
+                  lineno: 563
+                })));
+                __iced_deferrals._fulfill();
+              })(__iced_k);
+            } else {
+              return __iced_k();
+            }
+          })(function() {
+            return cb(err);
+          });
         };
       })(this));
     };
@@ -4941,7 +5012,7 @@ _break()
                 return err = arguments[0];
               };
             })(),
-            lineno: 563
+            lineno: 576
           }));
           __iced_deferrals._fulfill();
         });
@@ -5000,7 +5071,7 @@ _break()
                 return err = arguments[0];
               };
             })(),
-            lineno: 581
+            lineno: 594
           }));
           __iced_deferrals._fulfill();
         });
@@ -5037,7 +5108,7 @@ _break()
                     return err = arguments[0];
                   };
                 })(),
-                lineno: 594
+                lineno: 607
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -5125,7 +5196,7 @@ _break()
                     return res = arguments[1];
                   };
                 })(),
-                lineno: 631
+                lineno: 644
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -5146,7 +5217,7 @@ _break()
                     return res = arguments[1];
                   };
                 })(),
-                lineno: 633
+                lineno: 646
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -5194,7 +5265,7 @@ _break()
                 return err = arguments[0];
               };
             })(),
-            lineno: 646
+            lineno: 659
           }));
           __iced_deferrals._fulfill();
         });
@@ -5374,7 +5445,7 @@ _break()
                         return err = arguments[0];
                       };
                     })(),
-                    lineno: 744
+                    lineno: 757
                   }));
                   __iced_deferrals._fulfill();
                 })(_next);
@@ -5503,6 +5574,8 @@ _break()
   })(KeyFetcher);
 
   exports.PgpKeyRing = PgpKeyRing;
+
+  exports.KeyRing = PgpKeyRing;
 
 }).call(this);
 
@@ -10059,7 +10132,9 @@ _break()
     };
 
     KeyMaterial.prototype.fulfills_flags = function(flags) {
-      return ((this.get_all_key_flags() & flags) === flags) || this.key.fulfills_flags(flags);
+      var akf;
+      akf = this.get_all_key_flags();
+      return ((akf & flags) === flags) || this.key.fulfills_flags(flags) || (this.is_primary() && (akf === 0) && ((this.key.good_for_flags() & flags) === flags));
     };
 
     KeyMaterial.prototype.get_signed_userids = function() {
@@ -46208,7 +46283,7 @@ module.exports={
     "keybase"
   ],
   "author": "Maxwell Krohn",
-  "version": "1.1.0",
+  "version": "1.1.3",
   "license": "BSD-3-Clause",
   "main": "./lib/main.js",
   "directories": {
