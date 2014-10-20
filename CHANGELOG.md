@@ -1,3 +1,10 @@
+## 1.1.4 (2014-10-20)
+
+Feature:
+
+ - KeyManager.generate() takes userids vector, for multiple UIDs in key
+   - Closes #45
+
 ## 1.1.3 (2014-10-08)
 
 Bugfixes:

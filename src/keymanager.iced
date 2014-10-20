@@ -3,7 +3,7 @@
 K = require('./const').kb
 C = require('./const').openpgp
 {make_esc} = require 'iced-error'
-{assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
+{athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
 {ops_to_keyflags} = require './openpgp/util'
 {Lifespan,Subkey,Primary} = require './keywrapper'
 
@@ -332,6 +332,7 @@ class KeyManager extends KeyFetcher
   #
   # @param {ASP} asp A standard Async Package.
   # @param {string|Buffer} userid The userID to bake into the key
+  # @param {string|Buffer} userids The userIDs to bake into the key (specify >= 1)
   # @param {object} primary Specify the `flags`, `nbits`, and `expire_in` for the primary
   #   key.  If not specified, defaults are ALLFLAGS, 4096, and 0, respectively.
   # @param {Array<object>} subkeys As for primary, specify the `flags`, `nbits`, and `expire_in`
@@ -354,7 +355,7 @@ class KeyManager extends KeyFetcher
   #   defaults of 4096 for the master, and 2048 for the subkeys [DEPRECATED]
   # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED]
   #
-  @generate : ({asp, userid, primary, subkeys, ecc,
+  @generate : ({asp, userid, userids, primary, subkeys, ecc,
                  sub_flags, nsubs, primary_flags, nbits, expire_in}, cb) ->
     asp = ASP.make asp
     F = C.key_flags
@@ -375,9 +376,16 @@ class KeyManager extends KeyFetcher
       subkey.algo or= primary.algo.subkey_algo subkey.flags
       subkey.nbits or= nbits or K.key_defaults.sub.nbits[subkey.algo.klass_name]
 
-    userids = [ new opkts.UserID userid ]
     generated = unix_time()
     esc = make_esc cb, "KeyManager::generate"
+
+    if userid?
+      userids = [ userid ]
+    if userids? and Array.isArray(userids)
+      userids = ( new opkts.UserID(u) for u in userids )
+    else
+      err = new Error "Need either 'userid' or 'userids' specified as an array"
+      await athrow err, esc defer()
 
     gen = ( {klass, section, params, primary}, cb) ->
       asp.section section
