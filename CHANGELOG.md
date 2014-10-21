@@ -1,3 +1,9 @@
+## 1.1.5 (2014-10-20)
+
+Bufixes:
+ - Primary userid flag on the first user ID given
+ - generate_rsa and generate_ecc also get userids parameters
+
 ## 1.1.4 (2014-10-20)
 
 Feature:

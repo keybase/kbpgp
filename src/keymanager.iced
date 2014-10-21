@@ -332,7 +332,8 @@ class KeyManager extends KeyFetcher
   #
   # @param {ASP} asp A standard Async Package.
   # @param {string|Buffer} userid The userID to bake into the key
-  # @param {string|Buffer} userids The userIDs to bake into the key (specify >= 1)
+  # @param {string|Buffer} userids The userIDs to bake into the key (specify >= 1); the first
+  #   one specified gets the Primary flag.
   # @param {object} primary Specify the `flags`, `nbits`, and `expire_in` for the primary
   #   key.  If not specified, defaults are ALLFLAGS, 4096, and 0, respectively.
   # @param {Array<object>} subkeys As for primary, specify the `flags`, `nbits`, and `expire_in`
@@ -406,7 +407,7 @@ class KeyManager extends KeyFetcher
 
   #------------
 
-  @generate_rsa : ({asp, userid}, cb) ->
+  @generate_rsa : ({asp, userid, userids}, cb) ->
     F = C.key_flags
     primary = {
       flags : F.certify_keys
@@ -420,11 +421,11 @@ class KeyManager extends KeyFetcher
       nbits : 2048
     }]
 
-    KeyManager.generate { asp, userid, primary, subkeys }, cb
+    KeyManager.generate { asp, userid, userids, primary, subkeys }, cb
 
   #------------
 
-  @generate_ecc : ({asp, userid}, cb) ->
+  @generate_ecc : ({asp, userid, userids}, cb) ->
     F = C.key_flags
     primary = {
       flags : F.certify_keys
@@ -439,7 +440,7 @@ class KeyManager extends KeyFetcher
       nbits : 256
     }]
 
-    KeyManager.generate { asp, userid, primary, subkeys }, cb
+    KeyManager.generate { asp, userid, userids, primary, subkeys }, cb
 
   #------------
 

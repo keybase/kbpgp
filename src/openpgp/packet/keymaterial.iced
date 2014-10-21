@@ -187,18 +187,20 @@ class KeyMaterial extends Packet
   self_sign_key : ({userids, lifespan, raw_payload}, cb) ->
     err = null
     sigs = []
+    primary = true
     for userid in userids when not err?
       sig = null
       if @key.can_sign() or raw_payload
-        await @_self_sign_key { userid, lifespan, raw_payload }, defer err, sig
-      else if not (userid.get_framed_signature_output())?
+        await @_self_sign_key { userid, lifespan, raw_payload, primary }, defer err, sig
+      else if not (sig = userid.get_framed_signature_output())?
         err = new Error "Cannot sign key --- don't have a private key, and can't replay"
+      primary = false
       sigs.push sig
     cb err, sig
 
   #--------------------------
 
-  _self_sign_key : ( {userid, lifespan, raw_payload}, cb) ->
+  _self_sign_key : ( {userid, lifespan, raw_payload, primary}, cb) ->
     payload = Buffer.concat [ @to_signature_payload(), userid.to_signature_payload() ]
 
     # XXX Todo -- Implement Preferred Compression Algorithm --- See Issue #16
@@ -212,6 +214,8 @@ class KeyMaterial extends Packet
       new S.Features([C.features.modification_detection])
       new S.KeyServerPreferences([C.key_server_preferences.no_modify])
     ]
+    if primary
+      hsp.push new S.PrimaryUserId(1)
 
     if lifespan.expire_in
       hsp.push new S.KeyExpirationTime(lifespan.expire_in)

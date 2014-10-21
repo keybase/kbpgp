@@ -18,13 +18,15 @@ main = (cb) ->
   esc = make_esc cb, "main"
   tsenc = new Encryptor { key : bufferify("shitty"), version : 2 }
   asp = new ASP { progress_hook }
-  userid = 'maxtaco@keybase.io'
+  userids = [ 'maxtaco@keybase.io', 'you@yahoo.com' ]
   passphrase = new Buffer "cats1122", "utf8"
-  await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userid }, esc defer bundle
+  await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userids }, esc defer bundle
   await bundle.sign {asp}, esc defer()
-  await bundle.export_private_to_server {tsenc,asp}, esc defer pair
-  await KeyManager.import_from_packed_keybase { raw : pair.keybase, asp }, defer b2
-  console.log b2
+  await bundle.export_pgp_public {}, esc defer msg
+  console.log msg
+  # await bundle.export_private_to_server {tsenc,asp}, esc defer pair
+  # await KeyManager.import_from_packed_keybase { raw : pair.keybase, asp }, defer b2
+  # console.log b2
  
   #await bundle.export_pgp_private_to_client { passphrase, asp }, esc defer msg
   #console.log util.inspect(pair, { depth : null })

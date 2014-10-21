@@ -706,6 +706,7 @@ exports.Features = Features
 exports.KeyServerPreferences = KeyServerPreferences
 exports.Issuer = Issuer
 exports.EmbeddedSignature = EmbeddedSignature
+exports.PrimaryUserId = PrimaryUserId
 
 #===========================================================
 
