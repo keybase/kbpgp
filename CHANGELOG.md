@@ -1,3 +1,8 @@
+## 1.1.6 (2014-11-18)
+
+SECURITY BUGFIX
+ - Don't use revoked subkeys
+
 ## 1.1.5 (2014-10-20)
 
 Bufixes:

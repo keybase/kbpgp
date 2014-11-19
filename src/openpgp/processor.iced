@@ -155,6 +155,8 @@ class Message
         fingerprint = key_material.get_fingerprint()
         privk = key_material.key
         await privk.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey, pkcs5
+        unless err?
+          @encryption_subkey = key_material
     else
       enc = false
 
@@ -354,7 +356,7 @@ exports.Message = Message
 #    we will get a series of PGP literal packets, some of which might be signed.
 exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data, strict}, cb) ->
   literals = null
-  err = msg = warnings = null
+  err = msg = warnings = esk = null
   if armored?
     [err,msg] = armor.decode armored
   else if raw?
@@ -366,6 +368,7 @@ exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data, stric
     proc = new Message { keyfetch, data_fn, data, strict }
     await proc.parse_and_process msg, defer err, literals
     warnings = proc.warnings
-  cb err, literals, warnings
+    esk = proc.encryption_subkey
+  cb err, literals, warnings, esk
 
 #==========================================================================================

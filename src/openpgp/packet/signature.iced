@@ -1,4 +1,4 @@
-# 
+#
 {Packet} = require './base'
 C = require('../../const').openpgp
 S = C.sig_subpacket
@@ -17,16 +17,16 @@ class Signature_v2_or_v3 extends Packet
 
   #---------------------
 
-  constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
+  constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class,
                    @signed_hash_value_hash, @time, @sig, @type,
                    @version } ) ->
     @hasher = SHA512 unless @hasher?
-    @_framed_output = null # sometimes we store the framed output here 
+    @_framed_output = null # sometimes we store the framed output here
 
   #---------------------
 
   is_signature : () -> true
- 
+
   #---------------------
 
   get_key_id : () -> @key_id
@@ -48,7 +48,7 @@ class Signature_v2_or_v3 extends Packet
       new Buffer [ C.versions.signature.V3, @type ],
       uint_to_buffer(32, @time),
       @key_id,
-      new Buffer [ @key.type, @hasher.type ] 
+      new Buffer [ @key.type, @hasher.type ]
     ]
 
   #---------------------
@@ -95,7 +95,7 @@ class Signature extends Packet
 
   #---------------------
 
-  constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class, 
+  constructor : ({ @key, @hasher, @key_id, @sig_data, @public_key_class,
                    @signed_hash_value_hash, @hashed_subpackets, @time, @sig, @type,
                    @unhashed_subpackets, @version } ) ->
     @hasher = SHA512 unless @hasher?
@@ -103,7 +103,7 @@ class Signature extends Packet
     @unhashed_subpackets = [] unless @unhashed_subpackets?
     @subpacket_index = @_make_subpacket_index()
 
-    @_framed_output = null # sometimes we store the framed output here 
+    @_framed_output = null # sometimes we store the framed output here
 
   #---------------------
 
@@ -122,13 +122,13 @@ class Signature extends Packet
       ret.unhashed[p.type] = p
       ret.all[p.type] = p
     ret
- 
+
   #---------------------
 
-  prepare_payload : (data) -> 
+  prepare_payload : (data) ->
     flatsp = Buffer.concat( s.to_buffer() for s in @hashed_subpackets )
 
-    prefix = Buffer.concat [ 
+    prefix = Buffer.concat [
       new Buffer([ C.versions.signature.V4, @type, @key.type, @hasher.type ]),
       uint_to_buffer(16, flatsp.length),
       flatsp
@@ -173,12 +173,12 @@ class Signature extends Packet
   # This is why we store the framed_output inside the packet after we write it
   # (see above in write).  Sometimes, in the case of public keys, we don't have the
   # capacity to regenerate signatures, so we just need to replay what we fetched.  But
-  # other times, we want to rewrite the output. Through this mechanism we can handle both 
+  # other times, we want to rewrite the output. Through this mechanism we can handle both
   # cases.
   get_framed_output : () -> @_framed_output or @replay()
 
   #-----------------
-  
+
   @parse : (slice) -> (new Parser slice).parse()
 
   #-----------------
@@ -194,9 +194,9 @@ class Signature extends Packet
   verify : (data_packets, cb) ->
     await @_verify data_packets, defer err
     for p in @unhashed_subpackets when (not err? and (s = p.to_sig())?)
-      if s.type isnt C.sig_types.primary_binding 
+      if s.type isnt C.sig_types.primary_binding
         err = new Error "unknown subpacket signature type: #{s.type}"
-      else if data_packets.length isnt 1 
+      else if data_packets.length isnt 1
         err = new Error "Needed 1 data packet for a primary_binding signature"
       else
         subkey = data_packets[0]
@@ -230,7 +230,7 @@ class Signature extends Packet
           [ @primary ].concat data_packets
 
       when T.subkey_binding, T.primary_binding, T.subkey_revocation
-        packets = []        
+        packets = []
         if data_packets.length isnt 1
           err =  new Error "Wrong number of data packets; expected only 1"
         else if not @primary?
@@ -243,7 +243,7 @@ class Signature extends Packet
       when T.direct
         [ @primary].concat data_packets
 
-      else 
+      else
         err = new Error "cannot verify sigtype #{@type}"
         []
 
@@ -267,7 +267,7 @@ class Signature extends Packet
           for d in @data_packets
             d.push_sig new packetsigs.Data { sig }
 
-        when T.issuer, T.personal, T.casual, T.positive 
+        when T.issuer, T.personal, T.casual, T.positive
           ps = null
           if (userid = @data_packets[1].to_userid())?
             ps = new packetsigs.SelfSig { @type, userid, sig }
@@ -283,25 +283,28 @@ class Signature extends Packet
         when T.primary_binding
           subkey.push_sig new SKB { @primary, sig, direction : SKB.UP }
 
+        when T.subkey_revocation
+          subkey.mark_revoked sig
+
     cb err
 
   #-----------------
 
   is_signature : () -> true
- 
+
   #-----------------
 
   when_generated : () -> @subpacket_index.hashed[S.creation_time]?.time
 
   #-----------------
 
-  time_primary_pair : () -> 
+  time_primary_pair : () ->
     T = C.sig_types
-    if @type in [ T.issuer, T.personal, T.casual, T.positive ] 
+    if @type in [ T.issuer, T.personal, T.casual, T.positive ]
       [ @when_generated(), !!(@subpacket_index.hashed[S.primary_user_id]?.flag) ]
     else
       null
-      
+
   #-----------------
 
   # See Issue #28
@@ -372,13 +375,13 @@ class Time extends SubPacket
 #------------
 
 class Preference extends SubPacket
-  constructor : (type, @v) -> 
+  constructor : (type, @v) ->
     super type
     # No 'undefined' or null values allowed...
     for e in @v
       assert e?
 
-  @parse : (slice, klass) -> 
+  @parse : (slice, klass) ->
     v = (c for c in slice.consume_rest_to_buffer())
     new klass v
   _v_to_buffer : () -> new Buffer (e for e in @v)
@@ -411,7 +414,7 @@ class Trust extends SubPacket
   constructor : (@level, @amount) ->
     super S.trust_signature
   @parse : (slice) -> new Trust slice.read_uint8(), slice.read_uint8()
-  _v_to_buffer : () -> 
+  _v_to_buffer : () ->
     Buffer.concat [
       uint_to_buffer(8, @level),
       uint_to_buffer(8, @amount),
@@ -422,7 +425,7 @@ class Trust extends SubPacket
 class RegularExpression extends SubPacket
   constructor : (@re) ->
     super S.regular_expression
-  @parse : (slice) -> 
+  @parse : (slice) ->
     ret = new RegularExpression slice.consume_rest_to_buffer().toString 'utf8'
     ret
   _v_to_buffer : () -> new Buffer @re, 'utf8'
@@ -479,7 +482,7 @@ class Issuer extends SubPacket
 class NotationData extends SubPacket
   constructor : (@flags, @name, @value) ->
     super S.notation_data
-  @parse : (slice) -> 
+  @parse : (slice) ->
     flags = slice.read_uint32()
     nl = slice.read_uint16()
     vl = slice.read_uint16()
@@ -602,7 +605,7 @@ class EmbeddedSignature extends SubPacket
     super S.embedded_signature
   _v_to_buffer : () -> @rawsig
   to_sig : () -> @sig
-  @parse : (slice) -> 
+  @parse : (slice) ->
     rawsig = slice.peek_rest_to_buffer()
     sig = Signature.parse(slice)
     new EmbeddedSignature { sig, rawsig }
@@ -679,7 +682,7 @@ class Parser
       when S.features then Features
       when S.signature_target then SignatureTarget
       when S.embedded_signature then EmbeddedSignature
-      else 
+      else
         if type >= S.experimental_low and type <= S.experimental_high then Experimental
         else throw new Error "Unknown signature subpacket: #{type}"
     ret = klass.parse @slice, type
@@ -710,4 +713,4 @@ exports.PrimaryUserId = PrimaryUserId
 
 #===========================================================
 
- 
+
