@@ -1,5 +1,6 @@
 
 mods =
+  revoked_subkeys : require '../files/revoked_subkeys.iced'
   sigs : require "../files/verify_sigs.iced"
   multiples : require "../files/multiples.iced"
   unbox_cant_verify : require '../files/unbox_cant_verify.iced'
