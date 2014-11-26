@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2
 Comment: GPGTools - http://gpgtools.org
 
-iQEcBAABAgAGBQJUbUn9AAoJEJgKPw0B/gTfWskH/izSZMqfYio243SqonpDRJw2
-mDqFeEgRpFKTX3QPpSgJepYk6LOjgZxmW9k7SqRYYm5UvdVWqyTq/e8siOGBkQ5x
-Wc+UYfF+84CpXnNfD2x7KC+p0+3iwJd183/0vzq5Y/4GMJ1AqXSmtW56fND+0h+J
-qJv2NRk0DaQ459LGGyrThQt7c8zmw0m/wI2FN2bXGyG82gZ/F18VvisfYqvTQ46B
-AG9sFBs/VLaTciCUOGb+JbjG9CCG+yhlS25vyH7rQHFy0cIOLPqbw5Yd/+/EDHoV
-tW8s5bMlSHm1VdS3cPzR8rTGs4eMU7jy2e+kNnsZMtL8CFJf/JfrbItVRlJFC2I=
-=YiSW
+iQEcBAABAgAGBQJUdTmJAAoJEJgKPw0B/gTfA8sH/jP6hBblSQYmgyh/TKUzpbmq
+YKxnlXKrLJ7wCGMSVh9nuEpvxjRn8DmIITZR+DwRDUQf+vQCCsg2JzlFLi96Hkij
+ZBZRCjB5kAFPv7lGPbdshY9Bi8xm1a4eMhimkbdB7/YDu/oOX5Tg6Aqv9rz/JjOR
+jm4lzwi3CQhE642udkCD2sRnpIbqotMojC6HEEYcONIlVXjE3ORatRfqp8N9PGAW
+GlivpQqHk9EuCHnLAhuaCfKHtZeeFNwzeYKfI1QvheJbzmMekh0Z5p+/bd3oTtZE
+njRUIFoUwkfrQgFGKgD537NU85KhiVaP1DVaMY0yQPO26yoe/mfu06xDhfjS0aM=
+=EP+j
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,7 +26,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-11394            CHANGELOG.md                        88d68a455ffb764abf1bc04da826044d28830369b92e430012e66ac669fe85ce                                                                 
+11596            CHANGELOG.md                        1ec36bd704b61c6ddcf39160772882ad447737fbc7efbbfbeeae67a1857b3b9c                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3109             Makefile                            771bacfba1be35b15591ecce2c3cfb5657acfcffc9db340dfb8e4cb4af3b9815                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -114,7 +114,7 @@ size     exec  file                                  contents
 4511                   userid.js                     3f0e71db875f73b6cf2cfca09a54fda232fcd50198e69701bf70d9fb9b6ee9d6                                                                 
 5807                 parser.js                       832fea89ecc84b4a38ef0c51a8792bebd4d4a579d99bb4465f2ec4b7a1c6c0a4                                                                 
 38258                processor.js                    e5ad70b96b6f8dd7c0b62604b95f9478b7c60ab95cbf2b76f5bf7f579e17fdc7                                                                 
-4404                 s2k.js                          7af616feea0983261ccc5e84164eccd947e505798ff3043012c444460d4b0dcd                                                                 
+5821                 s2k.js                          3e930d4a3486d8c09cba2d9e26ac7f18d684ecfed5ddecea40fc64c823b57a7f                                                                 
 1547                 util.js                         c10cd4d3cc3e7b231bb81db7af9ea72abb925ab33c8b0ae4fc3b11a4f2ecf380                                                                 
 2097                 verifier.js                     cd08c5424b6b1d174f5c8a3686dc877c33bb8df9649492dbff6008edee85eb72                                                                 
 8403               pad.js                            8a5cf3bd59fbbe92b71db510315b2605b622fc6d045e45c17672558e5e4e7da7                                                                 
@@ -125,23 +125,11 @@ size     exec  file                                  contents
 30990              rsa.js                            2d77641cae605aaab19ed584e8b3adbe47331154c3d2738735200b07a4ba36b3                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1004             package.json                        b817706546be96a69c5d837f2cc70ae4fee2efe723c98b11b3e50645ea03ba7a                                                                 
+1004             package.json                        137d66e9c89deef0027407f8235d2364e06b6ca3483c347d9e17ec81b1fa0ce3                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
                  rel/                                                                                                                                                                 
-916822             kbpgp-1.1.1-min.js                614ff1ae85939f3f0fd3c92c8a69fab074918e2cabbfb3b91a0b038ed48de513                                                                 
-560441             kbpgp-1.1.1-signed-release.zip    40343e7036524b768903cb8a37dabcc4b88b6499628213166e861eb984756138|206484654ed664f77ad3dc1b2275d42901cfabd7948e72ab1df623fbc83a657f
-1543203            kbpgp-1.1.1.js                    b636a2a36a169cbfc7de4f295f5b748a4c1e15e9b4e99bb2f71e7943c281a568                                                                 
-925895             kbpgp-1.1.2-min.js                f2523501a976f594f054b3f4dea096368d2b3301b7eddf1edd26338e8aae825b                                                                 
-565363             kbpgp-1.1.2-signed-release.zip    bb28a4ad8d3a18f5f6c471ff0e80930fcf11ced0a4ca42eb4f5123f8c5fb6930|08351b80b4f8cb65d0733f22f48bf2a9bb505bd66c3d8477cc65a1c99439d93e
-1556826            kbpgp-1.1.2.js                    c139655aa1bcbf57fe8cbdaf8737f78810aa35d4205aafc35106f7b3b7a8fe03                                                                 
-926939             kbpgp-1.1.3-min.js                b1c1dd0a8f9e6984c894d8fcb797eb852830120ecc42c781c722f5f6e524cad4                                                                 
-565535             kbpgp-1.1.3-signed-release.zip    ff20a53f93a2a6b55c6dcefdb545c19521b9760c440fba26724a5fe379a7e420|3d145ddc6822421b91a0d894067883a2f25cea838533bdbd0ed294c1274e71c2
-1558616            kbpgp-1.1.3.js                    6a0341e46a7f3eed7fdb04bd9a2f97410784dee13c64d9541163ce54810ddead                                                                 
-919367             kbpgp-1.1.5-min.js                6242445614901d0010b70596bc5a9275a85516e035d27e76b01e9d92ea33f0d8                                                                 
-561373             kbpgp-1.1.5-signed-release.zip    5ad1b699296db1568b2b434f3d95d4d3dfda7cec8e538aa7dfac0cdb4ffcd5c2|3c9b36b35a24209996b1c1ee4c8e80ab6b6ce235074b0bbce39c6bf39f189970
-1547581            kbpgp-1.1.5.js                    16d8c9e2263977e4b2cf1d4c58035763a740af6ad4c17c7f7c7d985fff37fb69                                                                 
 919718             kbpgp-1.1.6-min.js                c5564b93ee1ccc5da8061600ac8f779dfb3058583d05ff26ab0e60b858a7c4fd                                                                 
 561566             kbpgp-1.1.6-signed-release.zip    ca29baa70343c4fd4d4bd7cc632723fa45b4069bcb04ff294ba99da2a706dc28|f02b380fd2f3401359220175173775ec1728a1cca6a7a97f0cefb165a503ca55
 1548150            kbpgp-1.1.6.js                    36025ddee3ac59af3c0c8db51cfe3b2edfbc31570bece22e31750c2c2bb618c1                                                                 
@@ -206,7 +194,7 @@ size     exec  file                                  contents
 2866                   userid.iced                   b86952f392b9d7dc3a5fdc8ed6b0f878a57cc9b2ba530cb7c8eb3d0a042d4e36                                                                 
 4149                 parser.iced                     54a415da348c62680a7876fe1fd8b4641c01cffe23dfd068cbe1f7b831d4c8d7                                                                 
 11595                processor.iced                  d42581b54fb1a449e7ba4046f34d885d90094e60a74872918540c23a257a8511                                                                 
-5937                 s2k.iced                        af09de1da25cea11e0cdda54c78ba8f6ec3b13a6af6f9e6e66853cbca4c22426                                                                 
+6743                 s2k.iced                        d74d2e4a67ec979a23b4231533edf38111c8a12f144aeef37a77b9cfcc2680b1                                                                 
 1795                 util.iced                       267788a2659c0850edc8019a71f67ab53a0913031c98920f5ad32eeddc287693                                                                 
 900                  verifier.iced                   8556d830934d55cd23f19f803861d4fdce3c948442033cd1cd6ff162484d015a                                                                 
 5161               pad.iced                          43a0e874152dd0a789992d02374647fda1a4827a2bc7a27afd878a535833a241                                                                 
