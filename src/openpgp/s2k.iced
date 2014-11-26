@@ -28,7 +28,7 @@
 
 triplesec = require 'triplesec'
 C = require('../const').openpgp
-{alloc,SHA256} = require '../hash'
+{alloc,SHA256,streamers} = require '../hash'
 
 #======================================================================
 
@@ -42,13 +42,17 @@ class S2K
   
   constructor : () ->
     @hash = SHA256
+    @streamer = streamers.SHA256()
 
   #----------------------
 
   set_hash_algorithm : (which) ->
-    unless (@hash = alloc which)?
+    if (@hash = alloc which)?
+      @streamer = streamers[@hash.algname]()
+    else
       console.warn "No such hash: #{which}; defaulting to SHA-256"
       @hash = SHA256
+      @streamer = streamers.SHA256()
 
   #----------------------
   
@@ -147,18 +151,41 @@ class S2K
       when C.s2k.salt  then @hash Buffer.concat [ @salt, passphrase ]
       when C.s2k.salt_iter
         seed = Buffer.concat [ @salt, passphrase ]
-        n    = Math.ceil (@count / seed.length)
-        isp  = Buffer.concat( seed for i in [0...n])[0...@count]
-        
+        key = iterated_s2k { alg : @hash.algname, seed, @count }
+
         # This if accounts for RFC 4880 3.7.1.1 -- If hash size is greater than block size, 
         # use leftmost bits.  If blocksize larger than hash size, we need to rehash isp and prepend with 0.
         if numBytes? and numBytes in [24,32]
-          key = @hash isp
-          Buffer.concat [ key, @hash(Buffer.concat([(new Buffer [0]), isp ]))]
+          prefix = new Buffer [0]
+          key2 = iterated_s2k { alg : @hash.algname, seed, @count, prefix}
+          Buffer.concat [ key, key2 ]
         else
-          @hash isp
+          key
       else null
     ret[0...numBytes]
+
+#======================================================================
+
+_iterated_s2k_cache = {}
+
+iterated_s2k = ({alg, seed, count, prefix}) ->
+  k = "#{alg}-#{seed.toString('base64')}-#{count}"
+  k += "-#{prefix.toString('base64')}" if prefix?
+  return val if (val = _iterated_s2k_cache[k])?
+
+  streamer = streamers[alg]()
+  streamer.update(prefix) if prefix?
+  bigbuf = Buffer.concat( seed for i in [0...0x1000] )
+  tot = 0
+  while tot + bigbuf.length <= count
+    streamer.update bigbuf
+    tot += bigbuf.length
+  rem = count - tot
+  n = Math.ceil (rem / seed.length)
+  rembuf = Buffer.concat( seed for i in [0...n] )
+  ret = streamer rembuf[0...rem]
+  _iterated_s2k_cache[k] = ret
+  ret
 
 #======================================================================
 

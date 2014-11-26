@@ -1,3 +1,11 @@
+## 1.1.7 (2014-11-24)
+
+Performance:
+
+  - Speed up Iterated S2K by caching results (since subkeys need
+    to reuse the result from the primary).  And by not allocating
+    the buffer in one huge chunk
+
 ## 1.1.6 (2014-11-18)
 
 SECURITY BUGFIX
