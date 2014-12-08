@@ -1,3 +1,9 @@
+## 1.1.8 (2014-12-08)
+
+Bugfix:
+
+  - Relax exponent e requirement, don't require it to be prime or <2^16+1. See #47.
+
 ## 1.1.7 (2014-11-24)
 
 Performance:

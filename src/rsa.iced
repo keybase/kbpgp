@@ -195,8 +195,9 @@ class Pub extends BaseKey
     err = if (not @n.gcd(@e).equals(BigInteger.ONE)) then new Error "gcd(n,e) != 1"
     else if (not @n.mod(nbv(2)).equals(BigInteger.ONE)) then new Error "n % 2 != 1"
     else if (@e.compareTo(BigInteger.ONE) <= 0) then new Error "e <= 1"
-    else if (@e.compareTo(nbv(0x10001)) > 0) then new Error "e > (2^16 + 1)"
-    else if not naive_is_prime(@e.intValue()) then new Error "e isn't prime!"
+    else if (@e.compareTo(nbv(0x100000001)) > 0) then new Error "e > (2^32 + 1)"
+    # As of Issue #47, we've disabled this check
+    #else if not naive_is_prime(@e.intValue()) then new Error "e #{@e} isn't prime!"
     else null
     cb err
 

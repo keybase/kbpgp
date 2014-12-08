@@ -13,7 +13,7 @@ util = require 'util'
 exports.public_keys_advanced = (T,cb) ->
   names = [ "edbett", "azet", "bitfolk", "ophelia", "sneak", "elitehaxor", "gmax", 
             "finn", "adam", "ry4an", "asymptotic", "dbellizzi", "fincham", 
-            "thierry", "babazka", "zyphlar", "grantolson" ]
+            "thierry", "babazka", "zyphlar", "grantolson", "vanity" ]
   for n in names
     await KeyManager.import_from_armored_pgp { raw : keys[n] } , defer err, km, warnings
     T.no_error err
