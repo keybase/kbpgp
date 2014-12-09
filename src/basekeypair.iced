@@ -43,10 +43,10 @@ exports.BaseKeyPair = class BaseKeyPair
 
   serialize : () -> @pub.serialize()
   hash : () -> SHA256 @serialize()
-  ekid : () ->  Buffer.concat [ 
-    new Buffer([K.kid.version, @type]), 
-    @hash(), 
-    new Buffer([K.kid.trailer]) 
+  ekid : () ->  Buffer.concat [
+    new Buffer([K.kid.version, @get_type()]),
+    @hash(),
+    new Buffer([K.kid.trailer])
   ]
   can_sign : () -> @priv?
   can_decrypt : () -> @priv?

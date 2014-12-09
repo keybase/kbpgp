@@ -33,14 +33,13 @@ class Pub
     else if not bufeq_fast(kid[-1...], Pub.TRAILER) then new Error "bad trailing byte"
     else if not bufeq_fast(kid[0...2], Pub.HEADER) then new Error "bad header"
     else
-      key = new Pub kid[2:-1]
+      key = new Pub kid[2...-1]
       null
     return [ err, key ]
 
   #--------------------
 
   serialize : () -> @key
-  hash : () -> @key
   nbits : -> 255
   read_params : (sb) ->
 
@@ -102,14 +101,16 @@ class Pair extends BaseKeyPair
 
   #--------------------
 
-  @type : K.public_key_algorithms.EDDSA
+  @type : K.public_key_algorithms.NACL_EDDSA
   type : Pair.type
+  get_type : () -> @type
   @klass_name : "EDDSA"
 
   #--------------------
 
   constructor : ({ pub, priv }) -> super { pub, priv }
   can_encrypt : () -> false
+  hash : () -> @serialize()
 
   #----------------
 

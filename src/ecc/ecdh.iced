@@ -168,6 +168,7 @@ class Pair extends BaseKeyPair
   @type : Const.public_key_algorithms.ECDH
   type : Pair.type
   @klass_name : "ECDH"
+  get_type : () -> @type
 
   #--------------------
 

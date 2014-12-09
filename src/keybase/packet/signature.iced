@@ -4,6 +4,7 @@ C = konst.openpgp
 {Packet} = require './base'
 {KeyManager} = require '../keymanager'
 {make_esc} = require 'iced-error'
+{eddsa} = require '../../nacl/main'
 
 #=================================================================================
 
@@ -36,8 +37,8 @@ class Signature extends Packet
     ret = null
     err = if tag isnt Signature.tag() then new Error "wrong tag found: #{tag}"
     else if (a = body.hash_type) isnt (b = Signature.HASH_TYPE)
-      new Error "Expeched SHA512 (type #{b}); got #{a}"
-    else if (a = packet.sig_type) isnt (b = Signature.SIG_TYPE)
+      new Error "Expected SHA512 (type #{b}); got #{a}"
+    else if (a = body.sig_type) isnt (b = Signature.SIG_TYPE)
       err = new Error "Expected EDDSA (type #{b}); got #{a}"
     else
       ret = new Signature body
@@ -52,8 +53,10 @@ class Signature extends Packet
   #------------------
 
   verify : (cb) ->
+    esc = make_esc cb, "verify"
     err = km = null
-    if ([err, pair] = nacl.Pair.parse packet.body.key)? and not err?
+    [err, pair] = eddsa.Pair.parse @key
+    if not err?
       await pair.verify @, esc defer()
       km = new KeyManager { key : pair }
     cb err, { km, @payload }

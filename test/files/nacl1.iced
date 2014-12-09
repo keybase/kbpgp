@@ -1,5 +1,5 @@
 
-{nacl} = require '../../lib/main'
+{kb,nacl} = require '../../lib/main'
 {bufeq_fast} = require '../../lib/util'
 
 #=================================================================
@@ -69,6 +69,24 @@ exports.verify_dettached_1 = (T, cb) ->
   await pair.verify { sig : dsig2, detached : true, payload : msg }, defer err, out
   T.assert err?, "get an error if the sig s wrong"
 
+  cb()
+
+#---------------------------------
+
+km = null
+boxed = null
+exports.box1 = (T,cb) ->
+  km = new kb.KeyManager { key : pair }
+  await kb.box { msg, sign_with : km }, T.esc(defer(out), cb)
+  boxed = out
+  cb()
+
+#---------------------------------
+
+exports.unbox1 = (T,cb) ->
+  await kb.unbox { armored : boxed }, T.esc(defer(out), cb)
+  T.assert out.km.eq(km), "the same keymanager came back"
+  T.assert bufeq_fast(out.payload, msg), "the same message came back"
   cb()
 
 #---------------------------------

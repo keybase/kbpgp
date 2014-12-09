@@ -27,8 +27,9 @@ class Packet
 
   #----------------------
 
-  @alloc : (tag, body) ->
-    switch tag
+  @alloc : ({tag, body}) ->
+    ret = err = null
+    ret = switch tag
       when K.packet_tags.p3skb
         {P3SKB} = require './p3skb'
         P3SKB.alloc {tag, body }
@@ -36,7 +37,9 @@ class Packet
         {Signature} = require './signature'
         Signature.alloc { tag, body }
       else
-        [ (new Error "unknown packet tag: #{tag}"), null ]
+        err = new Error "unknown packet tag: #{tag}"
+        null
+    [err, ret]
 
   #----------------------
 

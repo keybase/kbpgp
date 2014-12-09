@@ -7,7 +7,7 @@ K = konst.kb
 
 #======================================================================
 
-class KeyManager extends KeyFetcher
+exports.KeyManager = class KeyManager extends KeyFetcher
 
   constructor : ({@key}) ->
 
@@ -28,6 +28,8 @@ class KeyManager extends KeyFetcher
     cb err, key
 
   get_keypair : () -> @key
+
+  eq : (km2) -> @key.eq(km2.key)
 
 #======================================================================
 

@@ -38,9 +38,9 @@ exports.unbox = ({armored,rawobj}, cb) ->
 exports.box = ({msg, sign_with}, cb) ->
   esc = make_esc cb, "box"
   await sign { km : sign_with, payload : msg }, esc defer packet
-  obj = packet.frame_packet()
-  armored = encode.box({ obj, dohash : false }).toString('base64')
-  cb null, armored, rawobj
+  armored = packet.frame_packet_armored { dohash : false }
+  cb null, armored
 
 #=================================================================================
 
+exports.KeyManager = require('./keymanager').KeyManager

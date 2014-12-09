@@ -1,5 +1,6 @@
 
 mods =
+  nacl1 : require '../files/nacl1.iced'
   revoked_subkeys : require '../files/revoked_subkey.iced'
   sigs : require "../files/verify_sigs.iced"
   multiples : require "../files/multiples.iced"

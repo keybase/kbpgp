@@ -207,6 +207,7 @@ class Pair extends BaseKeyPair
 
   @type : C.public_key_algorithms.RSA
   type : Pair.type
+  get_type : () -> @type
   @klass_name : 'RSA'
 
   #----------------
