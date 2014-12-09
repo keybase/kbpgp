@@ -133,7 +133,7 @@ class Pair extends BaseKeyPair
     hasher or= SHA512
     h = hasher data
     await @priv.sign h, defer sig
-    cb Buffer.concat(s.to_mpi_buffer() for s in sig)
+    cb null, Buffer.concat(s.to_mpi_buffer() for s in sig)
 
   #----------------
 

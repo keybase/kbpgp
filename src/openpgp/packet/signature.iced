@@ -10,6 +10,7 @@ util = require 'util'
 packetsigs = require './packetsigs'
 assert = require 'assert'
 {SlicerBuffer} = require '../buffer'
+{make_esc} = require 'iced-error'
 
 #===========================================================
 
@@ -147,10 +148,11 @@ class Signature extends Packet
 
   # See write_message_signature in packet.signature.js
   write_unframed : (data, cb) ->
+    esc = make_esc cb, "write_unframed"
     uhsp = Buffer.concat( s.to_buffer() for s in @unhashed_subpackets )
 
     { prefix, payload, hvalue } = @prepare_payload data
-    await @key.pad_and_sign payload, { @hasher }, defer sig
+    await @key.pad_and_sign payload, { @hasher }, esc defer sig
     result2 = Buffer.concat [
       uint_to_buffer(16, uhsp.length),
       uhsp,

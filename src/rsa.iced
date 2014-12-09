@@ -328,7 +328,7 @@ class Pair extends BaseKeyPair
     hashed_data = hasher data
     m = emsa_pkcs1_encode hashed_data, @pub.n.mpi_byte_length(), {hasher}
     await @sign m, defer sig
-    cb sig.to_mpi_buffer()
+    cb null, sig.to_mpi_buffer()
 
   #----------------
 
