@@ -135,43 +135,14 @@ exports.kb =
     triplesec_v1 : 1
     triplesec_v2 : 2
     triplesec_v3 : 3
-  json_encoding :
-    plain : 0
-    msgpack : 1
   packet_tags :
-    signature : 0x002
-    secret_key : 0x005
-    public_key : 0x006
-    secret_subkey : 0x007
-    public_subkey : 0x00d 
-    public_key_bundle : 0x101
-    private_key_bundle : 0x102
     p3skb : 0x201
-  public_key_algorithms : openpgp.public_key_algorithms
+    sig : 0x202
+  public_key_algorithms :
+    NACL_EDDSA : 0x20
+    NACL_DH : 0x21
   versions :
     V1 : 1
-  sig_types:
-    self_sign : 1
-    subkey : 2
-    subkey_reverse : 3
-  padding :
-    EMSA_PCKS1_v1_5 : 3
-    RSASSA_PSS : 4
-  key_defaults:
-    primary :
-      expire_in : 0
-      nbits : 
-        RSA : 4096
-        ECDSA : 384
-        DSA : 2048
-    sub :
-      expire_in : 24*60*60*365*8
-      nbits : 
-        RSA : 2048
-        ECDH : 256
-        ECDSA : 256
-        DSA : 2048
-        ELGAMAL : 2048
   kid : 
     version : 1
     trailer : 0x0a
