@@ -1,111 +1,83 @@
-
-{Base} = require './base'
-K = require('../../const').kb
-{sign,verify} = require '../sign'
+konst = require '../../const'
+K = konst.kb
+C = konst.openpgp
 {Packet} = require './base'
-{bufeq_secure,unix_time} = require '../../util'
-{Lifespan} = require '../../keywrapper'
+{KeyManager} = require '../keymanager'
+{make_esc} = require 'iced-error'
+{eddsa} = require '../../nacl/main'
 
-#==================================================================================================
+#=================================================================================
 
-class Base extends Packet
-  constructor : ({@type,@key,@sig,@body}) ->
+# PGP Triplesec Secret Key Bundle
+class Signature extends Packet
 
-  #------
+  @SIG_TYPE : K.public_key_algorithms.NACL_EDDSA
+  @HASH_TYPE : C.hash_algorithms.SHA512
 
-  sign : ({asp, include_body }, cb) ->
-    body = @_v_body()
-    await sign { @key, @type, body, include_body }, defer err, @sig
-    cb err, @sig
+  #------------------
 
-  #------
+  @tag : () -> K.packet_tags.signature
+  tag : () -> Signature.tag()
 
-  frame_packet : () ->
-    super K.packet_tags.signature, @sig
+  #------------------
 
-  #------
+  constructor : ({@key, @payload, @sig, @detached}) ->
+    super()
 
-  signing_ekid : () -> @body.ekid
+  #------------------
 
-  #------
+  get_packet_body : () ->
+    sig_type = Signature.SIG_TYPE
+    hash_type = Signature.HASH_TYPE
+    { @key, @payload, @sig, @detached, sig_type, hash_type }
+
+  #------------------
+
+  @alloc : ({tag,body}) ->
+    ret = null
+    err = if tag isnt Signature.tag() then new Error "wrong tag found: #{tag}"
+    else if (a = body.hash_type) isnt (b = Signature.HASH_TYPE)
+      new Error "Expected SHA512 (type #{b}); got #{a}"
+    else if (a = body.sig_type) isnt (b = Signature.SIG_TYPE)
+      err = new Error "Expected EDDSA (type #{b}); got #{a}"
+    else
+      ret = new Signature body
+      null
+    throw err if err?
+    ret
+
+  #------------------
+
+  is_signature : () -> false
+
+  #------------------
 
   verify : (cb) ->
-    err = null
-    now = unix_time()
-    @body = @sig.body unless @body?
-    if (d = (now - (@body.generated + @body.expire_in))) > 0
-      err = new Error "signature expired #{d}s ago"
-    else if not bufeq_secure(@signing_ekid(), @key.ekid())
-      err = new Error "trying to verify with the wrong key"
-    else
-      await verify { @type, @key, @sig, @body}, defer err
-    cb err
+    esc = make_esc cb, "verify"
+    err = km = null
+    [err, pair] = eddsa.Pair.parse @key
+    if not err?
+      await pair.verify @, esc defer()
+      km = new KeyManager { key : pair }
+    cb err, { km, @payload }
 
-  #------
+  #------------------
 
-  get_lifespan : () -> new Lifespan @body
+  unbox : (cb) ->
+    await @verify defer err, res
+    cb err, res
 
-#==================================================================================================
+  #------------------
 
-class SelfSign extends Base
-
-  constructor : ({@key_wrapper, @userid, sig, body}) ->
-    key = @key_wrapper.key
-    super { type : K.sig_types.self_sign, key, sig, body }
-
-  _v_body : () ->
-    return {
-      ekid : @key_wrapper.key.ekid()
-      generated : @key_wrapper.lifespan.generated
-      expire_in : @key_wrapper.lifespan.expire_in
-      userid : @userid
-    }
-
-#==================================================================================================
-
-class Subkey extends Base
-
-  # @param {KeyWrapper} subkey The subkey, with a pointer back to the primary key
-  constructor : ({@subkey, sig, body}) ->
-    super { type : K.sig_types.subkey, key : @subkey.primary.key, sig, body }
-
-  signing_ekid : () -> @body.primary_ekid
-
-  _v_body : () ->
-    return {
-      primary_ekid : @subkey.primary.ekid()
-      subkey_ekid  : @subkey.ekid()
-      generated : @subkey.lifespan.generated
-      expire_in : @subkey.lifespan.expire_in
-    }
-
-#==================================================================================================
-
-class SubkeyReverse extends Base
-
-  #
-  # The only difference here is that we're signing wit the subkey, rather than
-  # the primary key.  The payload is the same...
-  #
-  # @param {KeyWrapper} subkey The subkey, with a pointer back to the primary key
-  constructor : ({@subkey, sig, body}) ->
-    super { type : K.sig_types.subkey_reverse, key : @subkey.key, sig, body }
-
-  signing_ekid : () -> @body.subkey_ekid
-
-  _v_body : () ->
-    return {
-      primary_ekid : @subkey.primary.ekid()
-      subkey_ekid  : @subkey.ekid()
-      generated : @subkey.lifespan.generated
-      expire_in : @subkey.lifespan.expire_in
-    }
+  @sign : ({km, payload}, cb) ->
+    esc = make_esc cb, "@sign"
+    pair = km.get_keypair()
+    detached = true
+    await pair.sign { payload, detached }, esc defer sig
+    packet = new Signature { key : pair.ekid(), payload, sig, detached }
+    cb null, packet
 
 #=================================================================================
 
-exports.SelfSign = SelfSign
-exports.Subkey = Subkey
-exports.SubkeyReverse = SubkeyReverse
-
-#=================================================================================
-
+exports.Signature = Signature
+exports.sign = Signature.sign

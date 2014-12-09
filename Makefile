@@ -15,7 +15,7 @@ BROWSER=browser/kbpgp.js
 
 $(BUILD_STAMP): \
 	lib/asymmetric.js \
-    lib/basekeypair.js \
+	lib/basekeypair.js \
 	lib/basex.js \
 	lib/bn.js \
 	lib/const.js \
@@ -30,20 +30,20 @@ $(BUILD_STAMP): \
 	lib/hash.js \
 	lib/header.js \
 	lib/keybase/encode.js \
-	lib/keybase/sign.js \
-	lib/keybase/packet/all.js \
+	lib/keybase/hilev.js \
+	lib/keybase/keymanager.js \
 	lib/keybase/packet/base.js \
-	lib/keybase/packet/bundle.js \
-	lib/keybase/packet/keymaterial.js \
-	lib/keybase/packet/signature.js \
-	lib/keybase/packet/userid.js \
 	lib/keybase/packet/p3skb.js \
+	lib/keybase/packet/signature.js \
 	lib/keyfetch.js \
 	lib/keymanager.js \
 	lib/keyring.js \
 	lib/keywrapper.js \
 	lib/lock.js \
 	lib/main.js \
+	lib/nacl/main.js \
+	lib/nacl/eddsa.js \
+	lib/nacl/dh.js \
 	lib/openpgp/armor.js \
 	lib/openpgp/baseburner.js \
 	lib/openpgp/buffer.js \
@@ -78,10 +78,10 @@ $(BUILD_STAMP): \
 	lib/rfc3394.js \
 	lib/rsa.js \
 	lib/symmetric.js \
-	lib/util.js 
+	lib/util.js
 	date > $@
 
-build: $(BUILD_STAMP) 
+build: $(BUILD_STAMP)
 
 test-server: $(BUILD_STAMP)
 	$(ICED) test/run.iced

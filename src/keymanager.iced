@@ -12,7 +12,7 @@ C = require('./const').openpgp
 {KeyBlock} = require './openpgp/processor'
 
 opkts = require './openpgp/packet/all'
-{read_base64,box,unbox,box} = require './keybase/encode'
+{read_base64,unbox,box} = require './keybase/encode'
 {P3SKB} = require './keybase/packet/p3skb'
 {KeyFetcher,KeyFetched} = require './keyfetch'
 {Encryptor} = require 'triplesec'
@@ -616,7 +616,7 @@ class KeyManager extends KeyFetcher
       p3skb = @pgp.export_to_p3skb()
       await p3skb.lock { tsenc, asp }, defer err
     unless err?
-      ret = box(p3skb.frame_packet()).toString('base64')
+      ret = p3skb.frame_packet_armored { dohash : true }
     cb err, ret
 
   #-----

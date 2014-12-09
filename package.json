@@ -28,7 +28,8 @@
     "keybase-ecurve": "^1.0.0",
     "pgp-utils": ">=0.0.25",
     "purepack": ">=1.0.1",
-    "triplesec": ">=3.0.19"
+    "triplesec": ">=3.0.19",
+    "tweetnacl": "^0.12.2"
   },
   "devDependencies": {
     "browserify": "^5.9.1",
