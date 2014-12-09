@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJUhbh4AAoJEJgKPw0B/gTfZgUH/A0ctJ+uFYNw6hbZZSSzAwWx
-YpGRGe0yflGGyRw+UdhfinDP+AF7kOkTKivOyiJUYI0KZNMBPaSLv+/r46Q5mf5P
-dWJ9TfSyTuBOyIvURQqdsqDb0uH+SJcNmMiC2pBT6g/1WVR3Lje+0/e2vh/0XcyN
-2kVYKsx2mfeNpY95x1Aaoj544IN1XQbAYr40BhK8MPXgdmi3nwLLghuvyDt+g+0q
-lZbqctyL91j2z82gYnYDoJVElaecSEKAggLWjPEVDkNhC5n9wBzo2lyxwdbt0imy
-a4FucDpPyPLuzkEwqyP1E5MOPzyRoEdUwOLBz0HDY7F2v0athw+hfGln878YFl0=
-=m4UM
+iQEcBAABCgAGBQJUh2IrAAoJEJgKPw0B/gTfXq4IAJ+uUunOYdu1N6J9HXCagkeU
+/C/Y1QS7HdVij+E2Eb5halzEsXb6H4+PJEA44nVQfelbD/tpoXBLwvBsP2ODj2ez
+6wGdX9w+8bl183eeR6KJljfEMHK0smDhbkw4cYlDW/kR0s+2+9QMyEu8C6mPidHU
++xKsq9FZzxYsHmOMNR5KjD/tpnCm2EOuMEr4XidsJwKpdghxxRL4OQDcwq0K4QmR
+5aImFns2STv17ncXJvW0jKMfBNZo1aCoygcecY36vBmJpF1foBfd0eJgTqxfFSs8
+gmgVoSVUtKvFc68tYR8+F80SIjS9HNMl8ZltQwj6mKr4nvf6JPpLd2E+6IcvHVQ=
+=0lVR
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,7 +26,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-11713            CHANGELOG.md                        7b6eb93bf668b9af19fc5e8ad4672391a86d9284e6a45deeda4303c2281c46e6                                                                 
+11809            CHANGELOG.md                        1d7ab694be893e40c96b4da6a679a174af855244e00cf8b81d0c014440f24343                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3109             Makefile                            771bacfba1be35b15591ecce2c3cfb5657acfcffc9db340dfb8e4cb4af3b9815                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -122,10 +122,10 @@ size     exec  file                                  contents
 69080              primes.js                         bcc3f24f9eba4985304bc69bdc152cc315278ecc8012bd2c2e3c16531fe09bf0                                                                 
 12753              rand.js                           e9dd9ec3154b1b2ad17cec4f40d977c9b249dac06ec28b264a055b2ef0480304                                                                 
 2795               rfc3394.js                        2c8e9c3ce6b0c24be2477c1f5db29608a7d489180f0ebdbe4777cfa3031acce4                                                                 
-30927              rsa.js                            8506c252e46f5c6733465181789e3560d08fbd468ec0b5e212b826fa3b50c2e3                                                                 
+30900              rsa.js                            3659cbe34fff3b5ae4d364e65305798879f469e0948d0f71a9a1d0b6e7071d4b                                                                 
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 308                util.js                           09c0292aca20f6e8f32989db027b2fa9ce46a8cd26893d0550de57eb852b429c                                                                 
-1004             package.json                        0a69e64139a508816bb51c7e9415d8f8097744b9b43b041437872733e9f8618f                                                                 
+1004             package.json                        dfc67b4d69bd20868fc64dcabdca5ce0b7f06706b8f9eca06b1a6565d1180a39                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -208,7 +208,7 @@ size     exec  file                                  contents
 70135              primes.iced                       38e3e367929ffe177be362a3a61d256d682de6dc22c5e756deb5fcf642f5aee5                                                                 
 2734               rand.iced                         fe5a5e80f65c71df39ba45d32583584a42e44eca81f664dfbcd1002db187035b                                                                 
 3203               rfc3394.iced                      a6d9c073dc24e82b98e2522b4c0e6cb2914504e5926029ad0aec2fc06c628163                                                                 
-12079              rsa.iced                          25c249acba10b5ccfef45df5bdcc9c8861d903336c43f610fee94da5f6b75df6                                                                 
+12060              rsa.iced                          a7808aad674d3fcd702e9c1265e82d2f164f0536f207f813b324d72a5f9a1564                                                                 
 1723               symmetric.iced                    b0dc11e16b8ef3c99663d4063c5b816d25a55557cb9645480c0a277840e3f85f                                                                 
 236                util.iced                         c1e69b4210c85fb8f9f0bfda614f0e84f2754d9d6c8e55b9c69541760eb22b75                                                                 
                  test/                                                                                                                                                                
