@@ -38,6 +38,9 @@ $(BUILD_STAMP): \
 	lib/keywrapper.js \
 	lib/lock.js \
 	lib/main.js \
+	lib/nacl/main.js \
+	lib/nacl/eddsa.js \
+	lib/nacl/dh.js \
 	lib/openpgp/armor.js \
 	lib/openpgp/baseburner.js \
 	lib/openpgp/buffer.js \
@@ -72,10 +75,10 @@ $(BUILD_STAMP): \
 	lib/rfc3394.js \
 	lib/rsa.js \
 	lib/symmetric.js \
-	lib/util.js 
+	lib/util.js
 	date > $@
 
-build: $(BUILD_STAMP) 
+build: $(BUILD_STAMP)
 
 test-server: $(BUILD_STAMP)
 	$(ICED) test/run.iced

@@ -2,7 +2,7 @@
 {SRF} = require '../rand'
 konst = require '../const'
 K = konst.kb
-{bufeq_fast} = require '../util'
+{bufeq_secure,bufeq_fast} = require '../util'
 {BaseKey,BaseKeyPair} = require '../basekeypair'
 NaclDh = require('./dh').Pair
 
@@ -15,6 +15,7 @@ u2b = (u) -> new Buffer u
 class Pub
 
   #--------------------
+
 
   @HEADER : new Buffer([K.kid.version, TYPE ])
   @TRAILER : new Buffer([K.kid.trailer])
@@ -29,8 +30,8 @@ class Pub
   @alloc : (kid) ->
     err = key = null
     err = if kid.length isnt Pub.LEN then new Error "bad key length"
-    else if not bufeq_fast(kid[-1:], Pub.TRAILER) then new Error "bad trailing byte"
-    else if not bufeq_fast(kid[0:2], Pub.HEADER) then new Error "bad header"
+    else if not bufeq_fast(kid[-1...], Pub.TRAILER) then new Error "bad trailing byte"
+    else if not bufeq_fast(kid[0...2], Pub.HEADER) then new Error "bad header"
     else
       key = new Pub kid[2:-1]
       null
@@ -47,13 +48,21 @@ class Pub
 
   # Verify a signature with the given payload.
   verify : ({payload,sig,detached}, cb) ->
+
     if detached
       payload = new Buffer [] if not payload?
-      ok = sign.detached.verify b2u(payload), b2u(sig), b2u(@key)
+      if not sign.detached.verify b2u(payload), b2u(sig), b2u(@key)
+        err = new Error "signature didn't verify"
+    else if not (r_payload = sign.open b2u(sig), b2u(@key))?
+      err = new Error "signature didn't verify"
+    else if not (r_payload = u2b r_payload)?
+      err = new Error "failed to convert from a Uint8Array to a buffer"
+    else if payload? and not bufeq_secure(r_payload, payload)
+      err = new Error "got unexpected payload"
     else
-      ok = sign.verify b2u(sig), b2u(@key)
-    err = if ok then null else new Buffer "Signature didn't verify"
-    cb err
+      payload = r_payload
+
+    cb err, payload
 
 #=============================================
 
@@ -76,7 +85,7 @@ class Priv
   #--------------------
 
   sign : ({payload, detached}, cb) ->
-    f = if detached? then sign.detached else sign
+    f = if detached then sign.detached else sign
     sig = u2b(f(b2u(payload), b2u(@key)))
     cb sig
 
@@ -101,6 +110,21 @@ class Pair extends BaseKeyPair
 
   constructor : ({ pub, priv }) -> super { pub, priv }
   can_encrypt : () -> false
+
+  #----------------
+
+  sign : ({payload, detached}, cb) ->
+    err = sig = null
+    if @priv?
+      await @priv.sign { payload, detached}, defer sig
+    else
+      err = new Error "new secret key available"
+    cb err, sig
+
+  #----------------
+
+  verify : ({payload, sig, detached}, cb) ->
+    @pub.verify {payload, sig, detached}, cb
 
   #----------------
 
@@ -153,8 +177,8 @@ class Pair extends BaseKeyPair
   #--------------------
 
   @generate : (params, cb) ->
-    await SRF.random_bytes sign.seedLength, defer seed
-    {secretKey, publicKey} = sign.keyPair.fromSeed(seed)
+    await SRF().random_bytes sign.seedLength, defer seed
+    {secretKey, publicKey} = sign.keyPair.fromSeed(b2u(seed))
 
     # Note that the tweetnacl library deals with Uint8Arrays,
     # and internally, we like node-style Buffers.

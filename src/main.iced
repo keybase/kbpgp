@@ -27,6 +27,7 @@ exports.Buffer    = Buffer
 exports.triplesec = require('triplesec')
 exports.hash      = require './hash'
 exports.ecc       = require './ecc/main'
+exports.nacl      = require './nacl/main'
 
 #---------------------------------------
 
