@@ -16,7 +16,7 @@ class P3SKB extends Packet
 
   constructor : ({@pub,priv_clear,priv}) ->
     super()
-    @priv = if priv? then priv 
+    @priv = if priv? then priv
     else if priv_clear? then { data : priv_clear, encryption : K.key_encryption.none }
 
   frame_packet : () ->
@@ -40,7 +40,7 @@ class P3SKB extends Packet
           @priv.data = raw
           @priv.encryption = K.key_encryption.none
       when K.key_encryption.none then # noop
-      else 
+      else
         err = new Error "Unknown key encryption type: #{k.encryption}"
     cb err
 
@@ -52,6 +52,9 @@ class P3SKB extends Packet
 
   has_private : () -> @priv?
   is_locked : () -> @priv.encryption isnt K.key_encryption.none
+
+  get_private_data : () -> @priv?.data
+  get_public_daat : () -> @pub
 
 #=================================================================================
 
