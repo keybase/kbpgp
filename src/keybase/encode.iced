@@ -12,17 +12,18 @@ unpack = (x) -> purepack.unpack x
 
 #=================================================================================
 
-box = ({tag, body}) ->
+box = ({tag, body, nohash}) ->
   hasher = SHA256
   oo = 
     version : K.versions.V1 
     tag: tag
     body : body
-    hash : 
+  unless nohash
+    oo.hash =
       type : hasher.type
       value : null_hash
-  packed = pack oo
-  oo.hash.value = hasher packed
+    packed = pack oo
+    oo.hash.value = hasher packed
   pack oo
 
 #=================================================================================
@@ -35,13 +36,13 @@ read_base64 = (raw) ->
 
 unbox = (buf) ->
   oo = unpack buf # throws an error if there's a problem
-  throw new Error "missing obj.hash.value" unless (hv = oo?.hash?.value)?
-  oo.hash.value = null_hash
-  hasher = alloc (t = oo.hash.type)
-  throw new Error "unknown hash algo: #{t}" unless hasher?
-  h = hasher pack oo
-  throw new Error "hash mismatch" unless bufeq_secure(h, hv)
-  throw new Error "unknown version" unless oo.version is K.versions.V1
+  if (hv = oo?.hash?.value)?
+    oo.hash.value = null_hash
+    hasher = alloc (t = oo.hash.type)
+    throw new Error "unknown hash algo: #{t}" unless hasher?
+    h = hasher pack oo
+    throw new Error "hash mismatch" unless bufeq_secure(h, hv)
+    throw new Error "unknown version" unless oo.version is K.versions.V1
   obj_extract oo, [ 'tag', 'body' ]
 
 #=================================================================================

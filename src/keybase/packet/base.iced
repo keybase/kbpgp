@@ -17,9 +17,9 @@ class Packet
 
   @alloc : (tag, body) ->
     switch tag
-      when K.packet_tags.secret_key, K.packet_tags.public_key
-        {KeyMaterial} = require './keymaterial'
-        KeyMaterial.alloc (tag is K.packet_tags.secret_key), body 
+      when K.packet_tags.p3skb
+        {P3SKB} = require './p3skb'
+        P3SKB.alloc {tag, body }
       else
         [ (new Error "unknown packet tag: #{tag}"), null ]
 

@@ -30,13 +30,7 @@ $(BUILD_STAMP): \
 	lib/hash.js \
 	lib/header.js \
 	lib/keybase/encode.js \
-	lib/keybase/sign.js \
-	lib/keybase/packet/all.js \
 	lib/keybase/packet/base.js \
-	lib/keybase/packet/bundle.js \
-	lib/keybase/packet/keymaterial.js \
-	lib/keybase/packet/signature.js \
-	lib/keybase/packet/userid.js \
 	lib/keybase/packet/p3skb.js \
 	lib/keyfetch.js \
 	lib/keymanager.js \

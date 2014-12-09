@@ -7,7 +7,6 @@ triplesec = require 'triplesec'
 {pack,box} = require '../encode'
 {make_esc} = require 'iced-error'
 rsa = require '../../rsa'
-{sign,verify} = require '../sign'
 {bufeq_secure,bufferify} = require '../../util'
 
 #=================================================================================
