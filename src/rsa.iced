@@ -1,6 +1,6 @@
 {naive_is_prime,random_prime,nbs} = require './primegen'
 bn = require './bn'
-{nbits,nbv,nbi,BigInteger} = bn
+{nbits,nbv,nbs,nbi,BigInteger} = bn
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 konst = require './const'
@@ -195,7 +195,7 @@ class Pub extends BaseKey
     err = if (not @n.gcd(@e).equals(BigInteger.ONE)) then new Error "gcd(n,e) != 1"
     else if (not @n.mod(nbv(2)).equals(BigInteger.ONE)) then new Error "n % 2 != 1"
     else if (@e.compareTo(BigInteger.ONE) <= 0) then new Error "e <= 1"
-    else if (@e.compareTo(nbv(0x100000001)) > 0) then new Error "e > (2^32 + 1)"
+    else if (@e.bitLength() > 32) then new Error "e=#{@e} > 2^32"
     # As of Issue #47, we've disabled this check
     #else if not naive_is_prime(@e.intValue()) then new Error "e #{@e} isn't prime!"
     else null

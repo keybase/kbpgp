@@ -1,3 +1,9 @@
+## 1.1.9
+
+Bugfix:
+
+  - Fix for previous bugfix (#47).  Better check for e < 2^32.
+
 ## 1.1.8 (2014-12-08)
 
 Bugfix:
