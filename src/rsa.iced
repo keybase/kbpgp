@@ -1,6 +1,6 @@
-{naive_is_prime,random_prime,nbs} = require './primegen'
+{naive_is_prime,random_prime} = require './primegen'
 bn = require './bn'
-{nbits,nbv,nbs,nbi,BigInteger} = bn
+{nbits,nbv,nbi,BigInteger} = bn
 {bufeq_secure,ASP} = require './util'
 {make_esc} = require 'iced-error'
 konst = require './const'
