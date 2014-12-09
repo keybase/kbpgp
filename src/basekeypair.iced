@@ -1,7 +1,7 @@
 konst = require './const'
 C = konst.openpgp
 K = konst.kb
-{SHA512} = require './hash'
+{SHA256,SHA512} = require './hash'
 bn = require './bn'
 {bufeq_secure} = require('pgp-utils').util
 {SRF} = require './rand'
@@ -42,8 +42,12 @@ exports.BaseKeyPair = class BaseKeyPair
   #----------------
 
   serialize : () -> @pub.serialize()
-  hash : () -> SHA512 @serialize()
-  ekid : () ->  Buffer.concat [ new Buffer([K.kid.version, @type]), @hash() ]
+  hash : () -> SHA256 @serialize()
+  ekid : () ->  Buffer.concat [ 
+    new Buffer([K.kid.version, @type]), 
+    @hash(), 
+    new Buffer([K.kid.trailer]) 
+  ]
   can_sign : () -> @priv?
   can_decrypt : () -> @priv?
   has_private : () -> @priv?

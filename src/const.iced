@@ -137,12 +137,30 @@ exports.kb =
     triplesec_v3 : 3
   packet_tags :
     p3skb : 0x201
-    sig : 0x202
+    signature : 0x202
   public_key_algorithms :
-    NACL_EDDSA : 0x20
-    NACL_DH : 0x21
+    NACL_EDDSA: 0x20
+    NACL_DH: 0x21
   versions :
     V1 : 1
+  padding :
+    EMSA_PCKS1_v1_5 : 3
+    RSASSA_PSS : 4
+  key_defaults:
+    primary :
+      expire_in : 0
+      nbits : 
+        RSA : 4096
+        ECDSA : 384
+        DSA : 2048
+    sub :
+      expire_in : 24*60*60*365*8
+      nbits : 
+        RSA : 2048
+        ECDH : 256
+        ECDSA : 256
+        DSA : 2048
+        ELGAMAL : 2048
   kid : 
     version : 1
     trailer : 0x0a
