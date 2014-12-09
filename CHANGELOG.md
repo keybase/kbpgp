@@ -1,3 +1,11 @@
+## 1.2.0
+
+New features:
+
+  - NaCl support for keybase-formatted signatures
+    - OpenPGP EdDSA support still to come...
+    - Most work done on Issue #48
+
 ## 1.1.9 (2014-12-09)
 
 Bugfix:
