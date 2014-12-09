@@ -15,7 +15,7 @@ BROWSER=browser/kbpgp.js
 
 $(BUILD_STAMP): \
 	lib/asymmetric.js \
-    lib/basekeypair.js \
+	lib/basekeypair.js \
 	lib/basex.js \
 	lib/bn.js \
 	lib/const.js \
@@ -30,8 +30,11 @@ $(BUILD_STAMP): \
 	lib/hash.js \
 	lib/header.js \
 	lib/keybase/encode.js \
+	lib/keybase/hilev.js \
+	lib/keybase/keymanager.js \
 	lib/keybase/packet/base.js \
 	lib/keybase/packet/p3skb.js \
+	lib/keybase/packet/signature.js \
 	lib/keyfetch.js \
 	lib/keymanager.js \
 	lib/keyring.js \

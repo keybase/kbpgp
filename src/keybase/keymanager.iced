@@ -1,5 +1,5 @@
 
-{KeyFetcher} = require'../keyfetch'
+{KeyFetcher} = require '../keyfetch'
 konst = require '../const'
 C = konst.openpgp
 K = konst.kb
@@ -26,6 +26,8 @@ class KeyManager extends KeyFetcher
     else
       err = new Error "Key not found"
     cb err, key
+
+  get_keypair : () -> @key
 
 #======================================================================
 

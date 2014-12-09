@@ -151,6 +151,10 @@ class Pair extends BaseKeyPair
 
   #----------------
 
+  @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
+
+  #----------------
+
   # Parse a signature out of a packet
   #
   # @param {SlicerBuffer} slice The input slice

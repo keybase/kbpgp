@@ -12,13 +12,13 @@ unpack = (x) -> purepack.unpack x
 
 #=================================================================================
 
-box = ({tag, body, nohash}) ->
+box = ({obj, dohash}) ->
   hasher = SHA256
-  oo = 
-    version : K.versions.V1 
-    tag: tag
-    body : body
-  unless nohash
+  oo =
+    version : K.versions.V1
+    tag: obj.tag
+    body : obj.body
+  if dohash
     oo.hash =
       type : hasher.type
       value : null_hash
