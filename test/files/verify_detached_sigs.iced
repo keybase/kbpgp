@@ -8,6 +8,7 @@
 #=================================================
 
 ring = new PgpKeyRing()
+km = null
 
 #==========================================
 
@@ -26,8 +27,9 @@ corrupt = (inbuf, cb) ->
 #==========================================
 
 exports.init = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : keys.public }, defer err, km
+  await KeyManager.import_from_armored_pgp { raw : keys.public }, defer err, tmp
   T.no_error err
+  km = tmp
   ring = new PgpKeyRing()
   ring.add_key_manager km
 
@@ -56,9 +58,15 @@ make_data_fn = (buf) ->
 #==========================================
 
 good_check_sig_all_at_once = (T, name, {data,sig,bad_data}, cb) -> 
-  await do_message { keyfetch : ring, armored : sig, data }, defer err
+  await do_message { keyfetch : ring, armored : sig, data }, defer err, literals
   T.no_error err, "sig worked for #{name}"
   T.waypoint "Sig #{name} / good checked out"
+  T.assert literals[0].get_data_signer(), "a data signer came back"
+  km2 = literals[0].get_data_signer()?.get_key_manager()
+  T.assert km2?, "A key manager was there"
+  fp1 = km.get_pgp_fingerprint().toString('hex')
+  fp2 = literals[0].get_data_signer()?.get_key_manager()?.get_pgp_fingerprint()?.toString("hex")
+  T.equal fp1, fp2, "the right fingerprint signed"
   cb()
 
 #==========================================
@@ -73,9 +81,15 @@ bad_check_sig_all_at_once = (T, name, {sig,bad_data}, cb) ->
 
 good_check_sig_streaming = (T, name, {data,sig}, cb) -> 
   data_fn = make_data_fn(data)
-  await do_message { keyfetch : ring, armored : sig, data_fn }, defer err
+  await do_message { keyfetch : ring, armored : sig, data_fn }, defer err, literals
   T.no_error err, "sig worked for #{name}"
   T.waypoint "Sig #{name} checked out"
+  T.assert literals[0].get_data_signer(), "a data signer came back"
+  km2 = literals[0].get_data_signer()?.get_key_manager()
+  T.assert km2?, "A key manager was there"
+  fp1 = km.get_pgp_fingerprint().toString('hex')
+  fp2 = literals[0].get_data_signer()?.get_key_manager()?.get_pgp_fingerprint()?.toString("hex")
+  T.equal fp1, fp2, "the right fingerprint signed"
   cb()
 
 #==========================================

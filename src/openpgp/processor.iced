@@ -311,8 +311,8 @@ class Message
     if not(@data? or @data_fn?)
       err = new Error "Cannot verify detached signature without data input"
     else
-      await verify_detached { packets, @data, @data_fn, @keyfetch}, defer err
-    cb err
+      await verify_detached { packets, @data, @data_fn, @keyfetch}, defer err, literals
+    cb err, literals
 
   #---------
 
