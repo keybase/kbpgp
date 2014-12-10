@@ -79,6 +79,14 @@ exports.BaseKeyPair = class BaseKeyPair
 
   #----------------
 
+  # There might be a simplified Keybase format for this key.
+  @parse_kb : (klass, pub_raw) ->
+    [err, key, len ] = klass.Pub.alloc_kb pub_raw
+    key = new klass { pub : key } if key?
+    [err, key, len]
+
+  #----------------
+
   add_priv : (priv_raw) ->
     [err, @priv, len] = Priv.alloc priv_raw
     [err, len]

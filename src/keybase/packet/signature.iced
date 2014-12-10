@@ -55,9 +55,9 @@ class Signature extends Packet
   verify : (cb) ->
     esc = make_esc cb, "verify"
     err = km = null
-    [err, pair] = eddsa.Pair.parse @key
+    [err, pair] = eddsa.Pair.parse_kb @key
     if not err?
-      await pair.verify @, esc defer()
+      await pair.verify_kb @, esc defer()
       km = new KeyManager { key : pair }
     cb err, { km, @payload }
 
@@ -73,7 +73,7 @@ class Signature extends Packet
     esc = make_esc cb, "@sign"
     pair = km.get_keypair()
     detached = true
-    await pair.sign { payload, detached }, esc defer sig
+    await pair.sign_kb { payload, detached }, esc defer sig
     packet = new Signature { key : pair.ekid(), payload, sig, detached }
     cb null, packet
 

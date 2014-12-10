@@ -1,4 +1,4 @@
-{sign} = require 'tweetnacl'
+{sign} = require 'tweetnacl/nacl-fast'
 {SRF} = require '../rand'
 konst = require '../const'
 K = konst.kb
@@ -27,7 +27,7 @@ class Pub
 
   #--------------------
 
-  @alloc : (kid) ->
+  @alloc_kb : (kid) ->
     err = key = null
     err = if kid.length isnt Pub.LEN then new Error "bad key length"
     else if not bufeq_fast(kid[-1...], Pub.TRAILER) then new Error "bad trailing byte"
@@ -114,7 +114,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  sign : ({payload, detached}, cb) ->
+  sign_kb : ({payload, detached}, cb) ->
     err = sig = null
     if @priv?
       await @priv.sign { payload, detached}, defer sig
@@ -124,7 +124,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  verify : ({payload, sig, detached}, cb) ->
+  verify_kb : ({payload, sig, detached}, cb) ->
     @pub.verify {payload, sig, detached}, cb
 
   #----------------
@@ -152,7 +152,7 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  @parse : (pub_raw) -> BaseKeyPair.parse Pair, pub_raw
+  @parse_kb : (pub_raw) -> BaseKeyPair.parse_kb Pair, pub_raw
 
   #----------------
 

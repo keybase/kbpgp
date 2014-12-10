@@ -43,7 +43,7 @@ exports.KeyManager = class KeyManager extends KeyFetcher
     err = ret = null
     if hex?
       raw = new Buffer hex, 'hex'
-    [err, key] = EdDSA.parse raw
+    [err, key] = EdDSA.parse_kb raw
     unless err?
       ret = new KeyManager { key }
     cb err, ret
