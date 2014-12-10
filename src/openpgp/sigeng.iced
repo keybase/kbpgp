@@ -15,9 +15,10 @@ exports.SignatureEngine = class SignatureEngine
   #-----
 
   box         : (msg, cb) ->
-    out = {}
+    out = { type : "pgp" }
     if (signing_key = @km.find_signing_pgp_key())?
       await burn { msg, signing_key }, defer err, out.pgp, out.raw
+      out.armored = out.pgp unless err?
     else err = new Error "No signing key found"
     cb err, out
 
