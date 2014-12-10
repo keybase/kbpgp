@@ -1,9 +1,11 @@
 
+console.log "+ INC keymanager"
 {KeyManagerInterface} = require '../kmi'
 konst = require '../const'
 C = konst.openpgp
 K = konst.kb
 {EdDSA} = require '../nacl/eddsa'
+console.log "- INC keymanager"
 
 #======================================================================
 
@@ -57,6 +59,12 @@ exports.KeyManager = class KeyManager extends KeyManagerInterface
   export_public : ({asp, regen}, cb) ->
     ret = @key.ekid().toString('hex')
     cb null, ret
+
+  #----------------------------------
+
+  make_sig_eng : () ->
+    {SignatureEngine} = require './sigeng'
+    new SignatureEngine { km : @ }
 
 #======================================================================
 

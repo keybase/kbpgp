@@ -91,11 +91,18 @@ exports.unbox1 = (T,cb) ->
 
 #---------------------------------
 
-exports.exim_1 = (T,cb) ->
+exports.exim1 = (T,cb) ->
   await km.export_public {}, T.esc(defer(armored), cb)
   await ukm.import_armored_public { armored }, T.esc(defer(km2), cb)
   T.assert km.check_public_eq(km2), "equality of keymanagers achieved"
   cb()
 
 #---------------------------------
+
+exports.sigeng1 = (T,cb) ->
+  se = km.make_sig_eng()
+  await se.box msg, T.esc(defer(res), cb)
+  await se.unbox res.armored, T.esc(defer(msg2), cb)
+  T.equal msg, msg2, "the right msg came back"
+  cb()
 

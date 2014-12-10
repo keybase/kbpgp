@@ -29,12 +29,15 @@ $(BUILD_STAMP): \
 	lib/elgamalse.js \
 	lib/hash.js \
 	lib/header.js \
+	lib/keybase/box.js \
 	lib/keybase/encode.js \
 	lib/keybase/hilev.js \
 	lib/keybase/keymanager.js \
+	lib/keybase/packet/alloc.js \
 	lib/keybase/packet/base.js \
 	lib/keybase/packet/p3skb.js \
 	lib/keybase/packet/signature.js \
+	lib/keybase/sigeng.js \
 	lib/keyfetch.js \
 	lib/keyring.js \
 	lib/keywrapper.js \
