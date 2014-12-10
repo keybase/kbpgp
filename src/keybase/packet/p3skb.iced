@@ -17,12 +17,15 @@ class P3SKB extends Packet
   @tag : () -> K.packet_tags.p3skb
   tag  : () -> P3SKB.tag()
 
-  constructor : ({@pub,priv_clear,priv}) ->
+  constructor : ({@pub,priv_clear,priv, @type}) ->
     super()
     @priv = if priv? then priv
     else if priv_clear? then { data : priv_clear, encryption : K.key_encryption.none }
 
-  get_packet_body : () -> { @pub, @priv }
+  get_packet_body : () ->
+    ret = { @pub, @priv }
+    ret.type = @type if @type?
+    ret
 
   lock : ({asp, tsenc}, cb) ->
     await tsenc.run { data : @priv.data, progress_hook : asp?.progress_hook() }, defer err, ct
@@ -54,7 +57,8 @@ class P3SKB extends Packet
   is_locked : () -> @priv.encryption isnt K.key_encryption.none
 
   get_private_data : () -> @priv?.data
-  get_public_daat : () -> @pub
+  get_public_data : () -> @pub
+  get_key_type : () -> @type
 
   is_p3skb : () -> true
 

@@ -22,7 +22,7 @@ exports.unbox = ({armored,rawobj}, cb) ->
   esc = make_esc cb, "unbox"
 
   if not armored? and not rawobj?
-    await athrow (new Error "need either 'armored' or rawobj'"), esc defer()
+    await athrow (new Error "need either 'armored' or 'rawobj'"), esc defer()
 
   if armored?
     buf = new Buffer armored, 'base64'

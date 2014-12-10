@@ -17,6 +17,8 @@ exports.KeyManager = class KeyManager extends KeyFetcher
     await algo.generate params, defer err, key
     cb err, new KeyManager { key }
 
+  #----------------------------------
+
   fetch : (key_ids, flags, cb) ->
     s = @key.ekid().toString('hex')
     key = null
@@ -27,9 +29,24 @@ exports.KeyManager = class KeyManager extends KeyFetcher
       err = new Error "Key not found"
     cb err, key
 
+  #----------------------------------
+
   get_keypair : () -> @key
 
+  #----------------------------------
+
   eq : (km2) -> @key.eq(km2.key)
+
+  #----------------------------------
+
+  @import_pub : ({hex, raw}, cb) ->
+    err = ret = null
+    if hex?
+      raw = new Buffer hex, 'hex'
+    [err, key] = EdDSA.parse raw
+    unless err?
+      ret = new KeyManager { key }
+    cb err, ret
 
 #======================================================================
 
