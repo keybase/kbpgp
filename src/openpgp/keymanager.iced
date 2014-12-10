@@ -761,6 +761,7 @@ class KeyManager extends KeyManagerInterface
   get_pgp_key_id : () -> @pgp.get_key_id()
   get_pgp_short_key_id : () -> @pgp.get_short_key_id()
   get_pgp_fingerprint : () -> @pgp.get_fingerprint()
+  get_ekid : () -> @pgp.get_ekid()
 
   #----------------
 
