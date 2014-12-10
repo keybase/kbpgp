@@ -1,3 +1,12 @@
+## 2.0.1
+
+  - get_ekid() implementation for openpgp KeyManagers
+
+## 2.0.0 (2014-12-10)
+
+  - Vbump to 2.0.0; we changed where the SignatureEngine is, thereby
+    breaking API compatibility.
+
 ## 1.2.0 (2014-12-10)
 
 New features:
