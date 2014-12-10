@@ -38,6 +38,7 @@ $(BUILD_STAMP): \
 	lib/keyfetch.js \
 	lib/keyring.js \
 	lib/keywrapper.js \
+	lib/kmi.js \
 	lib/lock.js \
 	lib/main.js \
 	lib/nacl/main.js \
@@ -68,6 +69,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/packet/user_attribute.js \
 	lib/openpgp/parser.js \
 	lib/openpgp/processor.js \
+	lib/openpgp/sigeng.js \
 	lib/openpgp/s2k.js \
 	lib/openpgp/util.js \
 	lib/openpgp/verifier.js \

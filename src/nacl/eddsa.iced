@@ -119,7 +119,7 @@ class Pair extends BaseKeyPair
     if @priv?
       await @priv.sign { payload, detached}, defer sig
     else
-      err = new Error "new secret key available"
+      err = new Error "no secret key available"
     cb err, sig
 
   #----------------

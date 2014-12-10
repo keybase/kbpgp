@@ -15,7 +15,9 @@ opkts = require './packet/all'
 {read_base64,unbox,box} = require '../keybase/encode'
 {P3SKB} = require '../keybase/packet/p3skb'
 {KeyFetcher,KeyFetched} = require '../keyfetch'
+{SignatureEngine} = require './sigeng'
 {Encryptor} = require 'triplesec'
+{KeyManagerInterface} = require '../kmi'
 
 ##
 ## KeyManager
@@ -313,7 +315,7 @@ class PgpEngine extends Engine
 
 #=================================================================
 
-class KeyManager extends KeyFetcher
+class KeyManager extends KeyManagerInterface
 
   constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private, @user_attributes}) ->
     @pgp = new PgpEngine { @primary, @subkeys, @userids, @user_attributes, key_manager : @ }
@@ -758,6 +760,10 @@ class KeyManager extends KeyFetcher
   # Check the validity of all PGP keypairs
   check_pgp_validity : (cb) -> @pgp.validity_check cb
 
+  #----------------
+
+  make_sig_eng : () -> new SignatureEngine { km : @ }
+
   # /Public Interface
   #========================
 
@@ -783,6 +789,7 @@ class KeyManager extends KeyFetcher
     }
 
   #----------
+
 #=================================================================
 
 exports.KeyManager = KeyManager
