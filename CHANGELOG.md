@@ -5,6 +5,10 @@ New features:
   - NaCl support for keybase-formatted signatures
     - OpenPGP EdDSA support still to come...
     - Most work done on Issue #48
+  - Fix #53 -- get keymanagers back from detached sigs
+    - Slight hack for "streaming data" in which it doesn't make
+      sense to have a literal.  So have an empty placeholder 
+      literal instead
 
 ## 1.1.9 (2014-12-09)
 

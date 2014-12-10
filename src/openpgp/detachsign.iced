@@ -17,6 +17,7 @@ Ch = require '../header'
 {encode} = require './armor'
 {Literal} = require "./packet/literal"
 VerifierBase = require('./verifier').Base
+packetsigs = require './packet/packetsigs'
 
 #====================================================================
 
@@ -109,8 +110,17 @@ class Verifier extends VerifierBase
   _verify : (cb) ->
     data = if @data then [ new Literal  { @data } ]
     else []
+    @literals = data
     await @_sig.verify data, defer err
     cb err
+
+  #-----------------------
+
+  _make_literals : (cb) ->
+    unless @literals.length
+      @literals.push new Literal { data : new Buffer [] } 
+    @literals[0].push_sig new packetsigs.Data { sig : @_sig }
+    cb null
 
   #-----------------------
 
@@ -120,7 +130,8 @@ class Verifier extends VerifierBase
     await @_fetch_key esc defer()
     await @_consume_data esc defer()
     await @_verify esc defer()
-    cb null
+    await @_make_literals esc defer()
+    cb null, @literals
 
 #====================================================================
 
@@ -134,8 +145,8 @@ exports.sign = ({data, hash_streamer, signing_key}, cb) ->
 
 exports.verify = ({data, data_fn, packets, keyfetch}, cb) ->
   v = new Verifier { data, data_fn, packets, keyfetch }
-  await v.run defer err
-  cb err
+  await v.run defer err, literals
+  cb err, literals
 
 #====================================================================
 
