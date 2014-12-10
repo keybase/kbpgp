@@ -1,5 +1,5 @@
 
-{kb,nacl} = require '../../lib/main'
+{ukm,kb,nacl} = require '../../'
 {bufeq_fast} = require '../../lib/util'
 
 #=================================================================
@@ -87,6 +87,14 @@ exports.unbox1 = (T,cb) ->
   await kb.unbox { armored : boxed }, T.esc(defer(out), cb)
   T.assert out.km.eq(km), "the same keymanager came back"
   T.assert bufeq_fast(out.payload, msg), "the same message came back"
+  cb()
+
+#---------------------------------
+
+exports.exim_1 = (T,cb) ->
+  await km.export_public {}, T.esc(defer(armored), cb)
+  await ukm.import_armored_public { armored }, T.esc(defer(km2), cb)
+  T.assert km.check_public_eq(km2), "equality of keymanagers achieved"
   cb()
 
 #---------------------------------

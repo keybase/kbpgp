@@ -80,6 +80,7 @@ $(BUILD_STAMP): \
 	lib/rfc3394.js \
 	lib/rsa.js \
 	lib/symmetric.js \
+	lib/ukm.js \
 	lib/util.js
 	date > $@
 

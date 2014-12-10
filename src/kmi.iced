@@ -20,6 +20,9 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   # will only return non-null for PGP
   get_fingerprint : () -> null
 
+  # Works for any type of key
+  get_ekid : () -> null
+
   # Check equality of public halves, recursively down to subkeys
   # if necessary
   check_public_eq : (km2) -> @EUI
@@ -43,6 +46,8 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   # Make a signature engine from this object
   make_sig_eng : () -> null
 
+  export_public : ( {asp, regen}, cb) -> cb EUI, null
+
 #=================================================================================
 
 exports.SignatureEngineInterface = class SignatureEngineInterface
@@ -52,4 +57,5 @@ exports.SignatureEngineInterface = class SignatureEngineInterface
   unbox : (msb, cb) -> cb EUI
 
 #=================================================================================
+
 

@@ -258,6 +258,7 @@ class PgpEngine extends Engine
   get_key_id : () -> @key(@primary).get_key_id()
   get_short_key_id : () -> @key(@primary).get_short_key_id()
   get_fingerprint : () -> @key(@primary).get_fingerprint()
+  get_ekid : () -> @key(@primary).ekid()
 
   #--------
 
@@ -646,6 +647,12 @@ class KeyManager extends KeyManagerInterface
     unless (err = @_assert_signed())?
       msg = @armored_pgp_public unless regen
       msg = @pgp.export_keys({private : false}) unless msg?
+    cb err, msg
+
+  #-----
+
+  export_public : ({asp, regen}, cb) ->
+    await @export_pgp_public { asp, regen }, defer err, msg
     cb err, msg
 
   #-----

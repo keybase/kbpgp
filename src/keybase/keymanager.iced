@@ -1,5 +1,5 @@
 
-{KeyFetcher} = require '../keyfetch'
+{KeyManagerInterface} = require '../kmi'
 konst = require '../const'
 C = konst.openpgp
 K = konst.kb
@@ -7,7 +7,7 @@ K = konst.kb
 
 #======================================================================
 
-exports.KeyManager = class KeyManager extends KeyFetcher
+exports.KeyManager = class KeyManager extends KeyManagerInterface
 
   constructor : ({@key}) ->
 
@@ -39,7 +39,7 @@ exports.KeyManager = class KeyManager extends KeyFetcher
 
   #----------------------------------
 
-  @import_pub : ({hex, raw}, cb) ->
+  @import_public : ({hex, raw}, cb) ->
     err = ret = null
     if hex?
       raw = new Buffer hex, 'hex'
@@ -47,6 +47,16 @@ exports.KeyManager = class KeyManager extends KeyFetcher
     unless err?
       ret = new KeyManager { key }
     cb err, ret
+
+  #----------------------------------
+
+  check_public_eq : (km2) -> @eq(km2)
+
+  #----------------------------------
+
+  export_public : ({asp, regen}, cb) ->
+    ret = @key.ekid().toString('hex')
+    cb null, ret
 
 #======================================================================
 
