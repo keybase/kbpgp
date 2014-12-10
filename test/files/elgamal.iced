@@ -1,4 +1,4 @@
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {do_message,Processor} = require '../../lib/openpgp/processor'
 {burn} = require '../../lib/openpgp/burner'
 
@@ -39,7 +39,7 @@ ZbLGiqgjXIjfEuNACFhveec=
   encrypted : [
     {
       ciphertext : """
------BEGIN PGP MESSAGE----- 
+-----BEGIN PGP MESSAGE-----
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
 Comment: GPGTools - https://gpgtools.org
 
@@ -57,7 +57,7 @@ X0uqWT6kHA/R7W9wiqmX
 -----END PGP MESSAGE-----
 """,
       plaintext :  "My unavailing attempts to somehow reintegrate the action quantum into classical theory extended over several years and caused me much trouble.\n"
-    }        
+    }
   ],
   signcrypted : [
     {
@@ -128,7 +128,7 @@ exports.decrypt_msgs = (T, cb) ->
 
 exports.elgamal_round_trip = (T,cb) ->
   o = planck
-  opts = 
+  opts =
     msg : o.quotes[0]
     signing_key : km.find_signing_pgp_key()
     encryption_key : km.find_crypt_pgp_key()

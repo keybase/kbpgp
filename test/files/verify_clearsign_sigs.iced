@@ -1,5 +1,5 @@
 {PgpKeyRing} = require '../../lib/keyring'
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {do_message} = require '../../lib/openpgp/processor'
 
 #=================================================
@@ -108,9 +108,9 @@ ws8RiA+KkK4rLalHbs8=
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA512
 
-foo   
+foo
 
-bar   
+bar
 
 
 
@@ -128,9 +128,9 @@ PpaXajnbRgVUvMdCBvM=
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA512
 
-foo\tblahb  
+foo\tblahb
 
-bar    
+bar
 
 
 

@@ -2,7 +2,7 @@
 #---------------------------------------
 
 mods = [
- require("./keymanager"),
+ require("./openpgp/keymanager"),
  require("./basex"),
  require("./openpgp/burner")
  require("./openpgp/hilev")

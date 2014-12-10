@@ -5,7 +5,7 @@ C = require '../../lib/const'
 {do_message,Message} = require '../../lib/openpgp/processor'
 util = require 'util'
 {unix_time,katch,ASP} = require '../../lib/util'
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {import_key_pgp} = require '../../lib/symmetric'
 {decrypt} = require '../../lib/openpgp/ocfb'
 {PgpKeyRing} = require '../../lib/keyring'
@@ -153,9 +153,9 @@ ring = literals = null
 exports.init = (T,cb) ->
   await load_keyring T, defer tmp
   ring = tmp
-  literals = [ new Literal { 
+  literals = [ new Literal {
     data : new Buffer(data.msg)
-    format : C.openpgp.literal_formats.utf8 
+    format : C.openpgp.literal_formats.utf8
     date : unix_time()
   }]
   cb()

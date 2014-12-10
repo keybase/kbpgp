@@ -36,7 +36,6 @@ $(BUILD_STAMP): \
 	lib/keybase/packet/p3skb.js \
 	lib/keybase/packet/signature.js \
 	lib/keyfetch.js \
-	lib/keymanager.js \
 	lib/keyring.js \
 	lib/keywrapper.js \
 	lib/lock.js \
@@ -53,6 +52,7 @@ $(BUILD_STAMP): \
 	lib/openpgp/clearsign.js \
 	lib/openpgp/detachsign.js \
 	lib/openpgp/hilev.js \
+	lib/openpgp/keymanager.js \
 	lib/openpgp/ocfb.js \
 	lib/openpgp/packet/all.js \
 	lib/openpgp/packet/base.js \

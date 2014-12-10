@@ -19,19 +19,18 @@ class Lifespan
 #
 class KeyWrapper
   constructor : ({@key, @lifespan, @_pgp, @_keybase, @flags}) ->
-  kid : () -> @key.kid()
   ekid : () -> @key.ekid()
 
 #=================================================================
 
 class Subkey extends KeyWrapper
-  constructor : ({key, flags, _pgp, _keybase, @desc, lifespan, @primary}) -> 
+  constructor : ({key, flags, _pgp, _keybase, @desc, lifespan, @primary}) ->
     super { key, lifespan, flags, _pgp, _keybase }
 
 #=================================================================
 
 class Primary extends KeyWrapper
-  constructor : ({key, lifespan, flags, _pgp, _keybase}) -> 
+  constructor : ({key, lifespan, flags, _pgp, _keybase}) ->
     super { key, lifespan, flags, _pgp, _keybase }
 
 #=================================================================

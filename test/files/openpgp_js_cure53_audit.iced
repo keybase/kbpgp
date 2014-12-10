@@ -7,7 +7,7 @@
 
 {do_message,Message} = require '../../lib/openpgp/processor'
 {PgpKeyRing} = require '../../lib/keyring'
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {decode} = require('pgp-utils').armor
 
 #===============================================================================
@@ -117,7 +117,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
   T.assert err?, "Got a hash mismatch error"
   T.assert (err.message.indexOf("missing ASN header for SHA256") >= 0), "didn't try to run SHA256"
   T.waypoint "fail 1"
-  
+
   #----------
 
   x = get_msg()

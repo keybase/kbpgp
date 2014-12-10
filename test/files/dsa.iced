@@ -1,4 +1,4 @@
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {do_message,Processor} = require '../../lib/openpgp/processor'
 {burn} = require '../../lib/openpgp/burner'
 

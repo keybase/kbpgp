@@ -5,14 +5,14 @@ armor = require '../../lib/openpgp/armor'
 C = require '../../lib/const'
 util = require 'util'
 {ASP} = require '../../lib/util'
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {keys} = require('../data/keys.iced')
 
 #============================================================================
 
 exports.public_keys_advanced = (T,cb) ->
-  names = [ "edbett", "azet", "bitfolk", "ophelia", "sneak", "elitehaxor", "gmax", 
-            "finn", "adam", "ry4an", "asymptotic", "dbellizzi", "fincham", 
+  names = [ "edbett", "azet", "bitfolk", "ophelia", "sneak", "elitehaxor", "gmax",
+            "finn", "adam", "ry4an", "asymptotic", "dbellizzi", "fincham",
             "thierry", "babazka", "zyphlar", "grantolson", "vanity" ]
   for n in names
     await KeyManager.import_from_armored_pgp { raw : keys[n] } , defer err, km, warnings

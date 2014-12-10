@@ -1,5 +1,5 @@
 
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {keys} = require '../data/keys.iced'
 {SHA256} = require '../../lib/hash'
 
@@ -12,8 +12,8 @@ test = (who, expected, T,cb) ->
   T.assert km?, "a key manager came back"
   userids = km.get_userids_mark_primary()
   primary = null
-  for u in userids 
-    if u.primary 
+  for u in userids
+    if u.primary
       primary = u
       break
   h = null

@@ -1,5 +1,5 @@
 {PgpKeyRing} = require '../../lib/keyring'
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {do_message} = require '../../lib/openpgp/processor'
 {keys,data}  = require '../data/detached.iced'
 {WordArray}  = require 'triplesec'
@@ -57,7 +57,7 @@ make_data_fn = (buf) ->
 
 #==========================================
 
-good_check_sig_all_at_once = (T, name, {data,sig,bad_data}, cb) -> 
+good_check_sig_all_at_once = (T, name, {data,sig,bad_data}, cb) ->
   await do_message { keyfetch : ring, armored : sig, data }, defer err, literals
   T.no_error err, "sig worked for #{name}"
   T.waypoint "Sig #{name} / good checked out"
@@ -71,7 +71,7 @@ good_check_sig_all_at_once = (T, name, {data,sig,bad_data}, cb) ->
 
 #==========================================
 
-bad_check_sig_all_at_once = (T, name, {sig,bad_data}, cb) -> 
+bad_check_sig_all_at_once = (T, name, {sig,bad_data}, cb) ->
   await do_message { keyfetch : ring, armored : sig, data : bad_data }, defer err
   T.assert err?, "errored out on bad signature"
   T.waypoint "Sig #{name} failed"
@@ -79,7 +79,7 @@ bad_check_sig_all_at_once = (T, name, {sig,bad_data}, cb) ->
 
 #==========================================
 
-good_check_sig_streaming = (T, name, {data,sig}, cb) -> 
+good_check_sig_streaming = (T, name, {data,sig}, cb) ->
   data_fn = make_data_fn(data)
   await do_message { keyfetch : ring, armored : sig, data_fn }, defer err, literals
   T.no_error err, "sig worked for #{name}"
@@ -94,7 +94,7 @@ good_check_sig_streaming = (T, name, {data,sig}, cb) ->
 
 #==========================================
 
-bad_check_sig_streaming = (T, name, {bad_data,sig}, cb) -> 
+bad_check_sig_streaming = (T, name, {bad_data,sig}, cb) ->
   data_fn = make_data_fn(bad_data)
   await do_message { keyfetch : ring, armored : sig, data_fn }, defer err
   T.assert err?, "errored out on bad signature"

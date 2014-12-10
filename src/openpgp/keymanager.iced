@@ -1,20 +1,20 @@
-{RSA} = require './rsa'
-{ECDSA} = require './ecc/ecdsa'
-K = require('./const').kb
-C = require('./const').openpgp
+{RSA} = require '../rsa'
+{ECDSA} = require '../ecc/ecdsa'
+K = require('../const').kb
+C = require('../const').openpgp
 {make_esc} = require 'iced-error'
-{athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require './util'
-{ops_to_keyflags} = require './openpgp/util'
-{Lifespan,Subkey,Primary} = require './keywrapper'
+{athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require '../util'
+{ops_to_keyflags} = require './util'
+{Lifespan,Subkey,Primary} = require '../keywrapper'
 
-{Message,encode,decode} = require './openpgp/armor'
-{parse} = require './openpgp/parser'
-{KeyBlock} = require './openpgp/processor'
+{Message,encode,decode} = require './armor'
+{parse} = require './parser'
+{KeyBlock} = require './processor'
 
-opkts = require './openpgp/packet/all'
-{read_base64,unbox,box} = require './keybase/encode'
-{P3SKB} = require './keybase/packet/p3skb'
-{KeyFetcher,KeyFetched} = require './keyfetch'
+opkts = require './packet/all'
+{read_base64,unbox,box} = require '../keybase/encode'
+{P3SKB} = require '../keybase/packet/p3skb'
+{KeyFetcher,KeyFetched} = require '../keyfetch'
 {Encryptor} = require 'triplesec'
 
 ##

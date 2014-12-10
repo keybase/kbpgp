@@ -1,4 +1,4 @@
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {do_message,Processor} = require '../../lib/openpgp/processor'
 
 #==================================================================
@@ -106,7 +106,7 @@ Vps55e2p7JL3Pu7HnEoBO/VtegT0a4blfk+x02vcDCvVEC590secx3y9hmMPHuuj
 -----END PGP PUBLIC KEY BLOCK-----
 """
   },
-  { 
+  {
     sig : """
 -----BEGIN PGP MESSAGE-----
 Version: GnuPG/MacGPG2 v2.0.22 (Darwin)

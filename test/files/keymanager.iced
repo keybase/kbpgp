@@ -1,4 +1,4 @@
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {bufferify,ASP} = require '../../lib/util'
 {make_esc} = require 'iced-error'
 util = require 'util'
@@ -70,7 +70,7 @@ exports.step5_merge_pgp_private = (T,cb) ->
   T.no_error err
   T.assert b2.has_pgp_private(), "b2 has a private half"
   T.assert b2.is_pgp_locked(), "b2 has a private half but is locked"
-  bad_pass = "a" + openpgp_pass 
+  bad_pass = "a" + openpgp_pass
   await b2.unlock_pgp { passphrase : bad_pass }, defer err
   T.assert err?, "we should have gotten an error when opening with a bad password"
   await b2.unlock_pgp { passphrase : openpgp_pass }, defer err

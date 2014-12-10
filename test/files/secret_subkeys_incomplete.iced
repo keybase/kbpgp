@@ -1,4 +1,4 @@
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {bufferify,ASP} = require '../../lib/util'
 {make_esc} = require 'iced-error'
 util = require 'util'
@@ -87,7 +87,7 @@ Free as a bird to settle where I will.
 
 #------------
 
-passphrase = "lucy" 
+passphrase = "lucy"
 km = null
 km_priv = null
 

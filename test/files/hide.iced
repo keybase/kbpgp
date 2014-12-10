@@ -3,14 +3,14 @@
 {SRF} = require '../../lib/rand'
 {ElGamal} = require '../../lib/elgamal'
 {bufeq_secure} = require '../../lib/util'
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 
 #=========================================================================
 
 exports.test_hide_rsa = (T,cb) ->
   await setTimeout defer(), 10
   nbits = 1024
-  await RSA.generate { nbits }, defer err, key 
+  await RSA.generate { nbits }, defer err, key
   T.no_error err
   await setTimeout defer(), 10
   T.waypoint "generated #{nbits} bit key!"

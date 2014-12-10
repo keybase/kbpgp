@@ -5,7 +5,7 @@ C = require '../../lib/const'
 {do_message,Message} = require '../../lib/openpgp/processor'
 util = require 'util'
 {unix_time,katch,ASP} = require '../../lib/util'
-{KeyManager} = require '../../lib/keymanager'
+{KeyManager} = require '../../'
 {import_key_pgp} = require '../../lib/symmetric'
 {decrypt} = require '../../lib/openpgp/ocfb'
 {PgpKeyRing} = require '../../lib/keyring'
@@ -47,9 +47,9 @@ exports.encrypt = (T, cb) ->
   flags = C.openpgp.key_flags.encrypt_comm
   encryption_key = km.find_best_pgp_key flags
   T.assert encryption_key?, "got an encryption key"
-  literals = [ new Literal { 
+  literals = [ new Literal {
     data : new Buffer(msg)
-    format : C.openpgp.literal_formats.utf8 
+    format : C.openpgp.literal_formats.utf8
     date : unix_time()
   }]
   await burn { literals, encryption_key }, defer err, armored, tmp
