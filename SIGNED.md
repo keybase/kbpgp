@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJUiIwAAAoJEJgKPw0B/gTfe+AIAKhhxnFoCS04ygkgN3mspFmV
-t4fJ7kGqQJZTdNaWjUUt5hc1jizT1rdD6FmQwNWhZONzIeKLb//BbalJcUAjyzSH
-EIhq32apJvfILkIhhLKvE2paGBQXNYGpanW571NGkGAhooBobKsk50OvUnrsSiSb
-fu6l7JC6IaQXblyD3tncawO9TStdLt0D279XBbUHtOh7reR757w66je5wOELWvwS
-VLDuv7F6Qng8cG2m9OyHM1K2M4LJk8KUYBv7NBGL/pzLgCA8k+blrUsmQ3XIZaOD
-7Zqjd83kiGL6q3XNWsFRqRxVq7E2dYmSjhUnQewGzGwyY5lBwKDibWtjlF3fmCE=
-=it9u
+iQEcBAABCgAGBQJUiIwgAAoJEJgKPw0B/gTfc4EIAMpPZ/2YhG7BQh5L9uG9seSm
+865lMqBApLWeOsod4yfv5gXF/NweOBDOkexDNdRgppCja5tbwYutPa2wWFV2bKVO
+eXjfWLyfbzss22qKJQv0cvAfcqJCbCb0+2TuYRIRRq36fpLEfPALl+3wFMgMHElk
+5ZyS6whkMInTpLvn5YuS585kvPi6JwXYK4EiMYpVHq5EnoecafYoPizOXEPdWuLj
+CZB2cp6za4u+FjG2GJD9mvCN5zP9tFBmnboG69ZJVEhcbCs+p3RKSCBFx2+aLU7U
+kxg2OGwyL9O/V1SKdZ2cno4k2/r61KsmauHSeMopRuBxW2fH7rdpFAqXmaHHKik=
+=4YxN
 -----END PGP SIGNATURE-----
 
 ```
@@ -33,7 +33,7 @@ size     exec  file                                  contents
                  bench/                                                                                                                                                               
 83                 main.js                           083729d8233d3d24bc1bc77e1fc9005cf4cb0022d873301be3a156976113220d                                                                 
                  browser/                                                                                                                                                             
-1610207            kbpgp.js                          a93ac959ac33486e65f4bc487244748983c4b0e62973559fa2429f032cc96b26                                                                 
+1682966            kbpgp.js                          c2811126a25ee2bf0c67c20d3dd3c2a48abc3385482c2065064f9044c4288b5b                                                                 
                  dev/                                                                                                                                                                 
 329                bdecode_hex.iced                  9792d642d4fa9b1551f09b055f24c61f222754716f33d1370096e74b384cb92d                                                                 
 753                c5.iced                           352c5f659a9b7f3e45af8c5ff72b448c3524715286fa7dde86a235bd09a294bf                                                                 
@@ -140,6 +140,9 @@ size     exec  file                                  contents
 964582             kbpgp-1.2.0-min.js                76bdb01a85b8d7f1aaddb09758cacad12912648e604b303907e6099d76fb0b33                                                                 
 588007             kbpgp-1.2.0-signed-release.zip    eacc8af4672bd5d7dcb4ff4fa4211ffa5c2a4a620520280545d508c262171a22|90d6e1e92339526e56bfb87f5dfc340c79a8740ed553d6b980409fb2125d702c
 1610207            kbpgp-1.2.0.js                    a93ac959ac33486e65f4bc487244748983c4b0e62973559fa2429f032cc96b26                                                                 
+1013110            kbpgp-2.0.0-min.js                ec8dfc40e2f925d7cf1a46643463d7dd91e170d7176ba9d23712cbe3ae7dd420                                                                 
+610821             kbpgp-2.0.0-signed-release.zip    36d7c74bc67978b0295a877ec9ee3b7331408e0b5d6ceec93b915d2bbd578fa4|b6b4f0c05be336cfaaba538e15cc2fede1dd2411bb9bba68005310d66321f1df
+1682966            kbpgp-2.0.0.js                    c2811126a25ee2bf0c67c20d3dd3c2a48abc3385482c2065064f9044c4288b5b                                                                 
                  src/                                                                                                                                                                 
 591                asymmetric.iced                   f9819323225e9be460c5aa991b99021018f575556ddef2e326316d022ca2c5c8                                                                 
 3473               basekeypair.iced                  bedcebf5e47c2bf1b934746d6d5e50ec2de5521fe49e50062eb707f31e60d618                                                                 
