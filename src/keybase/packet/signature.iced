@@ -1,3 +1,5 @@
+
+console.log "+ INC signature"
 konst = require '../../const'
 K = konst.kb
 C = konst.openpgp
@@ -5,6 +7,7 @@ C = konst.openpgp
 {KeyManager} = require '../keymanager'
 {make_esc} = require 'iced-error'
 {eddsa} = require '../../nacl/main'
+console.log "- INC signature"
 
 #=================================================================================
 

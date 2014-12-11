@@ -5,6 +5,7 @@ konst = require '../const'
 C = konst.openpgp
 K = konst.kb
 {EdDSA} = require '../nacl/eddsa'
+{SignatureEngine} = require './sigeng'
 console.log "- INC keymanager"
 
 #======================================================================
@@ -63,7 +64,6 @@ exports.KeyManager = class KeyManager extends KeyManagerInterface
   #----------------------------------
 
   make_sig_eng : () ->
-    {SignatureEngine} = require './sigeng'
     new SignatureEngine { km : @ }
 
 #======================================================================
