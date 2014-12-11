@@ -1,13 +1,10 @@
 
-console.log "+ INC signature"
 konst = require '../../const'
 K = konst.kb
 C = konst.openpgp
 {Packet} = require './base'
-{KeyManager} = require '../keymanager'
 {make_esc} = require 'iced-error'
 {eddsa} = require '../../nacl/main'
-console.log "- INC signature"
 
 #=================================================================================
 
@@ -61,8 +58,7 @@ class Signature extends Packet
     [err, pair] = eddsa.Pair.parse_kb @key
     if not err?
       await pair.verify_kb @, esc defer()
-      km = new KeyManager { key : pair }
-    cb err, { km, @payload }
+    cb err, { keypair : pair, @payload }
 
   #------------------
 

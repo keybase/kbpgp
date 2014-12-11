@@ -1,6 +1,6 @@
 
 pgp = require './openpgp/keymanager'
-kb = require './keybase/keymanager'
+kb = require './keybase/hilev'
 
 #==========================================================================
 
