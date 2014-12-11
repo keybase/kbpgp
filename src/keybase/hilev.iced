@@ -121,7 +121,7 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
-  unbox       : (msg, cb) ->
+  unbox : (msg, cb) ->
     esc = make_esc cb, "SignatureEngine::unbox"
     err = payload = null
     await unbox { armored : msg }, esc defer res
