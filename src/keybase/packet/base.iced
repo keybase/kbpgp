@@ -1,5 +1,5 @@
 util = require '../../util'
-{box} = require '../encode'
+{seal} = require '../encode'
 K = require('../../const').kb
 
 #==================================================================================================
@@ -12,13 +12,13 @@ class Packet
 
   #----------------------
 
-  frame_packet : (body) -> { tag : @tag(), body : @get_packet_body() }
+  frame_packet : () -> { tag : @tag(), body : @get_packet_body() }
 
   #----------------------
 
   frame_packet_armored : ({dohash}) ->
     obj = @frame_packet()
-    box({ obj, dohash }).toString('base64')
+    seal({ obj, dohash }).toString('base64')
 
   #----------------------
 

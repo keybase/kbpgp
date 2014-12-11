@@ -12,7 +12,7 @@ C = require('../const').openpgp
 {KeyBlock} = require './processor'
 
 opkts = require './packet/all'
-{read_base64,unbox,box} = require '../keybase/encode'
+{read_base64,unseal} = require '../keybase/encode'
 {P3SKB} = require '../keybase/packet/p3skb'
 {KeyFetcher,KeyFetched} = require '../keyfetch'
 {SignatureEngine} = require './sigeng'
@@ -510,7 +510,7 @@ class KeyManager extends KeyManagerInterface
     asp = ASP.make asp
     km = null
     warnings = null
-    [err, p3skb] = katch () -> P3SKB.alloc unbox read_base64 armored
+    [err, p3skb] = katch () -> P3SKB.alloc unseal read_base64 armored
     unless err?
       msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
       await KeyManager.import_from_pgp_message {msg, asp}, defer err, km, warnings

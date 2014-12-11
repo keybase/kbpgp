@@ -69,7 +69,7 @@ class Signature extends Packet
 
   #------------------
 
-  @sign : ({km, payload}, cb) ->
+  @box : ({km, payload}, cb) ->
     esc = make_esc cb, "@sign"
     pair = km.get_keypair()
     detached = true

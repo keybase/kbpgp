@@ -12,7 +12,7 @@ unpack = (x) -> purepack.unpack x
 
 #=================================================================================
 
-box = ({obj, dohash}) ->
+seal = ({obj, dohash}) ->
   hasher = SHA256
   oo =
     version : K.versions.V1
@@ -34,7 +34,7 @@ read_base64 = (raw) ->
 
 #=================================================================================
 
-unbox = (buf) ->
+unseal = (buf) ->
   oo = unpack buf # throws an error if there's a problem
   if (hv = oo?.hash?.value)?
     oo.hash.value = null_hash
@@ -47,8 +47,8 @@ unbox = (buf) ->
 
 #=================================================================================
 
-exports.box = box
+exports.seal = seal
 exports.pack = pack
-exports.unbox = unbox
+exports.unseal = unseal
 exports.unpack = unpack
 exports.read_base64 = read_base64

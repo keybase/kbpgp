@@ -7,7 +7,7 @@ encode = require './encode'
 {make_esc} = require 'iced-error'
 konst = require '../const'
 {alloc} = require './packet/alloc'
-{sign} = require './packet/signature'
+{Signature} = require './packet/signature'
 K = konst.kb
 C = konst.openpgp
 console.log "- INC box"
@@ -22,7 +22,7 @@ exports.unbox = ({armored,rawobj}, cb) ->
 
   if armored?
     buf = new Buffer armored, 'base64'
-    await akatch ( () -> encode.unbox buf), esc defer rawobj
+    await akatch ( () -> encode.unseal buf), esc defer rawobj
 
   await asyncify alloc(rawobj), esc defer packet
   await packet.unbox esc defer res
@@ -33,8 +33,10 @@ exports.unbox = ({armored,rawobj}, cb) ->
 
 exports.box = ({msg, sign_with}, cb) ->
   esc = make_esc cb, "box"
-  await sign { km : sign_with, payload : msg }, esc defer packet
-  armored = packet.frame_packet_armored { dohash : false }
+  await Signature.box { km : sign_with, payload : msg }, esc defer packet
+  packed = packet.frame_packet()
+  sealed = encode.seal { obj : packed, dohash : false }
+  armored = sealed.toString('base64')
   cb null, armored
 
 #=================================================================================
