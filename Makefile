@@ -31,7 +31,6 @@ $(BUILD_STAMP): \
 	lib/header.js \
 	lib/keybase/encode.js \
 	lib/keybase/hilev.js \
-	lib/keybase/keymanager.js \
 	lib/keybase/packet/alloc.js \
 	lib/keybase/packet/base.js \
 	lib/keybase/packet/p3skb.js \
