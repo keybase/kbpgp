@@ -5,6 +5,7 @@ K = konst.kb
 {bufeq_fast} = require '../util'
 {BaseKey,BaseKeyPair} = require '../basekeypair'
 {b2u,u2b} = require './eddsa'
+NaclEddsa = require('./eddsa').Pair
 
 TYPE = K.public_key_algorithms.NACL_DH
 b2u = (b) -> new Uint8Array(b)
@@ -19,7 +20,7 @@ class Pub
 
   @HEADER : new Buffer([K.kid.version, TYPE ])
   @TRAILER : new Buffer([K.kid.trailer])
-  @LEN : Pub.HEADER.length + Pub.TRAILER.length + sign.publicKeyLength
+  @LEN : Pub.HEADER.length + Pub.TRAILER.length + box.publicKeyLength
 
   #--------------------
 
@@ -45,7 +46,6 @@ class Pub
 
   #--------------------
 
-  # Verify a signature with the given payload.
   encrypt : ({payload,sender}, cb) ->
     await SRF().random_bytes box.nonceLength, defer nonce
     res = box b2u(payload), b2u(nonce), b2u(@key), b2u(sender)
@@ -83,7 +83,113 @@ class Priv
 
 class Pair extends BaseKeyPair
 
-  construct : ({pub, priv}) -> super { pub, priv }
+  @Pub : Pub
+  Pub : Pub
+  @Priv : Priv
+  Priv : Pirv
+
+  #--------------------
+
+  constructor : ({pub, priv}) -> super { pub, priv }
+
+  #--------------------
+
+  @type : K.public_key_algorithms.NACL_DH
+  type : Pair.type
+  get_type : () -> @type
+  @klass_name : "DH"
+
+  #--------------------
+
+  can_encrypt : () -> true
+  can_sign : () -> false
+  hash : () -> @serialize()
+
+  #----------------
+
+  encrypt_kb : ({payload, sender}, cb) ->
+    @pub.encrypt { payload, sender}, cb
+
+  #----------------
+
+  decrypt_kb : ({ciphertext, nonce, sender}, cb) ->
+    err = plaintex = null
+    if @priv?
+      await @priv.decrypt { ciphertext, nonce, sender }, defer plaintext
+    else
+      err = new Error "no secret key available"
+    cb err, plaintext
+
+  #----------------
+
+  @subkey_algo : (flags) ->
+    if (flags & (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)) then Pair
+    else NaclEddsa
+
+  #----------------
+
+  # DSA keys are always game for verification
+  fulfills_flags : (flags) ->
+    good_for = (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)
+    ((flags & good_for) is flags)
+
+  #----------------
+
+  verify_unpad_and_check_hash : ({sig, data, hasher, hash}, cb) ->
+    cb new Error "verify_unpad_and_check_hash unsupported"
+
+  #----------------
+
+  pad_and_sign : (data, {hasher}, cb) ->
+    cb new Error "pad_and_sign unsupported"
+
+  #----------------
+
+  @parse_kb : (pub_raw) -> BaseKeyPair.parse_kb Pair, pub_raw
+
+  #----------------
+
+  # Parse a signature out of a packet
+  #
+  # @param {SlicerBuffer} slice The input slice
+  # @return {BigInteger} the Signature
+  # @throw {Error} an Error if there was an overrun of the packet.
+  @parse_sig : (slice) ->
+    err = new Error "@parse_sig unsupported"
+    throw err
+
+  #----------------
+
+  #
+  # Read the signature out of a buffer
+  #
+  # @param {Buffer} the buffer to examine
+  # @return {Array<Error,Array<BigInteger,BigInteger>,n} a triple, consisting
+  #  of an error (if one happened); the signature (a tuple of BigIntegers meaning 'r' and 's'),
+  #  and finally the number of bytes consumed.
+  #
+  @read_sig_from_buf : (buf) ->
+    err = new Error "@read_sig_from_buf unsupported"
+    return [err]
+
+  #--------------------
+
+  @generate : ({seed}, cb) ->
+    err = null
+
+    if not seed?
+      await SRF().random_bytes box.seedLength, defer seed
+    else if seed.length isnt box.seedLength
+      err = new Error "Wrong seed length; need #{box.seedLength} bytes; got #{seed.length}"
+    unless err?
+      {secretKey, publicKey} = box.keyPair.fromSeed(b2u(seed))
+
+      # Note that the tweetnacl library deals with Uint8Arrays,
+      # and internally, we like node-style Buffers.
+      pub = new Pub u2b publicKey
+      priv = new Priv u2b secretKey
+
+    cb err, new Pair {pub, priv}
 
 #=============================================
 
