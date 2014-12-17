@@ -7,8 +7,8 @@ K = konst.kb
 NaclDh = require('./dh').Pair
 
 TYPE = K.public_key_algorithms.NACL_EDDSA
-b2u = (b) -> new Uint8Array(b)
-u2b = (u) -> new Buffer u
+exports.b2u = b2u = (b) -> new Uint8Array(b)
+exports.u2b = u2b = (u) -> new Buffer u
 
 #=============================================
 
