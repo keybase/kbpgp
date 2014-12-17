@@ -181,16 +181,22 @@ class Pair extends BaseKeyPair
 
   #--------------------
 
-  @generate : (params, cb) ->
-    await SRF().random_bytes sign.seedLength, defer seed
-    {secretKey, publicKey} = sign.keyPair.fromSeed(b2u(seed))
+  @generate : ({seed}, cb) ->
+    err = null
 
-    # Note that the tweetnacl library deals with Uint8Arrays,
-    # and internally, we like node-style Buffers.
-    pub = new Pub u2b publicKey
-    priv = new Priv u2b secretKey
+    if not seed?
+      await SRF().random_bytes sign.seedLength, defer seed
+    else if seed.length isnt sign.seedLength
+      err = new Error "Wrong seed length; need #{sign.seedLength} bytes; got #{seed.length}"
+    unless err?
+      {secretKey, publicKey} = sign.keyPair.fromSeed(b2u(seed))
 
-    cb null, new Pair {pub, priv}
+      # Note that the tweetnacl library deals with Uint8Arrays,
+      # and internally, we like node-style Buffers.
+      pub = new Pub u2b publicKey
+      priv = new Priv u2b secretKey
+
+    cb err, new Pair {pub, priv}
 
 #=============================================
 
