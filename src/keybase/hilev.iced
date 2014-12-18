@@ -8,32 +8,38 @@
 {KeyManagerInterface} = require '../kmi'
 {make_esc} = require 'iced-error'
 encode = require './encode'
-{asyncify,akatch} = require '../util'
+{buffer_xor,asyncify,akatch} = require '../util'
 konst = require '../const'
 {alloc} = require './packet/alloc'
 {Signature} = require './packet/signature'
+{Encryption} = require './packet/encryption'
 {EdDSA} = require '../nacl/eddsa'
+{DH} = require '../nacl/dh'
 K = konst.kb
 C = konst.openpgp
 
 #======================================================================
 
-exports.KeyManager = class KeyManager extends KeyManagerInterface
+class KeyManager extends KeyManagerInterface
 
-  constructor : ({@key}) ->
+  constructor : ({@key, @server_half}) ->
 
-  @generate : ({algo, params}, cb) ->
+  @generate : ({algo, seed, split, server_half, klass}, cb) ->
     algo or= EdDSA
-    params or= {}
-    await algo.generate params, defer err, key
-    cb err, new KeyManager { key }
+    klass or= KeyManager
+    await algo.generate {split, seed, server_half}, defer err, key, server_half
+    cb err, new klass { key, server_half }
+
+  #----------------------------------
+
+  get_mask : () -> (C.key_flags.sign_data | C.key_flags.certify_keys | C.key_flags.auth)
 
   #----------------------------------
 
   fetch : (key_ids, flags, cb) ->
     s = @key.ekid().toString('hex')
     key = null
-    mask = C.key_flags.sign_data | C.key_flags.certify_keys | C.key_flags.auth
+    mask = @get_mask()
     if (s in key_ids) and (flags & mask) is flags
       key = @key
     else
@@ -71,12 +77,41 @@ exports.KeyManager = class KeyManager extends KeyManagerInterface
 
   #----------------------------------
 
-  make_sig_eng : () ->
-    new SignatureEngine { km : @ }
+  make_sig_eng : () -> new SignatureEngine { km : @ }
 
 #=================================================================================
 
-exports.unbox = unbox = ({armored,rawobj}, cb) ->
+class EncKeyManager extends KeyManager
+
+  #----------------------------------
+
+  @generate : (params, cb) ->
+    params.algo = DH
+    params.klass = EncKeyManager
+    KeyManager.generate params, cb 
+
+  #----------------------------------
+
+  make_sig_eng : () -> null
+
+  #----------------------------------
+
+  get_mask : () -> (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage )
+
+  #----------------------------------
+
+  @import_public : ({hex, raw}, cb) ->
+    err = ret = null
+    if hex?
+      raw = new Buffer hex, 'hex'
+    [err, key] = DH.parse_kb raw
+    unless err?
+      ret = new KeyManager { key }
+    cb err, ret
+
+#=================================================================================
+
+exports.unbox = unbox = ({armored,rawobj,encrypt_for}, cb) ->
   esc = make_esc cb, "unbox"
 
   if not armored? and not rawobj?
@@ -87,17 +122,23 @@ exports.unbox = unbox = ({armored,rawobj}, cb) ->
     await akatch ( () -> encode.unseal buf), esc defer rawobj
 
   await asyncify alloc(rawobj), esc defer packet
-  await packet.unbox esc defer res
-  res.km = new KeyManager { key : res.keypair }
+  await packet.unbox {encrypt_for}, esc defer res
+
+  if res.keypair?
+    res.km = new KeyManager { key : res.keypair }
+  if res.sender_keypair?
+    res.sender_km = new KeyManager { key : res.sender_keypair }
+  if res.receiver_keypair?
+    res.receiver_km = new KeyManager { key : res.receiver_keypair }
 
   cb null, res
 
 #=================================================================================
 
-exports.box = box = ({msg, sign_with, encrypt_for}, cb) ->
+box = ({msg, sign_with, encrypt_for, anonymous}, cb) ->
   esc = make_esc cb, "box"
   if encrypt_for?
-    await Encryption.box { sign_with, encrypt_for, plaintext : msg }, esc defer packet
+    await Encryption.box { sign_with, encrypt_for, plaintext : msg, anonymous }, esc defer packet
   else
     await Signature.box { km : sign_with, payload : msg }, esc defer packet
   packed = packet.frame_packet()
@@ -107,7 +148,7 @@ exports.box = box = ({msg, sign_with, encrypt_for}, cb) ->
 
 #=================================================================================
 
-exports.SignatureEngine = class SignatureEngine
+class SignatureEngine
 
   #-----
 
@@ -138,4 +179,4 @@ exports.SignatureEngine = class SignatureEngine
 
 #=================================================================
 
-module.exports = { box, unbox, KeyManager }
+module.exports = { box, unbox, KeyManager, EncKeyManager }

@@ -2,7 +2,7 @@
 {SRF} = require '../rand'
 konst = require '../const'
 K = konst.kb
-{bufeq_secure,bufeq_fast} = require '../util'
+{genseed,bufeq_secure,bufeq_fast} = require '../util'
 {BaseKey,BaseKeyPair} = require '../basekeypair'
 NaclDh = require('./dh').Pair
 
@@ -181,13 +181,10 @@ class Pair extends BaseKeyPair
 
   #--------------------
 
-  @generate : ({seed}, cb) ->
-    err = null
+  @generate : ({seed, split, server_half}, cb) ->
+    arg = { seed, split, len : sign.seedLength, server_half }
+    await genseed arg, defer err, { server_half, seed }
 
-    if not seed?
-      await SRF().random_bytes sign.seedLength, defer seed
-    else if seed.length isnt sign.seedLength
-      err = new Error "Wrong seed length; need #{sign.seedLength} bytes; got #{seed.length}"
     unless err?
       {secretKey, publicKey} = sign.keyPair.fromSeed(b2u(seed))
 
@@ -196,7 +193,7 @@ class Pair extends BaseKeyPair
       pub = new Pub u2b publicKey
       priv = new Priv u2b secretKey
 
-    cb err, new Pair {pub, priv}
+    cb err, (new Pair {pub, priv}), server_half
 
 #=============================================
 

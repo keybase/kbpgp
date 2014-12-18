@@ -19,15 +19,15 @@ class Encryption extends Packet
 
   #------------------
 
-  constructor : ({@encrypt_for, @sign_with, @plaintext, @ciphertext, @sender_key, @nonce}) ->
+  constructor : ({@encrypt_for, @sign_with, @plaintext, @ciphertext, @sender_key, @nonce, @anonymous}) ->
     super()
     @emphemeral = false
 
   #------------------
 
   get_packet_body : () ->
-    enc_type = Signature.SIG_TYPE
-    { @sender_key, @ciphertext, @nonce, enc_type }
+    enc_type = Encryption.ENC_TYPE
+    { @sender_key, @ciphertext, @nonce, enc_type, @receiver_key }
 
   #------------------
 
@@ -48,9 +48,10 @@ class Encryption extends Packet
 
   #------------------
 
-  get_sender_keypair : ({encrypt}, cb) ->
+  get_sender_keypair : ({sign_with,encrypt}, cb) ->
     err = ret = null
-    if @sign_with? then ret = @sign_with.get_keypair()
+    if sign_with? then ret = sign_with.get_keypair()
+    else if @sign_with? then ret = @sign_with.get_keypair()
     else if @sender_keypair? then ret = @sender_keypair
     else if encrypt
       await dh.Pair.generate {}, defer err, @sender_keypair
@@ -66,7 +67,7 @@ class Encryption extends Packet
 
   #------------------
 
-  encrypt : (cb) ->
+  encrypt : (params, cb) ->
     esc = make_esc cb, "encrypt"
     await @get_sender_keypair {encrypt : true }, esc defer sender
     recvr = @encrypt_for.get_keypair()
@@ -75,35 +76,36 @@ class Encryption extends Packet
       new Buffer([ if @emphemeral then 1 else 0 ]),
     ]
     await recvr.encrypt_kb { plaintext, sender }, esc defer { @ciphertext, @nonce }
+    @sender_key = sender.ekid() unless @anonymous and not @emphemeral
+    @receiver_key = recvr.ekid() unless @anonymous
     cb null
 
   #------------------
 
-  decrypt : (cb) ->
+  decrypt : ({sign_with, encrypt_for}, cb) ->
     esc = make_esc cb, "decrypt"
-    await @get_sender_keypair {}, esc defer sender
+    await @get_sender_keypair {sign_with}, esc defer sender
     args = { @ciphertext, @nonce, sender }
-    recvr = @encrypt_for.get_keypair()
+    recvr = encrypt_for.get_keypair()
     await recvr.decrypt_kb args, esc defer plaintext
     @plaintext = plaintext[0...-1]
     @emphemeral = plaintext[-1...][0]
-    cb err, { keypair : sender, @plaintext, @emphemeral }
+    cb null, { sender_keypair : sender, @plaintext, @emphemeral, receiver_keypair : recvr }
 
   #------------------
 
-  unbox : (cb) ->
-    await @decrypt defer err, res
+  unbox : ({encrypt_for}, cb) ->
+    await @decrypt {encrypt_for}, defer err, res
     cb err, res
 
   #------------------
 
-  @box : ({sign_with, encrypt_for, plaintext}, cb) ->
-    packet = new Encryption { sign_with, encrypt_for, plaintext } 
-    await packet.encrypt defer err
+  @box : ({sign_with, encrypt_for, plaintext, anonymous}, cb) ->
+    packet = new Encryption { sign_with, encrypt_for, plaintext, anonymous } 
+    await packet.encrypt {}, defer err
     packet = null if err?
     cb err, packet
 
 #=================================================================================
 
-exports.Signature = Signature
-exports.sign = Signature.sign
+exports.Encryption = Encryption

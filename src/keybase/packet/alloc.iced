@@ -2,6 +2,7 @@
 K = require('../../const').kb
 {P3SKB} = require './p3skb'
 {Signature} = require './signature'
+{Encryption} = require './encryption'
 
 exports.alloc = ({tag, body}) ->
   ret = err = null

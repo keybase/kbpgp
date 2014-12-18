@@ -2,7 +2,7 @@
 {SRF} = require '../rand'
 konst = require '../const'
 K = konst.kb
-{bufeq_fast} = require '../util'
+{genseed,bufeq_fast} = require '../util'
 {BaseKey,BaseKeyPair} = require '../basekeypair'
 {b2u,u2b} = require './eddsa'
 NaclEddsa = require('./eddsa').Pair
@@ -174,13 +174,10 @@ class Pair extends BaseKeyPair
 
   #--------------------
 
-  @generate : ({seed}, cb) ->
-    err = null
+  @generate : ({server_half, seed, split}, cb) ->
+    arg = { seed, split, len : box.secretKeyLength, server_half }
+    await genseed arg, defer err, { server_half, seed }
 
-    if not seed?
-      await SRF().random_bytes box.secretKeyLength, defer seed
-    else if seed.length isnt box.secretKeyLength
-      err = new Error "Wrong seed length; need #{box.secretKeyLength} bytes; got #{seed.length}"
     unless err?
       {secretKey, publicKey} = box.keyPair.fromSecretKey(b2u(seed))
 
@@ -189,7 +186,7 @@ class Pair extends BaseKeyPair
       pub = new Pub u2b publicKey
       priv = new Priv u2b secretKey
 
-    cb err, new Pair {pub, priv}
+    cb err, (new Pair {pub, priv}), server_half
 
 #=============================================
 

@@ -61,7 +61,7 @@ class Signature extends Packet
 
   #------------------
 
-  unbox : (cb) ->
+  unbox : (params, cb) ->
     await @verify defer err, res
     cb err, res
 

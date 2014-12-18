@@ -36,6 +36,7 @@ $(BUILD_STAMP): \
 	lib/keybase/packet/encryption.js \
 	lib/keybase/packet/p3skb.js \
 	lib/keybase/packet/signature.js \
+	lib/keybase/util.js \
 	lib/keyfetch.js \
 	lib/keyring.js \
 	lib/keywrapper.js \

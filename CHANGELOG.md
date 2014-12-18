@@ -3,6 +3,8 @@
   - get_ekid() implementation for openpgp KeyManagers
   - SignatureEngine.box for keybase and openpgp-style packets
   - generate EdDSA keys from deterministic seed (#59)
+  - wrap DH as we do EdDSA (#60)
+  - allow split key-generation for server-assists
 
 ## 2.0.0 (2014-12-10)
 
