@@ -77,6 +77,14 @@ class KeyManager extends KeyManagerInterface
 
   #----------------------------------
 
+  export_server_half : () -> @server_half?.toString 'hex'
+
+  #----------------------------------
+
+  get_ekid : () -> return @get_keypair().ekid()
+
+  #----------------------------------
+
   make_sig_eng : () -> new SignatureEngine { km : @ }
 
 #=================================================================================
@@ -88,7 +96,7 @@ class EncKeyManager extends KeyManager
   @generate : (params, cb) ->
     params.algo = DH
     params.klass = EncKeyManager
-    KeyManager.generate params, cb 
+    KeyManager.generate params, cb
 
   #----------------------------------
 
