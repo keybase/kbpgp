@@ -49,6 +49,7 @@ class KeyManager extends KeyManagerInterface
   #----------------------------------
 
   get_keypair : () -> @key
+  get_primary_keypair : () -> @key
 
   #----------------------------------
 

@@ -18,7 +18,7 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   constructor : () ->
 
   # will only return non-null for PGP
-  get_fingerprint : () -> null
+  get_pgp_fingerprint : () -> null
 
   # Works for any type of key
   get_ekid : () -> null

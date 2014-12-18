@@ -682,6 +682,10 @@ class KeyManager extends KeyManagerInterface
 
   #--------
 
+  get_userids : () -> @userids
+
+  #--------
+
   # Take the vouched-for user IDs, and for each one, look up all of the signatures on
   # the user ID.  For each signature, pull out what time it was signed, and whether it's marked
   # primary.  Then go through this list and (1) deduplicate; and (2) figure out which userid
