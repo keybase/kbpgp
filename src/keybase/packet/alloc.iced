@@ -10,6 +10,8 @@ exports.alloc = ({tag, body}) ->
       P3SKB.alloc {tag, body }
     when K.packet_tags.signature
       Signature.alloc { tag, body }
+    when K.packet_tags.encryption
+      Encryption.alloc { tag, body }
     else
       err = new Error "unknown packet tag: #{tag}"
       null

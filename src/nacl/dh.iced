@@ -46,10 +46,10 @@ class Pub
 
   #--------------------
 
-  encrypt : ({payload,sender}, cb) ->
+  encrypt : ({plaintext,sender}, cb) ->
     await SRF().random_bytes box.nonceLength, defer nonce
-    res = box b2u(payload), b2u(nonce), b2u(@key), b2u(sender)
-    cb null, u2b(res)
+    res = box b2u(plaintext), b2u(nonce), b2u(@key), b2u(sender.pub.key)
+    cb null, {ciphertext : u2b(res), nonce }
 
 #=============================================
 
@@ -71,7 +71,7 @@ class Priv
 
   decrypt : ({ciphertext, nonce, sender}, cb) ->
     err = res = null
-    res = box.open b2u(ciphertext), b2u(nonce), b2u(sender), b2u(@key)
+    res = box.open b2u(ciphertext), b2u(nonce), b2u(sender.pub.key), b2u(@key)
     if res is false
       err = new Error "decryption failed"
       res = null
@@ -107,8 +107,8 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  encrypt_kb : ({payload, sender}, cb) ->
-    @pub.encrypt { payload, sender}, cb
+  encrypt_kb : ({plaintext, sender}, cb) ->
+    @pub.encrypt { plaintext, sender}, cb
 
   #----------------
 

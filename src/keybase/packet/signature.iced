@@ -8,7 +8,6 @@ C = konst.openpgp
 
 #=================================================================================
 
-# PGP Triplesec Secret Key Bundle
 class Signature extends Packet
 
   @SIG_TYPE : K.public_key_algorithms.NACL_EDDSA
@@ -48,7 +47,7 @@ class Signature extends Packet
 
   #------------------
 
-  is_signature : () -> false
+  is_signature : () -> true
 
   #------------------
 

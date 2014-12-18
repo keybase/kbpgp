@@ -33,6 +33,7 @@ $(BUILD_STAMP): \
 	lib/keybase/hilev.js \
 	lib/keybase/packet/alloc.js \
 	lib/keybase/packet/base.js \
+	lib/keybase/packet/encryption.js \
 	lib/keybase/packet/p3skb.js \
 	lib/keybase/packet/signature.js \
 	lib/keyfetch.js \

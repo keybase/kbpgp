@@ -94,9 +94,12 @@ exports.unbox = unbox = ({armored,rawobj}, cb) ->
 
 #=================================================================================
 
-exports.box = box = ({msg, sign_with}, cb) ->
+exports.box = box = ({msg, sign_with, encrypt_for}, cb) ->
   esc = make_esc cb, "box"
-  await Signature.box { km : sign_with, payload : msg }, esc defer packet
+  if encrypt_for?
+    await Encryption.box { sign_with, encrypt_for, plaintext : msg }, esc defer packet
+  else
+    await Signature.box { km : sign_with, payload : msg }, esc defer packet
   packed = packet.frame_packet()
   sealed = encode.seal { obj : packed, dohash : false }
   armored = sealed.toString('base64')

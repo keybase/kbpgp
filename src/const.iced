@@ -138,6 +138,7 @@ exports.kb =
   packet_tags :
     p3skb : 0x201
     signature : 0x202
+    encryption : 0x203
   public_key_algorithms :
     NACL_EDDSA: 0x20
     NACL_DH: 0x21
