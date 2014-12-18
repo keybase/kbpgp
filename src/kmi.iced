@@ -48,6 +48,8 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
 
   export_public : ( {asp, regen}, cb) -> cb EUI, null
 
+  can_sign : () -> false
+
 #=================================================================================
 
 exports.SignatureEngineInterface = class SignatureEngineInterface

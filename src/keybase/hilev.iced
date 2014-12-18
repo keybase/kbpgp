@@ -50,6 +50,7 @@ class KeyManager extends KeyManagerInterface
 
   get_keypair : () -> @key
   get_primary_keypair : () -> @key
+  can_sign : () -> true
 
   #----------------------------------
 
@@ -62,7 +63,9 @@ class KeyManager extends KeyManagerInterface
     if hex?
       raw = new Buffer hex, 'hex'
     [err, key] = EdDSA.parse_kb raw
-    unless err?
+    if err?
+      await EncKeyManager.import_public { raw }, defer err, ret
+    else
       ret = new KeyManager { key }
     cb err, ret
 
@@ -102,6 +105,7 @@ class EncKeyManager extends KeyManager
   #----------------------------------
 
   make_sig_eng : () -> null
+  can_sign : () -> false
 
   #----------------------------------
 
@@ -115,7 +119,7 @@ class EncKeyManager extends KeyManager
       raw = new Buffer hex, 'hex'
     [err, key] = DH.parse_kb raw
     unless err?
-      ret = new KeyManager { key }
+      ret = new EncKeyManager { key }
     cb err, ret
 
 #=================================================================================
