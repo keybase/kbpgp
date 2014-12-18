@@ -48,7 +48,7 @@ class Pub
 
   encrypt : ({plaintext,sender}, cb) ->
     await SRF().random_bytes box.nonceLength, defer nonce
-    res = box b2u(plaintext), b2u(nonce), b2u(@key), b2u(sender.pub.key)
+    res = box b2u(plaintext), b2u(nonce), b2u(@key), b2u(sender.priv.key)
     cb null, {ciphertext : u2b(res), nonce }
 
 #=============================================
@@ -86,7 +86,7 @@ class Pair extends BaseKeyPair
   @Pub : Pub
   Pub : Pub
   @Priv : Priv
-  Priv : Pirv
+  Priv : Priv
 
   #--------------------
 
@@ -115,7 +115,7 @@ class Pair extends BaseKeyPair
   decrypt_kb : ({ciphertext, nonce, sender}, cb) ->
     err = plaintex = null
     if @priv?
-      await @priv.decrypt { ciphertext, nonce, sender }, defer plaintext
+      await @priv.decrypt { ciphertext, nonce, sender }, defer err, plaintext
     else
       err = new Error "no secret key available"
     cb err, plaintext
@@ -178,11 +178,11 @@ class Pair extends BaseKeyPair
     err = null
 
     if not seed?
-      await SRF().random_bytes box.seedLength, defer seed
-    else if seed.length isnt box.seedLength
-      err = new Error "Wrong seed length; need #{box.seedLength} bytes; got #{seed.length}"
+      await SRF().random_bytes box.secretKeyLength, defer seed
+    else if seed.length isnt box.secretKeyLength
+      err = new Error "Wrong seed length; need #{box.secretKeyLength} bytes; got #{seed.length}"
     unless err?
-      {secretKey, publicKey} = box.keyPair.fromSeed(b2u(seed))
+      {secretKey, publicKey} = box.keyPair.fromSecretKey(b2u(seed))
 
       # Note that the tweetnacl library deals with Uint8Arrays,
       # and internally, we like node-style Buffers.
