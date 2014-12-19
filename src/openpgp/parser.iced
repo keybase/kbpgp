@@ -15,11 +15,11 @@ C = require('../const').openpgp
 
 #==================================================================================================
 
-class MessageParser 
+class MessageParser
   constructor : (@slice) ->
   parse : () -> (@parse_packet() while @slice.rem())
   parse_packet : () -> (new PacketParser @slice).parse()
-   
+
 #==================================================================================================
 
 class PacketParser
@@ -98,7 +98,7 @@ class PacketParser
 
   #----------------
 
-  parse_tag_len_new : () -> 
+  parse_tag_len_new : () ->
     go = true
     segments = []
     @len = 0
@@ -109,13 +109,13 @@ class PacketParser
 
       lastlen = if (c < 192) then c
       else if (c is 255) then @slice.read_uint32()
-      else if (c < 224) 
+      else if (c < 224)
         d = @slice.read_uint8()
         ((c - 192) << 8) + (d + 192)
       else
         @header_len or= @slice.offset()
         packet_length = 1 << (c & 0x1f)
-        segments.push @slice.read_buffer packet_length 
+        segments.push @slice.read_buffer packet_length
         go = true
         packet_length
 
@@ -128,7 +128,7 @@ class PacketParser
 
 #==================================================================================================
 
-exports.parse = parse = (buf) -> 
+exports.parse = parse = (buf) ->
   util.katch () ->
     (new MessageParser new SlicerBuffer buf).parse()
 

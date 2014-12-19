@@ -83,12 +83,14 @@ exports.Curve = class Curve extends base.Curve
   #----------------------------------
 
   point_to_mpi_buffer : (p) ->
-    Buffer.concat [
+    sz = @mpi_coord_byte_size()
+    ret = Buffer.concat [
       uint_to_buffer(16, @mpi_bit_size()),
       new Buffer([0x4]),
-      p.affineX.toBuffer(@p.byteLength()),
-      p.affineY.toBuffer(@p.byteLength())
+      p.affineX.toBuffer(sz),
+      p.affineY.toBuffer(sz)
     ]
+    ret
 
   #----------------------------------
 
