@@ -41,11 +41,11 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
-  # Read a point from an MPI as specified in 
+  # Read a point from an MPI as specified in
   #
   #   http://tools.ietf.org/html/rfc6637#section-6
   #   Section 6: Conversion Primitives
-  # 
+  #
   # Throw an error if there's an issue.
   #
   _mpi_point_from_slicer_buffer : (sb) ->
@@ -56,7 +56,7 @@ exports.Curve = class Curve extends base.Curve
       throw new Error "Can only handle 0x4 prefix for MPI representations"
     n_bytes = @mpi_coord_byte_size()
     [x,y] = [ BigInteger.fromBuffer(sb.read_buffer(n_bytes)), BigInteger.fromBuffer(sb.read_buffer(n_bytes)) ]
-    point = @mkpoint { x, y} 
+    point = @mkpoint { x, y}
     unless @isOnCurve point
       throw new Error "Given ECC point isn't on the given curve; data corruption detected."
     [ null, point ]
@@ -70,9 +70,9 @@ exports.Curve = class Curve extends base.Curve
 
   mpi_point_from_slicer_buffer : (sb) ->
     err = point = null
-    try 
+    try
       [err, point] = @_mpi_point_from_slicer_buffer sb
-    catch e 
+    catch e
       err = e
     return [err, point ]
 
@@ -139,12 +139,12 @@ exports.nist_p521 = nist_p521 = () ->
   n  = H('000001ff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffa 51868783 bf2f966b 7fcc0148 f709a5d0 3bb5c9b8 899c47ae bb6fb71e 91386409')
   Gx = H('000000c6 858e06b7 0404e9cd 9e3ecb66 2395b442 9c648139 053fb521 f828af60 6b4d3dba a14b5e77 efe75928 fe1dc127 a2ffa8de 3348b3c1 856a429b f97e7e31 c2e5bd66')
   Gy = H('00000118 39296a78 9a3bc004 5c8a5fb4 2c7d1bd9 98f54449 579b4468 17afbd17 273e662c 97ee7299 5ef42640 c550b901 3fad0761 353c7086 a272c240 88be9476 9fd16650')
- 
+
   new Curve { p, a, b, Gx, Gy, n, oid : OIDS.nist_p521 }
 
 #=================================================================
 
-OIDS = 
+OIDS =
   nist_p256 : new Buffer [0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07 ]
   nist_p384 : new Buffer [0x2b, 0x81, 0x04, 0x00, 0x22 ]
   nist_p521 : new Buffer [0x2b, 0x81, 0x04, 0x00, 0x23 ]
@@ -160,14 +160,16 @@ exports.alloc_by_oid = (oid) ->
   err = curve = null
   if (f = OID_LOOKUP[oid.toLowerCase()])? then curve = f()
   else err = new Error "Unknown curve OID: #{oid}"
+  console.log "got curve"
+  console.log curve
   [err,curve]
-  
+
 #=================================================================
 
 exports.alloc_by_nbits = (nbits) ->
   ret = err = null
   nbits or= 256
-  f = switch nbits 
+  f = switch nbits
     when 256 then nist_p256
     when 384 then nist_p384
     when 521 then nist_p521

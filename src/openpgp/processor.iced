@@ -96,14 +96,17 @@ class KeyBlock
     # No sense in processing packet 1, since it's the primary key!
     for p,i in @packets[1...] when not err?
       if not p.is_signature()
+        console.log "not signature @ #{i}"
         if n_sigs > 0
           n_sigs = 0
           working_set = []
         working_set.push p unless p.is_duplicate_primary()
       else if not bufeq_secure((iid = p.get_issuer_key_id()), (pid = @primary.get_key_id()))
+        console.log "skipped packet sig @ #{i} #{iid.toString('hex')} #{pid.toString('hex')}"
         n_sigs++
         @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
       else
+        console.log "verifying sig in packet #{i}"
         n_sigs++
         p.key = @primary.key
         p.primary = @primary
