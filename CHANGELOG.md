@@ -5,6 +5,7 @@
   - generate EdDSA keys from deterministic seed (#59)
   - wrap DH as we do EdDSA (#60)
   - allow split key-generation for server-assists
+  - Partially address #62, a bug in EC point output (improper padding)
 
 ## 2.0.0 (2014-12-10)
 
