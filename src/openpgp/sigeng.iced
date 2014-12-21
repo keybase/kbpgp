@@ -3,6 +3,7 @@
 {burn} = require './burner'
 processor = require './processor'
 {decode} = require './armor'
+C = require '../const'
 
 #=================================================================
 
@@ -25,20 +26,23 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
-  decode : (armored) -> 
+  decode : (armored, cb) -> 
     [ err, msg ] = decode armored
-    if not err? and (msg.type isnt "MESSAGE")
+    mt = C.openpgp.message_types
+    if not err? and (msg.type isnt mt.generic)
       err = new Error "wrong message type; expected a generic message; got #{msg.type}"
-    return [ err, msg, msg.body ]
+    cb err, msg
 
   #-----
 
   unbox       : (msg, cb) ->
     esc = make_esc cb, "SignatureEngine::unbox"
+    if typeof(msg) is 'string'
+      await @decode msg, esc defer msg
     eng = new processor.Message { keyfetch : @km }
     await eng.parse_and_process { body : msg.body }, esc defer literals
     await @_check_result literals, esc defer payload
-    cb null, payload
+    cb null, payload, msg.body
 
   #-----
 

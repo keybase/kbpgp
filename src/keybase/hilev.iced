@@ -145,7 +145,7 @@ exports.unbox = unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
   if res.receiver_keypair?
     res.receiver_km = new KeyManager { key : res.receiver_keypair }
 
-  cb null, res
+  cb null, res, binary
 
 #=================================================================================
 
@@ -179,28 +179,19 @@ class SignatureEngine
 
   #-----
 
-  decode : (armored) ->
-    err = msg = body = null
-    msg = new Buffer armored, 'base64'
-    if msg.length is 0
-      err = new Error "bad base64-encoding"
-    else
-      msg = body = null
-    [ err, msg, body ]
-
-  #-----
-
-  unbox : (binary, cb) ->
+  unbox : (msg, cb) ->
     esc = make_esc cb, "SignatureEngine::unbox"
     err = payload = null
-    await unbox { binary }, esc defer res
+    arg = if Buffer.isBuffer(msg) then { binary : msg }
+    else { armored : msg }
+    await unbox arg, esc defer res, binary
     if not res.km.eq @km
       a = res.km.get_ekid().toString('hex')
       b = @km.get_ekid().toString('hex')
       err = new Error "Got wrong signing key: #{a} != #{b}"
     else
       payload = res.payload
-    cb null, payload
+    cb null, payload, binary
 
 #=================================================================
 
