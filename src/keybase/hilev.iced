@@ -157,7 +157,7 @@ box = ({msg, sign_with, encrypt_for, anonymous}, cb) ->
   packed = packet.frame_packet()
   sealed = encode.seal { obj : packed, dohash : false }
   armored = sealed.toString('base64')
-  cb null, armored
+  cb null, armored, sealed
 
 #=================================================================================
 
@@ -172,8 +172,8 @@ class SignatureEngine
 
   box : (msg, cb) ->
     esc = make_esc cb, "SignatureEngine::box"
-    await box { msg, sign_with : @km }, esc defer armored
-    out = { type : "kb", armored, kb : armored }
+    await box { msg, sign_with : @km }, esc defer armored, raw
+    out = { type : "kb", armored, kb : armored, raw }
     cb null, out
 
   #-----
