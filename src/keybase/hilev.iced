@@ -124,15 +124,16 @@ class EncKeyManager extends KeyManager
 
 #=================================================================================
 
-exports.unbox = unbox = ({armored,rawobj,encrypt_for}, cb) ->
+exports.unbox = unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
   esc = make_esc cb, "unbox"
 
-  if not armored? and not rawobj?
-    await athrow (new Error "need either 'armored' or 'rawobj'"), esc defer()
-
+  if not armored? and not rawobj? and not binary?
+    await athrow (new Error "need either 'armored' or 'binary' or 'rawobj'"), esc defer()
+ 
   if armored?
-    buf = new Buffer armored, 'base64'
-    await akatch ( () -> encode.unseal buf), esc defer rawobj
+    binary = new Buffer armored, 'base64'
+  if binary?
+    await akatch ( () -> encode.unseal binary), esc defer rawobj
 
   await asyncify alloc(rawobj), esc defer packet
   await packet.unbox {encrypt_for}, esc defer res
@@ -178,10 +179,21 @@ class SignatureEngine
 
   #-----
 
-  unbox : (msg, cb) ->
+  decode : (armored) ->
+    err = msg = body = null
+    msg = new Buffer armored, 'base64'
+    if msg.length is 0
+      err = new Error "bad base64-encoding"
+    else
+      msg = body = null
+    [ err, msg, body ]
+
+  #-----
+
+  unbox : (binary, cb) ->
     esc = make_esc cb, "SignatureEngine::unbox"
     err = payload = null
-    await unbox { armored : msg }, esc defer res
+    await unbox { binary }, esc defer res
     if not res.km.eq @km
       a = res.km.get_ekid().toString('hex')
       b = @km.get_ekid().toString('hex')

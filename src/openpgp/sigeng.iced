@@ -2,6 +2,7 @@
 {make_esc} = require 'iced-error'
 {burn} = require './burner'
 processor = require './processor'
+{decode} = require './armor'
 
 #=================================================================
 
@@ -21,6 +22,14 @@ exports.SignatureEngine = class SignatureEngine
       out.armored = out.pgp unless err?
     else err = new Error "No signing key found"
     cb err, out
+
+  #-----
+
+  decode : (armored) -> 
+    [ err, msg ] = decode armored
+    if not err? and (msg.type isnt "MESSAGE")
+      err = new Error "wrong message type; expected a generic message; got #{msg.type}"
+    return [ err, msg, msg.body ]
 
   #-----
 

@@ -6,6 +6,8 @@
   - wrap DH as we do EdDSA (#60)
   - allow split key-generation for server-assists
   - Partially address #62, a bug in EC point output (improper padding)
+  - SignatureEngine::decode now does some of the work for unbox,
+    on a per-sig-eng basis (different from openpgp and kb)
 
 ## 2.0.0 (2014-12-10)
 
