@@ -4,13 +4,13 @@
 Version: GnuPG/MacGPG2 v2
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJUmEQAAAoJEJgKPw0B/gTfUNAH/jIRvOA6wNMWeqH3O7lydoAq
-FW7pYAGlrpxay++OEb5sBWNGnF4OWf4oXAZlBSUMTafT3v8QPN/NAdN7zYVCWC/2
-kTufp9/h9DphgBjfSMxB/Pozn7Y/DHacpJb4h357VThzfPi9vYE8ku/FM5xgqx/A
-U52+uTBJjlnNSBBNAYeOwVQkpLF3gs5AoWrZ4M1gx5/JB8vNDNK3kB9Fjg3Mx6wM
-o9hT9ty4DeN5YnGKUrJeANcmPYbsUa2d/coo23S2Nu3kF8lkBTdRVZLlVSLVVvZ9
-wLLM3wWd8fHjDls9FKWikLuM9D0FigNFYFUx3KWYZP7P7VEAjoNYFV2rnMCoBjk=
-=LI/h
+iQEcBAABCgAGBQJUmEY7AAoJEJgKPw0B/gTfTQEIAMIU5Jn5kxjfjJFCUr6ysdJL
+hfPcvmNUpoxtlTq7rUXby6huO4zEmtTwiEBTp13IbkBzdi0gb125hY/Nt1jLkDh7
+SB5HM9z5ux6ldg0A/I2XzLKVIm9rxPO2W60gMtY+dkqACwvLI5ZxgyMuXt8XSGAc
+wDVx1XSJTTKaJfsK/UIv/13Ms+XeLXSsarDU+Ga+4w2hoiomLKB8xV+pSyhjiUeN
+nDqww/zwV10rnMB686s1tiCrsnKnJTONZGvUzF5vaE/bHPLih/RPAOt6blwcaJHy
+R4O6Ixrioeft/KXG8Hf+ZHZkVYWtOAk3aWt3+X6XdshnMvxOPei1kV2HpTf/FLM=
+=2+4S
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,7 +26,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-12764            CHANGELOG.md                        d38aedc8f7c4ce7c8d5f46020702e64c94b69a31761d2e4485db85af0ba95aa4                                                                 
+12777            CHANGELOG.md                        816b51c36dd221aa8c8d811775fda16134e09c2ebd8d368e3e242b04b9f31191                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3185             Makefile                            7e580bca68bb4ee81cfe481936917ab0a1a728dac1a6950a9877ed799ca3863b                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -131,7 +131,7 @@ size     exec  file                                  contents
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 2299               ukm.js                            c2cddcf6dcdd8a86ec6222fee90c9010c16ee9dd12d8bb80bfcda6323a0ff017                                                                 
 335                util.js                           3e59cf27751705fc5584f3d52e4e81b16cce2a329fba98150c6a630c354e37cc                                                                 
-1032             package.json                        805ac5852b88136b1b6eac9372b5ad55b42c28cbf8d9b4db00226b737d953f7f                                                                 
+1032             package.json                        689ce38f6edce8ee72e26a30b50c6c16fbd492079235c64319db29cd1cb1078d                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -228,7 +228,7 @@ size     exec  file                                  contents
 498207               keybase.js                      644255a0bc4e925552de6cd686825c8f22f316bf93aff50ee26acee88f8ee9a5                                                                 
                    browser/                                                                                                                                                           
 287                  index.html                      d99a34d1e7a9ad710b90f2b0c3a1b8d786406ca5ad49856f6329d298aaba9d94                                                                 
-2128                 main.iced                       c579486ea1ac912b587ea2e6dce9fdf0420ce7e7fcfe3bde93b2f2dc2dbabf9e                                                                 
+2326                 main.iced                       ef638736215e97f2b7988bb9e5385ba4f845ecdf630c7085f464d584f88cfbcb                                                                 
                    data/                                                                                                                                                              
 29438                detached.iced                   2e36d202dd4336420345d5d55d0363abb6e23c9851adf95bd3241267df705bc6                                                                 
 675852               keys.iced                       eb90c4fbce101fa3c0eef6e6fb3f4c0727437438479ea33e7055a6df7b00a559                                                                 
