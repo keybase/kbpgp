@@ -1,4 +1,4 @@
-## 2.0.1
+## 2.0.1 (2014-12-22)
 
   - get_ekid() implementation for openpgp KeyManagers
   - SignatureEngine.box for keybase and openpgp-style packets

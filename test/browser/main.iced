@@ -2,6 +2,9 @@
 mods =
   nacl1 : require '../files/nacl1.iced'
   nacl2 : require '../files/nacl2.iced'
+  ecc3 : require '../files/ecc3.iced'
+  verify_sigs : require '../files/verify_sigs.iced'
+  sigeng : require '../files/sigeng.iced'
   revoked_subkeys : require '../files/revoked_subkey.iced'
   sigs : require "../files/verify_sigs.iced"
   multiples : require "../files/multiples.iced"
@@ -11,7 +14,7 @@ mods =
   ecc2 : require '../files/ecc2.iced'
   rfc3394 : require '../files/rfc3394.iced'
   google_end_to_end : require '../files/google_end_to_end.iced'
-  detached_sigs : require '../files/verify_detached_sigs.iced'
+  verify_detached_sigs : require '../files/verify_detached_sigs.iced'
   hide : require '../files/hide.iced'
   critical_subpacket : require '../files/critical_subpacket.iced'
   secret_subkeys : require '../files/secret_subkeys.iced'
@@ -39,6 +42,11 @@ mods =
   fermat2 : require '../files/fermat2.iced'
   miller_rabin : require '../files/miller_rabin.iced'
   rsa : require '../files/rsa.iced'
+
+v = Object.keys(mods)
+v.sort()
+for k in v
+  console.log k
 
 {BrowserRunner} = require('iced-test')
 
