@@ -1,16 +1,15 @@
 ##### Signed by https://keybase.io/max
 ```
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG/MacGPG2 v2
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJUmEZjAAoJEJgKPw0B/gTftGwH/RVz8TmmOTtXglhkicRLasxU
-FYi3qDCfUjHOFHdCHRmL/0LKOPUrTkZko60VE6QSeynYnLYGBkbx2B4pCA072JXX
-hmwC398B96gT6xUfbhsUJ1z2rLicAJOicJhqRZn4JIJLW9QIGVk9SKmZKKXicES2
-GaQHEnjjh/wGPai9mw4E8i5i3woXlRTIaediZQTxuIQC2XRYMaeSBZ8ayfl3AuPU
-hy2u0Z2olW5+v6RPAaIhMXA+YXjEop1+RqB9H0lD+cntzHbcRIyvhFIPxI4aZT3B
-BRMlPLW4lXtkPjlFymI5tGAnwO8QkszkEljQr8Sy7y2LulFP4o5jyb9Vl8W7Tm8=
-=6PHu
+iQEcBAABCgAGBQJUytW1AAoJEJgKPw0B/gTfATgH/Ri3mAHuXFXj27Q0FiZDEVi0
+5CN15qgDR25CUx9sRzJkeRAQuR+YTAR43F9B23Bk4bKMd8YwUGdNY6Qaf+jbX/px
+n5H3zU5/WT954wRnCtQAFXg5TalLsfc41b45Qw5I5ZN9vodmfEa8h0L+1bcowB/6
+QXk7kjnAYgbqhKLpQ80xPeRbGMt4Q8NNTUMPm6xdr6Gq8v4moJFiOvbKwlYcBjFB
+Lv13Uy6nIE859LFS6L8IAYm1cTudxtYmSVXp8+/0daxL3j+1Vkp+ngmEWmCwm/Jx
+RLuNcrjW8eIZzweBJ4ybUfsKxo8SuHkE7B61MZoKGMn/mwRSNgHCcFCWle9+flk=
+=JaVr
 -----END PGP SIGNATURE-----
 
 ```
@@ -26,7 +25,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-12777            CHANGELOG.md                        816b51c36dd221aa8c8d811775fda16134e09c2ebd8d368e3e242b04b9f31191                                                                 
+12920            CHANGELOG.md                        d288b4c1d8573b9d2dfe4703fe36032ae7923b6c11176a987e12a36557fec28e                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3185             Makefile                            7e580bca68bb4ee81cfe481936917ab0a1a728dac1a6950a9877ed799ca3863b                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -73,7 +72,7 @@ size     exec  file                                  contents
 260                header.js                         316de1752338f4fe7c5325e3180fd61659218dfa38abd21af3f789351f3b6426                                                                 
                    keybase/                                                                                                                                                           
 1940                 encode.js                       ae57af73c6296f99601cfbe300679ea95d5691b7f26133ca9750c8cc699b3521                                                                 
-16370                hilev.js                        160cc9c1c95f583cac39fd1acd7f08b7b0283e761f54d44b6ee44985f98e86b4                                                                 
+16369                hilev.js                        ca21b4c9845768fb9114d6b5850a5fbe003b199fe054b549d7a34e246d42bfd1                                                                 
                      packet/                                                                                                                                                          
 985                    alloc.js                      0f188c8f6d7f1b84da57ef3f089b33e16477bc35e70369a5fc028e6a62b48fdf                                                                 
 1717                   base.js                       1d99c8a7725597284c502b3043f034ce749058f3f14a2de11251b0319cb16e63                                                                 
@@ -131,7 +130,7 @@ size     exec  file                                  contents
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 2299               ukm.js                            c2cddcf6dcdd8a86ec6222fee90c9010c16ee9dd12d8bb80bfcda6323a0ff017                                                                 
 335                util.js                           3e59cf27751705fc5584f3d52e4e81b16cce2a329fba98150c6a630c354e37cc                                                                 
-1032             package.json                        689ce38f6edce8ee72e26a30b50c6c16fbd492079235c64319db29cd1cb1078d                                                                 
+1032             package.json                        f0756974faf7169d3205aa88beebacda7b2dab246f9485fe3d50a4f545e5543e                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -167,7 +166,7 @@ size     exec  file                                  contents
 154                header.iced                       07ccff9d4467fe6a2511aca238f1a191d2745b37e4232b8142516da12f1bf914                                                                 
                    keybase/                                                                                                                                                           
 1582                 encode.iced                     f6099f4b0d0a818851cfa9f3fb812b1f621d183090d844bd51aea4467e2c9c85                                                                 
-5498                 hilev.iced                      f6bf43614a49237c6961198b35e29c4123b0367abd779df6eba3e20d5890241e                                                                 
+5497                 hilev.iced                      d53ac1bbc5a2ed93f1da6052c4581f662bb4f2d251d043ee8ad4720caeec3885                                                                 
                      packet/                                                                                                                                                          
 490                    alloc.iced                    8a44f27f6309cfe62c697f18d38e995f508414ab7ccbfd817c2682f29524b6f7                                                                 
 1313                   base.iced                     8332efcf9fc0814162fdd1f3d5692ca789df5b5aed42840b5099dafb2d0dcbb5                                                                 
