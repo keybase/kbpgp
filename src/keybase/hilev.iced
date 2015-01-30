@@ -191,7 +191,7 @@ class SignatureEngine
       err = new Error "Got wrong signing key: #{a} != #{b}"
     else
       payload = res.payload
-    cb null, payload, binary
+    cb err, payload, binary
 
 #=================================================================
 

@@ -1,3 +1,9 @@
+## 2.0.2 (2015-01-29)
+
+Bugfix:
+  - Fix error condition in kb.SignatureEngine.unbox
+    in which we didn't handle a wrong public key properly 
+
 ## 2.0.1 (2014-12-22)
 
   - get_ekid() implementation for openpgp KeyManagers
