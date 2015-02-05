@@ -50,7 +50,7 @@ class KeyManager extends KeyManagerInterface
 
   get_keypair : () -> @key
   get_primary_keypair : () -> @key
-  can_sign : () -> true
+  can_verify : () -> true
 
   #----------------------------------
 
@@ -129,7 +129,7 @@ exports.unbox = unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
 
   if not armored? and not rawobj? and not binary?
     await athrow (new Error "need either 'armored' or 'binary' or 'rawobj'"), esc defer()
- 
+
   if armored?
     binary = new Buffer armored, 'base64'
   if binary?

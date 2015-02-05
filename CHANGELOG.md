@@ -1,8 +1,15 @@
+## 2.0.3 (2015-02-05)
+
+Bugfix:
+  - `can_Sign()` is a misleading name, better to have `can_verify()`, which says
+     whether or not this key is a sign/verify keypair, and makes no indications about
+     whether it has a privkey or not.
+
 ## 2.0.2 (2015-01-29)
 
 Bugfix:
   - Fix error condition in kb.SignatureEngine.unbox
-    in which we didn't handle a wrong public key properly 
+    in which we didn't handle a wrong public key properly
 
 ## 2.0.1 (2014-12-22)
 
@@ -29,7 +36,7 @@ New features:
     - Most work done on Issue #48
   - Fix #53 -- get keymanagers back from detached sigs
     - Slight hack for "streaming data" in which it doesn't make
-      sense to have a literal.  So have an empty placeholder 
+      sense to have a literal.  So have an empty placeholder
       literal instead
 
 ## 1.1.9 (2014-12-09)

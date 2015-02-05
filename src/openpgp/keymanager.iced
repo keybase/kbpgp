@@ -745,8 +745,9 @@ class KeyManager extends KeyManagerInterface
   find_pgp_key_material : (key_id) -> @pgp.find_key_material key_id
   find_best_pgp_key : (flags, need_priv) -> @pgp.find_best_key flags, need_priv
   find_signing_pgp_key : () -> @find_best_pgp_key C.key_flags.sign_data, true
+  find_verifying_pgp_key : () -> @find_best_pgp_key C.key_flags.sign_data, false
   find_crypt_pgp_key : (need_priv = false) -> @find_best_pgp_key C.key_flags.encrypt_comm, need_priv
-  can_sign : () -> @find_signing_pgp_key()?
+  can_verify : () -> @find_verifying_pgp_key()?
 
   #--------
 
