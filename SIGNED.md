@@ -3,13 +3,13 @@
 -----BEGIN PGP SIGNATURE-----
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJUytW1AAoJEJgKPw0B/gTfATgH/Ri3mAHuXFXj27Q0FiZDEVi0
-5CN15qgDR25CUx9sRzJkeRAQuR+YTAR43F9B23Bk4bKMd8YwUGdNY6Qaf+jbX/px
-n5H3zU5/WT954wRnCtQAFXg5TalLsfc41b45Qw5I5ZN9vodmfEa8h0L+1bcowB/6
-QXk7kjnAYgbqhKLpQ80xPeRbGMt4Q8NNTUMPm6xdr6Gq8v4moJFiOvbKwlYcBjFB
-Lv13Uy6nIE859LFS6L8IAYm1cTudxtYmSVXp8+/0daxL3j+1Vkp+ngmEWmCwm/Jx
-RLuNcrjW8eIZzweBJ4ybUfsKxo8SuHkE7B61MZoKGMn/mwRSNgHCcFCWle9+flk=
-=JaVr
+iQEcBAABCgAGBQJU09CwAAoJEJgKPw0B/gTfL4EIAJSJIZ4BXmte8XHlnqDk1702
+/K+MiEqGcJoowY+MkohXYmooBonXHy3LbpsXATpEsnowzArGntXa4qh2N15m57uM
+w3dWVTaR52iMh8hhKR5ePpC/FoEaesO6fJGNAW80Xxxe5u9zAYnpbf2h2cwFgzm0
+PUXLBubMOug95dnnzVpkVbdC2H9suKEwVglCzz0ci2toAJjs2z0S0kl5pnWNLDWi
+gDXw/Wt7fvXIG7wJdH3Evwjg4Qg567N59iwkiZZINYFMy1wfhT3jtZFbk4djskZz
+AlHEEfwAiNOd4Pfb4oZN9/MHRBVMBzLnKXqOZS99rxKFYw9uBoLjE8pAkGrN/uk=
+=mfp2
 -----END PGP SIGNATURE-----
 
 ```
@@ -25,7 +25,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-12920            CHANGELOG.md                        d288b4c1d8573b9d2dfe4703fe36032ae7923b6c11176a987e12a36557fec28e                                                                 
+13155            CHANGELOG.md                        818fd0f713b97c57af406c75b119aa00c0d6dc90f1715a77c726b07578a2a83a                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3185             Makefile                            7e580bca68bb4ee81cfe481936917ab0a1a728dac1a6950a9877ed799ca3863b                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -72,7 +72,7 @@ size     exec  file                                  contents
 260                header.js                         316de1752338f4fe7c5325e3180fd61659218dfa38abd21af3f789351f3b6426                                                                 
                    keybase/                                                                                                                                                           
 1940                 encode.js                       ae57af73c6296f99601cfbe300679ea95d5691b7f26133ca9750c8cc699b3521                                                                 
-16369                hilev.js                        ca21b4c9845768fb9114d6b5850a5fbe003b199fe054b549d7a34e246d42bfd1                                                                 
+16371                hilev.js                        6df348a0a67999d47ed741351c4ceca01683af7746f0743556cf8b7635c37e64                                                                 
                      packet/                                                                                                                                                          
 985                    alloc.js                      0f188c8f6d7f1b84da57ef3f089b33e16477bc35e70369a5fc028e6a62b48fdf                                                                 
 1717                   base.js                       1d99c8a7725597284c502b3043f034ce749058f3f14a2de11251b0319cb16e63                                                                 
@@ -83,7 +83,7 @@ size     exec  file                                  contents
 330                keyfetch.js                       f8c05474c9e37b5d11c4ec991f20958d6f308a96703dfa939f3c85b9f6f19bc7                                                                 
 2674               keyring.js                        ef06f5e99f89fd7b2fddc29da977f2afa62a06f8140b464629548ee00a282a11                                                                 
 2143               keywrapper.js                     bb6ebea4634e6a7ea8f476881cf59b915b7d014cf147dfbc3a8972586d1e36c4                                                                 
-2261               kmi.js                            f3b2c06f0eb0fe9134c2ad42910f8d9cf988d029b2162292d07f736bf41a9695                                                                 
+2263               kmi.js                            91d9d28d816514e68a3d0a643f5f0aa5f43de30c50bb22244e1c22bc44a53ee5                                                                 
 3202               lock.js                           db180cdaf7f8c49696ce3f6da252f6c116249e82a4f286b9c0298a3b79802e78                                                                 
 1030               main.js                           ceb2d09d550632e7ae9c9266e3cbcf51424c3292de139677f736b70fa5b13270                                                                 
                    nacl/                                                                                                                                                              
@@ -100,7 +100,7 @@ size     exec  file                                  contents
 16813                clearsign.js                    d8a0f6aeb7822213da4c372530bad10c6f9897ac0d8bce3b691547a61b239bb9                                                                 
 15345                detachsign.js                   ebfcca982bb06c9173656b103abbb542d471a62ae07680a3b8d3db426935581b                                                                 
 308                  hilev.js                        77d34764f00cd689c93320b021a4f833c5cdc1dbc01890258d1e77aec809f2de                                                                 
-66931                keymanager.js                   ab5655ad7645e4a07927aede3b5be0599a3c34b6d7d1ef9bf642aafc9c850d61                                                                 
+67073                keymanager.js                   a831ae815bad55b2c2f16e3382b469723b1321e2017f00258c3016b64c9bc296                                                                 
 15859                ocfb.js                         48059a052b678e815d48e47fd863fec8606b4d5606970899ceec577b0b311884                                                                 
                      packet/                                                                                                                                                          
 238                    all.js                        b3107bcc0993a1a9848e6a08a30a32dae36323f65385cdc4df355cac3cbf91f0                                                                 
@@ -130,7 +130,7 @@ size     exec  file                                  contents
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 2299               ukm.js                            c2cddcf6dcdd8a86ec6222fee90c9010c16ee9dd12d8bb80bfcda6323a0ff017                                                                 
 335                util.js                           3e59cf27751705fc5584f3d52e4e81b16cce2a329fba98150c6a630c354e37cc                                                                 
-1032             package.json                        f0756974faf7169d3205aa88beebacda7b2dab246f9485fe3d50a4f545e5543e                                                                 
+1032             package.json                        f1439cf689849e9a2da2a5d1b7ef7acad8174e07e66067c3427f6db98a4dd5cb                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -166,7 +166,7 @@ size     exec  file                                  contents
 154                header.iced                       07ccff9d4467fe6a2511aca238f1a191d2745b37e4232b8142516da12f1bf914                                                                 
                    keybase/                                                                                                                                                           
 1582                 encode.iced                     f6099f4b0d0a818851cfa9f3fb812b1f621d183090d844bd51aea4467e2c9c85                                                                 
-5497                 hilev.iced                      d53ac1bbc5a2ed93f1da6052c4581f662bb4f2d251d043ee8ad4720caeec3885                                                                 
+5498                 hilev.iced                      2186fbedc20bf5f4de3964c9b25ee7ea5b103011deca47cd820d4741207b50af                                                                 
                      packet/                                                                                                                                                          
 490                    alloc.iced                    8a44f27f6309cfe62c697f18d38e995f508414ab7ccbfd817c2682f29524b6f7                                                                 
 1313                   base.iced                     8332efcf9fc0814162fdd1f3d5692ca789df5b5aed42840b5099dafb2d0dcbb5                                                                 
@@ -178,7 +178,7 @@ size     exec  file                                  contents
 856                keyfetch.iced                     10037e667a57ab8bd04d8239836c4d3e97ebe2fc72166020ab4f73203d6a1963                                                                 
 1655               keyring.iced                      8b2beea41852ca977c61b0dd937e609e86bcf75da80f4743c08ee2128df4842a                                                                 
 1448               keywrapper.iced                   a183f52ec876209171edca3576ec3c912288bd7c57ad080c8203af2664e0f31c                                                                 
-1772               kmi.iced                          8031f6977f4aaa642c40a6cdf10f30a82700c7972d837c5f40c5b07926a82d99                                                                 
+1847               kmi.iced                          1ace38a9a4fdb503439f4e95fd68918cca1a5392a56d4eae0678694d30e713dc                                                                 
 1943               lock.iced                         69ffa5d4715acb25f06cbf4853dc50aa4124a3be00db6677321a9cecf715d37f                                                                 
 952                main.iced                         91cfe36148e8cc67ef3312b71b05ec5caddd0e57786c3917df0e7f989abbbf2e                                                                 
                    nacl/                                                                                                                                                              
@@ -195,7 +195,7 @@ size     exec  file                                  contents
 6818                 clearsign.iced                  eb741982fa621cf1ad6a6fec388b70c99730e5f0a3157e320e5555bae48e1cdc                                                                 
 4115                 detachsign.iced                 2833d73cef811f84fdf2a0abe1050c603c19609ece44e556683fb650e6b811b8                                                                 
 225                  hilev.iced                      47028b0600e1c25f374b337059eb13d3aaf790cd23e1000b2c1d3c4f0e7fa5e7                                                                 
-24797                keymanager.iced                 c2a2cdcf71077814e2df0e2d25c7815637484df48b78ee930a2b5aa30bb2592f                                                                 
+24882                keymanager.iced                 a24067559761246056ef7dc433503e305dc0eea60a9b99e6e9050d530e39ff76                                                                 
 9418                 ocfb.iced                       907951ce199b0e59b0e4d21b503f910aaa3a1c9bc57994d3437f333e3be902fb                                                                 
                      packet/                                                                                                                                                          
 157                    all.iced                      42724a5bfbf1329c4932e74ba60ec0cda51f4b8a1062e34d41abf6773275c09b                                                                 
