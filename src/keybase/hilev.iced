@@ -106,6 +106,7 @@ class EncKeyManager extends KeyManager
 
   make_sig_eng : () -> null
   can_sign : () -> false
+  can_verify : () -> false
 
   #----------------------------------
 

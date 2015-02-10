@@ -1,3 +1,8 @@
+## 2.0.4 (2015-02-10)
+
+Bugfix
+  - Fix bug in DH NACL KeyManager, it's not able to verify
+
 ## 2.0.3 (2015-02-05)
 
 Bugfix:
