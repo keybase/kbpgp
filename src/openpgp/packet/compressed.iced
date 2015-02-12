@@ -45,7 +45,7 @@ fake_zip_inflate = (buf, cb) ->
 
   inflater.on 'readable', () ->
     read_buf = inflater.read()
-    bufs.push read_buf
+    bufs.push read_buf if read_buf?
   inflater.on 'end', () ->
     call_end null
   inflater.on 'error', (e) ->

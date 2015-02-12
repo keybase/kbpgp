@@ -1,3 +1,9 @@
+## 2.0.5 (2015-02-12)
+
+Bugfixes:
+  - Update reg tests; my subkey had expired, so I just refreshed it.
+  - Node.js changed zlib, which can now return empty buffers.
+
 ## 2.0.4 (2015-02-10)
 
 Bugfix
