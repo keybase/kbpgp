@@ -3,7 +3,7 @@
 K = require('../const').kb
 C = require('../const').openpgp
 {make_esc} = require 'iced-error'
-{athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require '../util'
+{format_pgp_fingerprint_2,athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require '../util'
 {ops_to_keyflags} = require './util'
 {Lifespan,Subkey,Primary} = require '../keywrapper'
 
@@ -767,7 +767,24 @@ class KeyManager extends KeyManagerInterface
   get_pgp_key_id : () -> @pgp.get_key_id()
   get_pgp_short_key_id : () -> @pgp.get_short_key_id()
   get_pgp_fingerprint : () -> @pgp.get_fingerprint()
+  get_pgp_fingerprint_str : () -> @get_pgp_fingerprint()?.toString 'hex'
   get_ekid : () -> @pgp.get_ekid()
+
+  #----------------
+
+  get_ekid_b64_str : () ->
+    if (k = @get_ekid())? then base64u.encode k
+    else null
+
+  #----------------
+
+  # An FP2 is a Fingeprint in the case of PGP and a WebBase64(kid)
+  get_fp2 : () -> @get_pgp_fingerprint()
+  get_fp2_formatted : (opts) -> if (p = @get_fp2())? then format_pgp_fingerprint_2(p, opts) else null
+
+  #----------------
+
+  get_type : () -> "pgp"
 
   #----------------
 

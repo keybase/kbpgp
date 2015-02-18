@@ -1,5 +1,6 @@
 
 mods =
+  fp : require '../files/fp.iced'
   nacl1 : require '../files/nacl1.iced'
   nacl2 : require '../files/nacl2.iced'
   ecc3 : require '../files/ecc3.iced'

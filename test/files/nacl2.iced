@@ -1,6 +1,6 @@
 
 {hash,ukm,kb,nacl} = require '../../'
-{bufeq_fast} = require '../../lib/util'
+{base64u,bufeq_fast} = require '../../lib/util'
 
 #=================================================================
 
@@ -54,6 +54,15 @@ exports.box_1 = (T,cb) ->
   skm = new kb.EncKeyManager { key : sender }
   await kb.box { msg, sign_with : skm, encrypt_for : rkm }, T.esc(defer(tmp), cb)
   ctext = tmp
+  cb()
+
+#---------------------------------
+
+exports.km = (T,cb) ->
+  typ = skm.get_type()
+  fp2 = skm.get_fp2_formatted { space : ' ' }
+  T.equal typ, "kb", "keymanager type was right"
+  T.equal base64u.encode(skm.get_ekid()).indexOf(fp2), 0, "found fingerprint"
   cb()
 
 #---------------------------------

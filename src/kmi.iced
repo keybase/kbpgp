@@ -23,6 +23,14 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   # Works for any type of key
   get_ekid : () -> null
 
+  # Work for any type of key, will give the familiar PGP fingerprint for
+  # PGP or the URL-base64-full key for NACL keys.
+  get_fp2 : () -> null
+  get_fp2_formatted : () -> null
+
+  # Either 'pgp' or 'kb'
+  get_type : () -> null
+
   # Check equality of public halves, recursively down to subkeys
   # if necessary
   check_public_eq : (km2) -> @EUI

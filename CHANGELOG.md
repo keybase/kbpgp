@@ -1,3 +1,11 @@
+## 2.0.6 (2015-02-19)
+
+Features:
+  - Add get_fp2() and get_fp2_formatted() to KeyManager.  For PGP it's
+    the same as a regular fingerprint, but for NaCl, it's base64-encoding
+    of the whole key.
+  - Add get_type() to KeyManager so make further display decisions.
+
 ## 2.0.5 (2015-02-12)
 
 Bugfixes:

@@ -8,7 +8,7 @@
 {KeyManagerInterface} = require '../kmi'
 {make_esc} = require 'iced-error'
 encode = require './encode'
-{buffer_xor,asyncify,akatch} = require '../util'
+{base64u,buffer_xor,asyncify,akatch} = require '../util'
 konst = require '../const'
 {alloc} = require './packet/alloc'
 {Signature} = require './packet/signature'
@@ -86,6 +86,9 @@ class KeyManager extends KeyManagerInterface
   #----------------------------------
 
   get_ekid : () -> return @get_keypair().ekid()
+  get_fp2 : () -> @get_ekid()
+  get_fp2_formatted : () -> base64u.encode @get_fp2()
+  get_type : () -> "kb"
 
   #----------------------------------
 
