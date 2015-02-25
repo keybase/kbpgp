@@ -346,3 +346,15 @@ exports.public_key_expired_both = (T,cb) ->
   cb()
 
 #============================================================================
+
+exports.public_key_expired_uid_bypass = (T,cb) ->
+  raw = keys.feld
+  await KeyManager.import_from_armored_pgp { raw } , defer err
+  T.assert err?, "error back for expired UID"
+  await KeyManager.import_from_armored_pgp { raw, opts : { no_check_keys : true } } , defer err, km
+  T.no_error err
+  T.equal km.get_pgp_fingerprint_str(), "748193e6c4171c8a4b6b2488983b64501f13e252", "the right fp came back"
+  cb()
+
+#============================================================================
+

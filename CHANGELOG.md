@@ -1,3 +1,10 @@
+## 2.0.7 (2015-02-24)
+
+Features:
+  - Add a `no_check_keys` to KeyManager import routines for PGP.  Needed in
+    the case of replacing an expired key.
+     - See here: https://github.com/keybase/keybase-issues/issues/1410
+
 ## 2.0.6 (2015-02-19)
 
 Features:

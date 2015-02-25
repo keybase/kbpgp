@@ -465,7 +465,7 @@ class KeyManager extends KeyManagerInterface
   # @param {callback<err,KeyManager,Warnings>} cb Callback with the result;
   #    On success, we'll get an actual KeyManager.
   #
-  @import_from_armored_pgp : ({armored, raw, binary, asp}, cb) ->
+  @import_from_armored_pgp : ({armored, raw, binary, asp, opts}, cb) ->
     msg = binary
     err = null
 
@@ -480,7 +480,7 @@ class KeyManager extends KeyManagerInterface
           err = new Error "Wanted a public or private key; got: #{msg.type}"
 
     unless err?
-      await KeyManager.import_from_pgp_message { msg, asp }, defer err, ret, warnings
+      await KeyManager.import_from_pgp_message { msg, asp, opts }, defer err, ret, warnings
 
     # For keys that have unprotected secret key data, just unlock
     # the secret key material by default, that way we don't have to
@@ -542,14 +542,14 @@ class KeyManager extends KeyManagerInterface
   #--------------
 
   # Import from a dearmored/decoded PGP message.
-  @import_from_pgp_message : ({msg, asp}, cb) ->
+  @import_from_pgp_message : ({msg, asp, opts}, cb) ->
     asp = ASP.make asp
     bundle = null
     warnings = null
     unless err?
       [err,packets] = parse msg.body
     unless err?
-      kb = new KeyBlock packets
+      kb = new KeyBlock packets, opts
       await kb.process defer err
       warnings = kb.warnings
     unless err?

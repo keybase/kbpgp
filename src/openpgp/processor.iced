@@ -16,7 +16,7 @@ verify_detached = require('./detachsign').verify
 
 class KeyBlock
 
-  constructor : (@packets) ->
+  constructor : (@packets, opts) ->
     # We'll throw away signatures that aren't verified.
     @verified_signatures = []
     @subkeys = []
@@ -24,6 +24,7 @@ class KeyBlock
     @userids = []
     @user_attributes = []
     @warnings = new Warnings()
+    @opts = opts or {}
 
   #--------------------
 
@@ -84,7 +85,7 @@ class KeyBlock
   process : (cb) ->
     err = @_extract_keys()
     await @_verify_sigs defer err unless err?
-    err = @_check_keys() unless err?
+    err = @_check_keys() unless err? or @opts?.no_check_keys
     cb err
 
   #--------------------
