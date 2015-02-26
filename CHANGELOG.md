@@ -1,3 +1,9 @@
+## 2.0.8 (2015-02-26)
+
+Bugfixes:
+  - Support of raw parameter in unbox{} was broken; fix and test
+    - Close: https://github.com/keybase/keybase-issues/issues/1415 
+
 ## 2.0.7 (2015-02-24)
 
 Features:

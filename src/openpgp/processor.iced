@@ -342,7 +342,10 @@ exports.Message = Message
 # verify any signatures.
 #
 # @param {string} armored The armored PGP generic message.
-# @param {Buffer} raw The raw buffer, without PGP armoring
+# @param {Buffer} raw The raw buffer, without PGP armoring. If you provide this,
+#    you should also provide a `msg_type` argument.
+# @param {Number} msg_type The type of the `raw` message provided above. Should be
+#    one of C.message_types.{generic,clearsign,signature}.
 # @param {KeyFetcher} keyfetch A KeyFetch object that is called to get keys
 #    for decyrption and signature verification.
 # @param {Function} data_fn A function to call with data. Used in the case
@@ -355,13 +358,14 @@ exports.Message = Message
 #    just generate warnings.
 # @param {callback} cb Callback with an `err, Array<Literals>, Warnings` triples. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
-exports.do_message = do_message = ({armored, raw, keyfetch, data_fn, data, strict}, cb) ->
+exports.do_message = do_message = ({armored, raw, msg_type, keyfetch, data_fn, data, strict}, cb) ->
   literals = null
   err = msg = warnings = esk = null
   if armored?
     [err,msg] = armor.decode armored
   else if raw?
-    msg = raw
+    msg_type or= C.message_types.generic
+    msg = { body : raw, type : msg_type }
   else
     err = new Error "No input to do_message; need either 'armored' or 'raw' input"
   unless err?
