@@ -308,7 +308,7 @@ class PgpEngine extends Engine
     if not key?
       err = new Error "No keys match the given fingerprint"
     else if not @key(key).fulfills_flags flags
-      err = new Error "We don't have a key for the requested PGP ops"
+      err = new Error "We don't have a key for the requested PGP ops (flags = #{flags})"
     else
       ret = @key(key)
 
@@ -417,7 +417,7 @@ class KeyManager extends KeyManagerInterface
       nbits : 4096
     }
     subkeys = [{
-      flags : F.encrypt_data | F.encrypt_comm,
+      flags : F.encrypt_storage | F.encrypt_comm,
       nbits : 2048
     },{
       flags : F.sign_data | F.auth
@@ -436,7 +436,7 @@ class KeyManager extends KeyManagerInterface
       algo : ECDSA
     }
     subkeys = [{
-      flags : F.encrypt_data | F.encrypt_comm,
+      flags : F.encrypt_storage | F.encrypt_comm,
       nbits : 256
     },{
       flags : F.sign_data | F.auth
