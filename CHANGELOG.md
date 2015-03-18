@@ -1,8 +1,16 @@
+## 2.0.9 (2015-03-18)
+
+Feature:
+  - KMI can_encrypt(), can_decrypt(), can_sign() methods
+Bugfix:
+  - `ophelia`'s key expired, so implement a "time travel" feature for
+    reading in keys as if it were 10-Dec-2014, when everything worked.
+
 ## 2.0.8 (2015-02-26)
 
 Bugfixes:
   - Support of raw parameter in unbox{} was broken; fix and test
-    - Close: https://github.com/keybase/keybase-issues/issues/1415 
+    - Close: https://github.com/keybase/keybase-issues/issues/1415
 
 ## 2.0.7 (2015-02-24)
 

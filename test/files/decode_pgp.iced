@@ -14,14 +14,17 @@ exports.public_keys_advanced = (T,cb) ->
   names = [ "edbett", "azet", "bitfolk", "ophelia", "sneak", "elitehaxor", "gmax",
             "finn", "adam", "ry4an", "asymptotic", "dbellizzi", "fincham",
             "thierry", "babazka", "zyphlar", "grantolson", "vanity" ]
+
+  # Set a date in the past, when none of these keys had expired.
+  opts = { now : (new Date(2014, 10, 10, 0, 0, 0)).getTime()/1000 }
   for n in names
-    await KeyManager.import_from_armored_pgp { raw : keys[n] } , defer err, km, warnings
+    await KeyManager.import_from_armored_pgp { raw : keys[n], opts } , defer err, km, warnings
     T.no_error err
-    T.assert km, "a key manager came back"
     if err?
       console.log "Failed on #{n} --->"
       console.log keys[n]
       throw err
+    T.assert km, "a key manager came back"
     T.waypoint "parsed #{n}"
   cb()
 

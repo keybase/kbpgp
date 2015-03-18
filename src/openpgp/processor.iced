@@ -108,7 +108,7 @@ class KeyBlock
         n_sigs++
         p.key = @primary.key
         p.primary = @primary
-        await p.verify working_set, defer tmp
+        await p.verify working_set, defer(tmp), @opts
         if tmp?
           msg = "Signature failure in packet #{i}: #{tmp.message}"
           @warnings.push msg

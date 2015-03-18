@@ -51,6 +51,7 @@ class KeyManager extends KeyManagerInterface
   get_keypair : () -> @key
   get_primary_keypair : () -> @key
   can_verify : () -> true
+  can_sign : () -> @key?.can_sign()
 
   #----------------------------------
 
@@ -110,6 +111,8 @@ class EncKeyManager extends KeyManager
   make_sig_eng : () -> null
   can_sign : () -> false
   can_verify : () -> false
+  can_encrypt : () -> true
+  can_decrypt : () -> @key?.priv?
 
   #----------------------------------
 

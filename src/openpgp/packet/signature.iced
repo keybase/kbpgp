@@ -193,8 +193,8 @@ class Signature extends Packet
 
   #-----------------
 
-  verify : (data_packets, cb) ->
-    await @_verify data_packets, defer err
+  verify : (data_packets, cb, opts) ->
+    await @_verify data_packets, defer(err), opts
     for p in @unhashed_subpackets when (not err? and (s = p.to_sig())?)
       if s.type isnt C.sig_types.primary_binding
         err = new Error "unknown subpacket signature type: #{s.type}"
@@ -204,12 +204,12 @@ class Signature extends Packet
         subkey = data_packets[0]
         s.primary = @primary
         s.key = subkey.key
-        await s._verify [ subkey ], defer err
+        await s._verify [ subkey ], defer(err), opts
     cb err
 
   #-----------------
 
-  _verify : (data_packets, cb) ->
+  _verify : (data_packets, cb, opts) ->
     err = null
     T = C.sig_types
 
@@ -258,7 +258,7 @@ class Signature extends Packet
 
     # Now make sure that the signature wasn't expired
     unless err?
-      err = @_check_key_sig_expiration()
+      err = @_check_key_sig_expiration opts
 
     # Now mark the object that was vouched for
     sig = @
@@ -311,13 +311,17 @@ class Signature extends Packet
 
   # See Issue #28
   #   https://github.com/keybase/kbpgp/issues/28
-  _check_key_sig_expiration : () ->
+  _check_key_sig_expiration : (opts) ->
     err = null
     T = C.sig_types
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
       creation = @subpacket_index.hashed[S.creation_time]
       expiration = @subpacket_index.hashed[S.key_expiration_time]
-      now = unix_time()
+
+      # We can set now back in time for some operations, like testing people's
+      # old keys
+      now = if (n = opts?.now)? then n else unix_time()
+
       if creation? and expiration?
         expiration = creation.time + expiration.time
         if (now > expiration) and expiration isnt 0

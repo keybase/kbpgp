@@ -59,6 +59,15 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   # If it can be used for sigs, regardless of whether there's a priv key
   can_verify : () -> false
 
+  # like can_verify() but also has a private key
+  can_sign : () -> false
+
+  # If it can be used for encryption
+  can_encrypt : () -> false
+
+  # Like can_decrypt(), and also has a private key
+  can_decrypt : () -> false
+
 #=================================================================================
 
 exports.SignatureEngineInterface = class SignatureEngineInterface
