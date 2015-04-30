@@ -1,3 +1,8 @@
+## 2.0.10 (2015-04-30)
+
+Features:
+  - A simpler bzip2 implementation
+
 ## 2.0.9 (2015-03-18)
 
 Feature:
