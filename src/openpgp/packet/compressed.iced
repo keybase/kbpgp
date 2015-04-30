@@ -4,7 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 zlib = require 'zlib'
 {uint_to_buffer} = require '../../util'
-compressjs = require 'keybase-compressjs'
+bzipDeflate = require 'bzip-deflate'
 
 #=================================================================================
 
@@ -68,8 +68,7 @@ fix_zip_deflate = (buf, cb) ->
 bzip_inflate = (buf, cb) ->
   err = null
   try
-    ret = compressjs.Bzip2.decompressFile(buf)
-    ret = new Buffer(ret) if ret?
+    ret = bzipDeflate buf
   catch e
     err = e
   cb err, ret

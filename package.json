@@ -21,10 +21,10 @@
   },
   "dependencies": {
     "bn": "^1.0.0",
+    "bzip-deflate": "^1.0.0",
     "deep-equal": ">=0.2.1",
     "iced-error": ">=0.0.9",
     "iced-runtime": ">=0.0.1",
-    "keybase-compressjs": "^1.0.1-c",
     "keybase-ecurve": "^1.0.0",
     "pgp-utils": ">=0.0.28",
     "purepack": ">=1.0.1",
