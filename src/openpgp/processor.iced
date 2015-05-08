@@ -125,7 +125,7 @@ class Message
 
   #---------
 
-  constructor : ({@keyfetch, @data_fn, @data, @strict}) ->
+  constructor : ({@keyfetch, @data_fn, @data, @strict, @now}) ->
     @literals = []
     @enc_data_packet = null
     @warnings = new Warnings()
@@ -257,7 +257,7 @@ class Message
 
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
-      await sig.close.verify sig.payload, defer err
+      await sig.close.verify sig.payload, defer(err), { @now }
 
     else if not @strict
       @warnings.push "Problem fetching key #{a.toString('hex')}: #{err.toString()}"

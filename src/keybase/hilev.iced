@@ -186,7 +186,7 @@ class SignatureEngine
 
   #-----
 
-  unbox : (msg, cb) ->
+  unbox : (msg, cb, opts = {}) ->
     esc = make_esc cb, "SignatureEngine::unbox"
     err = payload = null
     arg = if Buffer.isBuffer(msg) then { binary : msg }

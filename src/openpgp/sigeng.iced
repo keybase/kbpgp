@@ -26,7 +26,7 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
-  decode : (armored, cb) -> 
+  decode : (armored, cb) ->
     [ err, msg ] = decode armored
     mt = C.openpgp.message_types
     if not err? and (msg.type isnt mt.generic)
@@ -35,11 +35,12 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
-  unbox       : (msg, cb) ->
+  unbox       : (msg, cb, opts = {}) ->
     esc = make_esc cb, "SignatureEngine::unbox"
     if typeof(msg) is 'string'
       await @decode msg, esc defer msg
-    eng = new processor.Message { keyfetch : @km }
+    opts.keyfetch = @km
+    eng = new processor.Message opts
     await eng.parse_and_process { body : msg.body }, esc defer literals
     await @_check_result literals, esc defer payload
     cb null, payload, msg.body
