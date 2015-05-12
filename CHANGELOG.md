@@ -3,6 +3,9 @@
 Features:
   - Can pass `opts = { now : 333 }` to `SignatureEngine.unbox`.  It's a 3rd arg
 
+Bugfixes:
+  - Pass buffers, not strings to box.  Enforce with bufferify
+
 ## 2.0.10 (2015-04-30)
 
 Features:

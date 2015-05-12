@@ -1,5 +1,5 @@
 
-{armor,KeyManager} = require '../../'
+{armor,KeyManager,kb} = require '../../'
 
 km = null
 
@@ -20,7 +20,7 @@ exports.generate = (T,cb) ->
 
 exports.box = (T,cb) ->
   se = km.make_sig_eng()
-  await se.box  msg, T.esc(defer(tmp), cb)
+  await se.box msg, T.esc(defer(tmp), cb)
   sig = tmp
   cb()
 
@@ -28,6 +28,24 @@ exports.unbox = (T,cb) ->
   [ err, raw ] = armor.decode sig.pgp
   T.no_error err
   await se.unbox raw, T.esc(defer(tmp), cb)
+  T.equal tmp.toString('utf8'), msg, "the right message came back out"
+  cb()
+
+
+exports.kb_generate = (T,cb) ->
+  await kb.KeyManager.generate {}, T.esc(defer(tmp), cb)
+  km = tmp
+  cb()
+
+exports.kb_box = (T,cb) ->
+  se = km.make_sig_eng()
+  await se.box msg, T.esc(defer(tmp), cb)
+  sig = tmp
+  cb()
+
+exports.kb_unbox = (T,cb) ->
+  console.log sig
+  await se.unbox sig.armored, T.esc(defer(tmp), cb)
   T.equal tmp.toString('utf8'), msg, "the right message came back out"
   cb()
 

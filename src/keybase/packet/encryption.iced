@@ -21,7 +21,7 @@ class Encryption extends Packet
 
   constructor : ({@encrypt_for, @sign_with, @plaintext, @ciphertext, @sender_key, @nonce, @anonymous}) ->
     super()
-    @emphemeral = false
+    @ephemeral = false
 
   #------------------
 
@@ -56,7 +56,7 @@ class Encryption extends Packet
     else if encrypt
       await dh.Pair.generate {}, defer err, @sender_keypair
       ret = @sender_keypair
-      @emphemeral = true
+      @ephemeral = true
     else if @sender_key?
       [err, @sender_keypair] = dh.Pair.parse_kb @sender_key
       unless err?
@@ -73,10 +73,10 @@ class Encryption extends Packet
     recvr = @encrypt_for.get_keypair()
     plaintext = Buffer.concat [ 
       @plaintext,
-      new Buffer([ if @emphemeral then 1 else 0 ]),
+      new Buffer([ if @ephemeral then 1 else 0 ]),
     ]
     await recvr.encrypt_kb { plaintext, sender }, esc defer { @ciphertext, @nonce }
-    @sender_key = sender.ekid() unless @anonymous and not @emphemeral
+    @sender_key = sender.ekid() unless @anonymous and not @ephemeral
     @receiver_key = recvr.ekid() unless @anonymous
     cb null
 
@@ -89,8 +89,8 @@ class Encryption extends Packet
     recvr = encrypt_for.get_keypair()
     await recvr.decrypt_kb args, esc defer plaintext
     @plaintext = plaintext[0...-1]
-    @emphemeral = plaintext[-1...][0]
-    cb null, { sender_keypair : sender, @plaintext, @emphemeral, receiver_keypair : recvr }
+    @ephemeral = plaintext[-1...][0]
+    cb null, { sender_keypair : sender, @plaintext, @ephemeral, receiver_keypair : recvr }
 
   #------------------
 

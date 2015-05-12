@@ -8,7 +8,7 @@
 {KeyManagerInterface} = require '../kmi'
 {make_esc} = require 'iced-error'
 encode = require './encode'
-{base64u,buffer_xor,asyncify,akatch} = require '../util'
+{athrow,bufferify,base64u,buffer_xor,asyncify,akatch} = require '../util'
 konst = require '../const'
 {alloc} = require './packet/alloc'
 {Signature} = require './packet/signature'
@@ -158,6 +158,7 @@ exports.unbox = unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
 
 box = ({msg, sign_with, encrypt_for, anonymous}, cb) ->
   esc = make_esc cb, "box"
+  msg = bufferify msg
   if encrypt_for?
     await Encryption.box { sign_with, encrypt_for, plaintext : msg, anonymous }, esc defer packet
   else
