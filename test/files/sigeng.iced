@@ -44,7 +44,6 @@ exports.kb_box = (T,cb) ->
   cb()
 
 exports.kb_unbox = (T,cb) ->
-  console.log sig
   await se.unbox sig.armored, T.esc(defer(tmp), cb)
   T.equal tmp.toString('utf8'), msg, "the right message came back out"
   cb()
