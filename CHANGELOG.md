@@ -1,4 +1,4 @@
-## 2.0.11
+## 2.0.11 (2015-05-17)
 
 Features:
   - Can pass `opts = { now : 333 }` to `SignatureEngine.unbox`.  It's a 3rd arg
