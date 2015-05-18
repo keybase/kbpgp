@@ -2,6 +2,7 @@
 
 Features:
   - Can pass `opts = { now : 333 }` to `SignatureEngine.unbox`.  It's a 3rd arg
+  - NaCl signatures operations can be native via sodium wrapper (in keybase-nacl)
 
 Bugfixes:
   - Pass buffers, not strings to box.  Enforce with bufferify

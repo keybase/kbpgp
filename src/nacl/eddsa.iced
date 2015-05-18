@@ -1,4 +1,4 @@
-{sign} = require 'tweetnacl/nacl-fast'
+kbnacl = require 'keybase-nacl'
 {SRF} = require '../rand'
 konst = require '../const'
 K = konst.kb
@@ -19,7 +19,7 @@ class Pub
 
   @HEADER : new Buffer([K.kid.version, TYPE ])
   @TRAILER : new Buffer([K.kid.trailer])
-  @LEN : Pub.HEADER.length + Pub.TRAILER.length + sign.publicKeyLength
+  @LEN : Pub.HEADER.length + Pub.TRAILER.length + kbnacl.sign.publicKeyLength
 
   #--------------------
 
@@ -47,20 +47,8 @@ class Pub
 
   # Verify a signature with the given payload.
   verify : ({payload,sig,detached}, cb) ->
-
-    if detached
-      payload = new Buffer [] if not payload?
-      if not sign.detached.verify b2u(payload), b2u(sig), b2u(@key)
-        err = new Error "signature didn't verify"
-    else if not (r_payload = sign.open b2u(sig), b2u(@key))?
-      err = new Error "signature didn't verify"
-    else if not (r_payload = u2b r_payload)?
-      err = new Error "failed to convert from a Uint8Array to a buffer"
-    else if payload? and not bufeq_secure(r_payload, payload)
-      err = new Error "got unexpected payload"
-    else
-      payload = r_payload
-
+    naclw = kbnacl.alloc { publicKey : @key }
+    [err, payload] = naclw.verify { payload, sig, detached }
     cb err, payload
 
 #=============================================
@@ -84,8 +72,8 @@ class Priv
   #--------------------
 
   sign : ({payload, detached}, cb) ->
-    f = if detached then sign.detached else sign
-    sig = u2b(f(b2u(payload), b2u(@key)))
+    naclw = kbnacl.alloc { secretKey : @key }
+    sig = naclw.sign { payload, detached }
     cb sig
 
 #=============================================
@@ -182,16 +170,17 @@ class Pair extends BaseKeyPair
   #--------------------
 
   @generate : ({seed, split, server_half}, cb) ->
-    arg = { seed, split, len : sign.seedLength, server_half }
+    arg = { seed, split, len : kbnacl.sign.seedLength, server_half }
     await genseed arg, defer err, { server_half, seed }
 
     unless err?
-      {secretKey, publicKey} = sign.keyPair.fromSeed(b2u(seed))
+      naclw = kbnacl.alloc {}
+      {secretKey, publicKey} = naclw.genFromSeed { seed } 
 
       # Note that the tweetnacl library deals with Uint8Arrays,
       # and internally, we like node-style Buffers.
-      pub = new Pub u2b publicKey
-      priv = new Priv u2b secretKey
+      pub = new Pub publicKey
+      priv = new Priv secretKey
 
     cb err, (new Pair {pub, priv}), server_half
 

@@ -26,10 +26,11 @@
     "iced-error": ">=0.0.9",
     "iced-runtime": ">=0.0.1",
     "keybase-ecurve": "^1.0.0",
+    "keybase-nacl": "^1.0.0",
     "pgp-utils": ">=0.0.28",
     "purepack": ">=1.0.1",
     "triplesec": ">=3.0.19",
-    "tweetnacl": "^0.12.2"
+    "tweetnacl": "^0.13.1"
   },
   "devDependencies": {
     "browserify": "^5.9.1",
