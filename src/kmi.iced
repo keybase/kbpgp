@@ -75,6 +75,7 @@ exports.SignatureEngineInterface = class SignatureEngineInterface
   get_km : () -> @km
   box : (msg, cb) -> cb EUI
   unbox : (msb, cb) -> cb EUI
+  get_body : ({armored}, cb) -> cb EUI
 
 #=================================================================================
 

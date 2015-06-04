@@ -26,6 +26,14 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
+  get_body : ({armored}, cb) ->
+    res = null
+    await @decode armored, defer err, msg
+    res = msg.body unless err?
+    cb err, res
+
+  #-----
+
   decode : (armored, cb) ->
     [ err, msg ] = decode armored
     mt = C.openpgp.message_types

@@ -179,6 +179,12 @@ class SignatureEngine
 
   #-----
 
+  get_body : ({armored}, cb) ->
+    res = new Buffer armored, 'base64'
+    cb null, res
+
+  #-----
+
   box : (msg, cb) ->
     esc = make_esc cb, "SignatureEngine::box"
     await box { msg, sign_with : @km }, esc defer armored, raw
