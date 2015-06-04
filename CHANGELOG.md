@@ -1,3 +1,8 @@
+## 2.0.12
+
+Features:
+  - get_body() for signatures, for computing sigIds without verifying sigs.
+
 ## 2.0.11 (2015-05-17)
 
 Features:
