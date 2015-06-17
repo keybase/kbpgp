@@ -7,6 +7,7 @@ util = require 'util'
 {ASP} = require '../../lib/util'
 {KeyManager} = require '../../'
 {keys} = require('../data/keys.iced')
+ukm = require('../../lib/ukm')
 
 #============================================================================
 
@@ -360,4 +361,79 @@ exports.public_key_expired_uid_bypass = (T,cb) ->
   cb()
 
 #============================================================================
+do_ukm_decode_sig_test = ({armored, expected_payload, expected_body, T}, cb) ->
+  [ err, decoded ] = ukm.decode_sig {armored}
+  T.no_error err
+  T.equal expected_payload, decoded.payload, "check_payload"
+  T.equal expected_body, decoded.body, "check_body_buffer"
+  # Both PGP and NaCl decodes use the openpgp message types -- the NaCl decode
+  # should always be "generic".
+  T.equal C.openpgp.message_types.generic, decoded.type, "check_type"
+  cb()
 
+
+sample_pgp_sig = """
+-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.0.8
+Comment: https://keybase.io/crypto
+
+yMHfAnicbVFbSBRRGN41L7hpZJlQSQ8j3XCRuV+2zDSCjEAjwmyt7czMGZ1cZ9eZ
+2d1EpVJThJQUM3yoFYrypYj0rQINhcQUahHaEE2jlGLrRSNMqTNiQdB5Ofzf7f/P
++YdTN9gc9o7mracSvySv2McGVwK20yE2txYTfXIN5qrFKuHapahaOdT9uqqZmAsT
+GVxicMDRFCNRLFAokuMVwNMkJ+GSLCo8DiSalgDmxCp8huVAMSIwYI7qQxgqPKqM
+0P/oK9cInMAJiFBCUVhFgSxh1QKQOYkWGVERRA4HgBVJGhKUBAWagjhHMpDjZZmn
+RZqGJCfgVlxgLU5UWIZkWRmXeVmhgMzIhEixnMJwPGR5QrCEBtQ1UAWRWgdefwVW
+78QQFFQlaL1/nTJDqmlC/V+9CQ2E/XWZNX4LDUHRsx7gEVVNRh+IbEGoG6pPw1wE
+UkqmagUQNEXxHIuTghODl/yqDj2qpWA4lsfRcWJ+HQYxlxbweq2hqjUfYlEjUI76
+GGq5BsyADrH6F4Nl8Ta7w5aYEGct0eZI3vxntbGvST+T+uhIUbTg7uh08v6iKxNm
+1mq7t80dmx/q4bI/dd1rvf1h9H6D0lpys/VWMB4cW5rzJ9XZonfSuDKiczf/aqBi
+/riZ/WOm6WJGV/bzcH9WdJPrZdjMmW1USuDyQ3sCuD4yEnY/ST/67X1p3UYp+nSs
+4+rZtobp73MrRVP70sS+IfkELI4cvpb6kW2Jfc4PhhuJpYWDpRkJj6deN0ROasKz
+XYcKqy/3TqU3jc9EJ2OhnrK2/gIiLW/nwNvuFt3I9ETyVzujC+faU/YyDzKHU+ov
+uHOpqmE2Ln67Fveu+Q2ccSwWb+l+tHy+cMK958Dk7BknuSPvyI2cbb8Wx8O/AXD3
+FzM=
+=Zdlo
+-----END PGP MESSAGE-----
+"""
+
+expected_pgp_payload = """
+yMHfAnicbVFbSBRRGN41L7hpZJlQSQ8j3XCRuV+2zDSCjEAjwmyt7czMGZ1cZ9eZ
+2d1EpVJThJQUM3yoFYrypYj0rQINhcQUahHaEE2jlGLrRSNMqTNiQdB5Ofzf7f/P
++YdTN9gc9o7mracSvySv2McGVwK20yE2txYTfXIN5qrFKuHapahaOdT9uqqZmAsT
+GVxicMDRFCNRLFAokuMVwNMkJ+GSLCo8DiSalgDmxCp8huVAMSIwYI7qQxgqPKqM
+0P/oK9cInMAJiFBCUVhFgSxh1QKQOYkWGVERRA4HgBVJGhKUBAWagjhHMpDjZZmn
+RZqGJCfgVlxgLU5UWIZkWRmXeVmhgMzIhEixnMJwPGR5QrCEBtQ1UAWRWgdefwVW
+78QQFFQlaL1/nTJDqmlC/V+9CQ2E/XWZNX4LDUHRsx7gEVVNRh+IbEGoG6pPw1wE
+UkqmagUQNEXxHIuTghODl/yqDj2qpWA4lsfRcWJ+HQYxlxbweq2hqjUfYlEjUI76
+GGq5BsyADrH6F4Nl8Ta7w5aYEGct0eZI3vxntbGvST+T+uhIUbTg7uh08v6iKxNm
+1mq7t80dmx/q4bI/dd1rvf1h9H6D0lpys/VWMB4cW5rzJ9XZonfSuDKiczf/aqBi
+/riZ/WOm6WJGV/bzcH9WdJPrZdjMmW1USuDyQ3sCuD4yEnY/ST/67X1p3UYp+nSs
+4+rZtobp73MrRVP70sS+IfkELI4cvpb6kW2Jfc4PhhuJpYWDpRkJj6deN0ROasKz
+XYcKqy/3TqU3jc9EJ2OhnrK2/gIiLW/nwNvuFt3I9ETyVzujC+faU/YyDzKHU+ov
+uHOpqmE2Ln67Fveu+Q2ccSwWb+l+tHy+cMK958Dk7BknuSPvyI2cbb8Wx8O/AXD3
+FzM=
+"""
+
+expected_pgp_body = new Buffer expected_pgp_payload, "base64"
+
+exports.test_ukm_decode_sig_pgp = (T, cb) ->
+  do_ukm_decode_sig_test({
+    armored: sample_pgp_sig,
+    expected_payload: expected_pgp_payload,
+    expected_body: expected_pgp_body,
+    T}, cb)
+
+sample_nacl_sig = """
+g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgu9LnKhPPd3yNw2XJokMHHBDSwiacijaeHTxEUMj18cMKp3BheWxvYWTFBAl7ImJvZHkiOnsiZGV2aWNlIjp7ImlkIjoiNzk1MjI5NGUzNTYyYTdhNGQ4NDZkZDNjODJiZDE3MTgiLCJ0eXBlIjoiZGVza3RvcCIsImtpZCI6IjAxMjFjOTE3MGRkYWYxYTUyNDZlZmNiZjliZWVjZGEwYmZiODBiY2M1YjQwYWZhZjY2N2NmZDhmNjg3NTIyMjBiODNkMGEiLCJkZXNjcmlwdGlvbiI6InRlc3QiLCJzdGF0dXMiOjF9LCJrZXkiOnsiZWxkZXN0X2tpZCI6IjAxMDFlODBhMWZmNmZmZTYxMTAxZTlhZDdjNGI1YmY5YjcwYWE2YjI0ZTEzY2U5NDNlMDcyNWU3OGRkODRiNDRlMjc5MGEiLCJob3N0Ijoia2V5YmFzZS5pbyIsImtpZCI6IjAxMjBiYmQyZTcyYTEzY2Y3NzdjOGRjMzY1YzlhMjQzMDcxYzEwZDJjMjI2OWM4YTM2OWUxZDNjNDQ1MGM4ZjVmMWMzMGEiLCJ1aWQiOiJiZjY1MjY2ZDBkOGRmM2FkNWQxYjM2N2Y1NzhlNjgxOSIsInVzZXJuYW1lIjoicmFscGgifSwic3Via2V5Ijp7ImtpZCI6IjAxMjFjOTE3MGRkYWYxYTUyNDZlZmNiZjliZWVjZGEwYmZiODBiY2M1YjQwYWZhZjY2N2NmZDhmNjg3NTIyMjBiODNkMGEiLCJwYXJlbnRfa2lkIjoiMDEyMGJiZDJlNzJhMTNjZjc3N2M4ZGMzNjVjOWEyNDMwNzFjMTBkMmMyMjY5YzhhMzY5ZTFkM2M0NDUwYzhmNWYxYzMwYSJ9LCJ0eXBlIjoic3Via2V5IiwidmVyc2lvbiI6MX0sImNsaWVudCI6eyJuYW1lIjoia2V5YmFzZS5pbyBnbyBjbGllbnQiLCJ2ZXJzaW9uIjoiMC4xLjM5In0sImN0aW1lIjoxNDMzODgwMzQzLCJleHBpcmVfaW4iOjk0NjA4MDAwLCJtZXJrbGVfcm9vdCI6eyJjdGltZSI6MTQzMzg4MDEzMCwiaGFzaCI6IjJkZTZjNzYyZDFiY2ZiMDk4NThhYjBhNzg5ZWY3ZTE1NTgwOTIwMWI2NTkzNDc5NTg2YmE4OGVjZWM1MDc0M2JkOGVmZmU3MTkwNTkwOTU5MWJkMGM5Y2NmNjEwMDc1MmU0MDNhOTgxOTk5ODdmZmYwY2Y5N2M1ZjQxOTk2MTJiIiwic2Vxbm8iOjEwNX0sInByZXYiOiIwNjQ4NjE3OGUxOWZhOWY4YWUzYjAxNjI5NWRkNGE5MmY3MTMxNDc5YWNkMDAxZTJkOTAyZWZkNmJhYTQyMmYzIiwic2Vxbm8iOjMsInRhZyI6InNpZ25hdHVyZSJ9o3NpZ8RAqWxvanAyIhyxrMI4i4VrHcQdIgPHEZIzqZYzevhayr0mFJTe/74OyCbTL97Po0oqkYn1qxTDqh5gblCj++RXCahzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
+"""
+
+expected_nacl_payload = sample_nacl_sig
+
+expected_nacl_body = new Buffer expected_nacl_payload, "base64"
+
+exports.test_ukm_decode_sig_nacl = (T, cb) ->
+  do_ukm_decode_sig_test({
+    armored: sample_nacl_sig,
+    expected_payload: expected_nacl_payload,
+    expected_body: expected_nacl_body,
+    T}, cb)

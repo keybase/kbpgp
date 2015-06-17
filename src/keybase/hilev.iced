@@ -131,7 +131,7 @@ class EncKeyManager extends KeyManager
 
 #=================================================================================
 
-exports.unbox = unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
+unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
   esc = make_esc cb, "unbox"
 
   if not armored? and not rawobj? and not binary?
@@ -170,6 +170,22 @@ box = ({msg, sign_with, encrypt_for, anonymous}, cb) ->
 
 #=================================================================================
 
+get_sig_body = ({armored}) ->
+  [ err, decoded ] = decode_sig {armored}
+  return [ err, decoded?.body ]
+
+# Designed to have similar output to kbpgp.armor.decode(). NOTE that this is
+# different from pgp-utils.armor.decode(), where @type is a string.
+decode_sig = ({armored}) ->
+  decoded = {
+    body: new Buffer armored, 'base64'
+    type: C.message_types.generic
+    payload: armored
+  }
+  return [ null, decoded ]
+
+#=================================================================================
+
 class SignatureEngine
 
   #-----
@@ -179,9 +195,9 @@ class SignatureEngine
 
   #-----
 
-  get_body : ({armored}, cb) ->
-    res = new Buffer armored, 'base64'
-    cb null, res
+  get_body : (args, cb) ->
+    [ err, res ] = get_sig_body(args, cb)
+    cb err, res
 
   #-----
 
@@ -209,4 +225,4 @@ class SignatureEngine
 
 #=================================================================
 
-module.exports = { box, unbox, KeyManager, EncKeyManager }
+module.exports = { box, unbox, KeyManager, EncKeyManager, decode_sig }

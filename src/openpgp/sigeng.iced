@@ -7,6 +7,21 @@ C = require '../const'
 
 #=================================================================
 
+exports.decode_sig = decode_sig = ({armored}) ->
+  [ err, msg ] = decode armored
+  mt = C.openpgp.message_types
+  if not err? and (msg.type isnt mt.generic)
+    err = new Error "wrong message type; expected a generic message; got #{msg.type}"
+  return [ err, msg ]
+
+exports.get_sig_body = get_sig_body = ({armored}) ->
+  res = null
+  [ err, msg ] = decode_sig {armored}
+  res = msg.body unless err?
+  return [ err, res ]
+
+#=================================================================
+
 exports.SignatureEngine = class SignatureEngine
 
   #-----
@@ -26,19 +41,14 @@ exports.SignatureEngine = class SignatureEngine
 
   #-----
 
-  get_body : ({armored}, cb) ->
-    res = null
-    await @decode armored, defer err, msg
-    res = msg.body unless err?
+  get_body : (args, cb) ->
+    [ err, res ] = get_sig_body(args)
     cb err, res
 
   #-----
 
   decode : (armored, cb) ->
-    [ err, msg ] = decode armored
-    mt = C.openpgp.message_types
-    if not err? and (msg.type isnt mt.generic)
-      err = new Error "wrong message type; expected a generic message; got #{msg.type}"
+    [ err, msg ] = decode_sig {armored}
     cb err, msg
 
   #-----

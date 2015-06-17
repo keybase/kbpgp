@@ -1,5 +1,6 @@
 
 pgp = require './openpgp/keymanager'
+pgp_sig = require './openpgp/sigeng'
 kb = require './keybase/hilev'
 
 #==========================================================================
@@ -15,3 +16,8 @@ exports.import_armored_public = ({armored, asp}, cb) ->
 
 #==========================================================================
 
+exports.decode_sig = ({armored}) ->
+  if armored.match /^-{5}BEGIN PGP MESSAGE-{5}/
+    return pgp_sig.decode_sig {armored}
+  else
+    return kb.decode_sig {armored}
