@@ -213,6 +213,7 @@ class KeyMaterial extends Packet
       new S.PreferredHashAlgorithms([C.hash_algorithms.SHA512, C.hash_algorithms.SHA256])
       new S.Features([C.features.modification_detection])
       new S.KeyServerPreferences([C.key_server_preferences.no_modify])
+      new S.PreferredCompressionAlgorithms([C.compression.zlib, C.compression.zip])
     ]
     if primary
       hsp.push new S.PrimaryUserId(1)

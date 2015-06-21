@@ -711,6 +711,7 @@ exports.KeyFlags = KeyFlags
 exports.KeyExpirationTime = KeyExpirationTime
 exports.PreferredSymmetricAlgorithms = PreferredSymmetricAlgorithms
 exports.PreferredHashAlgorithms = PreferredHashAlgorithms
+exports.PreferredCompressionAlgorithms = PreferredCompressionAlgorithms
 exports.Features = Features
 exports.KeyServerPreferences = KeyServerPreferences
 exports.Issuer = Issuer

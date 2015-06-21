@@ -1,3 +1,13 @@
+## 2.0.14 (2015-06-21)
+
+Bugfixes:
+  - Specify compression algorithms in key generation (otherwise RFC4880 says zip by default).
+
+## 2.0.13 (2015-06-12)
+
+Features:
+  - ukm.decode_sig() method
+
 ## 2.0.12 (2015-06-05)
 
 Features:
