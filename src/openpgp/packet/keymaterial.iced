@@ -448,6 +448,19 @@ class KeyMaterial extends Packet
   mark_revoked : (sig) -> @revocation = sig
   is_revoked : () -> @revocation?
 
+  #-------------------
+
+  get_expire_time : () ->
+    return null unless (psc = @get_psc())?
+    list = psc.lookup[if @is_primary() then "self_sig" else "subkey_binding"]
+    return null unless list?.length
+    ret = null
+    for {sig} in list when sig?
+      time = sig.get_key_expires()
+      if not ret?   then ret = time
+      else if time? then ret = Math.min(time, ret)
+    return ret
+
 #=================================================================================
 
 class Parser
