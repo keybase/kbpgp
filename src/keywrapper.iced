@@ -5,7 +5,9 @@ C = require('./const')
 
 class Lifespan
   constructor : ( {@generated, @expire_in}) ->
-    @expire_in = C.default_key_expire_in unless @expire_in?
+    # @expire_in is null if the key has no expire time.
+    if @expire_in == undefined
+      @expire_in = C.default_key_expire_in
 
 #=================================================================
 
