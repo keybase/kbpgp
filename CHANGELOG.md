@@ -1,3 +1,8 @@
+## 2.0.15 (2015-06-23)
+
+Bugfixes:
+  - Stop returning default 4yr expiration times for non-expiring PGP keys.
+
 ## 2.0.14 (2015-06-21)
 
 Bugfixes:
