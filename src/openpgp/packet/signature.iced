@@ -296,7 +296,9 @@ class Signature extends Packet
 
   #-----------------
 
-  when_generated : () -> @subpacket_index.hashed[S.creation_time]?.time
+  when_generated   : () -> @subpacket_index.hashed[S.creation_time]?.time
+  when_key_expires : () -> @subpacket_index.hashed[S.key_expiration_time]?.time
+  when_sig_expires : () -> @subpacket_index.hashed[S.expiration_time]?.time
 
   #-----------------
 
