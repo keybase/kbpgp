@@ -43,6 +43,7 @@ $(BUILD_STAMP): \
 	lib/kmi.js \
 	lib/lock.js \
 	lib/main.js \
+	lib/nacl/base.js \
 	lib/nacl/main.js \
 	lib/nacl/eddsa.js \
 	lib/nacl/dh.js \

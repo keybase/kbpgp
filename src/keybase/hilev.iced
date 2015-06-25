@@ -59,6 +59,19 @@ class KeyManager extends KeyManagerInterface
 
   #----------------------------------
 
+  @import_private : ({hex, raw}, cb) ->
+    KeyManager._import_private { klass : KeyManager, hex, raw },  cb
+
+  #----------------------------------
+
+  @_import_private : ({klass, hex, raw}, cb) ->
+    err = ret = null
+    raw = new Buffer hex, 'hex' if hex?
+    await KeyManager.generate { klass, seed : raw }, defer err, km
+    cb err, km
+
+  #----------------------------------
+
   @import_public : ({hex, raw}, cb) ->
     err = ret = null
     if hex?
@@ -79,6 +92,16 @@ class KeyManager extends KeyManagerInterface
   export_public : ({asp, regen}, cb) ->
     ret = @key.ekid().toString('hex')
     cb null, ret
+
+  #----------------------------------
+
+  export_private : ({asp, p3skb, passphrase}, cb) ->
+    err = res = null
+    if p3skb
+      err = new Error "No support yet for P3SKB encrypted secret key exports"
+    else
+      await @key.export_secret_key_kb {}, defer err, res
+    cb err, res
 
   #----------------------------------
 
@@ -113,6 +136,11 @@ class EncKeyManager extends KeyManager
   can_verify : () -> false
   can_encrypt : () -> true
   can_decrypt : () -> @key?.priv?
+
+  #----------------------------------
+
+  @import_private : ({hex, raw}, cb) ->
+    KeyManager._import_private { klass : KeyManager, hex, raw },  cb
 
   #----------------------------------
 

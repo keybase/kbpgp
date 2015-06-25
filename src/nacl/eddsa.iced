@@ -3,7 +3,8 @@ kbnacl = require 'keybase-nacl'
 konst = require '../const'
 K = konst.kb
 {genseed,bufeq_secure,bufeq_fast} = require '../util'
-{BaseKey,BaseKeyPair} = require '../basekeypair'
+{BaseKey} = require '../basekeypair'
+{BaseKeyPair} = require './base'
 NaclDh = require('./dh').Pair
 
 TYPE = K.public_key_algorithms.NACL_EDDSA
@@ -175,7 +176,7 @@ class Pair extends BaseKeyPair
 
     unless err?
       naclw = kbnacl.alloc {}
-      {secretKey, publicKey} = naclw.genFromSeed { seed } 
+      {secretKey, publicKey} = naclw.genFromSeed { seed }
 
       # Note that the tweetnacl library deals with Uint8Arrays,
       # and internally, we like node-style Buffers.

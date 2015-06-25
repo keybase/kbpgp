@@ -3,7 +3,8 @@
 konst = require '../const'
 K = konst.kb
 {genseed,bufeq_fast} = require '../util'
-{BaseKey,BaseKeyPair} = require '../basekeypair'
+{BaseKey} = require '../basekeypair'
+{BaseKeyPair} = require './base'
 {b2u,u2b} = require './eddsa'
 NaclEddsa = require('./eddsa').Pair
 
