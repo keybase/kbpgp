@@ -1,3 +1,9 @@
+## 2.0.16 (2015-06-25)
+
+Features:
+  - Utility functions for exporting/importing NaCl secret keys,
+    mainly useful now for testing.
+
 ## 2.0.15 (2015-06-23)
 
 Bugfixes:

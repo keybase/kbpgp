@@ -55,6 +55,7 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   make_sig_eng : () -> null
 
   export_public : ( {asp, regen}, cb) -> cb EUI, null
+  export_private : ( {asp, passphrase, p3skb}, cb) -> cb EUI
 
   # If it can be used for sigs, regardless of whether there's a priv key
   can_verify : () -> false
