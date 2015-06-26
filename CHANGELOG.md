@@ -1,3 +1,8 @@
+## 2.0.17 (2015-06-26)
+
+Features:
+  - Better DH/EDDSA import/export
+
 ## 2.0.16 (2015-06-25)
 
 Features:
