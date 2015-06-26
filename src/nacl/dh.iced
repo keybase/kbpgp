@@ -178,6 +178,7 @@ class Pair extends BaseKeyPair
   @generate : ({server_half, seed, split}, cb) ->
     arg = { seed, split, len : box.secretKeyLength, server_half }
     await genseed arg, defer err, { server_half, seed }
+    ret = null
 
     unless err?
       {secretKey, publicKey} = box.keyPair.fromSecretKey(b2u(seed))
@@ -187,7 +188,9 @@ class Pair extends BaseKeyPair
       pub = new Pub u2b publicKey
       priv = new Priv u2b secretKey
 
-    cb err, (new Pair {pub, priv}), server_half
+      ret = new Pair { pub, priv }
+
+    cb err, ret, server_half
 
 #=============================================
 

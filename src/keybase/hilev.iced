@@ -60,15 +60,11 @@ class KeyManager extends KeyManagerInterface
   #----------------------------------
 
   @import_private : ({hex, raw}, cb) ->
-    KeyManager._import_private { klass : KeyManager, hex, raw },  cb
-
-  #----------------------------------
-
-  @_import_private : ({klass, hex, raw}, cb) ->
     err = ret = null
     raw = new Buffer hex, 'hex' if hex?
-    await KeyManager.generate { klass, seed : raw }, defer err, km
-    cb err, km
+    await EdDSA.import_private { raw }, defer err, key
+    ret = new KeyManager { key } unless err?
+    cb err, ret
 
   #----------------------------------
 
@@ -140,7 +136,10 @@ class EncKeyManager extends KeyManager
   #----------------------------------
 
   @import_private : ({hex, raw}, cb) ->
-    KeyManager._import_private { klass : KeyManager, hex, raw },  cb
+    err = ret = null
+    raw = new Buffer hex, 'hex' if hex?
+    await EncKeyManager.generate { seed : raw  }, defer err, km
+    cb err, km
 
   #----------------------------------
 

@@ -170,20 +170,33 @@ class Pair extends BaseKeyPair
 
   #--------------------
 
+  @import_private : ({raw}, cb) ->
+    if (a = raw.length) isnt (b = kbnacl.sign.secretKeyLength)
+      err = new Error "Bad length: expected #{b}} bytes, but got #{a}"
+    else
+      pub = new Pub raw[-kbnacl.sign.publicKeyLength...]
+      priv = new Priv raw
+      ret = new Pair { priv, pub }
+    cb err, ret
+
+  #--------------------
+
   @generate : ({seed, split, server_half}, cb) ->
     arg = { seed, split, len : kbnacl.sign.seedLength, server_half }
     await genseed arg, defer err, { server_half, seed }
+
+    ret = null
 
     unless err?
       naclw = kbnacl.alloc {}
       {secretKey, publicKey} = naclw.genFromSeed { seed }
 
-      # Note that the tweetnacl library deals with Uint8Arrays,
-      # and internally, we like node-style Buffers.
       pub = new Pub publicKey
       priv = new Priv secretKey
 
-    cb err, (new Pair {pub, priv}), server_half
+      ret = new Pair { pub, priv }
+
+    cb err, ret, server_half
 
 #=============================================
 
