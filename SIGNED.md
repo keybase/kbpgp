@@ -3,13 +3,19 @@
 -----BEGIN PGP SIGNATURE-----
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJVjcT9AAoJEJgKPw0B/gTfs9EIAKhjgPCh2d5xJLzMPFXJcpYZ
-djtZF0YIqBqVLcnX9tK04tUQqgAuLrrfMqFNkDIdpiwlZwLfTlELUuPhs7wqn+UP
-X1g0NjwARFjva0zwz5MNVzQ3clcqzUDOZH7L9C3LdRpQAFIoJFQ9DKKUbXdsLW/B
-KnOSNeWFu3eQfFcvrCPWNde6BawgJ0G/KriCXs+mLXom2Hn4C1HAeweVwNc29F/L
-18JBuxaJVNknFJp/1mleSK5bN//pBDKkRjw1Bftrs5LPu6S+npqJNQWwNE4uNU9H
-Af8LCI9j5U895b6+U/KveHH8k3NN0OOL7ooIF9hlsfG7mJWNXbl++9RSC4pQf5Y=
-=Hc2/
+iQIcBAABCgAGBQJVkLbyAAoJEGBSsq0xpmMcqQkP/iRDlRYqk+Lm8+w4idtImf3b
+Jlg9O7zxXismxoNRUGriJtprgiVNQ7Oq6nIsONIbAbFb8hJaUL0Icx8bcY6xcmbS
+x6EHtDqw5kPr5rlB9xRsIwtRRURIuMFSeakKryAtUXrLn+h3WqGunsncaQutD2Tl
+t/bfsVrkj3IxcEAxeBUNte3Aq/b+kZbuXv2KlfIFUjyRfYUmc5e1foUVTdm73ozr
+kmiqDxbanU+AQP2gYNR8/b9HT0eHAj8sJfnzYP8msremTjOgYiQmHZSGwOXe76Hj
+UmWu/MPznXJRtBBZe3tVo3ZwTNJNAIHWWd9Ie4A3F6F9iEh2Qj/EurkSkE9Gdbj2
+UZL4mRrlFzv0+rlnWgeJpOvS/Aaq5V8iMlJ/qUf54/nB/hyX9FLQlR9q43aVE3/R
+SsYSzYHuomX6LuhzzmWjxybbnxnQsOal8R2JT9kKy3GnM1DoeMenErCCW/ddxw1b
+gclt3bLYsJIWqxc7egpahtlpLQ32BOQqamjCeVMjtD8UdzdoOqmRioLcyl4ojj25
+66I1ec8buWXao1UalkwlTMJr5S7ikh2qo2WIvKsNEtlWt5eCoGACHnP7TY9fRK2U
+k7Fat9c5jzR0cOQBlE64gQaDZ40kWazqUQ2IsjV/IIMf6g331ebAdAkWb0ihEMc8
+dgCR0DRWi3OaeV6AfxlQ
+=k5Vf
 -----END PGP SIGNATURE-----
 
 ```
@@ -25,7 +31,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-15263            CHANGELOG.md                        02b3b4fb97e7bfb0a68412b99c0b3019a6b3df78a9acde4255713f1f70a44919                                                                 
+15401            CHANGELOG.md                        f5fdac63fc72d5ad612b8e49da63a070780c6fc41bda8d97250fdaf2e0691c23                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3205             Makefile                            2d9b456227429c68597dc1e55b486d8b8d91d2c5899d47e299091341a893000f                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -76,7 +82,7 @@ size     exec  file                                  contents
                      packet/                                                                                                                                                          
 985                    alloc.js                      0f188c8f6d7f1b84da57ef3f089b33e16477bc35e70369a5fc028e6a62b48fdf                                                                 
 1717                   base.js                       1d99c8a7725597284c502b3043f034ce749058f3f14a2de11251b0319cb16e63                                                                 
-12026                  encryption.js                 54a0fe02e59d512ff337dc131108a1eb7597c5b45290502c73354c994768c768                                                                 
+11786                  encryption.js                 5fd6cfc0824954f1df28ccf65c0bd34e6aa1d483f6f05f001435f3577dbd8e76                                                                 
 6158                   p3skb.js                      f9740652913dd0d5d6ecf3e019d05983a37b267a7da2eec440449ff910558d31                                                                 
 5950                   signature.js                  85b794c429561c520843ad06de735398d8701b5952350afdf73bcef66395f521                                                                 
 2382                 util.js                         09b8e76f46098695b8a6087219b4ec68c15a01a89f1f3fb6c7d9927cb843a8cf                                                                 
@@ -131,7 +137,7 @@ size     exec  file                                  contents
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 2626               ukm.js                            6db60728c0672477990c52e7ec0724ce1c1a2d35e5607c80c201f07adcceb09c                                                                 
 335                util.js                           3e59cf27751705fc5584f3d52e4e81b16cce2a329fba98150c6a630c354e37cc                                                                 
-1055             package.json                        6b3ddf5d1688d02fce648131f7614e6b9e5b338e3c50c0b98cf7f60f1ae39039                                                                 
+1055             package.json                        70b121c342f2ffd16d08d3b11866cfcfbaa106abaecd0dfc82d48ac0e82e996a                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -180,7 +186,7 @@ size     exec  file                                  contents
                      packet/                                                                                                                                                          
 490                    alloc.iced                    8a44f27f6309cfe62c697f18d38e995f508414ab7ccbfd817c2682f29524b6f7                                                                 
 1313                   base.iced                     8332efcf9fc0814162fdd1f3d5692ca789df5b5aed42840b5099dafb2d0dcbb5                                                                 
-3229                   encryption.iced               d24edb93530254d2f58e93b235bab456800276e8cade1d1b6501657115868da0                                                                 
+3039                   encryption.iced               8f3f0f12eb5cd7722842336407104d683861b55bd7d5ab2bc66d485063da8f94                                                                 
 2067                   p3skb.iced                    3eec60235a297355824f27dd4a5a7b00d7d18b6916c441da3975b9c2fb4b07e7                                                                 
 472                    parse.iced                    5f668c9867d8043ee2e34687bbeaf45f12d8ca6fb26d255e8dfff464908e5220                                                                 
 2021                   signature.iced                914a89e2ac92ba530307bb6d089de5c27915386b6d4de549822be939e1ba80e6                                                                 
