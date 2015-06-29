@@ -558,7 +558,8 @@ class KeyManager extends KeyManagerInterface
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys),
         armored_pgp_public : msg.raw(),
         user_attributes : kb.user_attributes,
-        userids : kb.userids }
+        userids : kb.userids,
+        signed : true }
     unless err?
       await bundle.check_pgp_validity defer err
     cb err, bundle, warnings

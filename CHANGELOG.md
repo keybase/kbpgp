@@ -1,4 +1,9 @@
-## 2.0.19 (2015-06-30)
+## 2.0.20 (2015-06-29)
+
+Bugfix:
+  - Second half of the below commit
+
+## 2.0.19 (2015-06-29)
 
 Bugfix:
   - Set signed flag on imported PGP blocks.
