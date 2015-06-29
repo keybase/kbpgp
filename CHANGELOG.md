@@ -1,3 +1,9 @@
+## 2.0.18 (2015-06-28)
+
+Cleanup:
+  - Remove the "ephemeral" bit from encryption/decryption via NaCl DH
+    in the keybase packet system.
+
 ## 2.0.17 (2015-06-26)
 
 Features:
