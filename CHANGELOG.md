@@ -1,3 +1,8 @@
+## 2.0.19 (2015-06-30)
+
+Bugfix:
+  - Set signed flag on imported PGP blocks.
+
 ## 2.0.18 (2015-06-28)
 
 Cleanup:

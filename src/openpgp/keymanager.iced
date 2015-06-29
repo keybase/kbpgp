@@ -318,10 +318,10 @@ class PgpEngine extends Engine
 
 class KeyManager extends KeyManagerInterface
 
-  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private, @user_attributes}) ->
+  constructor : ({@primary, @subkeys, @userids, @armored_pgp_public, @armored_pgp_private, @user_attributes, signed}) ->
     @pgp = new PgpEngine { @primary, @subkeys, @userids, @user_attributes, key_manager : @ }
     @engines = [ @pgp ]
-    @_signed = false
+    @_signed = if signed? then signed else false
     @p3skb = null
 
   #========================
