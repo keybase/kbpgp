@@ -31,6 +31,11 @@ exports.unbox = (T,cb) ->
   T.equal tmp.toString('utf8'), msg, "the right message came back out"
   cb()
 
+exports.pgp_get_unverified_payload = (T,cb) ->
+  await se.get_body {armored : sig.pgp}, T.esc(defer(body), cb)
+  await se.get_unverified_payload_from_raw_sig_body { body }, T.esc(defer(payload), cb)
+  T.equal payload.toString('utf8'), msg, "the right message came back out"
+  cb()
 
 exports.kb_generate = (T,cb) ->
   await kb.KeyManager.generate {}, T.esc(defer(tmp), cb)
@@ -48,3 +53,8 @@ exports.kb_unbox = (T,cb) ->
   T.equal tmp.toString('utf8'), msg, "the right message came back out"
   cb()
 
+exports.kb_get_unverified_payload = (T,cb) ->
+  await se.get_body {armored : sig.armored}, T.esc(defer(body), cb)
+  await se.get_unverified_payload_from_raw_sig_body { body }, T.esc(defer(payload), cb)
+  T.equal payload.toString('utf8'), msg, "the right message came back out"
+  cb()

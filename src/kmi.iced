@@ -77,6 +77,7 @@ exports.SignatureEngineInterface = class SignatureEngineInterface
   box : (msg, cb) -> cb EUI
   unbox : (msb, cb) -> cb EUI
   get_body : ({armored}, cb) -> cb EUI
+  get_unverified_payload_from_raw_sig_body : ({body}, cb) -> cb EUI
 
 #=================================================================================
 

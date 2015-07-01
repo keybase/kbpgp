@@ -1,3 +1,8 @@
+## 2.0.21 
+
+Features:
+  - extract unverfied payload bodies from signatures
+
 ## 2.0.20 (2015-06-29)
 
 Bugfix:

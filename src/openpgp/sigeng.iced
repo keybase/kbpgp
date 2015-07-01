@@ -4,6 +4,7 @@
 processor = require './processor'
 {decode} = require './armor'
 C = require '../const'
+{SignatureEngineInterface} = require '../kmi'
 
 #=================================================================
 
@@ -22,7 +23,7 @@ exports.get_sig_body = get_sig_body = ({armored}) ->
 
 #=================================================================
 
-exports.SignatureEngine = class SignatureEngine
+exports.SignatureEngine = class SignatureEngine extends SignatureEngineInterface
 
   #-----
 
@@ -38,6 +39,21 @@ exports.SignatureEngine = class SignatureEngine
       out.armored = out.pgp unless err?
     else err = new Error "No signing key found"
     cb err, out
+
+  #-----
+
+  get_unverified_payload_from_raw_sig_body : ({body}, cb) ->
+    esc = make_esc cb, "get_payload_from_raw_sig_body"
+    payload = null
+    m = new processor.Message {}
+    await m._parse body, esc defer m.packets
+    await m._inflate esc defer()
+    literals = m.collect_literals()
+    if (n = literals.length) isnt 1 or not (l = literals[0])?
+      err = new Error "Got #{n} literals; only wanted 1"
+    else
+      payload = l.data
+    cb err, payload
 
   #-----
 

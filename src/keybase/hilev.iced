@@ -5,7 +5,7 @@
 #
 #=================================================================================
 
-{KeyManagerInterface} = require '../kmi'
+{SignatureEngineInterface,KeyManagerInterface} = require '../kmi'
 {make_esc} = require 'iced-error'
 encode = require './encode'
 {athrow,bufferify,base64u,buffer_xor,asyncify,akatch} = require '../util'
@@ -213,12 +213,20 @@ decode_sig = ({armored}) ->
 
 #=================================================================================
 
-class SignatureEngine
+class SignatureEngine extends SignatureEngineInterface
 
   #-----
 
   constructor : ({@km}) ->
   get_km      : -> @km
+
+  #-----
+
+  get_unverified_payload_from_raw_sig_body : ({body}, cb) ->
+    esc = make_esc cb, "get_payload_from_raw_sig_body"
+    await akatch ( () -> encode.unseal body), esc defer rawobj
+    await asyncify alloc(rawobj), esc defer packet
+    cb null, packet.payload
 
   #-----
 
