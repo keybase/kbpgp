@@ -300,6 +300,14 @@ class Message
 
   #---------
 
+  parse_and_inflate : (body, cb) ->
+    esc = make_esc cb, "Message::parse_and_inflate"
+    await @_parse body, esc defer @packets
+    await @_inflate esc defer()
+    cb null, @collect_literals()
+
+  #---------
+
   parse_and_process : (msg, cb) ->
     esc = make_esc cb, "Message::parse_and_process"
     await @_parse msg.body, esc defer packets
