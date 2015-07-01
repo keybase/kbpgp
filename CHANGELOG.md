@@ -1,4 +1,10 @@
-## 2.0.21 
+## 2.0.22 (2015-07-01)
+
+Cleanups:
+  - better code refactoring from the preivous commit
+  - more sensisble API
+
+## 2.0.21  (2015-07-01)
 
 Features:
   - extract unverfied payload bodies from signatures

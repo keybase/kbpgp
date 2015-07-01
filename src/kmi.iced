@@ -1,5 +1,6 @@
 
 {KeyFetcher} = require './keyfetch'
+{make_esc} = require 'iced-error'
 
 #
 # KeyManagerInterface
@@ -76,8 +77,15 @@ exports.SignatureEngineInterface = class SignatureEngineInterface
   get_km : () -> @km
   box : (msg, cb) -> cb EUI
   unbox : (msb, cb) -> cb EUI
+
   get_body : ({armored}, cb) -> cb EUI
   get_unverified_payload_from_raw_sig_body : ({body}, cb) -> cb EUI
+
+  get_body_and_unverified_payload : ({armored}, cb) ->
+    esc = make_esc cb, "get_body_and_unverified_payload"
+    await @get_body {armored}, esc defer body
+    await @get_unverified_payload_from_raw_sig_body { body}, esc defer payload
+    cb null, body, payload
 
 #=================================================================================
 
