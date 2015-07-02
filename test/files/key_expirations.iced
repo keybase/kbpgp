@@ -14,3 +14,9 @@ exports.read_jack_key = (T,cb) ->
   T.no_error err
   T.equal null, km.primary.lifespan.expire_in, "Jack's key does not expire"
   cb()
+
+exports.read_rillian_key = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { armored : keys.rillian }, defer err, km
+  T.no_error err
+  T.equal 210821778, km.primary.lifespan.expire_in, "rillian's key expires in 6y250d1h36m + epsilon"
+  cb()

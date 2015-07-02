@@ -455,15 +455,19 @@ class KeyMaterial extends Packet
     return null unless (psc = @get_psc())?
     list = psc.lookup[if @is_primary() then "self_sig" else "subkey_binding"]
     return null unless list?.length
-    ret = null
+
+    infinite = false
+    max_expiry = 0
     for {sig} in list when sig?
       time = sig.get_key_expires()
-      if not time?
-        # noop
-      else if not ret?
-        ret = time
+      # A zero or empty key expiration means it never expires
+      if not time? or not time
+        infinite = true
       else
-        ret = Math.min(time, ret)
+        max_expiry = Math.max(time, max_expiry)
+
+    ret = if infinite or not(max_expiry) then null else max_expiry
+
     return ret
 
 #=================================================================================

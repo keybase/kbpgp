@@ -1,3 +1,10 @@
+## 2.0.23 (2015-07-02)
+
+Bufix:
+  - When considering several self-signed key expiry times, take
+    the **maximum** and not the **minimum**. GPG appears to 
+    work this way.
+
 ## 2.0.22 (2015-07-01)
 
 Cleanups:
