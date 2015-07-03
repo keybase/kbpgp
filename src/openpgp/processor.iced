@@ -110,7 +110,7 @@ class KeyBlock
         p.primary = @primary
         await p.verify working_set, defer(tmp), @opts
         if tmp?
-          msg = "Signature failure in packet #{i}: #{tmp.message}"
+          msg = "Signature failure in packet #{i}: #{tmp.message} (#{pid.toString('hex')})"
           @warnings.push msg
           # discard the signature, see the above comment...
         else
@@ -241,6 +241,7 @@ class Message
 
   _verify_sig : (sig, cb) ->
     err = null
+
     if not bufeq_secure (a = sig.open.key_id), (b = sig.close.get_key_id())
       err = new Error "signature mismatch open v close: #{a?.toString('hex')} != #{b?.toString('hex')}"
 
@@ -254,6 +255,12 @@ class Message
 
       # This is used by the front-end in keybase, though nowhere else in kbpgpg
       sig.close.key_manager = km
+
+      # This is used to test if this (potential subkey) is expired as of the time
+      # of the signature.  To use this feature, you have to enable 'time_travel' or specify 'now'
+      # when you import the underlying pgp key in the first place. Otherwise the
+      # subkey will simply fail to import (since it will assume 'unix_time()`).
+      sig.close.key_material = key_material
 
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.

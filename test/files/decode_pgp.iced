@@ -335,7 +335,7 @@ exports.public_key_expired_uid = (T,cb) ->
 exports.public_key_expired_subkey = (T,cb) ->
   await KeyManager.import_from_armored_pgp { raw : keys.expired_subkey } , defer err, km, warnings
   T.no_error err # it's not an error to lack subkeys
-  T.assert warnings.warnings()[0].match /^Signature failure in packet 3: Key expired (\d+)s ago$/
+  T.assert warnings.warnings()[0].match /^Signature failure in packet 3: Key expired (\d+)s ago \([a-f0-9]{16}\)$/, "packet 3 sig failure"
   T.equal warnings.warnings()[1], "Subkey 0 was invalid; discarding", "the right warning"
   T.equal km.subkeys.length, 0, "didn't get any valid subkeys in the key manager"
   cb()

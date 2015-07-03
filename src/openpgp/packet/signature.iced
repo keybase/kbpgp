@@ -258,7 +258,12 @@ class Signature extends Packet
 
     # Now make sure that the signature wasn't expired
     unless err?
-      err = @_check_key_sig_expiration opts
+      [err, expires] = @_check_key_sig_expiration opts
+
+    # Now make sure the subkey used wasn't expired at the time of the
+    # signature generation.
+    unless err?
+      err = @_check_subkey_wasnt_expired opts
 
     # Now mark the object that was vouched for
     sig = @
@@ -275,15 +280,15 @@ class Signature extends Packet
             ps = new packetsigs.SelfSig { @type, userid, sig }
             userid.push_sig ps
           else if (user_attribute = @data_packets[1].to_user_attribute())?
-            ps = new packetsigs.SelfSig { @type, user_attribute, sig }
+            ps = new packetsigs.SelfSig { @type, user_attribute, sig, expires }
             user_attribute.push_sig ps
           @primary.push_sig ps if ps
 
         when T.subkey_binding
-          subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN }
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN, expires }
 
         when T.primary_binding
-          subkey.push_sig new SKB { @primary, sig, direction : SKB.UP }
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.UP, expires }
 
         when T.subkey_revocation
           subkey.mark_revoked sig
@@ -311,11 +316,25 @@ class Signature extends Packet
 
   #-----------------
 
+  # If we import a key with "time_travel" on, then we don't discard expired
+  # subkeys.  We do need to check that the key is valid at the given time though.
+  _check_subkey_wasnt_expired : (opts) ->
+    km = @key_material
+    err = null
+    if km?.opts?.subkey and (e = km.get_subkey_binding()?.expires)
+      now = if (n = opts?.now)? then n else unix_time()
+      if e < now
+        err = new Error "Subkey #{km.get_fingerprint().toString('hex')} expired at #{e} but we checked for time #{now}"
+    return err
+
+  #-----------------
+
   # See Issue #28
   #   https://github.com/keybase/kbpgp/issues/28
   _check_key_sig_expiration : (opts) ->
     err = null
     T = C.sig_types
+    key_expiration = 0
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
       creation = @subpacket_index.hashed[S.creation_time]
       expiration = @subpacket_index.hashed[S.key_expiration_time]
@@ -325,13 +344,13 @@ class Signature extends Packet
       now = if (n = opts?.now)? then n else unix_time()
 
       if creation? and expiration?
-        expiration = creation.time + expiration.time
-        if (now > expiration) and expiration isnt 0
+        key_expiration = expiration = creation.time + expiration.time
+        if (now > expiration) and expiration isnt 0 and not opts.time_travel
           err = new Error "Key expired #{now - expiration}s ago"
       if not err? and (expiration = @subpacket_index.hashed[S.expiration_time])? and
            (now > expiration.time) and expiration.time isnt 0
         err = new Error "Signature expired #{now - expiration.time}s ago"
-    return err
+    return [err, key_expiration]
 
   #-----------------
 

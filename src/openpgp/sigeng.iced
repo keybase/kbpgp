@@ -67,11 +67,12 @@ exports.SignatureEngine = class SignatureEngine extends SignatureEngineInterface
 
   #-----
 
-  unbox       : (msg, cb, opts = {}) ->
+  unbox : (msg, cb, opts = {}) ->
     esc = make_esc cb, "SignatureEngine::unbox"
     if typeof(msg) is 'string'
       await @decode msg, esc defer msg
     opts.keyfetch = @km
+    opts.strict = true
     eng = new processor.Message opts
     await eng.parse_and_process { body : msg.body }, esc defer literals
     await @_check_result literals, esc defer payload

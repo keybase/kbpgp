@@ -1,8 +1,22 @@
+## 2.0.24 (2015-07-03)
+
+Bugfix:
+  - For reviewing signatures that were signed deep in the past,
+    we have an issue that the subkey that signed the sig might have
+    been valid at the time but has since expired. The ugly way to deal
+    with this situation would be require the KeyManager to be repeatedly
+    reimported if reviewing multiple signatures. Instead, we allow for
+    keys to be imported with "time_travel : true" mode, in which
+    subkeys are allowed to be imported even though they're currently
+    expired.  The question of whether the subkey is expired is then postponed
+    until the actual signature check.  Get this working, and then add a test
+    case that brought the issue to our attention.
+
 ## 2.0.23 (2015-07-02)
 
 Bufix:
   - When considering several self-signed key expiry times, take
-    the **maximum** and not the **minimum**. GPG appears to 
+    the **maximum** and not the **minimum**. GPG appears to
     work this way.
 
 ## 2.0.22 (2015-07-01)
