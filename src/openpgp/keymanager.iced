@@ -819,7 +819,7 @@ class KeyManager extends KeyManagerInterface
   @_wrap_pgp : (klass, kmp) ->
     new klass {
       key : kmp.key,
-      lifespan : new Lifespan { generated : kmp.timestamp, expire_in : kmp.get_expire_time() }
+      lifespan : new Lifespan { generated : kmp.timestamp, expire_in : kmp.get_expire_time()?.expire_in }
       _pgp : kmp
     }
 

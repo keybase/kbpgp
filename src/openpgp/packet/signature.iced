@@ -319,9 +319,7 @@ class Signature extends Packet
   # If we import a key with "time_travel" on, then we don't discard expired
   # subkeys.  We do need to check that the key is valid at the given time though.
   _check_subkey_wasnt_expired : (opts) ->
-    km = @key_material
-    err = null
-    if km?.opts?.subkey and (e = km.get_subkey_binding()?.expires)
+    if (e = (km = @key_material)?.get_expire_time()?.expire_at)
       now = if (n = opts?.now)? then n else unix_time()
       if e < now
         err = new Error "Subkey #{km.get_fingerprint().toString('hex')} expired at #{e} but we checked for time #{now}"
