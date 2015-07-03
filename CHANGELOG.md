@@ -1,3 +1,8 @@
+## 2.0.25 (2015-07-03)
+
+Bugfix:
+  - pass more options through to ukm
+
 ## 2.0.24 (2015-07-03)
 
 Bugfix:
