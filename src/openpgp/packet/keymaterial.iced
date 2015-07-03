@@ -456,20 +456,21 @@ class KeyMaterial extends Packet
     list = psc.lookup[if @is_primary() then "self_sig" else "subkey_binding"]
     return null unless list?.length
 
-
     winner = null
 
-    for {sig} in list when sig?
+    # For subpacket signatures, only consider the signatures in the "down"
+    # direction.  Don't consider the upwards reverse signatures
+    for packetsig in list when packetsig.sig? and (@is_primary() or packetsig.is_down())
+      {sig} = packetsig
       expire_in = sig.get_key_expires()
       generated = sig.when_generated()
+
       # A zero or empty key expiration means it never expires;
-      # for a primary! For a subkey, I think we need to respect
-      # the Maximum of the given expirations
       if expire_in and generated
         expire_at = generated + expire_in
         if not winner? or (winner.expire_at? and (winner.expire_at < expire_at))
           winner = { expire_at, generated, expire_in }
-      else if not expire_in? and @is_primary()
+      else if not expire_in?
         winner = { generated, expire_in : null, expire_at : null }
 
     unless winner?
