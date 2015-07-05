@@ -1,3 +1,9 @@
+## 2.0.26 (2015-07-05)
+
+Features:
+  - Expose openpgp SignatureEngine
+  - Expose get_all_pgp_ids() via key manager
+
 ## 2.0.25 (2015-07-03)
 
 Bugfix:
