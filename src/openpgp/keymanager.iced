@@ -262,6 +262,10 @@ class PgpEngine extends Engine
 
   #--------
 
+  get_all_key_ids : () -> (@key(k).get_key_id() for k in @_all_keys())
+
+  #--------
+
   validity_check : (cb) ->
     err = null
     for k in @_all_keys()
@@ -773,6 +777,10 @@ class KeyManager extends KeyManagerInterface
   get_pgp_fingerprint : () -> @pgp.get_fingerprint()
   get_pgp_fingerprint_str : () -> @get_pgp_fingerprint()?.toString 'hex'
   get_ekid : () -> @pgp.get_ekid()
+
+  #----------------
+
+  get_all_pgp_key_ids : () -> @pgp.get_all_key_ids()
 
   #----------------
 

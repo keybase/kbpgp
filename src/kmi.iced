@@ -70,6 +70,10 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   # Like can_decrypt(), and also has a private key
   can_decrypt : () -> false
 
+  # Get all PGP key ids returns all of the PGP key IDs found in this
+  # key manager.  For NaCl keys, it's empty.
+  get_all_pgp_key_ids : () -> []
+
 #=================================================================================
 
 exports.SignatureEngineInterface = class SignatureEngineInterface

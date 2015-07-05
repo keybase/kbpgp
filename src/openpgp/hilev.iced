@@ -7,6 +7,7 @@ processor = require './processor'
 
 exports.box = burn
 exports.unbox = processor.do_message
+exports.SignatureEngine = SignatureEngine
 
 #-----------------------------
 
