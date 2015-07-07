@@ -170,6 +170,22 @@ class Engine
     else
       false
 
+  #--------
+
+  merge_subkey : (k) -> 
+    ekid = k.ekid()
+    if (kw = @_index[ekid])?
+      kw.overwrite_with k
+    else
+      @_index[ekid] = k
+      @subkeys.push k
+
+  #--------
+
+  merge_subkeys : (pgpeng2) ->
+    for subkey in pgpeng2.subkeys
+      @merge_subkey subkey
+
 #=================================================================
 
 class PgpEngine extends Engine
@@ -830,6 +846,11 @@ class KeyManager extends KeyManagerInterface
       lifespan : new Lifespan { generated : kmp.timestamp, expire_in : kmp.get_expire_time()?.expire_in }
       _pgp : kmp
     }
+
+  #----------
+
+  merge_subkeys : (km2) -> 
+    if @pgp? and km2.pgp? then @pgp.merge_subkeys km2.pgp
 
   #----------
 

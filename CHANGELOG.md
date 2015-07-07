@@ -1,3 +1,8 @@
+## 2.0.27 (2015-07-06)
+
+Features:
+  - Add a rudimentary subkey merge system
+
 ## 2.0.26 (2015-07-05)
 
 Features:

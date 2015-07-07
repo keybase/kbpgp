@@ -23,6 +23,10 @@ class KeyWrapper
   constructor : ({@key, @lifespan, @_pgp, @_keybase, @flags}) ->
   ekid : () -> @key.ekid()
 
+  # Overwrite this key wrapper with kw2
+  overwrite_with : (kw2) ->
+    {@key, @lifespan, @_pgp, @_keybase, @flags} = kw2
+
 #=================================================================
 
 class Subkey extends KeyWrapper
