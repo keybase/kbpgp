@@ -9,6 +9,12 @@ class Lifespan
     if @expire_in == undefined
       @expire_in = C.default_key_expire_in
 
+  expires_earlier_than : (l2) ->
+    if not(l2.expire_in) and @expire_in then true
+    else if @expire_in and not(l2.expire_in) then false
+    else if not(@expire_in) and not(l2.expire_in) then false
+    else (@generated + @expire_in) < (l2.generated + l2.expire_in)
+
 #=================================================================
 
 # @param {RSA::Pair} key The raw RSA (or DSA) key
@@ -23,9 +29,11 @@ class KeyWrapper
   constructor : ({@key, @lifespan, @_pgp, @_keybase, @flags}) ->
   ekid : () -> @key.ekid()
 
-  # Overwrite this key wrapper with kw2
+  # Overwrite this key wrapper with kw2 unless we expire later than
+  # kw2
   overwrite_with : (kw2) ->
-    {@key, @lifespan, @_pgp, @_keybase, @flags} = kw2
+    unless kw2.lifespan.expires_earlier_than @lifespan
+      {@key, @lifespan, @_pgp, @_keybase, @flags} = kw2
 
 #=================================================================
 

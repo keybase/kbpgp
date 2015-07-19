@@ -1,3 +1,12 @@
+## 2.0.28 (2015-07-18)
+
+Bugfixes:
+  - Improved subkey merge system, for keybase/node-client#203
+    - I have several key bundles updated, some with subkeys that
+      have expired, and others with that same subkey's lifetime extended.
+      So play my key sequence forward and backwards and make sure it's
+      possible to verify with that subkey in either case.
+
 ## 2.0.27 (2015-07-06)
 
 Features:
