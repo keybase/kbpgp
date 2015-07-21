@@ -1,3 +1,8 @@
+## 2.0.29 (2015-07-21)
+
+Bugfixes:
+  - Calculate PGP key creation times properly. (keybase/keybase-issues#1686)
+
 ## 2.0.28 (2015-07-18)
 
 Bugfixes:
