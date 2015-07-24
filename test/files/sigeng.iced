@@ -84,7 +84,8 @@ exports.pgp_unbox_bcrypt = (T,cb) ->
   # First attempt to import bcrypt's key should warn about the expired subkeys
   await KeyManager.import_from_armored_pgp { armored : keys.bcrypt }, T.esc(defer(km, warnings), cb)
   w = (w for w in warnings.warnings() when not w.match /Skipping signature by another issuer/)
-  T.assert (w.length is 4), "2 failed subkey imports for old data (each generating 2 warnings)"
+  # console.log w.length
+  T.assert (w.length is 15), "15 expired signatures at time now"
 
   await KeyManager.import_from_armored_pgp { armored : keys.bcrypt, opts }, T.esc(defer(km, warnings), cb)
   w = (w for w in warnings.warnings() when not w.match /Skipping signature by another issuer/)
