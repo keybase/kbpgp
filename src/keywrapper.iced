@@ -34,8 +34,14 @@ class KeyWrapper
   # Overwrite this key wrapper with kw2 unless we expire later than
   # kw2
   overwrite_with : (kw2) ->
+    console.log "XXXX"
+    console.log kw2.lifespan
+    console.log @lifespan
     unless kw2.lifespan.expires_earlier_than @lifespan
+      console.log "update"
       {@key, @lifespan, @_pgp, @_keybase, @flags} = kw2
+    console.log "new lifespan ---->"
+    console.log @lifespan
 
 #=================================================================
 

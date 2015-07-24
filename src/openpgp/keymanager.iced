@@ -183,8 +183,11 @@ class Engine
   #--------
 
   merge_public : (pgpeng2) ->
-    @primary.overwite_with pgpeng2.primary
+    console.log "do primary key---->"
+    @primary.overwrite_with pgpeng2.primary
+    console.log "do subkeys ------------->"
     @merge_subkeys pgpeng2
+    console.log "done ---->"
 
   #--------
 

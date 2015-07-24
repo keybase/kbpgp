@@ -1189,14 +1189,15 @@ dspbtAkzTNRD/gCdHtsR49TPzmvUPeia8Tq9GDFJoeU=
 exports.import_and_merge_max = (T, cb) ->
   sponge = null
   check = (cb) ->
-    for k in kian_keys
+    for k,i in kian_keys
+      console.log "in kian #{i}"
       await KeyManager.import_from_armored_pgp { armored : k, opts : { time_travel : true } }, T.esc(defer(km), cb)
       if sponge?
         sponge.merge_public km
       else
         sponge = km
     console.log km
-    T.no_error err
     cb()
+  kian_keys.reverse()
   await check defer()
   cb()
