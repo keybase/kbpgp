@@ -419,7 +419,7 @@ exports.import_and_merge_zaher = (T, cb) ->
     await KeyManager.import_from_armored_pgp { armored : k }, T.esc(defer(km), cb)
     if sponge?
       sponge.merge_subkeys km
-    else 
+    else
       sponge = km
   all_key_ids = sponge.get_all_pgp_key_ids()
   T.equal all_key_ids.length, 7, "right number of sponge subkey IDs"
@@ -1038,12 +1038,12 @@ sYrYsAo=
 # check that in both cases, the subkey with the longer expiration is taken.
 exports.import_and_merge_max = (T, cb) ->
   sponge = null
-  check = (cb) -> 
+  check = (cb) ->
     for k in max_keys
       await KeyManager.import_from_armored_pgp { armored : k, opts : { time_travel : true } }, T.esc(defer(km), cb)
       if sponge?
         sponge.merge_subkeys km
-      else 
+      else
         sponge = km
     await unbox { keyfetch : sponge, armored : signed_by_max }, defer err, literals
     T.no_error err
@@ -1051,9 +1051,152 @@ exports.import_and_merge_max = (T, cb) ->
     T.equal "8efbe2e4dd56b35273634e8f6052b2ad31a6631c", literals[0].get_data_signer().get_key_manager().get_pgp_fingerprint().toString("hex"), "right fingerprint"
     cb()
   await check defer()
-  max_keys.reverse()    
+  max_keys.reverse()
   await check defer()
   cb()
 
 #=================================================================
 
+kian_keys = [
+  """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1
+
+mQGiBEswb1sRBAC4lJZV3cdJHgwkmwWiCtrlTQn91OyT9PIWoEcS1HZHJueJNnxi
+9UgjNw9Wl4GNaR+uza05Oq231/Pv6MTUJzIU+Zhdqi/OL36HpFC6tg1c7b14wCXE
+mnMr8VFDEDKIoR1NzjXCgbuOeNQ0ee30cSGs9lP3xzc8DWQGbaQK5HUPewCgodDT
+FNNo8igX6qfQ2dN2aiGcRREEAJHe8lO73jjbLITG4Z1pwtsTFekTbjFedz54YsI7
+TbCVGS9bQCWq7n0K4UdJF/rDQPZ3fYjLNtlAuFGJmtysDICzqPYQU1DiKT2Ty+G0
+7X0JTvQlFKOvZmK9gGoVvqPsdggHNOFTtFHkyfTPZI8hvI3hIm3PcDB1Ssy/KFFu
+xGY3A/4kj522COGLP0osmqpiVXJXrwITNJRFMH4uQvqKkThLHc3jf7BmWTRepH3O
+bgPWy+uJ4hLp1fHymmDbh+7BII8OxfEfbov1rk54qRRUzxVOcAU0KySEtrtVCNw3
+4rdfeEHe0UO+uUBt6oIx5Wbj/iRHZcpFax6+RoFpMK2hkqPckrQoS2lhbiBNb2hh
+Z2VyaSA8a2lhbi5tb2hhZ2VyaUBwYXBlcmcuY29tPohmBBMRAgAmBQJLMG9bAhsj
+BQkJZgGABgsJCAcDAgQVAggDBBYCAwECHgECF4AACgkQaN2dJHyOqQzgnACcCWen
+InfAL7vrXeYfA8ftCsONuroAnjeDccsboB2BfpoNDC4kc0W3C/+nuQINBEswb1sQ
+CACU7S48T9CuVT5zAuH1uT6NxmRrCcXcDp5fUn740ebVx5CL/spv6Qg57AhgVykN
+e1cAU4euQHzHIMHn+A6z8IcuV7id/elsgqpUdsA0Z6CoW4DKEprSAUyqIkERkw6k
+s5EfYFdix8LaBUta7qcmXMtGkQGscNZk+WUClacP1nPIuuQjZygp5U0btLV9P80p
+1gvVKnHuOjYOPD2Qnmd5zOlpPfK1W3lD9bgPrWth10a9GFnI1EB07D62ON04MfNU
+bSAY/Lf1JWIJ86kY9o7950O80mv5w5wrkprgIQkxz3gmIn/HTtpNMEtUoAHVlzyz
+TTgtBZ9ksF4MmmwrYCYJqJmLAAMFB/9h6EDTb4fornoW12AJdkpcBDPnWrrRfAEq
+r7nn/uDPtXPyz3mE3h9vGk6MbWOdDbxtZKcqje5QeZNFHWl8fpFneufchFbyapyd
+z93aB+YdCiG3PH5k5rZux87M2904zcF5UCAdqni2cSKdFlIoTuK+cL50Vbb4yNba
+a0DhfnjOjZj77s0+mqyx4uHGFPfE3wcxMQAKeSWwLDxCryKbxaiwmd4ucVlnVFnu
+rYFf9XkS6Y+RK2wQYV4+4YoCNPesQbnx1qWqoiIDB69R/RuI3H+JnQWa0CHM9Zmn
+r7TgQSMqbYP6YsM6F8hHfPB9tsW7xMB1YVQbr9mZuacFfOnxM6oKiE8EGBECAA8F
+Akswb1sCGwwFCQlmAYAACgkQaN2dJHyOqQzYcwCfR5rLZJ4TyyCsNhJVPbQB9ZzF
+CiMAn03e4htAqd9pNE1c3oewqlx9LMJm
+=cUlP
+-----END PGP PUBLIC KEY BLOCK-----""",
+  """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+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
+=9Ge2
+-----END PGP PUBLIC KEY BLOCK-----""",
+  """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+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
+=9Ge2
+-----END PGP PUBLIC KEY BLOCK-----"""
+]
+
+#=================================================================
+
+# Max's sequence of keys posted to keybase have earlier bundles
+# for which subkeys have expired, and later bundles for which the subkeys
+# have extended life.  So we'll merge the subkeys in both directions and
+# check that in both cases, the subkey with the longer expiration is taken.
+exports.import_and_merge_max = (T, cb) ->
+  sponge = null
+  check = (cb) ->
+    for k in kian_keys
+      await KeyManager.import_from_armored_pgp { armored : k, opts : { time_travel : true } }, T.esc(defer(km), cb)
+      if sponge?
+        sponge.merge_public km
+      else
+        sponge = km
+    console.log km
+    T.no_error err
+    cb()
+  await check defer()
+  cb()

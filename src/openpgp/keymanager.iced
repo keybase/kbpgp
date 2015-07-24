@@ -172,13 +172,19 @@ class Engine
 
   #--------
 
-  merge_subkey : (k) -> 
+  merge_subkey : (k) ->
     ekid = k.ekid()
     if (kw = @_index[ekid])?
       kw.overwrite_with k
     else
       @_index[ekid] = k
       @subkeys.push k
+
+  #--------
+
+  merge_public : (pgpeng2) ->
+    @primary.overwite_with pgpeng2.primary
+    @merge_subkeys pgpeng2
 
   #--------
 
@@ -868,13 +874,16 @@ class KeyManager extends KeyManagerInterface
 
   #----------
 
-  merge_subkeys : (km2) -> 
+  merge_subkeys : (km2) ->
     if @pgp? and km2.pgp? then @pgp.merge_subkeys km2.pgp
 
   #----------
 
   pgp_check_not_expired : ( { subkey_material, now} ) ->
     @pgp.check_not_expired { subkey_material, now }
+
+  merge_public : (km2) ->
+    if @pgp? and km2.pgp? then @pgp.merge_public km2.pgp
 
   #----------
 
