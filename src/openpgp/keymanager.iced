@@ -841,10 +841,9 @@ class KeyManager extends KeyManagerInterface
 
   # @param {openpgp.KeyMaterial} kmp An openpgp KeyMaterial packet
   @_wrap_pgp : (klass, kmp) ->
-    expire_time = kmp.get_expire_time()
     new klass {
       key : kmp.key,
-      lifespan : new Lifespan { generated : expire_time?.generated, expire_in : expire_time?.expire_in }
+      lifespan : new Lifespan { generated : kmp.timestamp, expire_in : kmp.get_expire_time()?.expire_in }
       _pgp : kmp
     }
 
