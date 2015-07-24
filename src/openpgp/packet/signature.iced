@@ -334,7 +334,7 @@ class Signature extends Packet
     T = C.sig_types
     key_expiration = 0
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
-      creation = @subpacket_index.hashed[S.creation_time]
+      creation = @key_created_at
       expiration = @subpacket_index.hashed[S.key_expiration_time]
 
       # We can set now back in time for some operations, like testing people's
@@ -342,7 +342,7 @@ class Signature extends Packet
       now = if (n = opts?.now)? then n else unix_time()
 
       if creation? and expiration?
-        key_expiration = expiration = creation.time + expiration.time
+        key_expiration = expiration = creation + expiration.time
         if (now > expiration) and expiration isnt 0 and not opts.time_travel
           err = new Error "Key expired #{now - expiration}s ago"
       if not err? and (expiration = @subpacket_index.hashed[S.expiration_time])? and

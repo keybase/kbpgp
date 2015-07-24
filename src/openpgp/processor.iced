@@ -108,6 +108,7 @@ class KeyBlock
         n_sigs++
         p.key = @primary.key
         p.primary = @primary
+        p.key_created_at = @primary.timestamp
         await p.verify working_set, defer(tmp), @opts
         if tmp?
           msg = "Signature failure in packet #{i}: #{tmp.message} (#{pid.toString('hex')})"
