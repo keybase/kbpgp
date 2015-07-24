@@ -1,3 +1,8 @@
+## 2.0.30 (2015-07-24)
+
+Bugfixes:
+  - The change in 2.0.29 was a mistake. Revert.
+
 ## 2.0.29 (2015-07-21)
 
 Bugfixes:
