@@ -1195,7 +1195,8 @@ exports.import_and_merge_kian = (T, cb) ->
         sponge.merge_public km
       else
         sponge = km
-    console.log sponge.primary.lifespan
+    T.equal sponge.primary.lifespan.expire_in, 218553758, "right expire_in"
+    T.equal sponge.primary.lifespan.generated, 1261465435, "right generate"
     cb()
   await check defer()
   kian_keys.reverse()
