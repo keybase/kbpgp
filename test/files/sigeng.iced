@@ -97,4 +97,6 @@ exports.pgp_unbox_bcrypt = (T,cb) ->
   rxx = new RegExp "Subkey 80d7c6560b070f5efb0e0d5dd0bb603643fdd9ec expired at #{exp} but we checked for time (\\d+)"
   T.assert err.toString().match(rxx), "right error message"
   await sig_eng.unbox bcrypt_sig, T.esc(defer(), cb), { now : exp - 100 }
+
+  console.log km.primary._pgp.get_expire_time()
   cb()
