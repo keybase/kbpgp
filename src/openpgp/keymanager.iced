@@ -345,7 +345,7 @@ class PgpEngine extends Engine
       ret_i = i if key?
 
     if not key?
-      err = new Error "No keys match the given fingerprint"
+      err = new Error "No keys match the given key IDs"
     else if not @key(key).fulfills_flags flags
       err = new Error "We don't have a key for the requested PGP ops (flags = #{flags})"
     else

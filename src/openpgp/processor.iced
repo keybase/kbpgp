@@ -247,6 +247,8 @@ class Message
 
     unless err?
       await @keyfetch.fetch [ a ], konst.ops.verify, defer err, km, i
+      if err?
+        err = new Error "Can't find a key for #{a.toString('hex')}: #{err.message}"
 
     if not err?
 

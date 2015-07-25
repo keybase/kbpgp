@@ -1,3 +1,9 @@
+## 2.0.32 (2015-07-24)
+
+Tweaks:
+  - Slightly improved error messages for inability to find the needed subkey
+    in verification.
+
 ## 2.0.31 (2015-07-24)
 
 Bugfixes:
