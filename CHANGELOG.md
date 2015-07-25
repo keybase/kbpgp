@@ -1,3 +1,11 @@
+## 2.0.31 (2015-07-24)
+
+Bugfixes:
+  - Fix primary key expiration computation
+  - Clean up key v sig expriation
+  - Get time-travel signatures working better, and accounting
+    for primary key expiration as above (close #82)
+
 ## 2.0.30 (2015-07-24)
 
 Bugfixes:
