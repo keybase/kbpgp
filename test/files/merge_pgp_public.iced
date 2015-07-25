@@ -1186,7 +1186,7 @@ dspbtAkzTNRD/gCdHtsR49TPzmvUPeia8Tq9GDFJoeU=
 # for which subkeys have expired, and later bundles for which the subkeys
 # have extended life.  So we'll merge the subkeys in both directions and
 # check that in both cases, the subkey with the longer expiration is taken.
-exports.import_and_merge_max = (T, cb) ->
+exports.import_and_merge_kian = (T, cb) ->
   sponge = null
   check = (cb) ->
     for k,i in kian_keys
@@ -1201,3 +1201,6 @@ exports.import_and_merge_max = (T, cb) ->
   kian_keys.reverse()
   await check defer()
   cb()
+
+#=================================================================
+
