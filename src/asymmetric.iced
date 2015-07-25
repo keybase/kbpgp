@@ -8,7 +8,7 @@ C = require('./const').openpgp.public_key_algorithms
 
 #============================================================
 
-exports.get_class = (n) ->
+get_class = (n) ->
   switch n
     when C.RSA, C.RSA_ENCRYPT_ONLY, C.RSA_SIGN_ONLY then RSA
     when C.ELGAMAL then ElGamal
@@ -18,3 +18,5 @@ exports.get_class = (n) ->
     else throw new Error "unknown public key system: #{n}"
 
 #============================================================
+
+module.exports = { get_class, RSA, DSA, ElGamal }

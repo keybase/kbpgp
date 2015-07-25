@@ -68,10 +68,10 @@ class Engine
 
   #--------
 
-  sign_subkeys : ({asp}, cb) ->
+  sign_subkeys : ({time, asp}, cb) ->
     err = null
     for subkey in @subkeys when not err?
-      await @_v_sign_subkey {asp, subkey}, defer err
+      await @_v_sign_subkey {asp, time, subkey}, defer err
     cb err
 
   #--------
@@ -94,9 +94,9 @@ class Engine
 
   #--------
 
-  sign : ({asp}, cb) ->
-    await @self_sign_primary { asp }, defer err
-    await @sign_subkeys { asp }, defer err unless err?
+  sign : ({asp, time}, cb) ->
+    await @self_sign_primary { asp, time }, defer err
+    await @sign_subkeys { asp, time }, defer err unless err?
     cb err
 
   #--------
@@ -196,6 +196,15 @@ class Engine
 
 #=================================================================
 
+lifespan_from_keywrapper_and_time = ({key_wrapper, time}) ->
+  ret = key_wrapper.lifespan
+  if time?
+    ret = ret.copy()
+    ret.generated = time
+  ret
+
+#=================================================================
+
 class PgpEngine extends Engine
 
   #--------
@@ -219,14 +228,16 @@ class PgpEngine extends Engine
 
   #--------
 
-  _v_self_sign_primary : ({asp, raw_payload}, cb) ->
-    await @key(@primary).self_sign_key { lifespan : @primary.lifespan, @userids, raw_payload }, defer err, sigs
+  _v_self_sign_primary : ({time, asp, raw_payload}, cb) ->
+    lifespan = lifespan_from_keywrapper_and_time { key_wrapper : @primary, time }
+    await @key(@primary).self_sign_key { lifespan, @userids, raw_payload }, defer err, sigs
     cb err, sigs
 
   #--------
 
-  _v_sign_subkey : ({asp, subkey}, cb) ->
-    await @key(@primary).sign_subkey { subkey : @key(subkey), lifespan : subkey.lifespan }, defer err
+  _v_sign_subkey : ({asp, subkey, time}, cb) ->
+    lifespan = lifespan_from_keywrapper_and_time { key_wrapper : subkey, time }
+    await @key(@primary).sign_subkey { subkey : @key(subkey), lifespan }, defer err
     cb err
 
   #--------
@@ -388,7 +399,7 @@ class KeyManager extends KeyManagerInterface
   # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED]
   #
   @generate : ({asp, userid, userids, primary, subkeys, ecc,
-                 sub_flags, nsubs, primary_flags, nbits, expire_in}, cb) ->
+                 sub_flags, nsubs, primary_flags, nbits, expire_in, generated}, cb) ->
     asp = ASP.make asp
     F = C.key_flags
     KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
@@ -408,7 +419,7 @@ class KeyManager extends KeyManagerInterface
       subkey.algo or= primary.algo.subkey_algo subkey.flags
       subkey.nbits or= nbits or K.key_defaults.sub.nbits[subkey.algo.klass_name]
 
-    generated = unix_time()
+    generated or= unix_time()
     esc = make_esc cb, "KeyManager::generate"
 
     if userid?
@@ -456,7 +467,7 @@ class KeyManager extends KeyManagerInterface
 
   #------------
 
-  @generate_ecc : ({asp, userid, userids}, cb) ->
+  @generate_ecc : ({asp, userid, userids, generated}, cb) ->
     F = C.key_flags
     primary = {
       flags : F.certify_keys
@@ -471,7 +482,7 @@ class KeyManager extends KeyManagerInterface
       nbits : 256
     }]
 
-    KeyManager.generate { asp, userid, userids, primary, subkeys }, cb
+    KeyManager.generate { asp, userid, userids, primary, subkeys, generated }, cb
 
   #------------
 
@@ -696,15 +707,15 @@ class KeyManager extends KeyManagerInterface
 
   #-----
 
-  sign_pgp : ({asp}, cb) -> @pgp.sign { asp }, cb
+  sign_pgp : ({asp, time}, cb) -> @pgp.sign { asp, time }, cb
 
   #-----
 
-  sign : ({asp}, cb) ->
+  sign : ({asp, time }, cb) ->
     asp = ASP.make asp
     asp.section "sign"
     asp.progress { what : "sign PGP" , total : 1, i : 0 }
-    await @sign_pgp     { asp }, defer err
+    await @sign_pgp     { asp, time }, defer err
     asp.progress { what : "sign PGP" , total : 1, i : 1 }
     @_signed = true unless err?
     cb err

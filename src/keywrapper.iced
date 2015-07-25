@@ -15,6 +15,8 @@ class Lifespan
     else if not(@expire_in) and not(l2.expire_in) then false
     else (@generated + @expire_in) < (l2.generated + l2.expire_in)
 
+  copy : () -> new Lifespan { @generated, @expire_in }
+
 #=================================================================
 
 # @param {RSA::Pair} key The raw RSA (or DSA) key
