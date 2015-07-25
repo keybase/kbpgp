@@ -450,6 +450,14 @@ class KeyMaterial extends Packet
 
   #-------------------
 
+  check_not_expired : ({now}) ->
+    err = null
+    if (e = @get_expire_time()?.expire_at) and e < now
+      err = new Error "PGP key #{@get_fingerprint().toString('hex')} expired at #{e} but we checked for time #{now}"
+    return err
+
+  #-------------------
+
   # Returns non-zero expire time if it exists, otherwise null.
   get_expire_time : () ->
     return null unless (psc = @get_psc())?
@@ -463,14 +471,14 @@ class KeyMaterial extends Packet
     for packetsig in list when packetsig.sig? and (@is_primary() or packetsig.is_down())
       {sig} = packetsig
       expire_in = sig.get_key_expires()
-      generated = sig.when_generated()
+      generated = @timestamp
 
       # A zero or empty key expiration means it never expires;
       if expire_in and generated
         expire_at = generated + expire_in
         if not winner? or (winner.expire_at? and (winner.expire_at < expire_at))
           winner = { expire_at, generated, expire_in }
-      else if not expire_in?
+      else if (expire_in? and expire_in is 0) or (not expire_in? and not @is_primary())
         winner = { generated, expire_in : null, expire_at : null }
 
     unless winner?

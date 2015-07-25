@@ -256,14 +256,18 @@ class Signature extends Packet
       { payload, hvalue } = @prepare_payload data
       await @key.verify_unpad_and_check_hash { @sig, hash : hvalue, @hasher }, defer err
 
-    # Now make sure that the signature wasn't expired
-    unless err?
-      [err, expires] = @_check_key_sig_expiration opts
+    # Check that our keys are not expired
+    #
+    # This is used to test if this (potential subkey) is expired as of the time
+    # of the signature.  To use this feature, you have to enable 'time_travel' or specify 'now'
+    # when you import the underlying pgp key in the first place. Otherwise the
+    # subkey will simply fail to import (since it will assume 'unix_time()`).
+    if not err? and @key_manager?
+      err = @key_manager.pgp_check_not_expired { @subkey_material, now : opts?.now }
 
-    # Now make sure the subkey used wasn't expired at the time of the
-    # signature generation.
+    # If we're signing a key, check key expiration now
     unless err?
-      err = @_check_subkey_wasnt_expired opts
+      [err, key_expiration, sig_expiration] = @_check_key_sig_expiration opts
 
     # Now mark the object that was vouched for
     sig = @
@@ -280,15 +284,15 @@ class Signature extends Packet
             ps = new packetsigs.SelfSig { @type, userid, sig }
             userid.push_sig ps
           else if (user_attribute = @data_packets[1].to_user_attribute())?
-            ps = new packetsigs.SelfSig { @type, user_attribute, sig, expires }
+            ps = new packetsigs.SelfSig { @type, user_attribute, sig, key_expiration, sig_expiration }
             user_attribute.push_sig ps
           @primary.push_sig ps if ps
 
         when T.subkey_binding
-          subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN, expires }
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN, key_expiration, sig_expiration}
 
         when T.primary_binding
-          subkey.push_sig new SKB { @primary, sig, direction : SKB.UP, expires }
+          subkey.push_sig new SKB { @primary, sig, direction : SKB.UP, key_expiration, sig_expiration}
 
         when T.subkey_revocation
           subkey.mark_revoked sig
@@ -316,39 +320,36 @@ class Signature extends Packet
 
   #-----------------
 
-  # If we import a key with "time_travel" on, then we don't discard expired
-  # subkeys.  We do need to check that the key is valid at the given time though.
-  _check_subkey_wasnt_expired : (opts) ->
-    if (e = (km = @key_material)?.get_expire_time()?.expire_at)
-      now = if (n = opts?.now)? then n else unix_time()
-      if e < now
-        err = new Error "Subkey #{km.get_fingerprint().toString('hex')} expired at #{e} but we checked for time #{now}"
-    return err
-
-  #-----------------
-
   # See Issue #28
   #   https://github.com/keybase/kbpgp/issues/28
   _check_key_sig_expiration : (opts) ->
     err = null
     T = C.sig_types
     key_expiration = 0
+    sig_expiration = 0
+
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
-      creation = @subpacket_index.hashed[S.creation_time]
-      expiration = @subpacket_index.hashed[S.key_expiration_time]
+
+      key_creation = @primary.timestamp
+      key_expiration_packet = @subpacket_index.hashed[S.key_expiration_time]
+      sig_creation_packet = @subpacket_index.hashed[S.creation_time]
+      sig_expiration_packet = @subpacket_index.hashed[S.sig_expiration_time] 
 
       # We can set now back in time for some operations, like testing people's
       # old keys
       now = if (n = opts?.now)? then n else unix_time()
 
-      if creation? and expiration?
-        key_expiration = expiration = creation.time + expiration.time
-        if (now > expiration) and expiration isnt 0 and not opts.time_travel
-          err = new Error "Key expired #{now - expiration}s ago"
-      if not err? and (expiration = @subpacket_index.hashed[S.expiration_time])? and
-           (now > expiration.time) and expiration.time isnt 0
-        err = new Error "Signature expired #{now - expiration.time}s ago"
-    return [err, key_expiration]
+      if key_creation? and key_expiration_packet?.time
+        key_expiration = key_creation + key_expiration_packet.time
+      if sig_creation_packet? and sig_expiration_packet?.time
+        sig_expiration = sig_creation_packet.time + sig_expiration_packet.time
+
+      if key_expiration and not(opts.time_travel) and now > key_expiration
+        err = new Error "Key expired #{now - key_expiration}s ago"
+      if sig_expiration and not(opts.time_travel) and now > sig_expiration
+        err = new Error "Sig expired #{now - key_expiration}s ago"
+
+    return [err, key_expiration, sig_expiration]
 
   #-----------------
 
