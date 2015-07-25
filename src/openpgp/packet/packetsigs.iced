@@ -6,14 +6,15 @@
 #===================================================
 
 class Base
-  constructor : ({@sig,@expires}) ->
+  constructor : ({@sig,@key_expiration}) ->
   typ : () -> "none"
   get_key_flags : () -> @sig.get_key_flags()
 
 #===================================================
 
 class SelfSig extends Base
-  constructor : ({@userid, @user_attribute, @type, sig, @options, expires}) -> super { sig, expires }
+  constructor : ({@userid, @user_attribute, @type, sig, @options, key_expiration, sig_expiration}) -> 
+    super { sig, key_expiration, sig_expiration}
   typ : () -> "self_sig"
 
 #===================================================
@@ -21,14 +22,16 @@ class SelfSig extends Base
 class SubkeyBinding extends Base
   @UP   : 1
   @DOWN : 2
-  constructor : ({@primary, sig, @direction, expires}) -> super { sig, expires }
+  constructor : ({@primary, sig, @direction, sig_expiration, key_expiration}) -> 
+    super { sig, key_expiration, sig_expiration }
   typ : () -> "subkey_binding"
   is_down : () -> (@direction is SubkeyBinding.DOWN)
 
 #===================================================
 
 class Data extends Base
-  constructor : ({@key, sig, expires}) -> super {sig, expires}
+  constructor : ({@key, sig, key_expiration, sig_expiration}) -> 
+    super {sig, key_expiration, sig_expiration }
   typ : () -> "data"
   get_key_manager : () -> @sig?.key_manager
 
