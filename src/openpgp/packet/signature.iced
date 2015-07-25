@@ -256,14 +256,18 @@ class Signature extends Packet
       { payload, hvalue } = @prepare_payload data
       await @key.verify_unpad_and_check_hash { @sig, hash : hvalue, @hasher }, defer err
 
-    # Now make sure that the signature wasn't expired
+    # Check that our keys are not expired
+    #
+    # This is used to test if this (potential subkey) is expired as of the time
+    # of the signature.  To use this feature, you have to enable 'time_travel' or specify 'now'
+    # when you import the underlying pgp key in the first place. Otherwise the
+    # subkey will simply fail to import (since it will assume 'unix_time()`).
+    if not err? and @key_manager?
+      err = @key_manager.pgp_check_not_expired { @subkey_material, now : opts?.now }
+
+    # If we're signing a key, check key expiration now
     unless err?
       [err, key_expiration, sig_expiration] = @_check_key_sig_expiration opts
-
-    # Now make sure the subkey used wasn't expired at the time of the
-    # signature generation.
-    unless err?
-      err = @_check_subkey_wasnt_expired opts
 
     # Now mark the object that was vouched for
     sig = @
@@ -316,17 +320,6 @@ class Signature extends Packet
 
   #-----------------
 
-  # If we import a key with "time_travel" on, then we don't discard expired
-  # subkeys.  We do need to check that the key is valid at the given time though.
-  _check_subkey_wasnt_expired : (opts) ->
-    if (e = (km = @key_material)?.get_expire_time()?.expire_at)
-      now = if (n = opts?.now)? then n else unix_time()
-      if e < now
-        err = new Error "Subkey #{km.get_fingerprint().toString('hex')} expired at #{e} but we checked for time #{now}"
-    return err
-
-  #-----------------
-
   # See Issue #28
   #   https://github.com/keybase/kbpgp/issues/28
   _check_key_sig_expiration : (opts) ->
@@ -336,7 +329,7 @@ class Signature extends Packet
     sig_expiration = 0
 
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
-      
+
       key_creation = @primary.timestamp
       key_expiration_packet = @subpacket_index.hashed[S.key_expiration_time]
       sig_creation_packet = @subpacket_index.hashed[S.creation_time]

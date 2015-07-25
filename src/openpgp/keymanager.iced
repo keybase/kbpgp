@@ -186,6 +186,14 @@ class Engine
     for subkey in pgpeng2.subkeys
       @merge_subkey subkey
 
+  #--------
+
+  check_not_expired : ({subkey_material, now} )  -> 
+    now or= unix_time()
+    err = @key(@primary).check_not_expired { now } 
+    err = subkey_material.check_not_expired { now } unless err?
+    return err
+
 #=================================================================
 
 class PgpEngine extends Engine
@@ -851,6 +859,11 @@ class KeyManager extends KeyManagerInterface
 
   merge_subkeys : (km2) -> 
     if @pgp? and km2.pgp? then @pgp.merge_subkeys km2.pgp
+
+  #----------
+
+  pgp_check_not_expired : ( { subkey_material, now} ) ->
+    @pgp.check_not_expired { subkey_material, now }
 
   #----------
 

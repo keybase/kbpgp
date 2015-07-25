@@ -31,6 +31,7 @@ exports.Base = class Base
       keymat = km.find_pgp_key_material key_id
       @_sig.key = keymat.key
       @_sig.key_manager = km
+      @_sig.subkey_material = keymat
     cb err
 
 #======================================================

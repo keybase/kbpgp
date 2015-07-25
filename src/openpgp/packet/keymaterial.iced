@@ -450,6 +450,14 @@ class KeyMaterial extends Packet
 
   #-------------------
 
+  check_not_expired : ({now}) ->
+    err = null
+    if (e = @get_expire_time()?.expire_at) and e < now
+      err = new Error "PGP key #{@get_fingerprint().toString('hex')} expired at #{e} but we checked for time #{now}"
+    return err
+
+  #-------------------
+
   # Returns non-zero expire time if it exists, otherwise null.
   get_expire_time : () ->
     return null unless (psc = @get_psc())?

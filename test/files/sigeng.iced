@@ -93,10 +93,9 @@ exports.pgp_unbox_bcrypt = (T,cb) ->
   sig_eng = km.make_sig_eng()
   await sig_eng.unbox bcrypt_sig, defer err
   T.assert err?, "an error came back"
-  exp = 1407614031
-  rxx = new RegExp "Subkey 80d7c6560b070f5efb0e0d5dd0bb603643fdd9ec expired at #{exp} but we checked for time (\\d+)"
-  T.assert err.toString().match(rxx), "right error message"
+  exp = 1407614008
+  rxx = new RegExp "PGP key bde7d5083bb35edc7a66bd97388ce229fac78cf7 expired at #{exp} but we checked for time (\\d+)"
+  T.assert err.toString().match(rxx), "right error message (got: #{err.toString()}"
   await sig_eng.unbox bcrypt_sig, T.esc(defer(), cb), { now : exp - 100 }
 
-  console.log km.primary._pgp.get_expire_time()
   cb()
