@@ -1,3 +1,9 @@
+## 2.0.33 (2015-07-24)
+
+Bugfixes:
+  - Merge public keys too, not just subkeys. This means pushing back primary key
+    expirations too.  Close #81
+
 ## 2.0.32 (2015-07-24)
 
 Tweaks:
