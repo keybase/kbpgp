@@ -63,6 +63,6 @@ exports.run = (T,cb) ->
   await unbox { armored : msg , keyfetch : km, strict : false }, defer err, literals, warnings
   T.no_error err
   wv = warnings.warnings()
-  T.equal wv, [ 'Problem fetching key 11e8aed7fa9fbb74: Error: No keys match the given fingerprint'], "the right warnings"
+  T.equal wv, [ "Problem fetching key 11e8aed7fa9fbb74: Error: Can't find a key for 11e8aed7fa9fbb74: No keys match the given key IDs"], "the right warnings"
   T.equal literals[0].toString(), "hi, this is a test message\n", "the right message decrypted"
   cb()
