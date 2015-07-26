@@ -78,11 +78,15 @@ buffer_shift_right = (buf, nbits) ->
 
 bn_from_left_n_bits = (raw, bits) ->
   rem = bits % 8
+  console.log "rem -> #{rem}"
   bytes = (bits >> 3) + (if rem then 1 else 0)
+  console.log "bytes -> #{bytes}"
   buf = raw[0...bytes]
+  ret = nbi().fromBuffer(buf)
   if rem > 0
-    buf = buffer_shift_right(buf, 8 - rem)
-  nbi().fromBuffer(buf)
+    ret.shiftRight(8 - rem)
+  console.log "ret -> #{ret}"
+  return ret
 
 #================================================================
 
