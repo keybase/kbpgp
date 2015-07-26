@@ -249,8 +249,6 @@ class Signature extends Packet
         err = new Error "cannot verify sigtype #{@type}"
         []
 
-    console.log "A #{err?.toString()}"
-
     # Now actually check that the signature worked.
     unless err?
       buffers = (dp.to_signature_payload() for dp in @data_packets)
@@ -258,20 +256,14 @@ class Signature extends Packet
       { payload, hvalue } = @prepare_payload data
       await @key.verify_unpad_and_check_hash { @sig, hash : hvalue, @hasher }, defer err
 
-    console.log "B #{err?.toString()}"
-
     # Now make sure that the signature wasn't expired
     unless err?
       [err, expires] = @_check_key_sig_expiration opts
-
-    console.log "C #{err?.toString()}"
 
     # Now make sure the subkey used wasn't expired at the time of the
     # signature generation.
     unless err?
       err = @_check_subkey_wasnt_expired opts
-
-    console.log "D #{err?.toString()}"
 
     # Now mark the object that was vouched for
     sig = @
@@ -300,8 +292,6 @@ class Signature extends Packet
 
         when T.subkey_revocation
           subkey.mark_revoked sig
-
-    console.log "E #{err?.toString()}"
 
     cb err
 

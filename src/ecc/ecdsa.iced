@@ -37,11 +37,7 @@ class Pub extends BaseEccKey
 
   verify : ([r, s], h, cb) ->
     err = null
-    console.log (e.toString() for e in h).join(", ")
-    console.log "nbits -> #{@nbits()}"
     hi = @trunc_hash(h)
-    console.log "r -> #{r.toString()}"
-    console.log "hi -> #{hi.toString()}"
 
     if ((r.signum() <= 0) or (r.compareTo(@curve.p) > 0))
       err = new Error "bad r"
@@ -50,21 +46,13 @@ class Pub extends BaseEccKey
     else
 
       n = @curve.n
-      console.log "n -> #{n.toString()}"
       w = s.modInverse n
-      console.log "w -> #{w.toString()}"
       u1 = hi.multiply(w).mod(n)
-      console.log "u1 -> #{u1.toString()}"
       u2 = r.multiply(w).mod(n)
-      console.log "u2 -> #{u2.toString()}"
       p = @curve.G.multiplyTwo(u1,@R,u2)
-      console.log "p -> #{p.toString()}"
 
       v = p.affineX.mod(n)
-      console.log "v -> #{v.toString()}"
-      console.log "booo #{err?.toString()}"
       err = new Error "verification failed" unless v.equals(r)
-    console.log "foob -> #{err?.toString()}"
     cb err
 
 #=================================================================
