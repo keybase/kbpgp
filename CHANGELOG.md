@@ -1,3 +1,8 @@
+## 2.0.34 (2015-07-26)
+
+Bugfixes:
+ - Fix ECDSA p521: bug in hash -> int conversion (close #80)
+
 ## 2.0.33 (2015-07-24)
 
 Bugfixes:
