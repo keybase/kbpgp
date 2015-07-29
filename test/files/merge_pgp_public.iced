@@ -418,7 +418,7 @@ exports.import_and_merge_zaher = (T, cb) ->
   for k in zaher_keys
     await KeyManager.import_from_armored_pgp { armored : k }, T.esc(defer(km), cb)
     if sponge?
-      sponge.merge_subkeys km
+      sponge.merge_all_subkeys_omitting_revokes km
     else
       sponge = km
   all_key_ids = sponge.get_all_pgp_key_ids()
@@ -1042,7 +1042,7 @@ exports.import_and_merge_max = (T, cb) ->
     for k in max_keys
       await KeyManager.import_from_armored_pgp { armored : k, opts : { time_travel : true } }, T.esc(defer(km), cb)
       if sponge?
-        sponge.merge_subkeys km
+        sponge.merge_all_subkeys_omitting_revokes km
       else
         sponge = km
     await unbox { keyfetch : sponge, armored : signed_by_max }, defer err, literals
@@ -1192,7 +1192,7 @@ exports.import_and_merge_kian = (T, cb) ->
     for k,i in kian_keys
       await KeyManager.import_from_armored_pgp { armored : k, opts : { time_travel : true } }, T.esc(defer(km), cb)
       if sponge?
-        sponge.merge_public km
+        sponge.merge_public_omitting_revokes km
       else
         sponge = km
     T.equal sponge.primary.lifespan.expire_in, 218553758, "right expire_in"
@@ -1205,3 +1205,94 @@ exports.import_and_merge_kian = (T, cb) ->
 
 #=================================================================
 
+example_key_with_valid_subkey = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+mI0EVblb1AEEAMLAK6bung86DQEkvFkDblpRBEkrUufDf354BcMserty088JIFI2
+3j+YP8EDaf8gJnKAbHnYQP640f+I7+9Ul65PUtuuHXRkDMps7GYaJGlhPx26xGnx
+/JL+ItgtYM/cLLmKSg0h/aVdYfW7Pc13PFSyXR0lkawleC926ifBUrqPABEBAAG0
+B2V4YW1wbGWIuQQTAQIAIwUCVblb1AIbAwcLCQgHAwIBBhUIAgkKCwQWAgMBAh4B
+AheAAAoJENBEjHHUvXzP124D/1p0MDoMJFiy7EiMEEkmZLY2qYFe7uAV7ZnhcKyr
+WHKVSGOtS97ePMyckKPzVh31Itx5F65xydJm6xUdYCY0ySWvBvnWOzSZVRFSAONe
+tpn9RG0009VL7SIAus6AbpE09Wu8Xp4Bo0mJZU5kU9ff1+x72PDQvbN7NpbCOtau
+PCoFuI0EVblfXwEEAKx4dZbYXfoyJumCAW9YV+sEJFH0ylP9z3nNOojqHlEs3Tbk
+R2UmI1triprzxPK+t8p008+ODSh9AXpgPRTDbJmmw/JgCNeLqVZ5NjMfV/DDfKYl
+AtAnc4SZYtIgEgtaXOCj2eBmizJ17uQ6mIjxrhltr4uaW48K+3hlY8VP0n6bABEB
+AAGJAUMEGAECAA8FAlW5X18CGwIFCQAJOoAAqAkQ0ESMcdS9fM+dIAQZAQIABgUC
+VblfXwAKCRDQ92kTekiF8q59BACixtqqEST8xS+DG8fimLr3qaO0clXuNUJksGGI
+5MwfGF0uPnn8T9Usm5toKvkNnzgX+8ag8gksRAdts+/OyeFOWjCAfKQJ4bN14Amx
+PfGo8uldOmJM4ManNnGzs+Mk8IrXp3nIsj+FmRnHKOOs2KE9byL2rF3ebYC8vNqG
+705Ibnn6A/9kaz5Qd46nnA0EThnoCXCeShNkU56A4Yv5T87Xt/SGm65vxjotxlx4
++ewbK8LJOPbMaN4xRcDGgpYELtOd42cCLU4V1qSRWWPAt1tHw3QTcaQOkEvbqoNQ
+31ADXeDoaoOTP1mvbLaw0uMWZAFGHRQDTcGCMJN1nopkHI3QrjQPdQ==
+=FY/b
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+example_key_with_revoked_subkey = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+mI0EVblb1AEEAMLAK6bung86DQEkvFkDblpRBEkrUufDf354BcMserty088JIFI2
+3j+YP8EDaf8gJnKAbHnYQP640f+I7+9Ul65PUtuuHXRkDMps7GYaJGlhPx26xGnx
+/JL+ItgtYM/cLLmKSg0h/aVdYfW7Pc13PFSyXR0lkawleC926ifBUrqPABEBAAG0
+B2V4YW1wbGWIuQQTAQIAIwUCVblb1AIbAwcLCQgHAwIBBhUIAgkKCwQWAgMBAh4B
+AheAAAoJENBEjHHUvXzP124D/1p0MDoMJFiy7EiMEEkmZLY2qYFe7uAV7ZnhcKyr
+WHKVSGOtS97ePMyckKPzVh31Itx5F65xydJm6xUdYCY0ySWvBvnWOzSZVRFSAONe
+tpn9RG0009VL7SIAus6AbpE09Wu8Xp4Bo0mJZU5kU9ff1+x72PDQvbN7NpbCOtau
+PCoFuI0EVblfXwEEAKx4dZbYXfoyJumCAW9YV+sEJFH0ylP9z3nNOojqHlEs3Tbk
+R2UmI1triprzxPK+t8p008+ODSh9AXpgPRTDbJmmw/JgCNeLqVZ5NjMfV/DDfKYl
+AtAnc4SZYtIgEgtaXOCj2eBmizJ17uQ6mIjxrhltr4uaW48K+3hlY8VP0n6bABEB
+AAGIqgQoAQIAFAUCVblgWg0dAmZvciB0ZXN0aW5nAAoJENBEjHHUvXzP4T8D/1bZ
+7cxJZBOhI5QrW4I9uMq7e+LHwE0DeixpJX46gNCFfxfnF5NxSFXfw5qjWFuQ9Vwt
+pS9uQk6PNjRQSxHFWccFuhh/XY/h8kmDmSCJ9KtJZwOHOr+si1rJpI3OR2LcI88c
+cKsf/e7C+0M6iYVteQX3GV+Z72NusHd5wizDqkbuiQFDBBgBAgAPAhsCBQJVuWAH
+BQkAEnWoAKidIAQZAQIABgUCVblfXwAKCRDQ92kTekiF8q59BACixtqqEST8xS+D
+G8fimLr3qaO0clXuNUJksGGI5MwfGF0uPnn8T9Usm5toKvkNnzgX+8ag8gksRAdt
+s+/OyeFOWjCAfKQJ4bN14AmxPfGo8uldOmJM4ManNnGzs+Mk8IrXp3nIsj+FmRnH
+KOOs2KE9byL2rF3ebYC8vNqG705IbgkQ0ESMcdS9fM+juwP/atlBwLYq1G+dMwn4
+DbuDHTHHdZ8yoPQbdhuxPJ9Um9v41BoW3x6CQyzlwC3zD9NhoxbKpScGlYH8lYYA
+yxzDFpNad+71DQjdMEve87SRrL2tEWuipFLxA3pHrb2bZm/aRsrwHqhvxPsPq8Xh
+RXNGyTofkYFS+v+QmW6eDXIIjSA=
+=rzxF
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+#=================================================================
+
+# Check that merge_public_omitting_revokes() actually does omit revokes. That
+# is, if the key manager we're merging in contains subkeys with a later
+# expiration time, but which are revoked, the merge should skip them.
+exports.check_merge_omits_revokes = (T, cb) ->
+  await KeyManager.import_from_armored_pgp {
+    armored: example_key_with_valid_subkey
+    opts: { time_travel: true }
+  }, T.esc defer valid_km
+  await KeyManager.import_from_armored_pgp {
+    armored: example_key_with_revoked_subkey
+    opts: { time_travel: true }
+  }, T.esc defer invalid_km
+  valid_km.merge_public_omitting_revokes invalid_km
+  # Make sure none of the resulting subkeys are revoked.
+  for subkey in valid_km.subkeys
+    T.assert not subkey._pgp.is_revoked(), "merged key contains revocations!"
+  cb()
+
+# As above, but backwards. That is, if we start with a revoked subkey, the
+# merge should overwrite it with an unrevoked version of the same subkey *even*
+# if the expiration date is earlier.
+exports.check_merge_omits_revokes_in_reverse = (T, cb) ->
+  await KeyManager.import_from_armored_pgp {
+    armored: example_key_with_valid_subkey
+    opts: { time_travel: true }
+  }, T.esc defer valid_km
+  await KeyManager.import_from_armored_pgp {
+    armored: example_key_with_revoked_subkey
+    opts: { time_travel: true }
+  }, T.esc defer invalid_km
+  invalid_km.merge_public_omitting_revokes valid_km
+  # Make sure none of the resulting subkeys are revoked.
+  for subkey in invalid_km.subkeys
+    T.assert not subkey._pgp.is_revoked(), "merged key contains revocations!"
+  cb()

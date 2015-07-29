@@ -172,25 +172,25 @@ class Engine
 
   #--------
 
-  merge_subkey : (k) ->
+  merge_subkey_omitting_revokes : (k) ->
     ekid = k.ekid()
     if (kw = @_index[ekid])?
-      kw.overwrite_with k
+      kw.overwrite_with_omitting_revokes k
     else
       @_index[ekid] = k
       @subkeys.push k
 
   #--------
 
-  merge_public : (pgpeng2) ->
-    @primary.overwrite_with pgpeng2.primary
-    @merge_subkeys pgpeng2
+  merge_public_omitting_revokes : (pgpeng2) ->
+    @primary.overwrite_with_omitting_revokes pgpeng2.primary
+    @merge_all_subkeys_omitting_revokes pgpeng2
 
   #--------
 
-  merge_subkeys : (pgpeng2) ->
+  merge_all_subkeys_omitting_revokes : (pgpeng2) ->
     for subkey in pgpeng2.subkeys
-      @merge_subkey subkey
+      @merge_subkey_omitting_revokes subkey
 
   #--------
 
@@ -874,16 +874,16 @@ class KeyManager extends KeyManagerInterface
 
   #----------
 
-  merge_subkeys : (km2) ->
-    if @pgp? and km2.pgp? then @pgp.merge_subkeys km2.pgp
+  merge_all_subkeys_omitting_revokes : (km2) ->
+    if @pgp? and km2.pgp? then @pgp.merge_all_subkeys_omitting_revokes km2.pgp
 
   #----------
 
   pgp_check_not_expired : ( { subkey_material, now} ) ->
     @pgp.check_not_expired { subkey_material, now }
 
-  merge_public : (km2) ->
-    if @pgp? and km2.pgp? then @pgp.merge_public km2.pgp
+  merge_public_omitting_revokes : (km2) ->
+    if @pgp? and km2.pgp? then @pgp.merge_public_omitting_revokes km2.pgp
 
   #----------
 

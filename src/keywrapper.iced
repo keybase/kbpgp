@@ -31,10 +31,18 @@ class KeyWrapper
   constructor : ({@key, @lifespan, @_pgp, @_keybase, @flags}) ->
   ekid : () -> @key.ekid()
 
-  # Overwrite this key wrapper with kw2 unless we expire later than
-  # kw2
-  overwrite_with : (kw2) ->
-    unless kw2.lifespan.expires_earlier_than @lifespan
+  # Overwrite this key wrapper with kw2 if kw2's expiration date is later than
+  # ours. If one of the two is revoked, always take the other, irrespective of
+  # the expiration date.
+  #
+  # XXX: Dropping revokes is not a very safe thing to do with PGP keys. In our
+  # case, we need past signatures that you made to remain valid, even if you
+  # revoke parts of that key in the future. We're doing this merge only for
+  # signatures made before we have more reliable key version pinning in place.
+  overwrite_with_omitting_revokes : (kw2) ->
+    if kw2._pgp.is_revoked()
+      return
+    if @_pgp.is_revoked() or @lifespan.expires_earlier_than kw2.lifespan
       {@key, @lifespan, @_pgp, @_keybase, @flags} = kw2
 
 #=================================================================
