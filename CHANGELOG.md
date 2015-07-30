@@ -1,3 +1,10 @@
+## 2.0.35 (2015-07-30)
+
+Bugfixes:
+ - PGP key merge methods now ignore key revocations. (These are probably not
+   safe to use on signatures that aren't provably timestampted. We plan to move
+   away from them in general in favor of more exact key pinning.)
+
 ## 2.0.34 (2015-07-26)
 
 Bugfixes:
