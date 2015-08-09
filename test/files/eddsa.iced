@@ -1,3 +1,4 @@
+{armor} = require '../../'
 
 key = """
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -25,3 +26,5 @@ vbxHnotdUPRecEXJ5t6j/AZcyXGTC5gB
 """
 
 msg = "Hello early adopters. Here is some EdDSA support."
+
+# console.log (armor.decode key)[1].body[18...].length
