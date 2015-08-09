@@ -5,6 +5,7 @@ C = require('./const').openpgp.public_key_algorithms
 {ElGamal} = require './elgamal'
 {ECDSA} = require './ecc/ecdsa'
 {ECDH} = require './ecc/ecdh'
+{EDDSA} = require './ecc/eddsa'
 
 #============================================================
 
@@ -15,6 +16,7 @@ get_class = (n) ->
     when C.DSA then DSA
     when C.ECDSA then ECDSA
     when C.ECDH then ECDH
+    when C.EDDSA then EDDSA
     else throw new Error "unknown public key system: #{n}"
 
 #============================================================

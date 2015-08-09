@@ -1,5 +1,8 @@
 nacl = require 'tweetnacl'
 {BaseKeyPair,BaseKey} = require '../basekeypair'
+{util} = require '../util'
+konst = require '../const'
+C = konst.openpgp
 
 #=================================================================
 
@@ -23,8 +26,23 @@ class Pub extends BaseKey
 
   #----------------
 
+  @_alloc : (raw) -> 
+    sb = new SlicerBuffer raw
+    pre = sb.rem()
+    l = sb.read_uint8()
+    oid = sb.read_buffer(l)
+    expected = new Buffer [ 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 ]
+    unless util.bufeq_secure oid, expected
+      new Error "Wrong OID in EdDSA key"
+    cb new Error "not done yet!"
+
+  #----------------
+
   @alloc : (raw) -> 
-    return [ (new Error "unimplemented") ]
+    pub = len = err = null
+    try [ pub, len] = Priv.alloc raw
+    catch e then err = e
+    return [ err, pub, len ]
 
   #----------------
 
