@@ -1,4 +1,4 @@
-{armor} = require '../../'
+{KeyManager,armor} = require '../../'
 
 key = """
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -27,4 +27,7 @@ vbxHnotdUPRecEXJ5t6j/AZcyXGTC5gB
 
 msg = "Hello early adopters. Here is some EdDSA support."
 
-# console.log (armor.decode key)[1].body[18...].length
+
+exports.import_key_1 = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { armored : key }, T.esc(defer(km), cb)
+  cb()
