@@ -1,3 +1,9 @@
+## 2.0.36
+
+Features:
+  - Initial EdDSA support; parse keys and verify signatures.
+    - See Issue #55
+
 ## 2.0.35 (2015-07-30)
 
 Bugfixes:
