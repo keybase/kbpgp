@@ -80,8 +80,11 @@ class Pub extends BaseKey
 
   #----------------
 
-  verify : ([r, s], h, cb) ->
-    cb new Error "unimplemented"
+  verify : ([r, s], payload, cb) ->
+    naclw = kbnacl.alloc { publicKey : @key }
+    sig = Buffer.concat [r,s]
+    [err, _] = naclw.verify { payload, sig, detached : true }
+    cb err
 
 #=================================================================
 
@@ -145,7 +148,7 @@ class Pair extends BaseKeyPair
   #----------------
 
   verify_unpad_and_check_hash : ({sig, data, hasher, hash}, cb) ->
-    cb new Error "unimplemented vupch"
+    @_dsa_verify_update_and_check_hash { sig, data, hasher, hash, klass : Pair }, cb
 
   #----------------
 
@@ -172,11 +175,12 @@ class Pair extends BaseKeyPair
   @eddsa_value_from_buffer : (buf) ->
     err = ret = null
     vlen = kbnacl.sign.publicKeyLength
-    totlen = vlen + 2
+    mpi_header_len = 2
+    totlen = vlen + mpi_header_len
     if buf.length < totlen
       err = new Error "need #{len} bytes per EdDSA value"
-    else if buf[0] isnt 0x01 or buf[1] isnt 0x00
-      err = new Error "Needed 0x01 0x00 prefix for EdDSA value"
+    else if (bits = buf.readUInt16BE(0)) > 0x100 or bits < (0x100 - 40)
+      err = new Error "Got an unexpected number of Bits for an EdDSA value: #{bits}"
     else
       ret = buf[2...totlen]
       buf = buf[totlen...]

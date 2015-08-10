@@ -136,4 +136,19 @@ exports.BaseKeyPair = class BaseKeyPair
 
   #----------------
 
+  _dsa_verify_update_and_check_hash : ({ sig, data, hasher, hash, klass}, cb) ->
+    err = null
+
+    # It's a little bit of a hack that we have a buffer on a raw unparsed
+    # value, but it turns out to be true for DSA, ECDSA and EdDSA
+    [err, sig] = klass.read_sig_from_buf(sig) if Buffer.isBuffer(sig)
+    hash or= hasher data
+    if sig.length isnt 2
+      err = new Error "Need an [r,s] pair for a DSA-style signature"
+    else
+      await @pub.verify sig, hash, defer err, v
+    cb err
+
+  #----------------
+
 #============================================================
