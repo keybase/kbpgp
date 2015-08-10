@@ -1,9 +1,15 @@
-nacl = require 'tweetnacl'
+kbnacl = require 'keybase-nacl'
+{SlicerBuffer} = require '../openpgp/buffer'
 {BaseKeyPair,BaseKey} = require '../basekeypair'
-{util} = require '../util'
+util = require '../util'
 konst = require '../const'
 C = konst.openpgp
 
+#=================================================================
+# 
+# A PGP wrapper class around EdDSA so that we can use EdDSA PGP
+# keys.
+#
 #=================================================================
 
 class Pub extends BaseKey
@@ -34,13 +40,16 @@ class Pub extends BaseKey
     expected = new Buffer [ 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 ]
     unless util.bufeq_secure oid, expected
       new Error "Wrong OID in EdDSA key"
-    cb new Error "not done yet!"
+    key = sb.read_buffer kbnacl.sign.publicKeyLength
+    pub = kbnacl.alloc { publicKey : key }
+    len = pre - sb.rem()
+    return [ pub, len ]
 
   #----------------
 
   @alloc : (raw) -> 
     pub = len = err = null
-    try [ pub, len] = Priv.alloc raw
+    try [ pub, len] = Pub._alloc raw
     catch e then err = e
     return [ err, pub, len ]
 
@@ -111,7 +120,7 @@ class Pair extends BaseKeyPair
   #----------------
 
   verify_unpad_and_check_hash : ({sig, data, hasher, hash}, cb) ->
-    cb new Error "unimplemented"
+    cb new Error "unimplemented vupch"
 
   #----------------
 
@@ -127,7 +136,15 @@ class Pair extends BaseKeyPair
   # @return {BigInteger} the Signature
   # @throw {Error} an Error if there was an overrun of the packet.
   @parse_sig : (slice) ->
-    throw new Error "unimplemented"
+    throw new Error "unimplemented parse_sig"
+
+  #----------------
+
+  @alloc : (klass, raw) ->
+    pub = len = err = null
+    try [pub, len] = Pub.alloc raw
+    catch e then err = e
+    return [err, pub, len]
 
   #----------------
 
