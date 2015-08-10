@@ -29,5 +29,7 @@ msg = "Hello early adopters. Here is some EdDSA support."
 
 
 exports.import_key_1 = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { armored : key }, T.esc(defer(km), cb)
+  await KeyManager.import_from_armored_pgp { armored : key }, defer err, km, warnings
+  console.log warnings
+  T.no_error err, "should have parsed"
   cb()

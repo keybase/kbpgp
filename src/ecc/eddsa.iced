@@ -19,6 +19,17 @@ class Pub extends BaseKey
 
   #----------------
 
+  @OID : new Buffer [ 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 ]
+  OID : Pub.OID
+  @MPI_LENGTH_HEADERS : new Buffer [ 0x1, 0x7, 0x40 ]
+  MPI_LENGTH_HEADERS : Pub.MPI_LENGTH_HEADERS
+
+  #----------------
+
+  constructor : ({@key}) ->
+
+  #----------------
+
   nbits : () -> 255
 
   #----------------
@@ -32,16 +43,30 @@ class Pub extends BaseKey
 
   #----------------
 
+  serialize : () ->
+    ret = Buffer.concat [
+      (new Buffer [ @OID.length ]),
+      @OID,
+      @MPI_LENGTH_HEADERS,
+      @key
+    ]
+    ret
+
+  #----------------
+
   @_alloc : (raw) -> 
     sb = new SlicerBuffer raw
     pre = sb.rem()
     l = sb.read_uint8()
     oid = sb.read_buffer(l)
-    expected = new Buffer [ 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 ]
+    expected = Pub.OID
     unless util.bufeq_secure oid, expected
       new Error "Wrong OID in EdDSA key"
+    mpi_length_headers = sb.read_buffer Pub.MPI_LENGTH_HEADERS.length
+    unless util.bufeq_secure mpi_length_headers, Pub.MPI_LENGTH_HEADERS
+      new Error "Wrong MPI length headers"
     key = sb.read_buffer kbnacl.sign.publicKeyLength
-    pub = kbnacl.alloc { publicKey : key }
+    pub = new Pub { key }
     len = pre - sb.rem()
     return [ pub, len ]
 
@@ -133,10 +158,50 @@ class Pair extends BaseKeyPair
   # Parse a signature out of a packet
   #
   # @param {SlicerBuffer} slice The input slice
-  # @return {BigInteger} the Signature
+  # @return {Array<buffer,buffer>} the Signature in [r,s] form (as buffers)
   # @throw {Error} an Error if there was an overrun of the packet.
   @parse_sig : (slice) ->
-    throw new Error "unimplemented parse_sig"
+    buf = slice.peek_rest_to_buffer()
+    [err, ret, n] = Pair.read_sig_from_buf buf
+    throw err if err?
+    slice.advance n
+    return ret
+
+  #----------------
+
+  @eddsa_value_from_buffer : (buf) ->
+    err = ret = null
+    vlen = kbnacl.sign.publicKeyLength
+    totlen = vlen + 2
+    if buf.length < totlen
+      err = new Error "need #{len} bytes per EdDSA value"
+    else if buf[0] isnt 0x01 or buf[1] isnt 0x00
+      err = new Error "Needed 0x01 0x00 prefix for EdDSA value"
+    else
+      ret = buf[2...totlen]
+      buf = buf[totlen...]
+    return [err, ret, buf]
+
+  #----------------
+
+  #
+  # Read the signature out of a buffer
+  #
+  # @param {Buffer} the buffer to examine
+  # @return {Array<Error,Array<buffer,buffer>,n} a triple, consisting
+  #  of an error (if one happened); the signature (a tuple of buffers meaning 'r' and 's'),
+  #  and finally the number of bytes consumed.
+  #
+  @read_sig_from_buf : (buf) ->
+    orig_len = buf.length
+    order = [ 'r', 's' ]
+    err = null
+    bufs = for o in order when not err?
+      [err, x, buf] = Pair.eddsa_value_from_buffer buf
+      x
+    n = orig_len - buf.length
+    ret = if err? then null else bufs
+    return [err, ret, n]
 
   #----------------
 
@@ -145,19 +210,6 @@ class Pair extends BaseKeyPair
     try [pub, len] = Pub.alloc raw
     catch e then err = e
     return [err, pub, len]
-
-  #----------------
-
-  #
-  # Read the signature out of a buffer
-  #
-  # @param {Buffer} the buffer to examine
-  # @return {Array<Error,Array<BigInteger,BigInteger>,n} a triple, consisting
-  #  of an error (if one happened); the signature (a tuple of BigIntegers meaning 'r' and 's'),
-  #  and finally the number of bytes consumed.
-  #
-  @read_sig_from_buf : (buf) ->
-    return [ (new Error "unimplemented") ]
 
   #----------------
 
