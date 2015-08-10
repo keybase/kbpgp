@@ -1,5 +1,7 @@
 {unbox,KeyManager,armor} = require '../../'
 
+## Keys and sigs in this file generated with GPG v2.1.6
+
 key = """
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v2
