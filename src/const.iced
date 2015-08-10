@@ -9,6 +9,7 @@ exports.openpgp = openpgp =
     ECDH : 18
     ECDSA : 19
     ELGAMAL_SIGN_AND_ENCRYPT : 20
+    EDDSA : 22
   symmetric_key_algorithms :
     CAST5 : 3
     AES128 : 7

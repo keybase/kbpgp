@@ -24,6 +24,7 @@ $(BUILD_STAMP): \
 	lib/ecc/curves.js \
 	lib/ecc/ecdh.js \
 	lib/ecc/ecdsa.js \
+	lib/ecc/eddsa.js \
 	lib/ecc/main.js \
 	lib/elgamal.js \
 	lib/elgamalse.js \

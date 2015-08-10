@@ -1,5 +1,6 @@
 
 mods =
+  eddsa : require '../files/eddsa.iced'
   box : require '../files/box.iced'
   fp : require '../files/fp.iced'
   nacl1 : require '../files/nacl1.iced'

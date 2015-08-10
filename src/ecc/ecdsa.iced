@@ -124,14 +124,7 @@ class Pair extends BaseKeyPair
   #----------------
 
   verify_unpad_and_check_hash : ({sig, data, hasher, hash}, cb) ->
-    err = null
-    [err, sig] = Pair.read_sig_from_buf(sig) if Buffer.isBuffer(sig)
-    hash or= hasher data
-    if sig.length isnt 2
-      err = new Error "Expected 2 Bigints in the signature"
-    else
-      await @pub.verify sig, hash, defer err, v
-    cb err
+    @_dsa_verify_update_and_check_hash { sig, data, hasher, hash, klass : Pair }, cb
 
   #----------------
 

@@ -8,6 +8,7 @@ ElGamal = require('../../elgamal').Pair
 ElGamalSE = require('../../elgamalse').Pair
 ECDSA = require('../../ecc/ecdsa').Pair
 ECDH = require('../../ecc/ecdh').Pair
+EDDSA = require('../../ecc/eddsa').Pair
 {AES} = triplesec.ciphers
 {native_rng} = triplesec.prng
 {calc_checksum} = require '../util'
@@ -520,6 +521,7 @@ class Parser
       when A.ELGAMAL_SIGN_AND_ENCRYPT then ElGamalSE
       when A.ECDSA then ECDSA
       when A.ECDH then ECDH
+      when A.EDDSA then EDDSA
       else throw new Error "Unknown key type: #{@algorithm}"
     [err, key, len] = klass.parse @slice.peek_rest_to_buffer()
     throw err if err?
