@@ -194,9 +194,9 @@ class Engine
 
   #--------
 
-  check_not_expired : ({subkey_material, now} )  -> 
+  check_not_expired : ({subkey_material, now} )  ->
     now or= unix_time()
-    err = @key(@primary).check_not_expired { now } 
+    err = @key(@primary).check_not_expired { now }
     err = subkey_material.check_not_expired { now } unless err?
     return err
 
@@ -686,20 +686,26 @@ class KeyManager extends KeyManagerInterface
   #-----
 
   # Export the PGP PUBLIC KEY BLOCK stored in PGP format
-  # to the client...
+  # to the client.
+  # @param {Callback} cb An optional callback to return an error and
+  #   also the armored payload. Will also return conventionally.
   export_pgp_public : ({asp, regen}, cb) ->
     asp = ASP.make asp
     err = null
     unless (err = @_assert_signed())?
       msg = @armored_pgp_public unless regen
       msg = @pgp.export_keys({private : false}) unless msg?
-    cb err, msg
+    cb? err, msg
+    return [ err, msg ]
 
   #-----
 
+  # @param {Callback} cb An optional callback to return an error and
+  #   also the armored payload. Will also return conventionally.
   export_public : ({asp, regen}, cb) ->
     await @export_pgp_public { asp, regen }, defer err, msg
-    cb err, msg
+    cb? err, msg
+    return [ err, msg ]
 
   #-----
 
