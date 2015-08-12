@@ -1,3 +1,8 @@
+## 2.0.38 (2015-08-13)
+
+Features:
+  - More changes to the export_pgp_public
+
 ## 2.0.37 (2015-08-12)
 
 Features:
