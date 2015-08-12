@@ -689,7 +689,7 @@ class KeyManager extends KeyManagerInterface
   # to the client.
   # @param {Callback} cb An optional callback to return an error and
   #   also the armored payload. Will also return conventionally.
-  export_pgp_public : ({asp, regen}, cb) ->
+  export_pgp_public : ({asp, regen} = {}, cb = null) ->
     asp = ASP.make asp
     err = null
     unless (err = @_assert_signed())?
@@ -704,7 +704,7 @@ class KeyManager extends KeyManagerInterface
 
   # @param {Callback} cb An optional callback to return an error and
   #   also the armored payload. Will also return conventionally.
-  export_public : ({asp, regen}, cb) ->
+  export_public : ({asp, regen} = {}, cb = null) ->
     await @export_pgp_public { asp, regen }, defer err, msg
     cb? err, msg
     return [ err, msg ]
