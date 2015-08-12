@@ -672,14 +672,14 @@ class KeyManager extends KeyManagerInterface
 
   # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
   # We'll need to reencrypt with a derived key
-  export_pgp_private_to_client : ({passphrase, asp, regen}, cb) ->
-    asp = ASP.make asp
-    err = msg = null
+  export_pgp_private_to_client : ({passphrase, regen} = {}, cb = null) ->
+    err = null
     passphrase = bufferify passphrase if passphrase?
-    if not regen and (msg = @armored_pgp_private) then #noop
-    else if not (err = @_assert_signed())?
-      msg = @pgp.export_keys({private : true, passphrase})
-    cb err, msg
+    if regen or not (msg = @armored_pgp_private)?
+      unless (err = @_assert_signed())?
+        @armored_pgp_private = msg = @pgp.export_keys({private : true, passphrase})
+    cb? err, msg
+    return [ err, msg ]
 
   export_pgp_private : (args...) -> @export_pgp_private_to_client args...
 
@@ -689,14 +689,11 @@ class KeyManager extends KeyManagerInterface
   # to the client.
   # @param {Callback} cb An optional callback to return an error and
   #   also the armored payload. Will also return conventionally.
-  export_pgp_public : ({asp, regen} = {}, cb = null) ->
-    asp = ASP.make asp
+  export_pgp_public : ({regen} = {}, cb = null) ->
     err = null
-    unless (err = @_assert_signed())?
-      msg = @armored_pgp_public unless regen
-      unless msg?
-        msg = @pgp.export_keys({private : false})
-        @armored_pgp_public = msg
+    if regen or not (msg = @armored_pgp_public)?
+      unless (err = @_assert_signed())?
+        @armored_pgp_public = msg = @pgp.export_keys({private : false})
     cb? err, msg
     return [ err, msg ]
 
