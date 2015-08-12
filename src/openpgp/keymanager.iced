@@ -694,7 +694,9 @@ class KeyManager extends KeyManagerInterface
     err = null
     unless (err = @_assert_signed())?
       msg = @armored_pgp_public unless regen
-      msg = @pgp.export_keys({private : false}) unless msg?
+      unless msg?
+        msg = @pgp.export_keys({private : false})
+        @armored_pgp_public = msg
     cb? err, msg
     return [ err, msg ]
 
