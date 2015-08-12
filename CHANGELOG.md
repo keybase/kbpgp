@@ -1,4 +1,9 @@
-## 2.0.36
+## 2.0.37 (2015-08-12)
+
+Features:
+  - Export pgp public can be called in an sync context
+
+## 2.0.36 (2015-08-10)
 
 Features:
   - Initial EdDSA support; parse keys and verify signatures.
