@@ -1,3 +1,9 @@
+## 2.0.40 (2015-08-14)
+
+Enhancements:
+  - Back out previous changes to export_pgp_public, and also
+    add some new virtualization layers there.
+
 ## 2.0.39 (2015-08-14)
 
 Features:
