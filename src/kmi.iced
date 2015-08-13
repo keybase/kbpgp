@@ -55,6 +55,10 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   # Make a signature engine from this object
   make_sig_eng : () -> null
 
+  # Get an ASCII-armored version of the PGP key, if any
+  export_pgp_public : (opts, cb) -> cb null, null
+  export_pgp_private : (opts, cb) -> cb null, null
+
   export_public : ( {asp, regen}, cb) -> cb EUI, null
   export_private : ( {asp, passphrase, p3skb}, cb) -> cb EUI
 
