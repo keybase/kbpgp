@@ -3,13 +3,13 @@
 -----BEGIN PGP SIGNATURE-----
 Comment: GPGTools - https://gpgtools.org
 
-iQEcBAABCgAGBQJVy7hvAAoJEJgKPw0B/gTfljAIAJv93S/6MgrueMgky7KVX2PH
-vHO7n+EQJoVCZRYv5CoEueqrumVnwFWr0EMi3GEexsgHFN4KSd/rnmqGbsrfyFn+
-TAsE8VGFcssVpiUWP4M9W06MjV8opzuR0RulsPiPj69pEEL1rNILyrLt+cThIysI
-LhHfQfxZUymwM5vmPWm76x7RuA5FOoJ5Vu3YoS42WEiDdPMyRr4RvWm3Nan5nqbh
-HRaMP4o5wJxu0NGyLeL8vaO8RpGZnREUsEgRI0TR6wMH/Y1Vcbj6Z+gZkNw4Lh5+
-xSIYLZRag0MEeEUQ+7okVDLf1oAMcwd4GnpLzGvgLrjRh2ICbTsm4yyRkOf6IBA=
-=DSuD
+iQEcBAABCgAGBQJVzKieAAoJEJgKPw0B/gTfwKwH/R83DWislNrOjeZoOABYPZ5N
+ZFsoDCpCNQ+69bMbYsb/OsOLPbXnsZaVVMo6K/jCgHXG6e+T6S4PAadm0gv2EYeI
+UaPISF5JyNCUoPLQCIoSwWW0ROLTSLsqaTI+zPxg1wJQPwtBAMV6NCUEZSVenJjQ
+5NHdqyXO8PHwdLFS9W9mFYnGo0UAZhYEKQQL6MHJ7dth+j0150QvEXyjZ11GRU/W
+2uL53FRf8tL6ez9HQnBCR2aCR0jClcRnKXQX524mA9ULdx3XLQYM/uIuGCOfOtk5
+rbVY4Y1vpCzDxpwMv83PixmvHzfsUDUGHxeBq73ovdL11/3frdzfpBPkhoNHiW0=
+=ufQ4
 -----END PGP SIGNATURE-----
 
 ```
@@ -25,7 +25,7 @@ size     exec  file                                  contents
                ./                                                                                                                                                                     
 142              .gitignore                          34cb771ccf5cea6f781a1194e455eb1adecad39d7a152758cb39b9cc791ea28d                                                                 
 31               .npmignore                          18894d4475fffb5e284a7bdfb00a9633ffdd660396a780b7fc5e14f013f95783                                                                 
-18605            CHANGELOG.md                        85dc96cd51961c1237d7b8944702bc4d188b237f5023d554bc084b20c02bcf65                                                                 
+18696            CHANGELOG.md                        65b242ce5d6b73146ba4d7b9fef69bfba43b268c7f22b9d8886c7ff453dafc06                                                                 
 1483             LICENSE                             333be7050513d91d9e77ca9acb4a91261721f0050209636076ed58676bfc643d                                                                 
 3225             Makefile                            e366ec3154956f76792efcccafab80143b8e1b7c3d8cd4be5af09679ce5b51de                                                                 
 1095             README.md                           9bec8f0b790ef515a12166f197f031991bc085a17525d3c0217676c301f222bd                                                                 
@@ -64,7 +64,7 @@ size     exec  file                                  contents
 7608               dsa.js                            63b6ca06419412cf387becc3264aa0cab72ec44f96a5d4018d50278a1b78ec64                                                                 
                    ecc/                                                                                                                                                               
 3431                 base.js                         4551998883c6467583dde0ff93500abd4a9276d90e88d71c04dbe7d4e73fe1d3                                                                 
-8680                 curves.js                       9119c9ed1c9ba45809b53ad3ba68177b98d46e989dbecf0a89602302c12fccd3                                                                 
+11882                curves.js                       904bf5a3809625b4dc74870bed058dddbf3a4e1701e3f44109e804d7a5cad471                                                                 
 13765                ecdh.js                         22be119e33e22d1ebf1db32d0dc576b26ae5e419314e274a9172dfb28ce91b94                                                                 
 8326                 ecdsa.js                        ad02fba7081d06468fa0981df5a21e16d1887971de282cd22500bf09b0af6006                                                                 
 7353                 eddsa.js                        60f3bfeab5f65cd4c2792a71853e96af956fb6cf0336ce681e7bf4bd461595e0                                                                 
@@ -134,7 +134,7 @@ size     exec  file                                  contents
 2420               symmetric.js                      eec2222b60b5e827850976df0b96c2abb8f91fb691d7a0b805a30d51edd19e56                                                                 
 2729               ukm.js                            0d60ccc58f8285d176c29e5ddc3845f5d7bf664744a20c290a89f71777fd6d56                                                                 
 335                util.js                           3e59cf27751705fc5584f3d52e4e81b16cce2a329fba98150c6a630c354e37cc                                                                 
-1055             package.json                        10438ceeac23dab0af56be7e71ddd57ef9cb1a61cbec254136c126d28928e8bd                                                                 
+1055             package.json                        c8bbf2828155b583bfb05a9747f529ab69f78792dd82fb638a51735b9f042886                                                                 
                  ref/                                                                                                                                                                 
 239671             nist-curves.pdf                   f42d43be9a49de789ca6dd2539258825187628e391fe0c225a1e5af4bf32e107|0d73b0ee488e91d581c3ae326ef7ef0ea3ec833c88adc521face3a51cf3a40c8
 21179              random_prime.C                    551a604b42eb4dfb00eb10e05f59f910790cfb455ed6792489648e9563ccde1f                                                                 
@@ -169,7 +169,7 @@ size     exec  file                                  contents
 4134               dsa.iced                          26aab34d99c873d91077bd3d892e14c82093f3ae3594d41517a98a6de2a32c61                                                                 
                    ecc/                                                                                                                                                               
 1517                 base.iced                       8f2b3fc5d25a013e30d9e0099633e7ea59b6d478aaf1800f0f99f626f54d8e81                                                                 
-6837                 curves.iced                     50515fe29555dace17af7dd6e5db3b4813244a0db3404b890e0fef5c835d8f72                                                                 
+9721                 curves.iced                     fbb317619276ec3aa916ec0a336a079cc30e6455eac92602ffc90b874406398a                                                                 
 7055                 ecdh.iced                       81651fa18f86eba4b084863f35b58e4d9db381f7fd80ac80550563a63ec89ccd                                                                 
 4542                 ecdsa.iced                      8f4e67ff5e4f62ecb08bae21eeacbc5b6fb81df33241005766c30c314ccb4d8c                                                                 
 5717                 eddsa.iced                      d86d2408221c76d1460e85330cff2b18052133ba07b71118cfe342eee3a90cd6                                                                 
@@ -245,7 +245,7 @@ size     exec  file                                  contents
 498207               keybase.js                      644255a0bc4e925552de6cd686825c8f22f316bf93aff50ee26acee88f8ee9a5                                                                 
                    browser/                                                                                                                                                           
 287                  index.html                      d99a34d1e7a9ad710b90f2b0c3a1b8d786406ca5ad49856f6329d298aaba9d94                                                                 
-2436                 main.iced                       3724d79347406f1ba401c878383165fd0fe62d86af341352c5db7ccfa14ac936                                                                 
+2596                 main.iced                       a85e70b33e2facff17a47caf521ff3146a3b4f2404b963b84e618cfbca6d3018                                                                 
                    data/                                                                                                                                                              
 29438                detached.iced                   2e36d202dd4336420345d5d55d0363abb6e23c9851adf95bd3241267df705bc6                                                                 
 800523               keys.iced                       08baab6e0e2ef9ed85b06e38c6c0070367d26c1ef64aeb42a7ea87fcc850d20e                                                                 
@@ -256,6 +256,9 @@ size     exec  file                                  contents
                    files/                                                                                                                                                             
 7884                 basex.iced                      b623771bd14ef018504f7a4b5ab59fa324f89c3b5bcdd97412c789dea3cbf76f                                                                 
 1175                 box.iced                        858c08e9d79e4157ac4a144abc6a6747a11d9ddb5261fab126afff474d8edc14                                                                 
+3928                 brainpool256.iced               5443ee25ff421b26073598f5428d9046253cab7a39ba088344762896c6388274                                                                 
+4192                 brainpool384.iced               4e9c01d4a3076165603c69ce9dba8d19f4406b468e074b65ed43626112aeac1d                                                                 
+4457                 brainpool512.iced               acbe9cb43e77b5526cfb0e8e18c2d036262daee2c176c6b49ac01f44c515083f                                                                 
 2421                 buffer_shift_right.iced         afd831142e21d23e594b3d783ee297a227bf2106fc62112cc5547b2c3fc1f843                                                                 
 7248                 bzip2.iced                      6930d0819605e872217c905a9b366f7bc5b3499dcc3a58e9acac4062119ec45f                                                                 
 1372                 cast5.iced                      ee23a7bf277cd6622dc2f938da831eeacc11dc467cead4d86192a019992f9e21                                                                 
