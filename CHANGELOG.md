@@ -1,3 +1,8 @@
+## 2.0.39 (2015-08-14)
+
+Features:
+  - Brainpool curve support. Thanks to @jkolo on GitHub
+
 ## 2.0.38 (2015-08-13)
 
 Features:

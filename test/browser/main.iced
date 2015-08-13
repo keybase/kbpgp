@@ -1,5 +1,8 @@
 
 mods =
+  brainpool256 : require '../files/brainpool256.iced'
+  brainpool384: require '../files/brainpool384.iced'
+  brainpool512: require '../files/brainpool512.iced'
   eddsa : require '../files/eddsa.iced'
   box : require '../files/box.iced'
   fp : require '../files/fp.iced'
