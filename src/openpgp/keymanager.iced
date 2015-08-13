@@ -672,39 +672,33 @@ class KeyManager extends KeyManagerInterface
 
   # Export to a PGP PRIVATE KEY BLOCK, stored in PGP format
   # We'll need to reencrypt with a derived key
-  export_pgp_private_to_client : ({passphrase, regen} = {}, cb = null) ->
+  export_pgp_private_to_client : ({passphrase, regen}, cb) ->
     err = null
     passphrase = bufferify passphrase if passphrase?
     if regen or not (msg = @armored_pgp_private)?
       unless (err = @_assert_signed())?
         @armored_pgp_private = msg = @pgp.export_keys({private : true, passphrase})
-    cb? err, msg
-    return [ err, msg ]
+    cb err, msg
 
   export_pgp_private : (args...) -> @export_pgp_private_to_client args...
 
   #-----
 
-  # Export the PGP PUBLIC KEY BLOCK stored in PGP format
-  # to the client.
-  # @param {Callback} cb An optional callback to return an error and
-  #   also the armored payload. Will also return conventionally.
-  export_pgp_public : ({regen} = {}, cb = null) ->
+  # Export the PGP PUBLIC KEY BLOCK stored in PGP format to the client.
+  # @param {Callback} cb A callback to return an error and the armored payload.
+  export_pgp_public : ({regen}, cb) ->
     err = null
     if regen or not (msg = @armored_pgp_public)?
       unless (err = @_assert_signed())?
         @armored_pgp_public = msg = @pgp.export_keys({private : false})
-    cb? err, msg
-    return [ err, msg ]
+    cb err, msg
 
   #-----
 
-  # @param {Callback} cb An optional callback to return an error and
-  #   also the armored payload. Will also return conventionally.
+  # @param {Callback} cb A callback to return an error and the armored payload.
   export_public : ({asp, regen} = {}, cb = null) ->
     await @export_pgp_public { asp, regen }, defer err, msg
-    cb? err, msg
-    return [ err, msg ]
+    cb err, msg
 
   #-----
 
