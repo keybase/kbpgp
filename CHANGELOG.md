@@ -1,3 +1,8 @@
+## 2.0.41 (2015-08-13)
+
+Enhancements:
+  - Add merge_userids() and merge_everything() to KeyManager.
+
 ## 2.0.40 (2015-08-14)
 
 Enhancements:
