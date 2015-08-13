@@ -886,6 +886,33 @@ class KeyManager extends KeyManagerInterface
 
   #----------
 
+  merge_userids : (km2) ->
+    # One way that users can prove ownership of their PGP key (besides actually
+    # making a sigchain link with it) is to sign their Keybase email into it as
+    # a userid. Thus when we merge keys, it's important that we also merge
+    # id's, or else we could incorrectly report an updated key as unowned just
+    # because a past version of it was unproven.
+    #
+    # This is a fairly naive merge, which doesn't try to do anything fancy like
+    # ensuring the latest-expiring id packets. It just looks for id's in km2
+    # that are completely missing, and appends the ones that it finds. Note
+    # that it's important to modify the @userids list in place, rather than
+    # assigning to it, because it gets copied around.
+    if not @pgp? or not km2.pgp?
+      return
+    existing_utf8_strings = {}
+    for existing_userid in @userids
+      existing_utf8_strings[existing_userid.utf8()] = true
+    for candidate_userid in km2.get_userids_mark_primary()
+      if candidate_userid.utf8() not of existing_utf8_strings
+        @userids.push(candidate_userid)
+
+  #----------
+
+  merge_everything : (km2) ->
+    @merge_public_omitting_revokes(km2)
+    @merge_userids(km2)
+
 #=================================================================
 
 exports.KeyManager = KeyManager

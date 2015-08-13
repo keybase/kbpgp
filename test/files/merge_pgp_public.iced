@@ -1296,3 +1296,86 @@ exports.check_merge_omits_revokes_in_reverse = (T, cb) ->
   for subkey in invalid_km.subkeys
     T.assert not subkey._pgp.is_revoked(), "merged key contains revocations!"
   cb()
+
+#=================================================================
+
+example_key_with_no_keybase_userid = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+mI0EVcyrgQEEALgC1r+atB1FIIr+QcfiMiK82bGhDvgpt4xcSsHPXpYQ5VXPKvTr
+wTQDkcjY5oSQrDnBVdhQ8XaSW14VgbNI0Kk28feCA05NFxZ2NBfk5I/VKaN1poSe
+H9klxpQWJ4cjrIbYTiUr3B+5ekBJ6Dmm2vSrEMoCbb6RiAmt0PKDP09LABEBAAG0
+BXN0dWZmiLkEEwECACMFAlXMq4ECGy8HCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIX
+gAAKCRBCRBfPcKQfMMmVA/4g3OerIGAgbmouwQ4t4OceLMlc0FTOWDg6q4rW9zpl
+Ikzn89TXMLraQPCD2Q7dkpfJN1TZXV4nzg5NLPJ3YgUAkcKZNOID1ENkN9SXY07P
+5Db6K/W+hlAAiV3mCC2f321r3UluTDvjBnlC7YwqZok8zfrVI4HOkSmSlhGnSgpu
+ALiNBFXMq4EBBACnOWm8+42wZLFuE+cJ2Gx4YGa6qJGLjmeJ+9b0mZ3b+X9iwsEu
+5VIKQfqM6AyFKR5covSx06+P7I0e7Mb3YCqJx+JHhUxQkHALfwC6T0Ur1QHlJn6K
+3uYah/GlQo3aS3pT4wCvlUY3+Kl+hfd9TdF2QDapSIroBIWabOBFKITa0wARAQAB
+iQE9BBgBAgAJBQJVzKuBAhsuAKgJEEJEF89wpB8wnSAEGQECAAYFAlXMq4EACgkQ
+1P64eVB8Mu3dggP9GiuVE9ePrrkOSANRjGtJV/sV2IMjM6Mh0ojC4rrq9vv1cRcP
+1f3a9Ww6Gq9KyMNfrwDlGu3FK9JLiAbHP8vUlBE5x1I50/TUZoRIvdhdVgwaor7T
+XhIk6yASzWEtYf/J/caTzZ8s080zGQV8CWqO8cfIMSfWdAS5rTdh74IfjYUnZAP/
+Y5Ui634XRjhO48oknWe2xjLSAYQQC4EbWXS2XoZqEn30vOvckYnHI3rYHX0mSsss
+dElxcMo/aDDKEG0XCOZViiVZkZRI8u8v2l8fKBE2uySl3J5QccbOONaDs9l9wG/7
+aTaEo/+ooy0PrtW3qSuCcDAA/JtxqSzNYO2RAW4xp8U=
+=02B3
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+example_key_with_keybase_userid_added = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+mI0EVcyrgQEEALgC1r+atB1FIIr+QcfiMiK82bGhDvgpt4xcSsHPXpYQ5VXPKvTr
+wTQDkcjY5oSQrDnBVdhQ8XaSW14VgbNI0Kk28feCA05NFxZ2NBfk5I/VKaN1poSe
+H9klxpQWJ4cjrIbYTiUr3B+5ekBJ6Dmm2vSrEMoCbb6RiAmt0PKDP09LABEBAAG0
+BXN0dWZmiLkEEwECACMFAlXMq4ECGy8HCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIX
+gAAKCRBCRBfPcKQfMMmVA/4g3OerIGAgbmouwQ4t4OceLMlc0FTOWDg6q4rW9zpl
+Ikzn89TXMLraQPCD2Q7dkpfJN1TZXV4nzg5NLPJ3YgUAkcKZNOID1ENkN9SXY07P
+5Db6K/W+hlAAiV3mCC2f321r3UluTDvjBnlC7YwqZok8zfrVI4HOkSmSlhGnSgpu
+ALQfa2V5YmFzZS5pby9nMTEgPGcxMUBrZXliYXNlLmlvPoi0BBMBCgAeBQJVzKuB
+AhsvAwsJBwMVCggCHgECF4ADFgIBAhkBAAoJEEJEF89wpB8wBkQEAJuZssO9yssS
++P0EDo6Ey30uWoJ2JbwctoTjlyZ3XCZKwUqAsRMsb124kkgUjJTEg7PzUGdGGaIZ
+xl04TxGNYjJsYU5y/1dZswc86nPMnePK61pycJ2vIRYsX7dRN5Lx/VJ9+wHD8vRR
+Uz/Q2FsOwxcLebEcgZcPrY1RJ/9gVoTSuI0EVcyrgQEEAKc5abz7jbBksW4T5wnY
+bHhgZrqokYuOZ4n71vSZndv5f2LCwS7lUgpB+ozoDIUpHlyi9LHTr4/sjR7sxvdg
+KonH4keFTFCQcAt/ALpPRSvVAeUmfore5hqH8aVCjdpLelPjAK+VRjf4qX6F931N
+0XZANqlIiugEhZps4EUohNrTABEBAAGJAT0EGAECAAkFAlXMq4ECGy4AqAkQQkQX
+z3CkHzCdIAQZAQIABgUCVcyrgQAKCRDU/rh5UHwy7d2CA/0aK5UT14+uuQ5IA1GM
+a0lX+xXYgyMzoyHSiMLiuur2+/VxFw/V/dr1bDoar0rIw1+vAOUa7cUr0kuIBsc/
+y9SUETnHUjnT9NRmhEi92F1WDBqivtNeEiTrIBLNYS1h/8n9xpPNnyzTzTMZBXwJ
+ao7xx8gxJ9Z0BLmtN2Hvgh+NhSdkA/9jlSLrfhdGOE7jyiSdZ7bGMtIBhBALgRtZ
+dLZehmoSffS869yRiccjetgdfSZKyyx0SXFwyj9oMMoQbRcI5lWKJVmRlEjy7y/a
+Xx8oETa7JKXcnlBxxs441oOz2X3Ab/tpNoSj/6ijLQ+u1bepK4JwMAD8m3GpLM1g
+7ZEBbjGnxQ==
+=wrn9
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+#=================================================================
+
+exports.check_merge_everything_includes_userids = (T, cb) ->
+  await KeyManager.import_from_armored_pgp {
+    armored: example_key_with_no_keybase_userid
+    opts: { time_travel: true }
+  }, T.esc defer nonkeybase_km
+  T.assert(
+    nonkeybase_km.get_userids_mark_primary().length == 1,
+    "The first key should have one userid.")
+
+  await KeyManager.import_from_armored_pgp {
+    armored: example_key_with_keybase_userid_added
+    opts: { time_travel: true }
+  }, T.esc defer with_keybase_km
+  T.assert(
+    with_keybase_km.get_userids_mark_primary().length == 2,
+    "The second key should have two userids.")
+
+  # Merging the second key with the first should bring in the second userid.
+  nonkeybase_km.merge_everything with_keybase_km
+  T.assert(
+    nonkeybase_km.get_userids_mark_primary().length == 2,
+    "The merged key should also have two userids.")
+  cb()
