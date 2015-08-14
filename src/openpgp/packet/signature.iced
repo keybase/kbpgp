@@ -267,7 +267,10 @@ class Signature extends Packet
 
     # If we're signing a key, check key expiration now
     unless err?
+      opts or= {}
+      opts.subkey = subkey
       [err, key_expiration, sig_expiration] = @_check_key_sig_expiration opts
+      opts.subkey = null
 
     # Now mark the object that was vouched for
     sig = @
@@ -330,10 +333,10 @@ class Signature extends Packet
 
     if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
 
-      key_creation = @primary.timestamp
+      key_creation = (opts.subkey or @primary).timestamp
       key_expiration_packet = @subpacket_index.hashed[S.key_expiration_time]
       sig_creation_packet = @subpacket_index.hashed[S.creation_time]
-      sig_expiration_packet = @subpacket_index.hashed[S.sig_expiration_time] 
+      sig_expiration_packet = @subpacket_index.hashed[S.sig_expiration_time]
 
       # We can set now back in time for some operations, like testing people's
       # old keys

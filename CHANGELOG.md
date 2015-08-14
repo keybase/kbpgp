@@ -1,3 +1,11 @@
+## 2.0.42 (2015-08-13)
+
+Bugfix:
+  - Another error in computing subkey expiration; use the creation time
+    of the subkey, and not creatinon of the primary.  This isn't a security
+    bug, since it's too conversative in computing the expire time.  It just
+    prevents people from getting their work done.
+
 ## 2.0.41 (2015-08-13)
 
 Enhancements:
