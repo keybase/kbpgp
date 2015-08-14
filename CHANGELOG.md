@@ -1,4 +1,4 @@
-## 2.0.42 (2015-08-13)
+## 2.0.42 (2015-08-14)
 
 Bugfix:
   - Another error in computing subkey expiration; use the creation time
