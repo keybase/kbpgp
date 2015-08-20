@@ -38,16 +38,15 @@ class P3SKB extends Packet
   unlock : ({asp, tsenc, passphrase_generation}, cb) ->
     switch @priv.encryption
       when K.key_encryption.triplesec_v3, K.key_encryption.triplesec_v2, K.key_encryption.triplesec_v1
-        if (a = passphrase_generation)? and (b = @priv.passphrase_generation)? and (a isnt b)
-          err = new Error "Bad passphrase generation (wanted #{a} but got #{b})"
-        else
-          dec = new Decryptor { enc : tsenc }
-          progress_hook = asp?.progress_hook()
-          await dec.run { data : @priv.data, progress_hook }, defer err, raw
-          dec.scrub()
-          unless err?
-            @priv.data = raw
-            @priv.encryption = K.key_encryption.none
+        dec = new Decryptor { enc : tsenc }
+        progress_hook = asp?.progress_hook()
+        await dec.run { data : @priv.data, progress_hook }, defer err, raw
+        dec.scrub()
+        if not err?
+          @priv.data = raw
+          @priv.encryption = K.key_encryption.none
+        else if (a = passphrase_generation)? and (b = @priv.passphrase_generation)? and (a isnt b)
+          err = new Error "Decryption failed, likely due to old passphrase (wanted v#{a} but got v#{b}) [#{err.toString()}]"
       when K.key_encryption.none then # noop
       else
         err = new Error "Unknown key encryption type: #{k.encryption}"

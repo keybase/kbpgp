@@ -12,16 +12,18 @@ exports.gen_new_key = (T,cb) ->
   cb()
 
 exports.lock_p3skb = (T,cb) ->
-  await km.export_private { p3skb : true, passphrase, passphrase_generation }, T.esc(defer(locked), cb)
+  await km.export_private { p3skb : true, passphrase, passphrase_generation }, T.esc(defer(tmp), cb)
+  locked = tmp
   cb()
 
 exports.unlock_p3skb_bad_ppgen = (T,cb) ->
   await KeyManager.import_from_p3skb { armored : locked }, T.esc(defer(tmp), cb)
   km = tmp
   passphrase_generation++
-  await tmp.unlock_p3skb { passphrase, passphrase_generation }, defer err
+  await tmp.unlock_p3skb { passphrase : (passphrase + "a"), passphrase_generation }, defer err
   T.assert err, "got a ppgen error"
-  T.equal err.toString(), "Error: Bad passphrase generation (wanted 4 but got 3)", "right error"
+  righterr = "Error: Decryption failed, likely due to old passphrase (wanted v4 but got v3) [Error: Signature mismatch or bad decryption key]"
+  T.equal err.toString(), righterr, "right error"
   cb()
 
 exports.unlock_p3skb = (T,cb) ->
