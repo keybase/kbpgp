@@ -27,23 +27,26 @@ class P3SKB extends Packet
     ret.type = @type if @type?
     ret
 
-  lock : ({asp, tsenc}, cb) ->
+  lock : ({asp, tsenc, passphrase_generation}, cb) ->
     await tsenc.run { data : @priv.data, progress_hook : asp?.progress_hook() }, defer err, ct
     unless err?
       @priv.data = ct
       @priv.encryption = K.key_encryption.triplesec_v3
+      @priv.passphrase_generation = passphrase_generation if passphrase_generation?
     cb err
 
-  unlock : ({asp, tsenc}, cb) ->
+  unlock : ({asp, tsenc, passphrase_generation}, cb) ->
     switch @priv.encryption
       when K.key_encryption.triplesec_v3, K.key_encryption.triplesec_v2, K.key_encryption.triplesec_v1
         dec = new Decryptor { enc : tsenc }
         progress_hook = asp?.progress_hook()
         await dec.run { data : @priv.data, progress_hook }, defer err, raw
         dec.scrub()
-        unless err?
+        if not err?
           @priv.data = raw
           @priv.encryption = K.key_encryption.none
+        else if (a = passphrase_generation)? and (b = @priv.passphrase_generation)? and (a isnt b)
+          err = new Error "Decryption failed, likely due to old passphrase (wanted v#{a} but got v#{b}) [#{err.toString()}]"
       when K.key_encryption.none then # noop
       else
         err = new Error "Unknown key encryption type: #{k.encryption}"

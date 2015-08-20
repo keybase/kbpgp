@@ -564,11 +564,11 @@ class KeyManager extends KeyManagerInterface
 
   #--------------
 
-  unlock_p3skb : ({asp, tsenc, passphrase}, cb) ->
+  unlock_p3skb : ({asp, tsenc, passphrase, passphrase_generation}, cb) ->
     asp = ASP.make asp
     if not tsenc? and passphrase?
       tsenc = new Encryptor { key : bufferify(passphrase) }
-    await @p3skb.unlock { tsenc, asp }, defer err
+    await @p3skb.unlock { tsenc, asp, passphrase_generation }, defer err
     unless err?
       msg = new Message { body : @p3skb.priv.data, type : C.message_types.private_key }
       await KeyManager.import_from_pgp_message { msg, asp }, defer err, km
@@ -658,12 +658,12 @@ class KeyManager extends KeyManagerInterface
   # A private export consists of:
   #   1. The PGP public key block
   #   2. The PGP private key block (Public and private keys, triplesec'ed)
-  export_private_to_server : ({tsenc, asp}, cb) ->
+  export_private_to_server : ({tsenc, asp, passphrase_generation}, cb) ->
     asp = ASP.make asp
     err = ret = null
     unless (err = @_assert_signed())?
       p3skb = @pgp.export_to_p3skb()
-      await p3skb.lock { tsenc, asp }, defer err
+      await p3skb.lock { tsenc, asp, passphrase_generation }, defer err
     unless err?
       ret = p3skb.frame_packet_armored { dohash : true }
     cb err, ret
@@ -702,10 +702,10 @@ class KeyManager extends KeyManagerInterface
 
   #-----
 
-  export_private : ({passphrase, p3skb , asp}, cb) ->
+  export_private : ({passphrase, p3skb, asp, passphrase_generation }, cb) ->
     if p3skb
       tsenc = new Encryptor { key : bufferify(passphrase) }
-      await @export_private_to_server { tsenc, asp }, defer err, res
+      await @export_private_to_server { tsenc, asp, passphrase_generation }, defer err, res
     else
       await @export_pgp_private_to_client { passphrase , asp }, defer err, res
     cb err, res

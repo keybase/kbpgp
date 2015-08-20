@@ -1,3 +1,9 @@
+## 2.0.43 (2015-08-19)
+
+Feature:
+  - Stash passphrase generation in P3SKB packets, so we can keep track of which
+    locked secret keys are encrypted with which version of a user's passphrase.
+
 ## 2.0.42 (2015-08-14)
 
 Bugfix:
