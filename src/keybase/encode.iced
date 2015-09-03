@@ -8,7 +8,7 @@ purepack = require 'purepack'
 null_hash = new Buffer(0)
 
 pack   = (x) -> purepack.pack   x, { sort_keys : true }
-unpack = (x) -> purepack.unpack x
+unpack = (x) -> purepack.unpack x, { strict : true }
 
 #=================================================================================
 

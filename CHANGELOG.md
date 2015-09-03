@@ -1,3 +1,9 @@
+## 2.0.44 (2015-09-02)
+
+Security fix:
+  - Upgrade to purepack@1.0.4 and use strict unpacking;
+    to lessen chance of semantic disagrements over signature meanings
+
 ## 2.0.43 (2015-08-19)
 
 Feature:
