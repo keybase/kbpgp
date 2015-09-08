@@ -5,6 +5,7 @@ util = require 'util'
 {box} = require '../../lib/keybase/encode'
 {Encryptor} = require 'triplesec'
 {base91} = require '../../lib/basex'
+example_keys = (require '../data/keys').keys
 
 asp = new ASP {}
 bundle = null
@@ -98,4 +99,12 @@ exports.step6_export_p3skb_private = (T,cb) ->
   await sanity_check T, b3, defer err
   compare_bundles T, bundle, b3
   T.no_error err
+  cb()
+
+exports.pgp_full_hash = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { armored : example_keys.portwood }, defer err, km
+  T.no_error err
+  await km.pgp_full_hash {}, defer err, hash
+  T.no_error err
+  T.assert hash == "5c31f2642b01d6beaf836999dafb54db59295a27a1e6e75665edc8db22691d90", "full hash doesn't match"
   cb()
