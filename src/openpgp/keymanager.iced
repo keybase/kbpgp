@@ -1,5 +1,6 @@
 {RSA} = require '../rsa'
 {ECDSA} = require '../ecc/ecdsa'
+{SHA256} = require '../hash'
 K = require('../const').kb
 C = require('../const').openpgp
 {make_esc} = require 'iced-error'
@@ -709,6 +710,13 @@ class KeyManager extends KeyManagerInterface
     else
       await @export_pgp_private_to_client { passphrase , asp }, defer err, res
     cb err, res
+
+  #-----
+
+  pgp_full_hash : (opts, cb) ->
+    esc = make_esc cb, "get_pgp_full_hash"
+    await @export_pgp_public opts, esc defer armored
+    cb null, (new SHA256 new Buffer armored.trim()).toString("hex")
 
   #-----
 

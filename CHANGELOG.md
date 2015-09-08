@@ -1,3 +1,9 @@
+## 2.0.45 (2015-09-08)
+
+Feature:
+  - New `full_pgp_hash` method on openpgp KeyManager, which generates the
+    SHA256 hash of the armored public key
+
 ## 2.0.44 (2015-09-02)
 
 Security fix:
