@@ -78,6 +78,9 @@ exports.KeyManagerInterface = class KeyManagerInterface extends KeyFetcher
   # key manager.  For NaCl keys, it's empty.
   get_all_pgp_key_ids : () -> []
 
+  # Returns non-null for PGP KMs
+  pgp_full_hash : (opts, cb) -> cb null, null
+
 #=================================================================================
 
 exports.SignatureEngineInterface = class SignatureEngineInterface
