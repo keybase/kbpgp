@@ -1,4 +1,4 @@
-## 2.0.46
+## 2.0.46 (2015-09-10)
 
 Bugfix:
   - `pgp_full_hash` gives `null` for a non-PGP-key
