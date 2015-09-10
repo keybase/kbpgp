@@ -1,4 +1,4 @@
-{KeyManager} = require '../../'
+{kb,KeyManager} = require '../../'
 {bufferify,ASP} = require '../../lib/util'
 {make_esc} = require 'iced-error'
 util = require 'util'
@@ -107,4 +107,11 @@ exports.pgp_full_hash = (T,cb) ->
   await km.pgp_full_hash {}, defer err, hash
   T.no_error err
   T.assert hash == "5c31f2642b01d6beaf836999dafb54db59295a27a1e6e75665edc8db22691d90", "full hash doesn't match"
+  cb()
+
+exports.pgp_full_hash_nacl = (T,cb) ->
+  km = null
+  await kb.KeyManager.generate {}, T.esc(defer(km), cb)
+  await km.pgp_full_hash {}, T.esc(defer(res))
+  T.assert not res?, "null value back"
   cb()
