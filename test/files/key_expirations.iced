@@ -30,3 +30,10 @@ exports.read_michel_slm_key = (T,cb) ->
   T.assert m?, "matched warning 1"
   T.assert (m[1] > 18169267), "expiration was more than 18169267s ago"
   cb()
+
+exports.read_kourier_key = (T,cb) ->
+  opts = { time_travel : true }
+  await KeyManager.import_from_armored_pgp { armored : keys.kourier, opts }, defer err, km, warnings
+  T.no_error err
+  T.assert not(km.primary._pgp.get_expire_time().expire_at), "key doesn't expire"
+  cb()

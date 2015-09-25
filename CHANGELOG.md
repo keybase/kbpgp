@@ -1,3 +1,9 @@
+## 2.0.47
+
+Bugfix:
+ - Yet another rework of key expiration. Use the UID that expires
+   furthest into the future.
+
 ## 2.0.46 (2015-09-10)
 
 Bugfix:
