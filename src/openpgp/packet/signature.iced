@@ -32,6 +32,13 @@ class Signature_v2_or_v3 extends Packet
 
   get_key_id : () -> @key_id
 
+
+  #---------------------
+
+  # So this key behaves like a Sig V4
+  get_key_flags : () -> 0
+  get_key_expires : () -> 0
+
   #---------------------
 
   get_issuer_key_id : () -> @key_id
@@ -65,20 +72,26 @@ class Signature_v2_or_v3 extends Packet
   #---------------------
 
   verify : (data_packets, cb) ->
+    T = C.sig_types
+    SKB = packetsigs.SubkeyBinding
+    data_packets = [@primary].concat(data_packets) if (@type is T.subkey_binding)
     payload = @prepare_payload data_packets
     hash = @hasher payload
     s = new SlicerBuffer hash
     v = s.read_uint16()
-    T = C.sig_types
 
     if (v isnt (b = @signed_hash_value_hash))
       err = new Error "quick hash check failed: #{v} != #{b}"
     else
       await @key.verify_unpad_and_check_hash { hash, @hasher, @sig }, defer err
       # If it's binary or text data, so that the packets have all be signed
-      if not err? and @type in [ T.binary_doc, T.canonical_text ]
+      if err? then # noop
+      else if @type in [ T.binary_doc, T.canonical_text ]
         for d in data_packets
           d.push_sig new packetsigs.Data { sig : @ }
+      else if @type in [ T.subkey_binding ]
+        for d in data_packets
+          d.push_sig new SKB { @primary, sig : @, direction : SKB.DOWN }
 
     cb err
 
