@@ -5,7 +5,7 @@ util = require 'util'
 {box} = require '../../lib/keybase/encode'
 {Encryptor} = require 'triplesec'
 {base91} = require '../../lib/basex'
-example_keys = (require '../data/keys').keys
+example_keys = (require '../data/keys.iced').keys
 
 asp = new ASP {}
 bundle = null

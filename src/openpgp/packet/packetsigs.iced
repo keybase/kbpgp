@@ -9,20 +9,29 @@ class Base
   constructor : ({@sig,@key_expiration}) ->
   typ : () -> "none"
   get_key_flags : () -> @sig.get_key_flags()
+  push : (lookup) ->
+    lookup[@typ()].push @
 
 #===================================================
 
 class SelfSig extends Base
-  constructor : ({@userid, @user_attribute, @type, sig, @options, key_expiration, sig_expiration}) -> 
+  constructor : ({@userid, @user_attribute, @type, sig, @options, key_expiration, sig_expiration}) ->
     super { sig, key_expiration, sig_expiration}
   typ : () -> "self_sig"
+  push : (lookup) ->
+    lookup.self_sig.push @
+    key = if @userid? then @userid.utf8() or ""
+    unless (v = lookup.self_sigs_by_uid[key])?
+      v = []
+      lookup.self_sigs_by_uid[key] = v
+    v.push @
 
 #===================================================
 
 class SubkeyBinding extends Base
   @UP   : 1
   @DOWN : 2
-  constructor : ({@primary, sig, @direction, sig_expiration, key_expiration}) -> 
+  constructor : ({@primary, sig, @direction, sig_expiration, key_expiration}) ->
     super { sig, key_expiration, sig_expiration }
   typ : () -> "subkey_binding"
   is_down : () -> (@direction is SubkeyBinding.DOWN)
@@ -30,7 +39,7 @@ class SubkeyBinding extends Base
 #===================================================
 
 class Data extends Base
-  constructor : ({@key, sig, key_expiration, sig_expiration}) -> 
+  constructor : ({@key, sig, key_expiration, sig_expiration}) ->
     super {sig, key_expiration, sig_expiration }
   typ : () -> "data"
   get_key_manager : () -> @sig?.key_manager
@@ -44,15 +53,16 @@ class Collection
   constructor : () ->
     @all             = []
     @lookup          =
-      self_sig       : []
-      subkey_binding : []
-      data           : []
+      self_sig         : []
+      self_sigs_by_uid : {}
+      subkey_binding   : []
+      data             : []
 
   #-------------------
 
   push : (ps) ->
     @all.push ps
-    @lookup[ps.typ()].push ps
+    ps.push @lookup
 
   #-------------------
 

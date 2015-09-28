@@ -461,15 +461,51 @@ class KeyMaterial extends Packet
 
   # Returns non-zero expire time if it exists, otherwise null.
   get_expire_time : () ->
-    return null unless (psc = @get_psc())?
-    list = psc.lookup[if @is_primary() then "self_sig" else "subkey_binding"]
+    if not (psc = @get_psc())? then null
+    else if @is_primary() then @_get_expire_time_on_primary()
+    else @_get_expire_time_on_subkey()
+
+  #-------------------
+
+  _get_expire_time_on_primary : () ->
+    table = @get_psc().lookup.self_sigs_by_uid
+
+    winner = null
+    key_generated = @timestamp
+
+    for uid,list of table
+
+      uid_winner = null
+      for packetsig in list when (sig = packetsig.sig)?
+        expire_in = sig.get_key_expires()
+        sig_generated = sig.when_generated()
+        if not uid_winner? or uid_winner.sig_generated < sig_generated
+          uid_winner = { expire_in, sig_generated }
+
+      if uid_winner?
+        uid_expire_in = uid_winner.expire_in or 0
+
+        if (not winner?) or (uid_expire_in is 0) or (0 < winner < uid_expire_in)
+          winner = uid_expire_in
+
+    ret = { generated : @timestamp, expire_at : null, expire_in : null }
+    if winner
+      ret.expire_at = @timestamp + winner
+      ret.expire_in = winner
+
+    return ret
+
+  #-------------------
+
+  _get_expire_time_on_subkey : () ->
+    list = @get_psc().lookup.subkey_binding
     return null unless list?.length
 
     winner = null
 
     # For subpacket signatures, only consider the signatures in the "down"
     # direction.  Don't consider the upwards reverse signatures
-    for packetsig in list when packetsig.sig? and (@is_primary() or packetsig.is_down())
+    for packetsig in list when packetsig.sig? and packetsig.is_down()
       {sig} = packetsig
       expire_in = sig.get_key_expires()
       generated = @timestamp
@@ -479,7 +515,7 @@ class KeyMaterial extends Packet
         expire_at = generated + expire_in
         if not winner? or (winner.expire_at? and (winner.expire_at < expire_at))
           winner = { expire_at, generated, expire_in }
-      else if (expire_in? and expire_in is 0) or (not expire_in? and not @is_primary())
+      else if (expire_in? and expire_in is 0) or not expire_in?
         winner = { generated, expire_in : null, expire_at : null }
 
     unless winner?
