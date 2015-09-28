@@ -1,8 +1,9 @@
-## 2.0.47
+## 2.0.47 (2015-09-28)
 
-Bugfix:
+Bugfixes:
  - Yet another rework of key expiration. Use the UID that expires
    furthest into the future.
+ - Correct parsing of V3 subkeys.
 
 ## 2.0.46 (2015-09-10)
 
