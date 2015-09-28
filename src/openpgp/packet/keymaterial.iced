@@ -480,7 +480,7 @@ class KeyMaterial extends Packet
         expire_in = sig.get_key_expires()
         sig_generated = sig.when_generated()
         if not uid_winner? or uid_winner.sig_generated < sig_generated
-            uid_winner = { expire_in, sig_generated }
+          uid_winner = { expire_in, sig_generated }
 
       if uid_winner?
         uid_expire_in = uid_winner.expire_in or 0
