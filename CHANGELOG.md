@@ -1,3 +1,8 @@
+## 2.0.48 (2015-10-09)
+
+Bugfixes:
+  - Signal an error if you try to merge a PGP private key and nothing happens
+
 ## 2.0.47 (2015-09-28)
 
 Bugfixes:

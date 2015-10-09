@@ -620,7 +620,12 @@ class KeyManager extends KeyManagerInterface
     esc = make_esc cb, "merge_pgp_private"
     await KeyManager.import_from_armored_pgp { armored, raw, asp }, esc defer b2
     err = @pgp.merge_private b2.pgp
-    await @simple_unlock {}, esc defer() unless err?
+
+    if err? then # noop
+    else if not @has_pgp_private()
+      err = new Error "no private key material found after merge"
+    else
+      await @simple_unlock {}, esc defer()
     cb err
 
   #------------

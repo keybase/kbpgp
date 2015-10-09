@@ -66,6 +66,15 @@ exports.step4_import_pgp_public = (T,cb) ->
     compare_bundles T, bundle, b2
   cb()
 
+exports.step4a_test_failed_private_merge = (T,cb) ->
+  await bundle.export_pgp_public {}, defer err, pub
+  await KeyManager.import_from_armored_pgp { raw : pub }, defer err, b3
+  T.no_error err
+  await b3.merge_pgp_private { raw : pub }, defer err
+  T.assert err?, "error came back"
+  T.assert (err.toString().indexOf("no private key material found after merge") > 0), "the right error message"
+  cb()
+
 exports.step5_merge_pgp_private = (T,cb) ->
   await b2.merge_pgp_private { raw : pgp_private, asp }, defer err
   T.no_error err
