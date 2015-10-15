@@ -29,7 +29,7 @@ class UserID extends Packet
 
   #--------------------------
 
-  @parse : (slice) -> new UserID slice.consume_rest_to_buffer() 
+  @parse : (slice) -> new UserID slice.consume_rest_to_buffer()
 
   #--------------------------
 
@@ -52,10 +52,10 @@ class UserID extends Packet
       uint_to_buffer(32, @userid.length),
       @userid
     ]
-    
+
   #--------------------------
 
-  _parse : () -> 
+  _parse : () ->
     @components = c if (c = parse @utf8())?
 
   #--------------------------
@@ -66,10 +66,10 @@ class UserID extends Packet
 
   #--------------------------
 
-  # Return a [t0, t1] pair, where both are Unix timestamps.  t0 is the 
+  # Return a [t0, t1] pair, where both are Unix timestamps.  t0 is the
   # most recent self-signature of this UID. t1 is the most recent self-signature
   # of this UID that claims that it's the primary UID.
-  time_primary_pair : () -> 
+  time_primary_pair : () ->
     unless @_time_primary_pair?
       pairs = (s?.sig?.time_primary_pair() for s in @get_psc().get_self_sigs())
       max = null

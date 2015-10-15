@@ -58,6 +58,7 @@ class Packet
 
   push_sig : (packetsig) -> @_psc.push packetsig
   get_psc : () -> @_psc
+  clear_psc : () -> @_psc.clear()
 
   #----------------------
 

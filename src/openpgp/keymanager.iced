@@ -249,6 +249,15 @@ class PgpEngine extends Engine
 
   #--------
 
+  clear_psc: () ->
+    @key(@primary).clear_psc()
+    for u in @userids
+      u.clear_psc()
+    for s in @subkeys
+      @key(s).clear_psc()
+
+  #--------
+
   set_passphrase : (pp) ->
     @primary.passphrase = pp
     for k in @subkeys
@@ -830,6 +839,10 @@ class KeyManager extends KeyManagerInterface
   get_pgp_fingerprint : () -> @pgp.get_fingerprint()
   get_pgp_fingerprint_str : () -> @get_pgp_fingerprint()?.toString 'hex'
   get_ekid : () -> @pgp.get_ekid()
+
+  #----------------
+
+  clear_pgp_internal_sigs : () -> @pgp.clear_psc()
 
   #----------------
 

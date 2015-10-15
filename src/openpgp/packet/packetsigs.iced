@@ -51,6 +51,11 @@ class Collection
   #-------------------
 
   constructor : () ->
+    @clear()
+
+  #-------------------
+
+  clear : () ->
     @all             = []
     @lookup          =
       self_sig         : []
