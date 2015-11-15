@@ -459,6 +459,19 @@ class KeyMaterial extends Packet
 
   #-------------------
 
+  is_preferable_to : (k2) ->
+    e1 = @get_expire_time()
+    e2 = k2.get_expire_time()
+
+    if not e1.expire_at? then true
+    else if not e2.expire_at? then false
+    else if e1.expire_at > e2.expire_at then true
+    else if e1.expire_at < e2.expire_at then false
+    else if e1.generated >= e2.generated then true
+    else false
+
+  #-------------------
+
   # Returns non-zero expire time if it exists, otherwise null.
   get_expire_time : () ->
     if not (psc = @get_psc())? then null

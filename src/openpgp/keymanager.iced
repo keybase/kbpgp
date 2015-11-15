@@ -328,7 +328,7 @@ class PgpEngine extends Engine
 
   # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
   find_best_key : (flags, need_priv = false) ->
-    wrapper = null
+    best = null
 
     check = (k) =>
       km = @key(k) # KeyMaterial
@@ -336,10 +336,12 @@ class PgpEngine extends Engine
       ok2 = not(need_priv) or km.has_private()
       return (ok1 && ok2)
 
-    for k in @subkeys when not wrapper?
-      if check(k) then wrapper = k
-    if not wrapper? and check(@primary) then wrapper = @primary
-    return (if wrapper? then @key(wrapper) else null)
+    for k in @subkeys when check(k)
+      if not best? then best = k
+      else if @key(k).is_preferable_to(@key(best)) then best = k
+
+    if not best? and check(@primary) then best = @primary
+    return (if best? then @key(best) else null)
 
   #--------
   #
