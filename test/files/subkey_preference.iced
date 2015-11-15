@@ -3,7 +3,7 @@ C = kbpgp.const.openpgp
 {unbox,box,KeyManager} = kbpgp
 {ECDSA} = kbpgp.ecc
 
-exports.generate_key_multi_subkeys = (T,cb) ->
+exports.test_multiple_encryption_subkeys = (T,cb) ->
   F = C.key_flags
   primary = {
     flags : F.certify_keys
