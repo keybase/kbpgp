@@ -452,7 +452,8 @@ class KeyManager extends KeyManagerInterface
       asp.section section
       await params.algo.generate { asp, nbits: params.nbits }, defer err, key
       unless err?
-        lifespan = new Lifespan { generated, expire_in : params.expire_in }
+        my_generated = params.generated or generated
+        lifespan = new Lifespan { generated : my_generated, expire_in : params.expire_in }
         wrapper = new klass { key, lifespan, flags : params.flags, primary }
       cb err, wrapper
 
