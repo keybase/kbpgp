@@ -1,3 +1,9 @@
+## 2.0.49 (2015-11-14)
+
+Bugfix:
+  - Use the best encryption subkey if there are multiple possibilities
+     - See https://github.com/keybase/keybase-issues/issues/1853
+
 ## 2.0.48 (2015-10-09)
 
 Bugfixes:
