@@ -233,7 +233,7 @@ class Signature extends Packet
     @data_packets = switch @type
       when T.binary_doc, T.canonical_text then data_packets
 
-      when T.issuer, T.personal, T.casual, T.positive, T.certificate_revocation
+      when T.issuer, T.persona, T.casual, T.positive, T.certificate_revocation
 
         if (n = data_packets.length) isnt 1
           err = new Error "Only expecting one UserID-style packet in a self-sig (got #{n})"
@@ -294,7 +294,7 @@ class Signature extends Packet
           for d in @data_packets
             d.push_sig new packetsigs.Data { sig }
 
-        when T.issuer, T.personal, T.casual, T.positive
+        when T.issuer, T.persona, T.casual, T.positive
           ps = null
           if (userid = @data_packets[1].to_userid())?
             ps = new packetsigs.SelfSig { @type, userid, sig }
@@ -329,7 +329,7 @@ class Signature extends Packet
 
   time_primary_pair : () ->
     T = C.sig_types
-    if @type in [ T.issuer, T.personal, T.casual, T.positive ]
+    if @type in [ T.issuer, T.persona, T.casual, T.positive ]
       [ @when_generated(), !!(@subpacket_index.hashed[S.primary_user_id]?.flag) ]
     else
       null
@@ -344,7 +344,7 @@ class Signature extends Packet
     key_expiration = 0
     sig_expiration = 0
 
-    if @type in [ T.issuer, T.personal, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
+    if @type in [ T.issuer, T.persona, T.casual, T.positive, T.subkey_binding, T.primary_binding ]
 
       key_creation = (opts.subkey or @primary).timestamp
       key_expiration_packet = @subpacket_index.hashed[S.key_expiration_time]
