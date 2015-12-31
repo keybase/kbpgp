@@ -1,3 +1,8 @@
+## 2.0.50
+
+Feature:
+  - General `get_sig_body` function that works for KB or OpenPGP
+
 ## 2.0.49 (2015-11-14)
 
 Bugfix:

@@ -1,0 +1,28 @@
+
+{ukm,util} = require '../..'
+
+exports.test_kb = (T, cb) ->
+  sig = "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgMnetRTUoE40n8GY8OMnSM4qkVTdJ5bXGoLpTdjWgNqcKp3BheWxvYWTFAvp7ImJvZHkiOnsia2V5Ijp7ImVsZGVzdF9raWQiOiIwMTIwMzI3N2FkNDUzNTI4MTM4ZDI3ZjA2NjNjMzhjOWQyMzM4YWE0NTUzNzQ5ZTViNWM2YTBiYTUzNzYzNWEwMzZhNzBhIiwiaG9zdCI6ImtleWJhc2UuaW8iLCJraWQiOiIwMTIwMzI3N2FkNDUzNTI4MTM4ZDI3ZjA2NjNjMzhjOWQyMzM4YWE0NTUzNzQ5ZTViNWM2YTBiYTUzNzYzNWEwMzZhNzBhIiwidWlkIjoiNmQ0YTY1NWVhMTQ1YTQwNzI2YjY5YjhmMTllNjI5MTkiLCJ1c2VybmFtZSI6Imphc29uY29vbWJzY2VvIn0sInNlcnZpY2UiOnsiaG9zdG5hbWUiOiJyaXNrbmVyZC5jb20iLCJwcm90b2NvbCI6Imh0dHBzOiJ9LCJ0eXBlIjoid2ViX3NlcnZpY2VfYmluZGluZyIsInZlcnNpb24iOjF9LCJjbGllbnQiOnsibmFtZSI6ImtleWJhc2UuaW8gZ28gY2xpZW50IiwidmVyc2lvbiI6IjEuMC43In0sImN0aW1lIjoxNDUxNTM5MTI5LCJleHBpcmVfaW4iOjUwNDU3NjAwMCwibWVya2xlX3Jvb3QiOnsiY3RpbWUiOjE0NTE1Mzg5ODIsImhhc2giOiI4OGQ0ZDc4ZjJlMzgzNjU0NWZhZjQ3ZDI0YzQ4NzdkNDEwYjRjOTJhNzU2YTNmY2RhZmZkYzc3YTQzYmY3MjJkNzhmZmEyOTU4YTJiMmViNWY5NWJjNTQ0MmY2NWU4MjEwNTk5YzQ0OGE3YjQyZGU1NTM4Yjg1OGY1YjEzZjczZSIsInNlcW5vIjozNDA2MjZ9LCJwcmV2IjoiZjFmYzIxMDZkMDgzMjlhZDMwZjQ5NDBjNDRmNTIyNzRjYmVhYWRkYWNhYzYyZGJhNDMyNDRmMTczM2E0ZjgwNiIsInNlcW5vIjoxNSwidGFnIjoic2lnbmF0dXJlIn2jc2lnxEB5YkSHlHWtE5qZiZgQx5SD4/ThMHsMNofvcFq4RRhGZ50U8zDfTdUUdAh8ujhbO5GLHIx/myN4vmu0I+tPilANqHNpZ190eXBlIKN0YWfNAgKndmVyc2lvbgE="
+  [_, body1] = ukm.get_sig_body { armored : sig }
+  body0 = new Buffer sig, 'base64'
+  T.assert util.bufeq_fast(body0, body1), "same value came back"
+  cb()
+
+exports.test_pgp = (T, cb) ->
+  sig = """-----BEGIN PGP MESSAGE-----
+Comment: GPGTools - https://gpgtools.org
+
+owEBPQHC/pANAwAKAZgKPw0B/gTfAcsNYgBWhUD/eW8gbWFuCokBHAQAAQoABgUC
+VoVA/wAKCRCYCj8NAf4E30fZB/0Yp6OzMqFxsAeo/pZhIpoantknnVZ2rnTL2q5f
+cCMTRuReXGRnXoDd1B3JER9MG+LxCXQw0EoKivFYB+8WPQ+x1zm2VO3ru7jT8lxS
+HLajpT/3JhEmOtFdGqiT4A7PgKbxEy7n8ME+jY+JFUTMq44X5xOFr7TK9vuLs5wj
+QCL7elGgIf+EsMzojgzFXI2Ij6q8aiyHE2ytMpedyEKAaZKpwk2VIUgEww9gBHF7
+/ZZ4JSW6Sg/+wWwNVi3/e5Lc9HtMbpRsW9pkMguPQAb/BtS7br47drkBv6Xmofow
+hBeK35r3VNQykNoebHtWF6RcA5QTWMeu8xxVx6cbLWxL2+lx
+=rIen
+-----END PGP MESSAGE-----"""
+  wanted = "owEBPQHC/pANAwAKAZgKPw0B/gTfAcsNYgBWhUD/eW8gbWFuCokBHAQAAQoABgUCVoVA/wAKCRCYCj8NAf4E30fZB/0Yp6OzMqFxsAeo/pZhIpoantknnVZ2rnTL2q5fcCMTRuReXGRnXoDd1B3JER9MG+LxCXQw0EoKivFYB+8WPQ+x1zm2VO3ru7jT8lxSHLajpT/3JhEmOtFdGqiT4A7PgKbxEy7n8ME+jY+JFUTMq44X5xOFr7TK9vuLs5wjQCL7elGgIf+EsMzojgzFXI2Ij6q8aiyHE2ytMpedyEKAaZKpwk2VIUgEww9gBHF7/ZZ4JSW6Sg/+wWwNVi3/e5Lc9HtMbpRsW9pkMguPQAb/BtS7br47drkBv6XmofowhBeK35r3VNQykNoebHtWF6RcA5QTWMeu8xxVx6cbLWxL2+lx"
+  [_, body1] = ukm.get_sig_body { armored : sig }
+  body0 = new Buffer wanted, 'base64'
+  T.assert util.bufeq_fast(body0, body1), "same value came back"
+  cb()

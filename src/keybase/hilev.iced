@@ -260,4 +260,4 @@ class SignatureEngine extends SignatureEngineInterface
 
 #=================================================================
 
-module.exports = { box, unbox, KeyManager, EncKeyManager, decode_sig }
+module.exports = { box, unbox, KeyManager, EncKeyManager, decode_sig, get_sig_body }

@@ -17,8 +17,17 @@ exports.import_armored_public = ({armored, asp, opts}, cb) ->
 
 #==========================================================================
 
+is_pgp_sig = (x) -> x.match /^-{5}BEGIN PGP MESSAGE-{5}/
+
 exports.decode_sig = ({armored}) ->
-  if armored.match /^-{5}BEGIN PGP MESSAGE-{5}/
+  if is_pgp_sig armored
     return pgp_sig.decode_sig {armored}
   else
     return kb.decode_sig {armored}
+
+#==========================================================================
+
+exports.get_sig_body = ({armored}) ->
+  if is_pgp_sig(armored) then pgp_sig.get_sig_body {armored}
+  else kb.get_sig_body {armored}
+
