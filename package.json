@@ -27,6 +27,7 @@
     "iced-runtime": ">=0.0.1",
     "keybase-ecurve": "^1.0.0",
     "keybase-nacl": "^1.0.0",
+    "minimist": "^1.2.0",
     "pgp-utils": ">=0.0.28",
     "purepack": ">=1.0.4",
     "triplesec": ">=3.0.19",

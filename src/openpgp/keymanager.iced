@@ -538,7 +538,7 @@ class KeyManager extends KeyManagerInterface
           err = new Error "Wanted a public or private key; got: #{msg.type}"
 
     unless err?
-      await KeyManager.import_from_pgp_message { msg, asp, opts }, defer err, ret, warnings
+      await KeyManager.import_from_pgp_message { msg, asp, opts }, defer err, ret, warnings, packets
 
     # For keys that have unprotected secret key data, just unlock
     # the secret key material by default, that way we don't have to
@@ -546,7 +546,7 @@ class KeyManager extends KeyManagerInterface
     if not(err?)
       await ret.simple_unlock {}, defer err
 
-    cb err, ret, warnings
+    cb err, ret, warnings, packets
 
   #--------------
 
@@ -620,7 +620,7 @@ class KeyManager extends KeyManagerInterface
         signed : true }
     unless err?
       await bundle.check_pgp_validity defer err
-    cb err, bundle, warnings
+    cb err, bundle, warnings, packets
 
   #------------
 
