@@ -1,3 +1,8 @@
+## 2.0.51
+
+Security upgrade:
+  - force cross-signatures on signing subkeys unless strict:false is supplied
+
 ## 2.0.50
 
 Feature:
