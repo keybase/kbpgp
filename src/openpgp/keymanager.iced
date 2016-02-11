@@ -334,7 +334,8 @@ class PgpEngine extends Engine
       km = @key(k) # KeyMaterial
       ok1 = km.fulfills_flags(flags) or ((k.flags & flags) is flags)
       ok2 = not(need_priv) or km.has_private()
-      return (ok1 && ok2)
+      ok3 = not km.is_revoked()
+      return (ok1 && ok2 && ok3)
 
     for k in @subkeys when check(k)
       if not best? then best = k
