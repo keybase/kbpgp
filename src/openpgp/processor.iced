@@ -73,7 +73,7 @@ class KeyBlock
     err = null
     @subkeys = []
     for k,i in subkeys when not err?
-      if k.is_signed_subkey_of @primary
+      if k.is_signed_subkey_of @primary, @opts
         @subkeys.push k
       else
         msg = "Subkey #{i} was invalid; discarding"

@@ -352,8 +352,8 @@ class KeyMaterial extends Packet
 
   #--------------------------
 
-  is_signed_subkey_of : (primary) ->
-    ((not @primary_flag) and @get_psc().is_signed_subkey_of primary)
+  is_signed_subkey_of : (primary, opts) ->
+    ((not @primary_flag) and @get_psc().is_signed_subkey_of(primary, opts))
 
   get_subkey_binding : () ->
     if @opts.subkey then @get_psc().get_subkey_binding() else null

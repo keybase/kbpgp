@@ -78,7 +78,7 @@ class Collection
   #
   # See Issue #19 for further details...
   #
-  is_signed_subkey_of : (primary) ->
+  is_signed_subkey_of : (primary, {strict}) ->
     for skb in @lookup.subkey_binding
       if skb.primary.equal(primary) and skb.is_down()
         return true
