@@ -78,10 +78,12 @@ class Collection
   #
   # See Issue #19 for further details...
   #
-  is_signed_subkey_of : (primary, {strict}) ->
+  is_signed_subkey_of : (primary, need_upwards_sig) ->
+    up = down = false
     for skb in @lookup.subkey_binding
-      if skb.primary.equal(primary) and skb.is_down()
-        return true
+      if skb.primary.equal(primary)
+        if skb.is_down() then down = true else up = true
+        return true if down and (up or not need_upwards_sig)
     return false
 
   #-------------------

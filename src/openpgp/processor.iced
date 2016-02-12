@@ -25,6 +25,7 @@ class KeyBlock
     @user_attributes = []
     @warnings = new Warnings()
     @opts = opts or {}
+    @opts.strict = true if not @opts.strict?
 
   #--------------------
 
