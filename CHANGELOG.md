@@ -1,4 +1,4 @@
-## 2.0.52
+## 2.0.52 (2016-02-26)
 
 Bugfixes:
   - Use `iced-lock` class rather than buggy reimplementation via copy/paste
