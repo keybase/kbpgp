@@ -1,7 +1,7 @@
 {BigInteger} = require 'bn'
 {WordArray,prng} = require 'triplesec'
 native_rng = prng.native_rng
-{Lock} = require './lock'
+{Lock} = require 'iced-lock'
 
 #==================================================
 

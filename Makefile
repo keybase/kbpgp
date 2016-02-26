@@ -42,7 +42,6 @@ $(BUILD_STAMP): \
 	lib/keyring.js \
 	lib/keywrapper.js \
 	lib/kmi.js \
-	lib/lock.js \
 	lib/main.js \
 	lib/nacl/base.js \
 	lib/nacl/main.js \
