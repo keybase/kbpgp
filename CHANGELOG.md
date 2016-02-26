@@ -1,9 +1,14 @@
-## 2.0.51
+## 2.0.52
+
+Bugfixes:
+  - Use `iced-lock` class rather than buggy reimplementation via copy/paste
+
+## 2.0.51 (2016-02-11)
 
 Security upgrade:
   - force cross-signatures on signing subkeys unless strict:false is supplied
 
-## 2.0.50
+## 2.0.50 (2015-12-31)
 
 Feature:
   - General `get_sig_body` function that works for KB or OpenPGP
