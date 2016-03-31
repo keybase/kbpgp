@@ -22,8 +22,21 @@ exports.public_keys_advanced = (T,cb) ->
     await KeyManager.import_from_armored_pgp { raw : keys[n], opts } , defer err, km, warnings
     T.no_error err
     if err?
-      console.log "Failed on #{n} --->"
-      console.log keys[n]
+      throw err
+    T.assert km, "a key manager came back"
+    T.waypoint "parsed #{n}"
+  cb()
+
+#============================================================================
+
+exports.public_keys_now = (T,cb) ->
+  names = [ "weston" ]
+  # Set a date in the past, when none of these keys had expired.
+  opts = { now : (new Date(2016, 2, 22, 0, 0, 0)).getTime()/1000 }
+  for n in names
+    await KeyManager.import_from_armored_pgp { raw : keys[n], opts } , defer err, km, warnings
+    T.no_error err
+    if err?
       throw err
     T.assert km, "a key manager came back"
     T.waypoint "parsed #{n}"

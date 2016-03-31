@@ -29,7 +29,7 @@
     "keybase-ecurve": "^1.0.0",
     "keybase-nacl": "^1.0.0",
     "minimist": "^1.2.0",
-    "pgp-utils": ">=0.0.28",
+    "pgp-utils": ">=0.0.30",
     "purepack": ">=1.0.4",
     "triplesec": ">=3.0.19",
     "tweetnacl": "^0.13.1"
@@ -43,5 +43,8 @@
     "minimist": "0.0.8",
     "optimist": "0.6.1",
     "uglify-js": "^2.4.13"
+  },
+  "scripts": {
+    "test": "make test"
   }
 }

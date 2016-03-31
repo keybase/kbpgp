@@ -104,7 +104,19 @@ bZjQoZViEVEa986Vv98wiW+eQsikYoNXl/Qt9oRHTvkxOaE+a6FxoHjr7YJz1iEP
 ZubtJlEMmxiKY7nanMukz9XoaGyU0vUKyfdSlKlatkmLpeMF38Sdq6zumce8n77Z
 +2alsv4GBtmYKYsloiQbrW/a2dwQn2TzWlzkmOXLOuOzDVUiyx3T86q6DQA=
 =kOKo
------END PGP MESSAGE-----"""],
+-----END PGP MESSAGE-----""",
+  """-----BEGIN PGP MESSAGE-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+hQEMA+bZw3a+syp5AQf6A1kTq0lwT+L1WCr7N2twHbvOnAorb+PJiVHIp2hTW2gr
+U3fm/0/SxTdTJRaZsAjbVLH4jYg6cXyNIxdE5uw2ywxQ9Zi8iWylDixsPT5bD6Q7
+xlFLhr4BTt7P/oTUMANybuFU6ntss8jbzKZ7SdHbylLrkaUylSWqH1d7bffMxCAl
+JOOAHBOXowpcswAurwQpaDZGX3rGUXjAcMDS5ykr/tgHIwo25A+WbIdNCYMkYm0d
+BT83PUMIZm351LJWIv/tBqraNc9kEyftAMbVlh5xC0EfPt+ipyRJDh5XKTvh0xQW
+T6nM9Z0qLVwUhaG9RqRM1H6D083IE9fKF6sFdce7MtI/ARo3wPa7qll1hyY5vfaT
+baAzKLJPcPDf1vu2+S1c1kt5ljvao8MCCebgK7E8CPT/ajLr1xU05G7Eg0zrkstk
+=ni0M
+-----END PGP MESSAGE-----""" ],
   keys : {
     decryption: {
       passphrase : "catsdogs",
@@ -353,6 +365,13 @@ exports.process_msg_3 = (T,cb) ->
   ind = literals[0].toString().indexOf '"devDependencies" : {'
   T.assert (ind > 0), "found some text we expected"
   T.assert literals[0].get_data_signer(), "was signed"
+  cb()
+
+#===============================================================
+
+exports.process_corrupted_armor = (T,cb) ->
+  await do_message { armored : data.msgs[3] , keyfetch : ring }, defer err, literals
+  T.assert err?, "got a bad armor error"
   cb()
 
 #===============================================================

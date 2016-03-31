@@ -1,3 +1,8 @@
+## 2.0.53 (2016-03-30)
+
+Bugfixes:
+  - Upgrade pgp-utils to 0.0.30 to fix bug in recognizing bad PGP armor
+
 ## 2.0.52 (2016-02-26)
 
 Bugfixes:
