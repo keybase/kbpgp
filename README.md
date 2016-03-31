@@ -1,6 +1,8 @@
 
 ## kbpgp - Keybase's PGP for JavaScript
 
+[![Build Status](https://travis-ci.org/keybase/kbpgp.svg?branch=master)](https://travis-ci.org/keybase/kbpgp)
+
 ### Tutorial
 
 We have a bunch of examples here:
