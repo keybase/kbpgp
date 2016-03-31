@@ -105,7 +105,6 @@ $(TEST_STAMP): test/browser/test.js
 	date > $@
 
 test: test-server test-browser
-	keybase dir verify
 
 $(BROWSER): lib/main.js $(BUILD_STAMP)
 	$(BROWSERIFY) -s kbpgp $< > $@
