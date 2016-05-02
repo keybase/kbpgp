@@ -1,3 +1,8 @@
+## 2.0.54 (2016-05-02)
+
+Feature:
+  - Expose the `bn` library via exports.
+
 ## 2.0.53 (2016-03-30)
 
 Bugfixes:
