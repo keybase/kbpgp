@@ -31,6 +31,7 @@ exports.nacl      = require './nacl/main'
 exports.kb        = require './keybase/hilev'
 exports.ukm       = require './ukm'
 exports.asym      = require './asymmetric'
+exports.bn        = require './bn'
 
 #---------------------------------------
 
