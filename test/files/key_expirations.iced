@@ -24,7 +24,7 @@ exports.read_rillian_key = (T,cb) ->
 exports.read_michel_slm_key = (T,cb) ->
   await KeyManager.import_from_armored_pgp { armored : keys.michel_slm }, defer err, km, warnings
   T.assert err?, "key is expired"
-  T.assert (err.toString().indexOf("no valid primary key self-signature") > 0), "the right error"
+  T.assert (err.toString().indexOf("no valid primary key self-signature or key(s) have expired") > 0), "the right error"
   w0 = warnings.warnings()[0]
   m = w0.match /Signature failure in packet 1: Key expired (\d+)s ago/
   T.assert m?, "matched warning 1"

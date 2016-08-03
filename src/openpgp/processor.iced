@@ -60,7 +60,7 @@ class KeyBlock
 
   _check_primary : () ->
     err = if not @primary.is_self_signed()
-      new Error "no valid primary key self-signature"
+      new Error "no valid primary key self-signature or key(s) have expired"
     else if (@userids = @primary.get_signed_userids()).length is 0
       new Error "no valid Userid signed into key"
     else
