@@ -1,3 +1,8 @@
+## 2.0.55 (2016-08-03)
+
+Feature:
+  - slightly more specific error
+
 ## 2.0.54 (2016-05-02)
 
 Feature:
