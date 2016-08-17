@@ -1,3 +1,8 @@
+## 2.0.56 (2016-08-16)
+
+Bugfixes:
+  - Fix bug in eror path in unknown GNU S2K
+
 ## 2.0.55 (2016-08-03)
 
 Feature:
