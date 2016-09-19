@@ -253,7 +253,7 @@ class SignatureEngine extends SignatureEngineInterface
     if not res.km.eq @km
       a = res.km.get_ekid().toString('hex')
       b = @km.get_ekid().toString('hex')
-      err = new Error "Got wrong signing key: #{a} != #{b}"
+      err = new Error "Got wrong signing key"
     else
       payload = res.payload
     cb err, payload, binary
