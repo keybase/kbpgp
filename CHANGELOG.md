@@ -1,3 +1,8 @@
+## 2.0.57 (2016-09-19)
+
+Security bugfix:
+  - Disclose less info in error messages; we don't know how it might be used
+
 ## 2.0.56 (2016-08-16)
 
 Bugfixes:
