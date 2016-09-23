@@ -25,7 +25,7 @@
     "deep-equal": ">=0.2.1",
     "iced-error": ">=0.0.9",
     "iced-lock": "^1.0.2",
-    "iced-runtime": ">=0.0.1",
+    "iced-runtime": "^1.0.3",
     "keybase-ecurve": "^1.0.0",
     "keybase-nacl": "^1.0.0",
     "minimist": "^1.2.0",
