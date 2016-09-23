@@ -14,6 +14,7 @@ konst = require '../const'
 {Signature} = require './packet/signature'
 {Encryption} = require './packet/encryption'
 {EdDSA} = require '../nacl/eddsa'
+{errors} = require '../errors'
 {DH} = require '../nacl/dh'
 K = konst.kb
 C = konst.openpgp
@@ -253,7 +254,7 @@ class SignatureEngine extends SignatureEngineInterface
     if not res.km.eq @km
       a = res.km.get_ekid().toString('hex')
       b = @km.get_ekid().toString('hex')
-      err = new Error "Got wrong signing key"
+      err = new errors.WrongSigningKeyError "Got wrong signing key"
     else
       payload = res.payload
     cb err, payload, binary

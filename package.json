@@ -37,9 +37,9 @@
   "devDependencies": {
     "browserify": "^5.9.1",
     "colors": "0.6.2",
-    "iced-coffee-script": "1.7.1-c",
+    "iced-coffee-script": "108.0.11",
     "iced-test": ">=0.0.21",
-    "icsify": "0.6.0",
+    "icsify": "^0.7.0",
     "minimist": "0.0.8",
     "optimist": "0.6.1",
     "uglify-js": "^2.4.13"
