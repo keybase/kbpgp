@@ -1,3 +1,10 @@
+## 2.0.58 (2016-09-22)
+
+Feature:
+  - Typed error message for wrong signing key in SigEngine::unbox
+  - Recompile with new ICS (108.0.11)
+  - Fix some wonky tests
+
 ## 2.0.57 (2016-09-19)
 
 Security bugfix:
