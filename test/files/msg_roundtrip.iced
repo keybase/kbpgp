@@ -182,7 +182,7 @@ clear_sign = (msg, T,cb) ->
   msg = new Buffer msg, 'utf8'
   await clearsign.sign { signing_key, msg }, defer err, outmsg
   T.no_error err
-  await do_message { keyfetch : ring, armored : outmsg }, defer err, literals
+  await do_message { keyfetch : ring, armored : outmsg }, defer err, _
   T.no_error err
   cb()
 

@@ -8,6 +8,7 @@ mods = [
  require("./openpgp/hilev")
  require("./keyfetch")
  require("./keyring")
+ require('./errors')
 ]
 for m in mods
   for k,v of m

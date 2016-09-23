@@ -28,6 +28,7 @@ $(BUILD_STAMP): \
 	lib/ecc/main.js \
 	lib/elgamal.js \
 	lib/elgamalse.js \
+	lib/errors.js \
 	lib/hash.js \
 	lib/header.js \
 	lib/keybase/encode.js \

@@ -25,7 +25,7 @@
     "deep-equal": ">=0.2.1",
     "iced-error": ">=0.0.9",
     "iced-lock": "^1.0.2",
-    "iced-runtime": ">=0.0.1",
+    "iced-runtime": "^1.0.3",
     "keybase-ecurve": "^1.0.0",
     "keybase-nacl": "^1.0.0",
     "minimist": "^1.2.0",
@@ -37,9 +37,9 @@
   "devDependencies": {
     "browserify": "^5.9.1",
     "colors": "0.6.2",
-    "iced-coffee-script": "1.7.1-c",
+    "iced-coffee-script": "108.0.11",
     "iced-test": ">=0.0.21",
-    "icsify": "0.6.0",
+    "icsify": "^0.7.0",
     "minimist": "0.0.8",
     "optimist": "0.6.1",
     "uglify-js": "^2.4.13"
