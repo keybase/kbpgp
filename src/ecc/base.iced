@@ -53,8 +53,7 @@ exports.generate = ({nbits, asp, Pair }, cb) ->
   ret = null
   [err,curve] = alloc_by_nbits nbits
   unless err?
-    await curve.random_scalar defer x
-    R = curve.G.multiply x
+    await curve.generate defer { x, R }
     pub = new Pair.Pub { curve, R }
     priv = new Pair.Priv { pub, x }
     ret = new Pair { pub, priv }

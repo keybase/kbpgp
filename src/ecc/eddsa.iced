@@ -1,5 +1,7 @@
 kbnacl = require 'keybase-nacl'
+tweetnacl = require 'tweetnacl'
 {SlicerBuffer} = require '../openpgp/buffer'
+{uint_to_buffer} = require '../util'
 {BaseKeyPair,BaseKey} = require '../basekeypair'
 util = require '../util'
 konst = require '../const'
@@ -91,7 +93,7 @@ class Pub extends BaseKey
 class Priv extends BaseKey
 
   # The serialization order of the parameters in the private key
-  @ORDER : []
+  @ORDER : ['x']
   ORDER : Priv.ORDER
 
   #-------------------
@@ -100,13 +102,42 @@ class Priv extends BaseKey
 
   #-------------------
 
+  @_alloc : (raw, pub) ->
+    sb = new SlicerBuffer raw
+    pre = sb.rem()
+    key_len = sb.read_uint16()
+    if (n = key_len/8) != (m = tweetnacl.sign.seedLength)
+      throw new Error "Expected #{m} bytes for EDDSA priv key, got #{n}."
+
+    x = sb.read_buffer tweetnacl.sign.seedLength
+    { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(x)
+
+    if pub.key.toString('hex') != new Buffer(publicKey).toString('hex')
+      # TODO: Better buffer/array comparasion
+      throw new Error 'Loaded EDDSA private key but it does not match the public key.'
+
+    priv = new Priv { x: new Buffer(secretKey) }
+
+    len = pre - sb.rem()
+    return [ priv, len ]
+
+  #-------------------
+
   @alloc : (raw, pub) ->
-    return [ (new Error "unimplemented" ) ]
+    priv = len = err = null
+    try [priv, len] = Priv._alloc raw, pub
+    catch e then err = e
+    return [ err, priv, len ]
 
   #-------------------
 
   sign : (h, cb) ->
-    throw new Error "unimplemented"
+    ret = tweetnacl.sign(h, @x)
+    # crypto_sign returns signature + the message, we want just the
+    # signature. gpg keeps the signature as two numbers, r and s, lets
+    # keep it that way instead of one 64-byte buffer.
+    len = tweetnacl.sign.signatureLength/2
+    cb [new Buffer(ret[0...len]), new Buffer(ret[len...len*2])]
 
 #=================================================================
 
@@ -154,7 +185,19 @@ class Pair extends BaseKeyPair
 
   pad_and_sign : (data, {hasher}, cb) ->
     # XXX use the DSA recommendations for which hash to use
-    cb new Error "unimplemented"
+    # TODO: are we really padding this? is this secure?
+    # I just copied stuff over from dsa.iced
+    hasher or= SHA512
+    h = hasher data
+    await @priv.sign h, defer sig
+    [r, s] = sig
+    cb null, Buffer.concat [
+      # TODO: Ouch! use some encode_mpi_thing, but which one?
+      uint_to_buffer(16, r.length*8),
+      r,
+      uint_to_buffer(16, s.length*8),
+      s
+    ]
 
   #----------------
 

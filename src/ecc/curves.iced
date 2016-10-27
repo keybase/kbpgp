@@ -4,6 +4,7 @@ base = require 'keybase-ecurve'
 {SlicerBuffer} = require '../openpgp/buffer'
 {SRF} = require '../rand'
 bn = require '../bn'
+tweetnacl = require 'tweetnacl'
 
 #=================================================================
 
@@ -99,6 +100,159 @@ exports.Curve = class Curve extends base.Curve
     k = k.add(bn.BigInteger.ONE)
     cb k
 
+  #----------------------------------
+
+  # The small buffer type - where the format is:
+  # (u16 - number of bits)(buffer - number; of said length)
+  mpi_from_buffer : (raw) -> bn.mpi_from_buffer raw
+
+  #----------------------------------
+
+  # encrypt:
+  # R - recipient public key
+  # cb is called will V, S: V is the encryption key; S is shared secret
+  # to pass to recipient
+  encrypt : (R, cb) ->
+    {n,G} = @
+
+    # Pick a random v in Z_n
+    await @random_scalar defer v
+    V = G.multiply v
+
+    # S is the shared point.  If we send V, the private key holder can
+    # compute S = rV = rvG = vrG = vR
+    S = R.multiply v
+
+    cb {V, S}
+
+  #----------------------------------
+
+  # decrypt:
+  # x - our secret key
+  # V - the shared secret
+  # S is returned, which is the decryption key.
+  decrypt : (x, V) -> V.multiply x
+
+  #----------------------------------
+
+  # generate:
+  # find a random scalar x, this is private key
+  # multiply by curve base G, this is the pub key R.
+  generate : (cb) ->
+    await @random_scalar defer x
+    R = @G.multiply x
+    cb { x, R }
+
+
+#=================================================================
+
+exports.Curve25519 = class Curve25519 extends Curve
+
+  #----------------------------------
+
+  constructor : ({@oid}) ->
+
+  #----------------------------------
+
+  nbits : -> 256
+
+  # nbits + 7 bits to encode prefix. the key is just one coordinate,
+  # without sign.
+  mpi_bit_size : -> 263
+
+  #----------------------------------
+
+  _mpi_point_from_slicer_buffer : (sb) ->
+    n_bits = sb.read_uint16()
+    if n_bits isnt (b = @mpi_bit_size())
+      throw new Error "Need #{b} bits for this curve; got #{n_bits}"
+    if sb.read_uint8() isnt 0x40
+      throw new Error "Can only handle 0x40 prefix for 25519 MPI representations"
+
+    # Point is just a 32-byte buffer. We also do not validate it,
+    # because DJB told us not to: https://cr.yp.to/ecdh.html
+    n_bytes = @mpi_coord_byte_size()
+    point = sb.read_buffer(n_bytes)
+
+    [ null, point ]
+
+  #----------------------------------
+
+  point_to_mpi_buffer_compact : (p) -> p
+
+  #----------------------------------
+
+  point_to_mpi_buffer : (p) ->
+    sz = @mpi_coord_byte_size()
+    ret = Buffer.concat [
+      uint_to_buffer(16, @mpi_bit_size()),
+      new Buffer([0x40]),
+      p
+    ]
+    ret
+
+  #----------------------------------
+
+  random_scalar : (cb) -> SRF().random_bytes @mpi_coord_byte_size(), cb
+
+  #----------------------------------
+
+  # The small buffer type - where the format is:
+  # (u16 - number of bits)(buffer - number; of said length)
+  mpi_from_buffer : (raw) ->
+    err = i = null
+    if raw.length < 2
+      err = new Error "need at least 2 bytes; got #{raw.length}"
+    else
+      hdr = new Buffer raw[0...2]
+      raw = raw[2...]
+      n_bits = hdr.readUInt16BE 0
+      n_bytes = Math.ceil n_bits/8
+      if raw.length < n_bytes
+        err = new Error "MPI said #{n_bytes} bytes but only got #{raw.length}"
+      else
+        i = raw[0...n_bytes]
+        raw = raw[n_bytes...]
+    [err, i, raw, (n_bytes + 2) ]
+
+  #----------------------------------
+
+  encrypt : (R, cb) ->
+    await @random_scalar defer v
+
+    V = new Buffer(tweetnacl.scalarMult.base(v))
+    S = new Buffer(tweetnacl.scalarMult(v, R))
+
+    cb {V, S}
+
+  @reverse_buf : (buf) ->
+    # TODO: Is there a function reversing a buffer?
+    X = new Buffer(buf.length)
+    for i in [0...buf.length]
+      X[buf.length - 1 - i] = buf[i]
+    X
+
+  #----------------------------------
+
+  decrypt : (x, V) ->
+    # nacl expects scalar in reverse order to what is saved in pgp packet.
+    x = Curve25519.reverse_buf(x)
+    S = new Buffer(tweetnacl.scalarMult(x, V))
+    S
+
+  #----------------------------------
+
+  # generate:
+  # find a random scalar x, this is private key
+  # multiply by curve base G, this is the pub key R.
+  generate : (cb) ->
+    await @random_scalar defer x
+    R = new Buffer(tweetnacl.scalarMult.base(x))
+    # pgp uses different endianess, internally we store keys in
+    # pgp-compatible byte order.
+    x = Curve25519.reverse_buf(x)
+    cb { x, R }
+
 #=================================================================
 
 # Curve parameters taken from here:
@@ -180,6 +334,14 @@ exports.brainpool_p512 = brainpool_p512 = () ->
  
   new Curve { p, a, b, Gx, Gy, n, oid : OIDS.brainpool_p512 }
 
+#------------------------------------
+
+exports.cv25519 = cv25519 = () ->
+  # 25519 is a special case - it's a Montgomery curve (instead of
+  # Weierstrass). We use nacl library to do 25519 calculations using
+  # scalarmult functions.
+  new Curve25519 { oid: OIDS.cv25519 }
+
 #=================================================================
 
 OIDS = 
@@ -189,6 +351,7 @@ OIDS =
   brainpool_p256 :  new Buffer [ 0x2b, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 ]
   brainpool_p384 :  new Buffer [ 0x2b, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0B ]
   brainpool_p512 :  new Buffer [ 0x2b, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D ]
+  cv25519 : new Buffer [ 0x2b, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 ]
 
 OID_LOOKUP = {}
 for k,v of OIDS
