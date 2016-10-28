@@ -24,7 +24,7 @@ exports.test_buffer_shift_right = (T,cb) ->
 
       # We need to add a leading '0' back so that we still have
       # 4 bytes of data, so compare works to a standard 32-bit integer
-      b3 = Buffer.concat [ Buffer(0 for [0...(shift >> 3)] ), b3 ]
+      b3 = Buffer.concat [ new Buffer(0 for [0...(shift >> 3)] ), b3 ]
       T.assert bufeq_fast(b3,b2), "Buffer #{j}, shift=#{shift}"
 
   cb()
