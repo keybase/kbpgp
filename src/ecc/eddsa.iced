@@ -1,5 +1,4 @@
 kbnacl = require 'keybase-nacl'
-tweetnacl = require 'tweetnacl'
 {SlicerBuffer} = require '../openpgp/buffer'
 {uint_to_buffer} = require '../util'
 {BaseKeyPair,BaseKey} = require '../basekeypair'
@@ -106,11 +105,11 @@ class Priv extends BaseKey
     sb = new SlicerBuffer raw
     pre = sb.rem()
     key_len = sb.read_uint16()
-    if (n = key_len/8) != (m = tweetnacl.sign.seedLength)
+    if (n = key_len/8) != (m = kbnacl.sign.seedLength)
       throw new Error "Expected #{m} bytes for EDDSA priv key, got #{n}."
 
-    x = sb.read_buffer tweetnacl.sign.seedLength
-    { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(x)
+    x = sb.read_buffer kbnacl.sign.seedLength
+    { publicKey, secretKey } = kbnacl.alloc({}).genFromSeed seed: x
 
     if pub.key.toString('hex') != new Buffer(publicKey).toString('hex')
       # TODO: Better buffer/array comparasion
@@ -132,11 +131,15 @@ class Priv extends BaseKey
   #-------------------
 
   sign : (h, cb) ->
-    ret = tweetnacl.sign(h, @x)
-    # crypto_sign returns signature + the message, we want just the
+    nacl = kbnacl.alloc({ secretKey: @x })
+    ret = nacl.sign { payload: h }
+    # nacl.sign returns signature + the message, we want just the
     # signature. gpg keeps the signature as two numbers, r and s, lets
-    # keep it that way instead of one 64-byte buffer.
-    len = tweetnacl.sign.signatureLength/2
+    # keep it that way instead of one 64-byte buffer. We could use
+    # {detached} argument to sign here, but it would still return one
+    # buffer as a the signature instead of two, so we might as well
+    # split/detach ourselves.
+    len = kbnacl.sign.signatureLength/2
     cb [new Buffer(ret[0...len]), new Buffer(ret[len...len*2])]
 
 #=================================================================
