@@ -4,7 +4,7 @@ base = require 'keybase-ecurve'
 {SlicerBuffer} = require '../openpgp/buffer'
 {SRF} = require '../rand'
 bn = require '../bn'
-tweetnacl = require 'tweetnacl'
+kbnacl = require 'keybase-nacl'
 
 #=================================================================
 
@@ -220,8 +220,10 @@ exports.Curve25519 = class Curve25519 extends Curve
   encrypt : (R, cb) ->
     await @random_scalar defer v
 
-    V = new Buffer(tweetnacl.scalarMult.base(v))
-    S = new Buffer(tweetnacl.scalarMult(v, R))
+    nacl = kbnacl.alloc {}
+
+    V = nacl.scalarmult_base(v)
+    S = nacl.scalarmult(v, R)
 
     cb {V, S}
 
@@ -237,7 +239,8 @@ exports.Curve25519 = class Curve25519 extends Curve
   decrypt : (x, V) ->
     # nacl expects scalar in reverse order to what is saved in pgp packet.
     x = Curve25519.reverse_buf(x)
-    S = new Buffer(tweetnacl.scalarMult(x, V))
+    nacl = kbnacl.alloc {}
+    S = nacl.scalarmult(x, V)
     S
 
   #----------------------------------
@@ -247,7 +250,8 @@ exports.Curve25519 = class Curve25519 extends Curve
   # multiply by curve base G, this is the pub key R.
   generate : (cb) ->
     await @random_scalar defer x
-    R = new Buffer(tweetnacl.scalarMult.base(x))
+    nacl = kbnacl.alloc {}
+    R = nacl.scalarmult_base(x)
     # pgp uses different endianess, internally we store keys in
     # pgp-compatible byte order.
     x = Curve25519.reverse_buf(x)
