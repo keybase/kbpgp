@@ -2,6 +2,7 @@ kbnacl = require 'keybase-nacl'
 {SlicerBuffer} = require '../openpgp/buffer'
 {uint_to_buffer} = require '../util'
 {BaseKeyPair,BaseKey} = require '../basekeypair'
+{SRF} = require '../rand'
 util = require '../util'
 konst = require '../const'
 C = konst.openpgp
@@ -91,31 +92,31 @@ class Pub extends BaseKey
 
 class Priv extends BaseKey
 
-  # The serialization order of the parameters in the private key
-  @ORDER : ['x']
-  ORDER : Priv.ORDER
-
   #-------------------
 
-  constructor : ({@x,@pub}) ->
+  constructor : ({@seed, @key, @pub}) ->
 
   #-------------------
 
   @_alloc : (raw, pub) ->
+    # EDDSA private key is actually a 32-byte seed from which public
+    # and secret keys are generated. This way, any random 32-byte
+    # number is a valid private key.
     sb = new SlicerBuffer raw
     pre = sb.rem()
-    key_len = sb.read_uint16()
-    if (n = key_len/8) != (m = kbnacl.sign.seedLength)
+    key_len = Math.ceil(sb.read_uint16() / 8)
+    if (n = key_len) != (m = kbnacl.sign.seedLength)
       throw new Error "Expected #{m} bytes for EDDSA priv key, got #{n}."
 
-    x = sb.read_buffer kbnacl.sign.seedLength
-    { publicKey, secretKey } = kbnacl.alloc({}).genFromSeed seed: x
+    seed = sb.read_buffer key_len
+    { publicKey, secretKey } = kbnacl.alloc({}).genFromSeed { seed }
 
-    if pub.key.toString('hex') != new Buffer(publicKey).toString('hex')
-      # TODO: Better buffer/array comparasion
+    unless util.bufeq_secure pub.key, publicKey
       throw new Error 'Loaded EDDSA private key but it does not match the public key.'
 
-    priv = new Priv { x: new Buffer(secretKey) }
+    # Along with the secret key, the seed has to be saved, so Priv can
+    # be serialized.
+    priv = new Priv { seed, key: new Buffer(secretKey), pub }
 
     len = pre - sb.rem()
     return [ priv, len ]
@@ -131,16 +132,27 @@ class Priv extends BaseKey
   #-------------------
 
   sign : (h, cb) ->
-    nacl = kbnacl.alloc({ secretKey: @x })
+    nacl = kbnacl.alloc({ secretKey: @key })
     ret = nacl.sign { payload: h }
     # nacl.sign returns signature + the message, we want just the
     # signature. gpg keeps the signature as two numbers, r and s, lets
     # keep it that way instead of one 64-byte buffer. We could use
     # {detached} argument to sign here, but it would still return one
-    # buffer as a the signature instead of two, so we might as well
-    # split/detach ourselves.
+    # buffer as one "signature buffer" instead of two, so we might as
+    # well split/detach ourselves.
     len = kbnacl.sign.signatureLength/2
     cb [new Buffer(ret[0...len]), new Buffer(ret[len...len*2])]
+
+  #-------------------    
+
+  serialize : () ->
+    # We can't use base class method, because again, our keys are
+    # buffers, not bigints.
+    Buffer.concat [ 
+      uint_to_buffer(16, kbnacl.sign.seedLength),
+      @seed
+    ]
+
 
 #=================================================================
 
@@ -224,7 +236,7 @@ class Pair extends BaseKeyPair
     mpi_header_len = 2
     totlen = vlen + mpi_header_len
     if buf.length < totlen
-      err = new Error "need #{len} bytes per EdDSA value"
+      err = new Error "need #{totlen} bytes per EdDSA value"
     else if (bits = buf.readUInt16BE(0)) > 0x100 or bits < (0x100 - 40)
       err = new Error "Got an unexpected number of Bits for an EdDSA value: #{bits}"
     else
@@ -268,7 +280,12 @@ class Pair extends BaseKeyPair
   #----------------
 
   @generate : ({nbits, asp}, cb) ->
-    cb new Error "unimplemented"
+    await SRF().random_bytes kbnacl.sign.seedLength, defer seed
+    { publicKey, secretKey } = kbnacl.alloc({}).genFromSeed { seed }
+    pub = new Pub { key: new Buffer(publicKey) }
+    priv = new Priv { seed, key: new Buffer(secretKey), pub }
+    ret = new Pair { pub, priv }
+    cb null, ret
 
 #=================================================================
 
