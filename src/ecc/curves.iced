@@ -193,7 +193,11 @@ exports.Curve25519 = class Curve25519 extends Curve
 
   #----------------------------------
 
-  random_scalar : (cb) -> SRF().random_bytes @mpi_coord_byte_size(), cb
+  random_scalar : (cb) -> 
+    # nacl is already doing the z[31]=(n[31]&127)|64; z[0]&=248;
+    # secret-key trimming, so we don't have to. Everything we give to
+    # scalarmult or scalarmult_base will be a valid cv25519 secret.
+    SRF().random_bytes @mpi_coord_byte_size(), cb
 
   #----------------------------------
 
@@ -217,6 +221,10 @@ exports.Curve25519 = class Curve25519 extends Curve
 
   #----------------------------------
 
+  # encrypt:
+  # R - recipient public key
+  # cb is called will V, S: V is the encryption key; S is shared secret
+  # to pass to recipient
   encrypt : (R, cb) ->
     await @random_scalar defer v
 
@@ -236,11 +244,14 @@ exports.Curve25519 = class Curve25519 extends Curve
 
   #----------------------------------
 
+  # decrypt:
+  # x - our secret key
+  # V - the shared secret
+  # S is returned, which is the decryption key.
   decrypt : (x, V) ->
     # nacl expects scalar in reverse order to what is saved in pgp packet.
     x = Curve25519.reverse_buf(x)
-    nacl = kbnacl.alloc {}
-    S = nacl.scalarmult(x, V)
+    S = kbnacl.alloc({}).scalarmult(x, V)
     S
 
   #----------------------------------
@@ -250,11 +261,13 @@ exports.Curve25519 = class Curve25519 extends Curve
   # multiply by curve base G, this is the pub key R.
   generate : (cb) ->
     await @random_scalar defer x
-    nacl = kbnacl.alloc {}
-    R = nacl.scalarmult_base(x)
+
+    R = kbnacl.alloc({}).scalarmult_base(x)
+
     # pgp uses different endianess, internally we store keys in
     # pgp-compatible byte order.
     x = Curve25519.reverse_buf(x)
+
     cb { x, R }
 
 #=================================================================
@@ -383,5 +396,13 @@ exports.alloc_by_nbits = (nbits) ->
   if f? then ret = f()
   else err = new Error "No curve for #{nbits} bits"
   return [ err, ret ]
+
+#=================================================================
+
+exports.alloc_by_name = (name) ->
+  err = curve = null
+  if (OIDS[name])? then curve = exports[name]()
+  else err = new Error "Unknown curve name: #{name}"
+  [err, curve]
 
 #=================================================================
