@@ -95,15 +95,7 @@ class Pub extends BaseEccKey
   #----------------
 
   encrypt : (m, {fingerprint}, cb) ->
-    {n,G} = @curve
-
-    # Pick a random v in Z_n
-    await @curve.random_scalar defer v
-    V = G.multiply v
-
-    # S is the shared point.  If we send V, the private key holder can
-    # compute S = rV = rvG = vrG = vR
-    S = @R.multiply v
+    await @curve.encrypt @R, defer {V, S}
 
     params = @format_params { fingerprint }
     key = @kdf { X : S, params }
@@ -131,7 +123,15 @@ class Priv extends BaseKey
   #-------------------
 
   serialize : () -> @x.to_mpi_buffer()
-  @alloc : (raw, pub) -> BaseKey.alloc Priv, raw, { pub }
+  @alloc : (raw, pub) ->
+    orig_len = raw.length
+    err = null
+    {curve} = pub
+    d = { pub }
+    for o in Priv.ORDER when not err?
+      [err, d[o], raw ] = curve.mpi_from_buffer raw
+    if err then [ err, null ]
+    else [ null, new Priv(d), (orig_len - raw.length) ]
 
   #----------------
 
@@ -142,7 +142,7 @@ class Priv extends BaseKey
     await c.load_V curve, esc defer V
 
     # S is now the Shared secret point
-    S = V.multiply @x
+    S = curve.decrypt @x, V
 
     params = @pub.format_params { fingerprint }
 
@@ -212,8 +212,8 @@ class Pair extends BaseKeyPair
 
   #----------------------
 
-  @generate : ({nbits, asp}, cb) ->
-    await generate { nbits, asp, Pair }, defer err, pair
+  @generate : ({nbits, curve_name, asp}, cb) ->
+    await generate { nbits, asp, curve_name, Pair }, defer err, pair
     unless err?
       # Make sure we have algorithms for hasher and cipher
       pair.pub.apply_defaults()

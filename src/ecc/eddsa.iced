@@ -1,6 +1,8 @@
 kbnacl = require 'keybase-nacl'
 {SlicerBuffer} = require '../openpgp/buffer'
+{uint_to_buffer} = require '../util'
 {BaseKeyPair,BaseKey} = require '../basekeypair'
+{SRF} = require '../rand'
 util = require '../util'
 konst = require '../const'
 C = konst.openpgp
@@ -90,23 +92,67 @@ class Pub extends BaseKey
 
 class Priv extends BaseKey
 
-  # The serialization order of the parameters in the private key
-  @ORDER : []
-  ORDER : Priv.ORDER
+  #-------------------
+
+  constructor : ({@seed, @key, @pub}) ->
 
   #-------------------
 
-  constructor : ({@x,@pub}) ->
+  @_alloc : (raw, pub) ->
+    # EDDSA private key is actually a 32-byte seed from which public
+    # and secret keys are generated. This way, any random 32-byte
+    # number is a valid private key.
+    sb = new SlicerBuffer raw
+    pre = sb.rem()
+    key_len = Math.ceil(sb.read_uint16() / 8)
+    if (n = key_len) != (m = kbnacl.sign.seedLength)
+      throw new Error "Expected #{m} bytes for EDDSA priv key, got #{n}."
+
+    seed = sb.read_buffer key_len
+    { publicKey, secretKey } = kbnacl.alloc({}).genFromSeed { seed }
+
+    unless util.bufeq_secure pub.key, publicKey
+      throw new Error 'Loaded EDDSA private key but it does not match the public key.'
+
+    # Along with the secret key, the seed has to be saved, so Priv can
+    # be serialized.
+    priv = new Priv { seed, key: new Buffer(secretKey), pub }
+
+    len = pre - sb.rem()
+    return [ priv, len ]
 
   #-------------------
 
   @alloc : (raw, pub) ->
-    return [ (new Error "unimplemented" ) ]
+    priv = len = err = null
+    try [priv, len] = Priv._alloc raw, pub
+    catch e then err = e
+    return [ err, priv, len ]
 
   #-------------------
 
   sign : (h, cb) ->
-    throw new Error "unimplemented"
+    nacl = kbnacl.alloc({ secretKey: @key })
+    ret = nacl.sign { payload: h }
+    # nacl.sign returns signature + the message, we want just the
+    # signature. gpg keeps the signature as two numbers, r and s, lets
+    # keep it that way instead of one 64-byte buffer. We could use
+    # {detached} argument to sign here, but it would still return one
+    # buffer as one "signature buffer" instead of two, so we might as
+    # well split/detach ourselves.
+    len = kbnacl.sign.signatureLength/2
+    cb [new Buffer(ret[0...len]), new Buffer(ret[len...len*2])]
+
+  #-------------------    
+
+  serialize : () ->
+    # We can't use base class method, because again, our keys are
+    # buffers, not bigints.
+    Buffer.concat [ 
+      uint_to_buffer(16, kbnacl.sign.seedLength),
+      @seed
+    ]
+
 
 #=================================================================
 
@@ -154,7 +200,19 @@ class Pair extends BaseKeyPair
 
   pad_and_sign : (data, {hasher}, cb) ->
     # XXX use the DSA recommendations for which hash to use
-    cb new Error "unimplemented"
+    # TODO: are we really padding this? is this secure?
+    # I just copied stuff over from dsa.iced
+    hasher or= SHA512
+    h = hasher data
+    await @priv.sign h, defer sig
+    [r, s] = sig
+    cb null, Buffer.concat [
+      # TODO: Ouch! use some encode_mpi_thing, but which one?
+      uint_to_buffer(16, r.length*8),
+      r,
+      uint_to_buffer(16, s.length*8),
+      s
+    ]
 
   #----------------
 
@@ -178,7 +236,7 @@ class Pair extends BaseKeyPair
     mpi_header_len = 2
     totlen = vlen + mpi_header_len
     if buf.length < totlen
-      err = new Error "need #{len} bytes per EdDSA value"
+      err = new Error "need #{totlen} bytes per EdDSA value"
     else if (bits = buf.readUInt16BE(0)) > 0x100 or bits < (0x100 - 40)
       err = new Error "Got an unexpected number of Bits for an EdDSA value: #{bits}"
     else
@@ -222,7 +280,12 @@ class Pair extends BaseKeyPair
   #----------------
 
   @generate : ({nbits, asp}, cb) ->
-    cb new Error "unimplemented"
+    await SRF().random_bytes kbnacl.sign.seedLength, defer seed
+    { publicKey, secretKey } = kbnacl.alloc({}).genFromSeed { seed }
+    pub = new Pub { key: new Buffer(publicKey) }
+    priv = new Priv { seed, key: new Buffer(secretKey), pub }
+    ret = new Pair { pub, priv }
+    cb null, ret
 
 #=================================================================
 
