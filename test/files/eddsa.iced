@@ -1,4 +1,5 @@
-{unbox,KeyManager,armor} = require '../../'
+{unbox,KeyManager,armor,ecc} = require '../../'
+{burn} = require '../../lib/openpgp/burner'
 
 ## Keys and sigs in this file generated with GPG v2.1.6
 
@@ -74,4 +75,47 @@ exports.verify_sigs = (T,cb) ->
     T.equal literals[0].toString(), msgs[i], "message #{i} was correct"
     T.assert literals[0].get_data_signer()?, "message #{i} was signed"
   cb()
-  
+
+#------------------------
+
+exports.generate_key_and_sign = (T, cb) ->
+  params = { userid: "Mr Robot", ecc: true, primary: { algo: ecc.EDDSA }, subkeys: [] }
+  await KeyManager.generate params, defer err, kb, warnings
+  T.no_error err, "no errors"
+  msg = "Chancellor on brink of second bailout for banks"
+  params = { msg: msg, sign_with: kb }
+  await burn params, defer err, payload, warnings
+  T.no_error err, "no errors"
+  await unbox { armored: payload, keyfetch: kb }, defer err, literals, warnings
+  T.no_error err, "no errors"
+  T.equal literals[0].toString(), msg, "message was correct"
+  T.assert literals[0].get_data_signer()?, "message was signed"
+  cb()
+
+#------------------------
+
+exports.sign_and_exchange = (T, cb) ->
+  params = { userid: "Ms Alice", ecc: true, primary: { algo: ecc.EDDSA }, subkeys: [] }
+  await KeyManager.generate params, defer err, alice, warnings
+  T.no_error err, "no errors"
+  msg = "LOVE-LETTER-FOR-YOU.txt.vbs"
+  params = { msg: msg, sign_with: alice }
+  await burn params, defer err, signed_mail, warnings
+  T.no_error err, "no errors"
+
+  await unbox { armored: signed_mail, keyfetch: alice }, defer err, literals, warnings
+
+  T.no_error err, "no errors"
+
+  # Export public key.
+  await alice.sign {}, defer err
+  await alice.export_public {}, defer err, alice_pub
+  T.no_error err, "no errors"
+
+  # Import to separate KeyManager and try to unbox the message.
+  await KeyManager.import_from_armored_pgp { armored: alice_pub }, defer err, bobs_km
+  await unbox { armored: signed_mail, keyfetch: bobs_km }, defer err, literals, warnings
+  T.no_error err, "no errors"
+  T.equal literals[0].toString(), msg, "message was correct"
+  T.assert literals[0].get_data_signer()?, "message was signed"
+  cb()
