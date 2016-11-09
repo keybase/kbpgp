@@ -1,5 +1,5 @@
 {SlicerBuffer} = require '../openpgp/buffer'
-{alloc_by_nbits,alloc_by_oid} = require './curves'
+{alloc_by_nbits,alloc_by_oid,alloc_by_name} = require './curves'
 
 #===========================================================================
 
@@ -49,9 +49,12 @@ exports.BaseEccKey = class BaseEccKey
 
 #===========================================================================
 
-exports.generate = ({nbits, asp, Pair }, cb) ->
+exports.generate = ({nbits, asp, curve_name, Pair }, cb) ->
   ret = null
-  [err,curve] = alloc_by_nbits nbits
+  if curve_name
+    [err,curve] = alloc_by_name curve_name
+  else
+    [err,curve] = alloc_by_nbits nbits
   unless err?
     await curve.generate defer { x, R }
     pub = new Pair.Pub { curve, R }

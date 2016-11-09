@@ -341,6 +341,10 @@ class PgpEngine extends Engine
       if not best? then best = k
       else if @key(k).is_preferable_to(@key(best)) then best = k
 
+    #if check(@primary)
+    #  if not best? or @key(@primary).is_preferable_to(@key(best))
+    #    best = @primary
+
     if not best? and check(@primary) then best = @primary
     return (if best? then @key(best) else null)
 
@@ -418,7 +422,8 @@ class KeyManager extends KeyManagerInterface
   # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED]
   #
   @generate : ({asp, userid, userids, primary, subkeys, ecc,
-                 sub_flags, nsubs, primary_flags, nbits, expire_in, generated}, cb) ->
+                 sub_flags, nsubs, primary_flags, nbits, expire_in, 
+                 generated, curve_name}, cb) ->
     asp = ASP.make asp
     F = C.key_flags
     KEY_FLAGS_STD = F.sign_data | F.encrypt_comm | F.encrypt_storage | F.auth
@@ -429,6 +434,7 @@ class KeyManager extends KeyManagerInterface
     primary.expire_in or= expire_in?.primary or K.key_defaults.primary.expire_in
     primary.algo or= (if ecc then ECDSA else RSA)
     primary.nbits or= nbits or K.key_defaults.primary.nbits[primary.algo.klass_name]
+    primary.curve_name = curve_name if curve_name
 
     sub_flags = (KEY_FLAGS_STD for i in [0...nsubs]) if nsubs? and not sub_flags?
     subkeys or= ( { flags } for flags in sub_flags)
@@ -451,7 +457,7 @@ class KeyManager extends KeyManagerInterface
 
     gen = ( {klass, section, params, primary}, cb) ->
       asp.section section
-      await params.algo.generate { asp, nbits: params.nbits }, defer err, key
+      await params.algo.generate { asp, nbits: params.nbits, curve_name: params.curve_name }, defer err, key
       unless err?
         my_generated = params.generated or generated
         lifespan = new Lifespan { generated : my_generated, expire_in : params.expire_in }

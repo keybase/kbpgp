@@ -374,6 +374,20 @@ OID_LOOKUP = {}
 for k,v of OIDS
   OID_LOOKUP[v.toString('hex')] = exports[k]
 
+OID_NAMES = {
+  # Start with gnupg names (openpgp-oid.c).
+  'Curve25519': cv25519
+  'NIST P-256': nist_p256
+  'NIST P-384': nist_p384
+  'brainpoolP256r1': brainpool_p256
+  'brainpoolP384r1': brainpool_p384
+  'brainpoolP512r1': brainpool_p512
+}
+
+# But also take our export names to have shorter "aliases".
+for k of OIDS
+  OID_NAMES[k] = exports[k]
+
 #=================================================================
 
 exports.alloc_by_oid = (oid) ->
@@ -401,7 +415,7 @@ exports.alloc_by_nbits = (nbits) ->
 
 exports.alloc_by_name = (name) ->
   err = curve = null
-  if (OIDS[name])? then curve = exports[name]()
+  if (a = OID_NAMES[name])? then curve = a()
   else err = new Error "Unknown curve name: #{name}"
   [err, curve]
 

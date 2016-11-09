@@ -212,8 +212,8 @@ class Pair extends BaseKeyPair
 
   #----------------------
 
-  @generate : ({nbits, asp}, cb) ->
-    await generate { nbits, asp, Pair }, defer err, pair
+  @generate : ({nbits, curve_name, asp}, cb) ->
+    await generate { nbits, asp, curve_name, Pair }, defer err, pair
     unless err?
       # Make sure we have algorithms for hasher and cipher
       pair.pub.apply_defaults()

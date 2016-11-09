@@ -4,6 +4,10 @@
 km = null
 top = require '../../lib/main'
 
+kbpgp = require '../..'
+C = kbpgp.const.openpgp
+ecc = kbpgp.ecc
+
 exports.import_private_cv25519_key_from_gpg = (T, cb) ->
   priv_key = """-----BEGIN PGP PRIVATE KEY BLOCK-----
 
@@ -96,3 +100,18 @@ WsvF/TEAEghhpkEZHEAg+QuyZKzrqwU+SqnVnffJyZVCeXH28/iTyoeIfJIFMpIi
   T.equal sign_fp.toString('hex'), start_fp.toString('hex'), "signed by the right person"
   cb()
 
+exports.generate_cv25519 = (T, cb) ->
+  F = C.key_flags
+  primary = {
+      flags: F.sign_data | F.certify_keys
+      algo: ecc.EDDSA
+  }
+  subkeys = [{
+      flags: F.encrypt_storage | F.encrypt_conn
+      algo: ecc.ECDH
+      curve_name: 'Curve25519'
+  }]
+
+  await KeyManager.generate { userid: "Mr Robot", primary, subkeys }, defer err, alice
+  T.assert alice.subkeys[0].key.pub.R instanceof Buffer, "actually a special curve key"
+  cb()
