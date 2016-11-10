@@ -21,7 +21,7 @@ HuWJ6zfGw5ZgWU9BWqs=
 -----END PGP SIGNATURE-----
 ""","""
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA512
+Hash: SHA512 
 
 foo
 -----BEGIN PGP SIGNATURE-----
