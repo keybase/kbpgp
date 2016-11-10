@@ -2,7 +2,7 @@
 # Clearsign ---
 #
 #    Like burner.iced, but for clear-signing only.
-# 
+#
 #==========================================================================================
 
 {make_esc} = require 'iced-error'
@@ -44,7 +44,7 @@ exports.dash_escape = dash_escape = (line) ->
 
 exports.dash_unescape_line = dash_unescape_line = (line) ->
   warn = false
-  out = if (m = line.match /^-( )?(.*?)$/)? 
+  out = if (m = line.match /^-( )?(.*?)$/)?
     warn = true unless m[1]?.length is 1
     m[2]
   else
@@ -172,7 +172,7 @@ class Verifier extends VerifierBase
   _make_hasher : (cb) ->
     err = null
     # MD5 is the default
-    h = @clearsign.headers.hash or 'MD5'
+    h = (@clearsign.headers.hash or 'MD5').trim()
     if not (@_sig.hasher = hashmod[h])?
       err = new Error "Unknown hash algorithm: #{h}"
     cb err
@@ -187,7 +187,7 @@ class Verifier extends VerifierBase
 
   _check_headers : (cb) ->
     err = null
-    for k,v of @clearsign.headers 
+    for k,v of @clearsign.headers
       if k isnt 'hash'
         err = new Error "Unallowed header: #{k}"
         break
