@@ -94,7 +94,7 @@ class KeyBlock
   _check_issuer : (i, packet, primary) ->
 
     if (fp = packet.get_issuer_fingerprint())?
-      if bufeq_secure(fp, (wanted = @primary.get_fingerprint()))?
+      if bufeq_secure(fp, (wanted = @primary.get_fingerprint()))
         return wanted
       else
         @warnings.push "Skipping signature by another issuer: #{fp.toString('hex')} != #{wanted?.toString('hex')}"

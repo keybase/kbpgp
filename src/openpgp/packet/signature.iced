@@ -661,13 +661,17 @@ class EmbeddedSignature extends SubPacket
 #------------
 
 class IssuerFingerprint extends SubPacket
-  constructor : (@fingerprint) ->
+  constructor : (@n, @fingerprint) ->
     super S.issuer_fingerprint
   @parse : (slice) ->
+    n = slice.read_uint8()
     fp = slice.consume_rest_to_buffer()
-    return new IssuerFingerprint fp
+    return new IssuerFingerprint n, fp
   _v_to_buffer : () ->
-    return @fingerprint
+    return Buffer.concat [
+      uint_to_buffer(8, @n)
+      @fingerprint
+    ]
 
 #===========================================================
 
