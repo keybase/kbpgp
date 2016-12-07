@@ -91,27 +91,48 @@ class KeyBlock
 
   #--------------------
 
+  _check_issuer : (i, packet, primary) ->
+
+    if (fp = packet.get_issuer_fingerprint())?
+      if bufeq_secure(fp, (wanted = @primary.get_fingerprint()))
+        return wanted
+      else
+        @warnings.push "Skipping signature by another issuer: #{fp.toString('hex')} != #{wanted?.toString('hex')}"
+        return null
+
+    if (iid = packet.get_issuer_key_id())?
+      if bufeq_secure(iid, (pid = @primary.get_key_id()))
+        return pid
+      else
+        @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
+        return null
+
+    @warnings.push "Signature is missing an issuer (at packet=#{i})"
+    return null
+
+  #--------------------
+
   _verify_sigs : (cb) ->
     err = null
     working_set = []
     n_sigs = 0
     # No sense in processing packet 1, since it's the primary key!
     for p,i in @packets[1...] when not err?
+
       if not p.is_signature()
         if n_sigs > 0
           n_sigs = 0
           working_set = []
         working_set.push p unless p.is_duplicate_primary()
-      else if not bufeq_secure((iid = p.get_issuer_key_id()), (pid = @primary.get_key_id()))
-        n_sigs++
-        @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
-      else
-        n_sigs++
+        continue
+
+      n_sigs++
+      if (issuer_id = @_check_issuer(i, p, @primary))?
         p.key = @primary.key
         p.primary = @primary
         await p.verify working_set, defer(tmp), @opts
         if tmp?
-          msg = "Signature failure in packet #{i}: #{tmp.message} (#{pid.toString('hex')})"
+          msg = "Signature failure in packet #{i}: #{tmp.message} (#{issuer_id.toString('hex')})"
           @warnings.push msg
           # discard the signature, see the above comment...
         else
