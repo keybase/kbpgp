@@ -1,8 +1,11 @@
-## 2.0.59 (2016-12-7)
+## 2.0.60 (2016-12-7)
  
 Feature:
-  - Curve25519 support
   - Subpacket33 support
+
+## 2.0.59 (2016-11-10)
+
+  - Curve25519 support
 
 Bugfix: 
   - Allow a space after `Hash: SHA256 ` field in headers of clearsigned docs
