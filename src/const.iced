@@ -47,6 +47,7 @@ exports.openpgp = openpgp =
     features : 30
     signature_target : 31
     embedded_signature : 32
+    issuer_fingerprint : 33
     experimental_low : 101
     experimental_high : 110
   sig_types :  # See RFC 4880 5.2.1. Signature Types
@@ -104,7 +105,7 @@ exports.openpgp = openpgp =
     SEIPD : 1
     one_pass_sig : 3
     keymaterial : V4 : 4
-    signature : 
+    signature :
       V2 : 2
       V3 : 3
       V4 : 4
@@ -112,7 +113,7 @@ exports.openpgp = openpgp =
     key : 0x99
     userid : 0xb4
     user_attribute : 0xd1
-  key_flags : 
+  key_flags :
     certify_keys : 0x1
     sign_data : 0x2
     encrypt_comm : 0x4
@@ -124,7 +125,7 @@ exports.openpgp = openpgp =
     modification_detection : 0x1
   key_server_preferences:
     no_modify : 0x80
-  compression : 
+  compression :
     none : 0
     zip  : 1
     zlib : 2
@@ -151,25 +152,25 @@ exports.kb =
   key_defaults:
     primary :
       expire_in : 0
-      nbits : 
+      nbits :
         RSA : 4096
         ECDSA : 384
         DSA : 2048
     sub :
       expire_in : 24*60*60*365*8
-      nbits : 
+      nbits :
         RSA : 2048
         ECDH : 256
         ECDSA : 256
         DSA : 2048
         ELGAMAL : 2048
-  kid : 
+  kid :
     version : 1
     trailer : 0x0a
     algo : 8
     len : 32
 
-exports.ops = 
+exports.ops =
   encrypt : 0x1
   decrypt : 0x2
   verify  : 0x4
@@ -179,7 +180,7 @@ exports.header =
   version : "Keybase OpenPGP"
   comment : "https://keybase.io/crypto"
 
-config = 
+config =
   default_key_expire_in: 24*60*60*365*4
 
 (exports[k] = v for k,v of config)

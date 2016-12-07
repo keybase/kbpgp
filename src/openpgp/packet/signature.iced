@@ -42,6 +42,7 @@ class Signature_v2_or_v3 extends Packet
   #---------------------
 
   get_issuer_key_id : () -> @key_id
+  get_issuer_fingerprint : () -> null
 
   #---------------------
 
@@ -377,6 +378,11 @@ class Signature extends Packet
   get_issuer_key_id : () ->
     @subpacket_index?.all[C.sig_subpacket.issuer]?.id
 
+  #---------------------
+
+  get_issuer_fingerprint : () ->
+    @subpacket_index.all[S.issuer_fingerprint]?.fingerprint
+
 #===========================================================
 
 class SubPacket
@@ -652,6 +658,17 @@ class EmbeddedSignature extends SubPacket
     sig = Signature.parse(slice)
     new EmbeddedSignature { sig, rawsig }
 
+#------------
+
+class IssuerFingerprint extends SubPacket
+  constructor : (@fingerprint) ->
+    super S.issuer_fingerprint
+  @parse : (slice) ->
+    fp = slice.consume_rest_to_buffer()
+    return new IssuerFingerprint fp
+  _v_to_buffer : () ->
+    return @fingerprint
+
 #===========================================================
 
 exports.Signature = Signature
@@ -724,6 +741,7 @@ class Parser
       when S.features then Features
       when S.signature_target then SignatureTarget
       when S.embedded_signature then EmbeddedSignature
+      when S.issuer_fingerprint then IssuerFingerprint
       else
         if type >= S.experimental_low and type <= S.experimental_high then Experimental
         else throw new Error "Unknown signature subpacket: #{type}"
