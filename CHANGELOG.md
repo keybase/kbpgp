@@ -1,3 +1,8 @@
+## 2.0.61
+
+Security Bugfix:
+  - Handle key_revocation signatures on primaries, which were previously being ignored.
+
 ## 2.0.60 (2016-12-7)
  
 Feature:

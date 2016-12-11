@@ -3,7 +3,7 @@
 C = require('../../const').openpgp
 S = C.sig_subpacket
 {encode_length,make_time_packet} = require '../util'
-{unix_time,uint_to_buffer} = require '../../util'
+{unix_time,uint_to_buffer,bufeq_secure} = require '../../util'
 {alloc_or_throw,SHA512,SHA1} = require '../../hash'
 asymmetric = require '../../asymmetric'
 util = require 'util'
@@ -234,10 +234,10 @@ class Signature extends Packet
     @data_packets = switch @type
       when T.binary_doc, T.canonical_text then data_packets
 
-      when T.issuer, T.persona, T.casual, T.positive, T.certificate_revocation
+      when T.issuer, T.persona, T.casual, T.positive, T.certificate_revocation, T.key_revocation
 
-        if (n = data_packets.length) isnt 1
-          err = new Error "Only expecting one UserID-style packet in a self-sig (got #{n})"
+        if (n = data_packets.length) > 1
+          err = new Error "Only expecting one (or no) UserID-style packet(s) in a self-sig (got #{n})"
           []
         else
           # We need to use the primary key maybe several times,
@@ -314,6 +314,11 @@ class Signature extends Packet
         when T.subkey_revocation
           subkey.mark_revoked sig
 
+        when T.key_revocation
+          if bufeq_secure((iki = @get_issuer_key_id()), @primary.get_key_id())
+            @primary.mark_revoked sig
+          else
+            err = new Error "can't revoke key ID #{iki.toString('hex')} (!= #{@primary.get_key_id().toString('hex')})"
     cb err
 
   #-----------------
