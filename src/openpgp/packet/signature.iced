@@ -315,15 +315,23 @@ class Signature extends Packet
           subkey.mark_revoked sig
 
         when T.key_revocation
-          if bufeq_secure((iki = @get_issuer_key_id()), @primary.get_key_id())
+          if @issuer_matches_key(@primary)
             @primary.mark_revoked sig
           else
+            iki = @get_issuer_key_id()
             err = new Error "can't revoke key ID #{iki.toString('hex')} (!= #{@primary.get_key_id().toString('hex')})"
     cb err
 
   #-----------------
 
   is_signature : () -> true
+
+  #-----------------
+
+  issuer_matches_key : (key) ->
+    if (fp = @get_issuer_fingerprint())?
+      return false unless bufeq_secure(fp, @primary.get_fingerprint())
+    return bufeq_secure(@get_issuer_key_id(), @primary.get_key_id())
 
   #-----------------
 
