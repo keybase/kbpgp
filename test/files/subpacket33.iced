@@ -24,7 +24,7 @@
 #   subpkt 16 len 8 (issuer key ID F4C7E8F4AC11D4F3)
 #   data: [2048 bits]
 #
-sig = """-----BEGIN PGP MESSAGE-----
+sig0 = """-----BEGIN PGP MESSAGE-----
 
 owEBUwGs/pANAwAIAfTH6PSsEdTzAcsMYgBYSEwKaGVsbG8KiQEzBAABCAAdFiEE
 moLHS3XjQQwcADOM9Mfo9KwR1PMFAlhITAoACgkQ9Mfo9KwR1PNK2AgA4cTQNfnu
@@ -38,7 +38,7 @@ YcO0GnR3O1jT9w==
 -----END PGP MESSAGE-----
 """
 
-key = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+key0 = """-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBFhIScUBCADp3DNt8ENU2U4kuWzdIe6SXQQ9klLyOcm4MzRWJa4kvHjVvaG8
 CFHeluTITvXk+HYS06a+w4h7uDj6bQRiQTu+byvj2NuvWjgfiVvkD2BLZ5gsgM7N
@@ -70,12 +70,14 @@ gdDIgUoBsCGhjerF6Qvcj1dx
 -----END PGP PUBLIC KEY BLOCK-----
 """
 
-exports.test_subpacket33 = (T,cb) ->
+test = ({T,sig,key},cb) ->
   await KeyManager.import_from_armored_pgp { armored : key }, T.esc(defer(km), cb, "load key taco test")
   T.waypoint "loaded key"
-  await unbox { keyfetch : km, armored : sig}, T.esc(defer(literals), cb, "verify")
+  await unbox { keyfetch : km, armored : sig }, T.esc(defer(literals), cb, "verify")
   T.assert (literals[0].get_data_signer()?), "was signed!"
   fp1 = literals[0].get_data_signer()?.get_key_manager()?.get_pgp_fingerprint()?.toString("hex")
   fp2 = km.get_pgp_fingerprint().toString("hex")
   T.equal fp1, fp2, "Fingerprint was right"
   cb()
+
+exports.test_subpacket33 = (T,cb) -> test { T, key: key0, sig : sig0 }, cb
