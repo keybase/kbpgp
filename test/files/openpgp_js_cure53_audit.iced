@@ -190,8 +190,8 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 -----END PGP SIGNATURE-----
 """
   await do_message { keyfetch : ring, armored : x }, defer err, outmsg
-  T.no_error err, "we're somewhat loosey-goosey ignoring spaces in the clearsign header"
-  T.waypoint "success 3"
+  T.error err, "control characters not allowed in armor"
+  T.waypoint "fail 7"
 
   #----------
 
