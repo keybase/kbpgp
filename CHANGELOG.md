@@ -1,3 +1,8 @@
+## 2.0.62 (2016-12-20)
+
+Upgrades:
+  - New dearmorer (reject UTF8 chars in comments) and make tests pass
+
 ## 2.0.61 (2016-12-12)
 
 Security Bugfix:
