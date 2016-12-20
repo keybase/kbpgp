@@ -190,7 +190,8 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 -----END PGP SIGNATURE-----
 """
   await do_message { keyfetch : ring, armored : x }, defer err, outmsg
-  T.error err, "control characters not allowed in armor"
+  T.assert err?, "control characters not allowed in armor"
+  T.assert (err.message.indexOf("invalid character in armor") >= 0), "found invalid char"
   T.waypoint "fail 7"
 
   #----------
