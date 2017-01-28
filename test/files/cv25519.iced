@@ -77,6 +77,39 @@ exports.roundtrip_cv25519_with_sign = (T, cb) ->
   T.equal sign_fp.toString('hex'), start_fp.toString('hex'), "signed by the right person"
   cb()
 
+exports.decrypt_padded_coord_cv25519 = (T, cb) ->
+  # This test is similar to decrypt_padded_v_521 in test/files/p521.iced
+
+  # Notice the 'AAAAAAAAA...' in the armored message - the compressed
+  # coordinate for cv25519 ECDH has been padded with 15 zeros. KBPGP
+  # used to be strict about this and fail with:
+
+  # { Error: Need 263 bits for this curve; got 423
+  # at Curve25519.exports.Curve25519.Curve25519._mpi_point_from_slicer_buffer
+
+  # But this works perfectly fine in GPG. To emulate this behavior we
+  # strip the extra zeros in front of the number before passing the
+  # buffer to NaCl.
+
+  msg = """-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.0.62
+Comment: https://keybase.io/crypto
+
+wXIDR1BH23/8iIwSAadAAAAAAAAAAAAAAAAAAAAAAAAAAADLIDQvYriXrjuoKrzy
+3zByzC4YnEhRPlfnJYV6DSoNITD8rW/hd+znh+TvtvQRe1O99JCARfN3idrZLOD0
+8TtaRr+9tLnrSZSojPwXG9cGIM7SSgHCEY+BmE4JzS7ycP2US4PSnGaA+tzKEfYu
+Sw2kTR6zDozs4Qw/EBc7mDHVfuRTuEeMC25U8G9wbSc0nYqTpPbDab1SIxY1nReA
+=i7qi
+-----END PGP MESSAGE-----
+
+
+"""
+
+  await do_message { armored: msg, keyfetch: km }, defer err, msg
+  T.no_error err
+  T.equal msg[0].toString(), "wow so many 0s", "got the right plaintext"
+  cb()
+
 exports.decrypt_verify_gpg2_issued_payload = (T, cb) ->
   cipher = """-----BEGIN PGP MESSAGE-----
 
@@ -115,3 +148,4 @@ exports.generate_cv25519 = (T, cb) ->
   await KeyManager.generate { userid: "Mr Robot", primary, subkeys }, defer err, alice
   T.assert alice.subkeys[0].key.pub.R instanceof Buffer, "actually a special curve key"
   cb()
+

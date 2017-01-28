@@ -49,3 +49,43 @@ exports.roundtrip_nistp521 = (T, cb) ->
   T.no_error err
   T.equal plaintext, msg[0].toString(), "decrypted text matches plaintext"
   cb()
+
+exports.decrypt_padded_v_521 = (T, cb) ->
+  ###
+  This weird message (notice the "AAAAAA..." in payload) is a valid
+  ECDH encrypted message, but the secret coordinates are encoded with
+  a lot more bits that the curve's coordinate size. GPG and go-crypto
+  take this message without problems, but KBPGP is a bit more strict
+  and fails with:
+
+  Error: Need 1059 bits for this curve; got 1459
+  at Curve.exports.Curve.Curve._mpi_point_from_slicer_buffer
+
+  istack:
+   [ 'Priv::decrypt',
+     'Message::decrypt',
+     'Message:process',
+     'Message::parse_and_process' ] }
+  ###
+
+  armored_msg = """-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.0.58
+Comment: https://keybase.io/crypto
+
+wcA0A6pi0WoSlxTXEgWzBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/ZTuFZa3
+go5bAv8SLZd5vTQzjQiqiXfaQUX3dQu+zytgEeiugIshlJ7JykTPGhdQFVSiKQYe
+a4RKpgbn8SkNhyIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaR1kL+5vnf9E0wv
+vGDKg1jo0uEGYVodxTwk8QuqbxWiCT/jOH9kybjECSPlkDkbUIOezOfaTlwde0Wo
+XUNWZ/WrMOJHerpQvMvPNjEwMSGnsIZPh8/Hafj7j8OauMG5EWgCrzsxv1mgsRXP
+QkNog/5dM9JIAcT8RpDaFecdhRag6ZPuRKmNuhiFtR7o0spcqX2UkJ3FPB7UydX3
+ch9PkTNL1BVD++JqYQE9eaIqlCTAsHwCgO6pQkQqPUvB
+=y7cW
+-----END PGP MESSAGE-----
+
+
+"""
+
+  await top.unbox { armored: armored_msg, keyfetch: km }, defer err, plain
+  T.no_error err
+  T.equal "purpleschala", plain[0].toString(), "decrypted text matches plaintext"
+  cb()
