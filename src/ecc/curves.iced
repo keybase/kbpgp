@@ -173,7 +173,7 @@ exports.Curve25519 = class Curve25519 extends Curve
       throw new Error "Not enough bytes for 25519 point. Need at least #{point_bytes}, got #{n_bytes - 1}."
     else if skip_bytes > 0
       padding = sb.read_buffer(skip_bytes)
-      if not padding.every((x) -> x == 0)
+      unless padding.every((x) -> x is 0)
         # This is not compatible with GnuPG - gpg2 will just skip
         # bytes, shall they be 0s or not.
         throw new Error "Number is too big to be a 25519 point."
