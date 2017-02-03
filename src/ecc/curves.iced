@@ -35,6 +35,9 @@ exports.Curve = class Curve extends base.Curve
     # Rounding up needed for p521, and 3 bits needed to represent the leading 0x4
     2*@mpi_coord_bit_size() + 3
 
+  mpi_byte_size : () ->
+    Math.ceil(@mpi_bit_size() / 8)
+
   #----------------------------------
 
   mpi_coord_byte_size : () -> Math.ceil(@nbits()/8)
@@ -52,11 +55,14 @@ exports.Curve = class Curve extends base.Curve
   _mpi_point_from_slicer_buffer : (sb) ->
     n_bits = sb.read_uint16()
     n_bytes = Math.ceil(n_bits/8)
+    if n_bytes isnt (b = @mpi_byte_size())
+      bits = @mpi_bit_size()
+      throw new Error "Need #{b} bytes (#{bits} bits) for this curve; got #{n_bytes} (#{n_bits} bits)"
     if sb.read_uint8() isnt 0x4
       throw new Error "Can only handle 0x4 prefix for MPI representations"
-    n_coord_bytes = (n_bytes - 1) / 2 # -1 byte for 0x4 prefix
-    [x,y] = [ BigInteger.fromBuffer(sb.read_buffer(n_coord_bytes)), BigInteger.fromBuffer(sb.read_buffer(n_coord_bytes))]
-    point = @mkpoint { x, y } 
+    coord_bytes = @mpi_coord_byte_size()
+    [x,y] = [ BigInteger.fromBuffer(sb.read_buffer(coord_bytes)), BigInteger.fromBuffer(sb.read_buffer(coord_bytes)) ]
+    point = @mkpoint { x, y} 
     unless @isOnCurve point
       throw new Error "Given ECC point isn't on the given curve; data corruption detected."
     [ null, point ]
@@ -164,23 +170,16 @@ exports.Curve25519 = class Curve25519 extends Curve
   _mpi_point_from_slicer_buffer : (sb) ->
     n_bits = sb.read_uint16()
     n_bytes = Math.ceil(n_bits/8)
+    if n_bytes isnt (b = @mpi_byte_size())
+      bits = @mpi_bit_size()
+      throw new Error "Need #{b} bytes (#{bits} bits) for this curve; got #{n_bytes} (#{n_bits} bits)"
     if sb.read_uint8() isnt 0x40
       throw new Error "Can only handle 0x40 prefix for 25519 MPI representations"
 
-    point_bytes = @nbits()/8
-    skip_bytes = n_bytes - point_bytes - 1
-    if skip_bytes < 0
-      throw new Error "Not enough bytes for 25519 point. Need at least #{point_bytes}, got #{n_bytes - 1}."
-    else if skip_bytes > 0
-      padding = sb.read_buffer(skip_bytes)
-      unless padding.every((x) -> x is 0)
-        # This is not compatible with GnuPG - gpg2 will just skip
-        # bytes, shall they be 0s or not.
-        throw new Error "Number is too big to be a 25519 point."
-
     # Point is just a 32-byte buffer. We also do not validate it,
     # because DJB told us not to: https://cr.yp.to/ecdh.html
-    point = sb.read_buffer(point_bytes)
+    n_bytes = @mpi_coord_byte_size()
+    point = sb.read_buffer(n_bytes)
 
     [ null, point ]
 
