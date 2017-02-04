@@ -81,15 +81,8 @@ exports.decrypt_padded_coord_cv25519 = (T, cb) ->
   # This test is similar to decrypt_padded_v_521 in test/files/p521.iced
 
   # Notice the 'AAAAAAAAA...' in the armored message - the compressed
-  # coordinate for cv25519 ECDH has been padded with 15 zeros. KBPGP
-  # used to be strict about this and fail with:
-
-  # { Error: Need 263 bits for this curve; got 423
-  # at Curve25519.exports.Curve25519.Curve25519._mpi_point_from_slicer_buffer
-
-  # But this works perfectly fine in GPG. To emulate this behavior we
-  # strip the extra zeros in front of the number before passing the
-  # buffer to NaCl.
+  # coordinate for cv25519 ECDH has been padded with 15 zeros. GnuPG
+  # will parse this but we are more strict about coordinate sizes.
 
   msg = """-----BEGIN PGP MESSAGE-----
 Version: Keybase OpenPGP v2.0.62
@@ -105,9 +98,11 @@ Sw2kTR6zDozs4Qw/EBc7mDHVfuRTuEeMC25U8G9wbSc0nYqTpPbDab1SIxY1nReA
 
 """
 
+  expected_err = "Error: Need 33 bytes (263 bits) for this curve; got 53 (423 bits)"
+
   await do_message { armored: msg, keyfetch: km }, defer err, msg
-  T.no_error err
-  T.equal msg[0].toString(), "wow so many 0s", "got the right plaintext"
+  T.assert err?, "decryption should fail"
+  T.equal err.toString(), expected_err
   cb()
 
 exports.decrypt_coord_too_short_cv25519 = (T, cb) ->
@@ -137,6 +132,7 @@ exports.decrypt_coord_too_big_cv25519 = (T, cb) ->
   # Somehow the V ended up being bigger than 256 bits. It will pass in
   # GnuPG though... apparently it just skips bytes and uses last 32 as
   # coordinate.
+
   msg = """-----BEGIN PGP MESSAGE-----
 Version: Keybase OpenPGP v2.0.62
 Comment: https://keybase.io/crypto
@@ -152,6 +148,30 @@ fm/yDg7EKpgIu9e6IbQsi7wcX8uhWL0L/ByBAxk=
 
   await do_message { armored: msg, keyfetch: km }, defer err, msg
   T.assert err?, "decryption should fail"
+  cb()
+
+exports.decrypt_coord_byte_size_exact_cv25519 = (T, cb) ->
+  # The MPI is good, but size is not encoded in exact number of bits,
+  # but rounded to nearest byte instead. It's valid for GnuPG. KBPGP
+  # used to fail with "Error: Need 263 bits for this curve; got 264",
+  # but it should pass now.
+
+  msg = """-----BEGIN PGP MESSAGE-----
+
+wU4DR1BH23/8iIwSAQhAzXpF7EJZNZo/5HD3VImBL5JwpilrRrfgq+Ea3XTvN2Yg
+JXtgubB7xqs378PnKkYJ1pwzuNPBTUrcv5CA+vmvnF/S4AHk4hwIYx8CAW8tkUQG
+7MoF/uE8pODU4FzhjIngFuLARTD44F3kfIs+8lLz3F0/SVX7fnflHeAB4qeWKtTg
+r+FloOA24NbgJORf9C7DGOMbdvITIpUL2xqi4juNgOjhRysA
+=a0uR
+-----END PGP MESSAGE-----
+
+"""
+
+  plaintext = "Hello Encrypted World!~"
+
+  await do_message { armored: msg, keyfetch: km }, defer err, msg
+  T.no_error err
+  T.equal plaintext, msg[0].toString(), "decrypted text matches plaintext"
   cb()
 
 exports.decrypt_verify_gpg2_issued_payload = (T, cb) ->

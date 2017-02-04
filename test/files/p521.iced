@@ -54,18 +54,8 @@ exports.decrypt_padded_v_521 = (T, cb) ->
   ###
   This weird message (notice the "AAAAAA..." in payload) is a valid
   ECDH encrypted message, but the secret coordinates are encoded with
-  a lot more bits that the curve's coordinate size. GPG and go-crypto
-  take this message without problems, but KBPGP is a bit more strict
-  and fails with:
-
-  Error: Need 1059 bits for this curve; got 1459
-  at Curve.exports.Curve.Curve._mpi_point_from_slicer_buffer
-
-  istack:
-   [ 'Priv::decrypt',
-     'Message::decrypt',
-     'Message:process',
-     'Message::parse_and_process' ] }
+  a lot more bits that the curve's coordinate size. GnuPG will parse
+  this but we are more strict about coordinate sizes.
   ###
 
   armored_msg = """-----BEGIN PGP MESSAGE-----
@@ -85,7 +75,30 @@ ch9PkTNL1BVD++JqYQE9eaIqlCTAsHwCgO6pQkQqPUvB
 
 """
 
+  expected_err = "Error: Need 133 bytes (1059 bits) for this curve; got 183 (1459 bits)"
+
   await top.unbox { armored: armored_msg, keyfetch: km }, defer err, plain
+  T.assert err?, "decryption should fail"
+  T.equal err.toString(), expected_err
+  cb()
+
+exports.decrypt_coord_byte_size_exact_521 = (T, cb) ->
+  armored_msg = """-----BEGIN PGP MESSAGE-----
+
+wbIDqmLRahKXFNcSBCgEAUbkZ4uyBJlNYU8nTlTyAhDMmHzz8tiM3XgfPPf7uskM
+9PD/Ijuw+qK5WzhjQXRkQW8GI3qmcd5sSIAfQHXeaNthALvr7xdu7D8KNQOCJ6o5
+7CU7DE+M4UMq5HKrZFJ8CQxC4tbRqQO2ntKLNhW3uexMC1Q4G6VXcqoGLETt4ERK
+K0xRIDLCRZiIHCCmsxvxD86gOloxFJcxLcVwytsHogq3NZF10uAB5N0tPTGRn2Zb
+Z7mjg2Zryt3hEk7gfuAb4Zeq4CDiXftOiOBe5EeDqcQOqfgHszIM0DEFv63g0eL/
+zW884JnhgJ/gWuCE4E7ksBgxEKa3T5Wgn/gli96KXuJUXaLK4QU+AA==
+=edZZ
+-----END PGP MESSAGE-----
+
+"""
+
+  plaintext = "Hello Encrypted World!~"
+
+  await do_message { armored: armored_msg, keyfetch: km }, defer err, msg
   T.no_error err
-  T.equal "purpleschala", plain[0].toString(), "decrypted text matches plaintext"
+  T.equal plaintext, msg[0].toString(), "decrypted text matches plaintext"
   cb()
