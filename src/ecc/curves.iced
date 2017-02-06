@@ -35,6 +35,9 @@ exports.Curve = class Curve extends base.Curve
     # Rounding up needed for p521, and 3 bits needed to represent the leading 0x4
     2*@mpi_coord_bit_size() + 3
 
+  mpi_byte_size : () ->
+    Math.ceil(@mpi_bit_size() / 8)
+
   #----------------------------------
 
   mpi_coord_byte_size : () -> Math.ceil(@nbits()/8)
@@ -51,12 +54,14 @@ exports.Curve = class Curve extends base.Curve
   #
   _mpi_point_from_slicer_buffer : (sb) ->
     n_bits = sb.read_uint16()
-    if n_bits isnt (b = @mpi_bit_size())
-      throw new Error "Need #{b} bits for this curve; got #{n_bits}"
+    n_bytes = Math.ceil(n_bits/8)
+    if n_bytes isnt (b = @mpi_byte_size())
+      bits = @mpi_bit_size()
+      throw new Error "Need #{b} bytes (#{bits} bits) for this curve; got #{n_bytes} (#{n_bits} bits)"
     if sb.read_uint8() isnt 0x4
       throw new Error "Can only handle 0x4 prefix for MPI representations"
-    n_bytes = @mpi_coord_byte_size()
-    [x,y] = [ BigInteger.fromBuffer(sb.read_buffer(n_bytes)), BigInteger.fromBuffer(sb.read_buffer(n_bytes)) ]
+    coord_bytes = @mpi_coord_byte_size()
+    [x,y] = [ BigInteger.fromBuffer(sb.read_buffer(coord_bytes)), BigInteger.fromBuffer(sb.read_buffer(coord_bytes)) ]
     point = @mkpoint { x, y} 
     unless @isOnCurve point
       throw new Error "Given ECC point isn't on the given curve; data corruption detected."
@@ -164,8 +169,10 @@ exports.Curve25519 = class Curve25519 extends Curve
 
   _mpi_point_from_slicer_buffer : (sb) ->
     n_bits = sb.read_uint16()
-    if n_bits isnt (b = @mpi_bit_size())
-      throw new Error "Need #{b} bits for this curve; got #{n_bits}"
+    n_bytes = Math.ceil(n_bits/8)
+    if n_bytes isnt (b = @mpi_byte_size())
+      bits = @mpi_bit_size()
+      throw new Error "Need #{b} bytes (#{bits} bits) for this curve; got #{n_bytes} (#{n_bits} bits)"
     if sb.read_uint8() isnt 0x40
       throw new Error "Can only handle 0x40 prefix for 25519 MPI representations"
 

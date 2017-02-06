@@ -49,3 +49,56 @@ exports.roundtrip_nistp521 = (T, cb) ->
   T.no_error err
   T.equal plaintext, msg[0].toString(), "decrypted text matches plaintext"
   cb()
+
+exports.decrypt_padded_v_521 = (T, cb) ->
+  ###
+  This weird message (notice the "AAAAAA..." in payload) is a valid
+  ECDH encrypted message, but the secret coordinates are encoded with
+  a lot more bits that the curve's coordinate size. GnuPG will parse
+  this but we are more strict about coordinate sizes.
+  ###
+
+  armored_msg = """-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.0.58
+Comment: https://keybase.io/crypto
+
+wcA0A6pi0WoSlxTXEgWzBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/ZTuFZa3
+go5bAv8SLZd5vTQzjQiqiXfaQUX3dQu+zytgEeiugIshlJ7JykTPGhdQFVSiKQYe
+a4RKpgbn8SkNhyIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaR1kL+5vnf9E0wv
+vGDKg1jo0uEGYVodxTwk8QuqbxWiCT/jOH9kybjECSPlkDkbUIOezOfaTlwde0Wo
+XUNWZ/WrMOJHerpQvMvPNjEwMSGnsIZPh8/Hafj7j8OauMG5EWgCrzsxv1mgsRXP
+QkNog/5dM9JIAcT8RpDaFecdhRag6ZPuRKmNuhiFtR7o0spcqX2UkJ3FPB7UydX3
+ch9PkTNL1BVD++JqYQE9eaIqlCTAsHwCgO6pQkQqPUvB
+=y7cW
+-----END PGP MESSAGE-----
+
+
+"""
+
+  expected_err = "Error: Need 133 bytes (1059 bits) for this curve; got 183 (1459 bits)"
+
+  await top.unbox { armored: armored_msg, keyfetch: km }, defer err, plain
+  T.assert err?, "decryption should fail"
+  T.equal err.toString(), expected_err
+  cb()
+
+exports.decrypt_coord_byte_size_exact_521 = (T, cb) ->
+  armored_msg = """-----BEGIN PGP MESSAGE-----
+
+wbIDqmLRahKXFNcSBCgEAUbkZ4uyBJlNYU8nTlTyAhDMmHzz8tiM3XgfPPf7uskM
+9PD/Ijuw+qK5WzhjQXRkQW8GI3qmcd5sSIAfQHXeaNthALvr7xdu7D8KNQOCJ6o5
+7CU7DE+M4UMq5HKrZFJ8CQxC4tbRqQO2ntKLNhW3uexMC1Q4G6VXcqoGLETt4ERK
+K0xRIDLCRZiIHCCmsxvxD86gOloxFJcxLcVwytsHogq3NZF10uAB5N0tPTGRn2Zb
+Z7mjg2Zryt3hEk7gfuAb4Zeq4CDiXftOiOBe5EeDqcQOqfgHszIM0DEFv63g0eL/
+zW884JnhgJ/gWuCE4E7ksBgxEKa3T5Wgn/gli96KXuJUXaLK4QU+AA==
+=edZZ
+-----END PGP MESSAGE-----
+
+"""
+
+  plaintext = "Hello Encrypted World!~"
+
+  await do_message { armored: armored_msg, keyfetch: km }, defer err, msg
+  T.no_error err
+  T.equal plaintext, msg[0].toString(), "decrypted text matches plaintext"
+  cb()

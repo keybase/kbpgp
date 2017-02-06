@@ -77,6 +77,103 @@ exports.roundtrip_cv25519_with_sign = (T, cb) ->
   T.equal sign_fp.toString('hex'), start_fp.toString('hex'), "signed by the right person"
   cb()
 
+exports.decrypt_padded_coord_cv25519 = (T, cb) ->
+  # This test is similar to decrypt_padded_v_521 in test/files/p521.iced
+
+  # Notice the 'AAAAAAAAA...' in the armored message - the compressed
+  # coordinate for cv25519 ECDH has been padded with 15 zeros. GnuPG
+  # will parse this but we are more strict about coordinate sizes.
+
+  msg = """-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.0.62
+Comment: https://keybase.io/crypto
+
+wXIDR1BH23/8iIwSAadAAAAAAAAAAAAAAAAAAAAAAAAAAADLIDQvYriXrjuoKrzy
+3zByzC4YnEhRPlfnJYV6DSoNITD8rW/hd+znh+TvtvQRe1O99JCARfN3idrZLOD0
+8TtaRr+9tLnrSZSojPwXG9cGIM7SSgHCEY+BmE4JzS7ycP2US4PSnGaA+tzKEfYu
+Sw2kTR6zDozs4Qw/EBc7mDHVfuRTuEeMC25U8G9wbSc0nYqTpPbDab1SIxY1nReA
+=i7qi
+-----END PGP MESSAGE-----
+
+
+"""
+
+  expected_err = "Error: Need 33 bytes (263 bits) for this curve; got 53 (423 bits)"
+
+  await do_message { armored: msg, keyfetch: km }, defer err, msg
+  T.assert err?, "decryption should fail"
+  T.equal err.toString(), expected_err
+  cb()
+
+exports.decrypt_coord_too_short_cv25519 = (T, cb) ->
+  # This time the coordinate is too short. This does not pass in GnuPG.
+  # It actually is a valid V:
+  # 00197794700e0f6d7409b1af8ba958862058840357d93e374e4af39b3c6be246
+  # But the first 00 is dropped when encoding point.
+
+  msg = """-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.0.62
+Comment: https://keybase.io/crypto
+
+wV0DR1BH23/8iIwSAP9AGXeUcA4PbXQJsa+LqViGIFiEA1fZPjdOSvObPGviRjDh
+Q7OyQAbgeaxYfpagOf8Cnt+CBwRUPU91D1BIr9yj7p5bm0/AI8YuRz6mO09LjxfS
+SgEaRMTqZ6PbEmCEJIZPijvFQkDTwSVBnSQpzmSYX897PRfMPTZybmFX4BurM9js
+xeRNX6s2Gmf3MOJDDsICvEU3M6163RmpIWBY
+=pFxy
+-----END PGP MESSAGE-----
+
+"""
+
+  await do_message { armored: msg, keyfetch: km }, defer err, msg
+  T.assert err?, "decryption should fail"
+  cb()
+
+exports.decrypt_coord_too_big_cv25519 = (T, cb) ->
+  # Somehow the V ended up being bigger than 256 bits. It will pass in
+  # GnuPG though... apparently it just skips bytes and uses last 32 as
+  # coordinate.
+
+  msg = """-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.0.62
+Comment: https://keybase.io/crypto
+
+wV8DR1BH23/8iIwSAQ9AAc1Jzd7d9cTVtaitnuILUNMndMBjgnOeTjGaN4LsNd8V
+MEOKiugoecp68CzBl4acXwwEiO4bjVT1QUNSCWyn9/iR3UNKpJdsOp5+wI/bUi+x
+AdJKAR7FUwOg7qHUoS8KUARlejABAJb2JbQHXh/niitHfMKXk7cbuDdb6PHAi5KG
+fm/yDg7EKpgIu9e6IbQsi7wcX8uhWL0L/ByBAxk=
+=B/AV
+-----END PGP MESSAGE-----
+
+"""
+
+  await do_message { armored: msg, keyfetch: km }, defer err, msg
+  T.assert err?, "decryption should fail"
+  cb()
+
+exports.decrypt_coord_byte_size_exact_cv25519 = (T, cb) ->
+  # The MPI is good, but size is not encoded in exact number of bits,
+  # but rounded to nearest byte instead. It's valid for GnuPG. KBPGP
+  # used to fail with "Error: Need 263 bits for this curve; got 264",
+  # but it should pass now.
+
+  msg = """-----BEGIN PGP MESSAGE-----
+
+wU4DR1BH23/8iIwSAQhAzXpF7EJZNZo/5HD3VImBL5JwpilrRrfgq+Ea3XTvN2Yg
+JXtgubB7xqs378PnKkYJ1pwzuNPBTUrcv5CA+vmvnF/S4AHk4hwIYx8CAW8tkUQG
+7MoF/uE8pODU4FzhjIngFuLARTD44F3kfIs+8lLz3F0/SVX7fnflHeAB4qeWKtTg
+r+FloOA24NbgJORf9C7DGOMbdvITIpUL2xqi4juNgOjhRysA
+=a0uR
+-----END PGP MESSAGE-----
+
+"""
+
+  plaintext = "Hello Encrypted World!~"
+
+  await do_message { armored: msg, keyfetch: km }, defer err, msg
+  T.no_error err
+  T.equal plaintext, msg[0].toString(), "decrypted text matches plaintext"
+  cb()
+
 exports.decrypt_verify_gpg2_issued_payload = (T, cb) ->
   cipher = """-----BEGIN PGP MESSAGE-----
 
@@ -115,3 +212,4 @@ exports.generate_cv25519 = (T, cb) ->
   await KeyManager.generate { userid: "Mr Robot", primary, subkeys }, defer err, alice
   T.assert alice.subkeys[0].key.pub.R instanceof Buffer, "actually a special curve key"
   cb()
+
