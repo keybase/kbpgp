@@ -1,3 +1,7 @@
+## 2.0.64 (2017-02-20)
+
+- Fix broken CI tests due to expiring keys
+
 ## 2.0.63 (2017-02-20)
 
 Via PR from @zapu:
