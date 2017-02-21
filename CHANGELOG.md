@@ -1,3 +1,9 @@
+## 2.0.63 (2017-02-20)
+
+Via PR from @zapu:
+  - Curve25519 support
+  - Bugfixes for p521 padding issues
+
 ## 2.0.62 (2016-12-20)
 
 Upgrades:
