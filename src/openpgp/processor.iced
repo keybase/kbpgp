@@ -390,9 +390,11 @@ exports.Message = Message
 # @param {Boolean} strict In strict mode, all signatures must verify, and we're in
 #    strict mode by default.  In non-strict mode, sigs that we can't find keys for
 #    just generate warnings.
+# @param {int} now Time in sec since epoch if we're checking for message validity at some time in
+#    the past.
 # @param {callback} cb Callback with an `err, Array<Literals>, Warnings` triples. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
-exports.do_message = do_message = ({armored, raw, msg_type, keyfetch, data_fn, data, strict}, cb) ->
+exports.do_message = do_message = ({armored, raw, msg_type, keyfetch, data_fn, data, strict, now}, cb) ->
   literals = null
   err = msg = warnings = esk = null
   if armored?
@@ -404,7 +406,7 @@ exports.do_message = do_message = ({armored, raw, msg_type, keyfetch, data_fn, d
     err = new Error "No input to do_message; need either 'armored' or 'raw' input"
   unless err?
     if not strict? then strict = true
-    proc = new Message { keyfetch, data_fn, data, strict }
+    proc = new Message { keyfetch, data_fn, data, strict, now }
     await proc.parse_and_process msg, defer err, literals
     warnings = proc.warnings
     esk = proc.encryption_subkey

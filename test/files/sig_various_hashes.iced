@@ -103,9 +103,11 @@ VRN8iOqxkReADkY+tX+Qj33rVNTjrhrmZ/+i8YGMVvkeNKyrUtxhV0UuSCmz8M2w
 #==================================================================
 
 verify = ({sig,which}, T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : key }, defer err, km
+  opts = { time_travel : true }
+  now = 1459728000
+  await KeyManager.import_from_armored_pgp { raw : key, opts }, defer err, km
   T.no_error err
-  await do_message { armored : sig , keyfetch : km }, defer err
+  await do_message { armored : sig , keyfetch : km, now }, defer err
   T.no_error err
   T.waypoint which
   cb()

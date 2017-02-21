@@ -89,12 +89,14 @@ key = require("../data/keys.iced").keys.mk
 #==================================================================================================
 
 exports.process = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : key }, defer err, km
+  opts = { time_travel : true }
+  now = 1486842837 - 10
+  await KeyManager.import_from_armored_pgp { raw : key, opts }, defer err, km
   T.no_error err
   ring = new PgpKeyRing()
   ring.add_key_manager km
   for msg,i in msgs
-    await do_message { keyfetch : ring, armored : msg }, defer err, literals
+    await do_message { keyfetch : ring, armored : msg, now }, defer err, literals
     T.no_error err
     T.equal literals[0].data.toString('utf8'), texts[i]
     T.waypoint "msg #{i} checked out!"

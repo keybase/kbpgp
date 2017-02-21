@@ -1045,7 +1045,8 @@ exports.import_and_merge_max = (T, cb) ->
         sponge.merge_all_subkeys_omitting_revokes km
       else
         sponge = km
-    await unbox { keyfetch : sponge, armored : signed_by_max }, defer err, literals
+    now = 1486842837 - 100
+    await unbox { keyfetch : sponge, armored : signed_by_max, now }, defer err, literals
     T.no_error err
     T.equal "small authentic message\n", literals[0].data.toString('utf8'), "right message"
     T.equal "8efbe2e4dd56b35273634e8f6052b2ad31a6631c", literals[0].get_data_signer().get_key_manager().get_pgp_fingerprint().toString("hex"), "right fingerprint"
