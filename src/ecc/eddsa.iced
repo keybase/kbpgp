@@ -146,10 +146,13 @@ class Priv extends BaseKey
   #-------------------    
 
   serialize : () ->
+    if (m = @seed.length) != (n = kbnacl.sign.seedLength)
+      throw new Error "Serialize failed: expected @seed to be #{n} bytes, got #{m} bytes."
+
     # We can't use base class method, because again, our keys are
     # buffers, not bigints.
     Buffer.concat [ 
-      uint_to_buffer(16, kbnacl.sign.seedLength),
+      uint_to_buffer(16, kbnacl.sign.seedLength*8),
       @seed
     ]
 
