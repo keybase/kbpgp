@@ -63,10 +63,10 @@ class Pub extends BaseKey
     oid = sb.read_buffer(l)
     expected = Pub.OID
     unless util.bufeq_secure oid, expected
-      new Error "Wrong OID in EdDSA key"
+      throw new Error "Wrong OID in EdDSA key"
     mpi_length_headers = sb.read_buffer Pub.MPI_LENGTH_HEADERS.length
     unless util.bufeq_secure mpi_length_headers, Pub.MPI_LENGTH_HEADERS
-      new Error "Wrong MPI length headers"
+      throw new Error "Wrong MPI length headers"
     key = sb.read_buffer kbnacl.sign.publicKeyLength
     pub = new Pub { key }
     len = pre - sb.rem()
@@ -146,9 +146,6 @@ class Priv extends BaseKey
   #-------------------    
 
   serialize : () ->
-    if (m = @seed.length) != (n = kbnacl.sign.seedLength)
-      throw new Error "Serialize failed: expected @seed to be #{n} bytes, got #{m} bytes."
-
     # We can't use base class method, because again, our keys are
     # buffers, not bigints.
     Buffer.concat [ 

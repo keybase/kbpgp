@@ -223,7 +223,6 @@ exports.Curve25519 = class Curve25519 extends Curve
   # buffer, with 2-byte header encoding bit-size of the coordinate.
   coord_to_mpi_buffer : (p) ->
     byte_size = @mpi_coord_byte_size()
-    throw new Error "Invalid p.length: got #{p.length} expected #{byte_size}." if p.length != byte_size
     Buffer.concat [
       uint_to_buffer(16, byte_size * 8),
       p
