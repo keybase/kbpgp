@@ -122,7 +122,10 @@ class Priv extends BaseKey
 
   #-------------------
 
-  serialize : () -> @x.to_mpi_buffer()
+  serialize : () ->
+    {curve} = @pub
+    curve.coord_to_mpi_buffer @x
+
   @alloc : (raw, pub) ->
     orig_len = raw.length
     err = null

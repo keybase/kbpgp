@@ -107,6 +107,17 @@ exports.Curve = class Curve extends base.Curve
 
   #----------------------------------
 
+  # Serialize single curve coordinate (usually private key X) to MPI
+  # buffer, with 2-byte header encoding bit-size of the coordinate.
+  coord_to_mpi_buffer : (p) ->
+    byte_size = @mpi_coord_byte_size()
+    Buffer.concat [
+      uint_to_buffer(16, byte_size * 8),
+      p.toBuffer byte_size
+    ]
+
+  #----------------------------------
+
   # The small buffer type - where the format is:
   # (u16 - number of bits)(buffer - number; of said length)
   mpi_from_buffer : (raw) -> bn.mpi_from_buffer raw
@@ -205,6 +216,17 @@ exports.Curve25519 = class Curve25519 extends Curve
     # secret-key trimming, so we don't have to. Everything we give to
     # scalarmult or scalarmult_base will be a valid cv25519 secret.
     SRF().random_bytes @mpi_coord_byte_size(), cb
+
+  #----------------------------------
+
+  # Serialize single curve coordinate (usually private key X) to MPI
+  # buffer, with 2-byte header encoding bit-size of the coordinate.
+  coord_to_mpi_buffer : (p) ->
+    byte_size = @mpi_coord_byte_size()
+    Buffer.concat [
+      uint_to_buffer(16, byte_size * 8),
+      p
+    ]
 
   #----------------------------------
 

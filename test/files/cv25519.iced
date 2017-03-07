@@ -150,6 +150,28 @@ fm/yDg7EKpgIu9e6IbQsi7wcX8uhWL0L/ByBAxk=
   T.assert err?, "decryption should fail"
   cb()
 
+exports.decrypt_coord_too_big_2_cv25519 = (T, cb) ->
+  # This one has a longer coordinate but bit size set properly to 
+  # 295 - 288 bits (36 bytes) for coordinate and 7 bits for header.
+
+  msg = """-----BEGIN PGP MESSAGE-----
+
+wVIDR1BH23/8iIwSASdAAAAAADC+oIjac66gpY74Svf5nFAs+g/jX4hoxm7d1Q92
+ACdnIKrTcSEILiYYdLfiI81a1uKojWFjh+2VAcqyNhBVKZnp0uAB5PA2K9s/eU9Q
+1RvLqAPagGPhfN3gHuAp4cfp4HniGabwuuAO5BD8HKYzGxBngzqlA4pFHibgEeLt
+9ffe4Prhbp/gDuC94IXkPOXfKel6rEhe6p+uxqjSZuJB6oJE4YZtAA==
+=ua7M
+-----END PGP MESSAGE-----
+
+"""
+
+  expected_err = "Error: Need 33 bytes (263 bits) for this curve; got 37 (295 bits)"
+
+  await do_message { armored: msg, keyfetch: km }, defer err, msg
+  T.assert err?, "decryption should fail"
+  T.equal err.toString(), expected_err
+  cb()
+
 exports.decrypt_coord_byte_size_exact_cv25519 = (T, cb) ->
   # The MPI is good, but size is not encoded in exact number of bits,
   # but rounded to nearest byte instead. It's valid for GnuPG. KBPGP
@@ -213,3 +235,30 @@ exports.generate_cv25519 = (T, cb) ->
   T.assert alice.subkeys[0].key.pub.R instanceof Buffer, "actually a special curve key"
   cb()
 
+exports.generate_cv25519_and_reimport = (T, cb) ->
+  F = C.key_flags
+  primary = {
+      flags: F.sign_data | F.certify_keys
+      algo: ecc.EDDSA
+  }
+  subkeys = [{
+      flags: F.encrypt_storage | F.encrypt_conn
+      algo: ecc.ECDH
+      curve_name: 'Curve25519'
+  }]
+
+  await KeyManager.generate { userid: "Mr Robot", primary, subkeys }, defer err, robot
+  T.no_error err
+
+  await robot.sign {}, defer err
+  T.no_error err
+
+  await robot.export_private {}, defer err, priv
+  T.no_error err
+
+  await KeyManager.import_from_armored_pgp {
+    armored: priv
+  }, defer err, not_robot
+  T.no_error err
+
+  cb()
