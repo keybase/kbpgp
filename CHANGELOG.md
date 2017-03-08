@@ -1,3 +1,7 @@
+## 2.0.65 (2017-03-08)
+
+- Add bitlength checks for EdDSA keys
+
 ## 2.0.64 (2017-02-20)
 
 - Fix broken CI tests due to expiring keys
