@@ -84,7 +84,9 @@ class Pub extends BaseKey
 
   verify : ([r, s], payload, cb) ->
     naclw = kbnacl.alloc { publicKey : @key }
-    sig = Buffer.concat [r,s]
+    # Provided signature might be malformed, remember to fit it to
+    # size expected by nacl so it does not throw.
+    sig = util.fit_to_size kbnacl.sign.signatureLength, Buffer.concat [r,s]
     [err, _] = naclw.verify { payload, sig, detached : true }
     cb err
 
@@ -232,16 +234,12 @@ class Pair extends BaseKeyPair
 
   @eddsa_value_from_buffer : (buf) ->
     err = ret = null
-    vlen = kbnacl.sign.publicKeyLength
-    mpi_header_len = 2
-    totlen = vlen + mpi_header_len
-    if buf.length < totlen
-      err = new Error "need #{totlen} bytes per EdDSA value"
-    else if (bits = buf.readUInt16BE(0)) > 0x100 or bits < (0x100 - 40)
+    if (bits = buf.readUInt16BE(0)) > 0x100 or bits < (0x100 - 40)
       err = new Error "Got an unexpected number of Bits for an EdDSA value: #{bits}"
     else
-      ret = buf[2...totlen]
-      buf = buf[totlen...]
+      bytes_len = 2 + Math.ceil(bits/8)
+      ret = buf[2...bytes_len]
+      buf = buf[bytes_len...]
     return [err, ret, buf]
 
   #----------------
