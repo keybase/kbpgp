@@ -727,12 +727,12 @@ class KeyManager extends KeyManagerInterface
 
   #-----
 
-  export_private : ({passphrase, p3skb, asp, passphrase_generation }, cb) ->
+  export_private : ({passphrase, p3skb, asp, regen, passphrase_generation }, cb) ->
     if p3skb
       tsenc = new Encryptor { key : bufferify(passphrase) }
       await @export_private_to_server { tsenc, asp, passphrase_generation }, defer err, res
     else
-      await @export_pgp_private_to_client { passphrase , asp }, defer err, res
+      await @export_pgp_private_to_client { passphrase , asp, regen }, defer err, res
     cb err, res
 
   #-----
