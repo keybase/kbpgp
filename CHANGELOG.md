@@ -1,3 +1,7 @@
+## 2.0.66 (2017-03-15)
+
+- Handled malformed EdDSA keys and sigs better
+
 ## 2.0.65 (2017-03-08)
 
 - Add bitlength checks for EdDSA keys
