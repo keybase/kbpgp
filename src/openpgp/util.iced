@@ -53,3 +53,16 @@ exports.ops_to_keyflags = ops_to_keyflags = (ops) ->
   return out
 
 #=========================================================
+
+# Fits a buffer to exactly `size` bytes, by either padding it with
+# zeroes or trimming it when needed. The example use of this would be
+# a malformed signature, we'd rather fit our buffers and fail to
+# verify, than refuse parsing altogether.
+exports.fit_to_size = fit_to_size = (size, buf) ->
+  l = size - buf.length
+  if l is 0
+    buf
+  else if l > 0
+    Buffer.concat [ buf, new Buffer(0x00 for i in [1..l])]
+  else if l < 0
+    buf[-size..]
