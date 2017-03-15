@@ -60,7 +60,7 @@ exports.ops_to_keyflags = ops_to_keyflags = (ops) ->
 # verify, than refuse parsing altogether.
 exports.fit_to_size = fit_to_size = (size, buf) ->
   l = size - buf.length
-  if l == 0
+  if l is 0
     buf
   else if l > 0
     Buffer.concat [ buf, new Buffer(0x00 for i in [1..l])]

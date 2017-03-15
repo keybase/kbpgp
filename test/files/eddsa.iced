@@ -71,7 +71,7 @@ exports.import_key_1 = (T,cb) ->
 exports.verify_sigs = (T,cb) ->
   for sig,i in sigs
     await unbox { armored : sig, keyfetch : km  }, defer err, literals, warnings
-    T.no_error err, "no errors"
+    T.no_error err, "no errors for #{i}"
     T.equal literals[0].toString(), msgs[i], "message #{i} was correct"
     T.assert literals[0].get_data_signer()?, "message #{i} was signed"
   cb()
@@ -198,5 +198,7 @@ AC0Xg++AATao
 exports.invalid_userid_sig = (T, cb) ->
   await KeyManager.import_from_armored_pgp { armored: key_second_userid_invalid }, defer err, keym
   T.no_error err # imported fine
-  T.assert keym.userids.length == 1 # but only one userid (of two)
+  T.assert keym.userids.length is 1 # but only one userid (of two)
+  c = keym.userids[0].components
+  T.assert c.username is 'Mr Test' and !c.comment? and c.email is 'test@keybase.io'
   cb()
