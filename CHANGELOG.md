@@ -1,3 +1,9 @@
+## 2.0.67 (2017-03-25)
+
+Security Fix!
+  - Certain paths through export/import/export/import would wind up exporting secret
+    key material along with the public key material. Fix, and add a test.
+
 ## 2.0.66 (2017-03-15)
 
 - Handled malformed EdDSA keys and sigs better
@@ -27,7 +33,7 @@ Security Bugfix:
   - Handle key_revocation signatures on primaries, which were previously being ignored.
 
 ## 2.0.60 (2016-12-7)
- 
+
 Feature:
   - Subpacket33 support
 
@@ -35,7 +41,7 @@ Feature:
 
   - Curve25519 support
 
-Bugfix: 
+Bugfix:
   - Allow a space after `Hash: SHA256 ` field in headers of clearsigned docs
 
 ## 2.0.58 (2016-09-22)

@@ -422,7 +422,7 @@ class KeyManager extends KeyManagerInterface
   # @param {object} expire_in When the keys should expire.  By default, it's 0 and 8 years. [DEPRECATED]
   #
   @generate : ({asp, userid, userids, primary, subkeys, ecc,
-                 sub_flags, nsubs, primary_flags, nbits, expire_in, 
+                 sub_flags, nsubs, primary_flags, nbits, expire_in,
                  generated, curve_name}, cb) ->
     asp = ASP.make asp
     F = C.key_flags
@@ -621,10 +621,17 @@ class KeyManager extends KeyManagerInterface
       bundle = new KeyManager {
         primary : KeyManager._wrap_pgp(Primary, kb.primary),
         subkeys : (KeyManager._wrap_pgp(Subkey, k) for k in kb.subkeys),
-        armored_pgp_public : msg.raw(),
         user_attributes : kb.user_attributes,
         userids : kb.userids,
         signed : true }
+
+      # We use the following two fields for exporting (without regen enabled),
+      # so make sure we don't output secret keys along with "public" export.
+      if bundle.has_pgp_private()
+        bundle.armored_pgp_private = msg.raw()
+      else
+        bundle.armored_pgp_public = msg.raw()
+
     unless err?
       await bundle.check_pgp_validity defer err
     cb err, bundle, warnings, packets
