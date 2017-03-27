@@ -369,6 +369,8 @@ class PgpEngine extends Engine
 
     if not key?
       err = new Error "No keys match the given key IDs"
+    else if @key(key).is_revoked()
+      err = new Error "Key is revoked"
     else if not @key(key).fulfills_flags flags
       err = new Error "We don't have a key for the requested PGP ops (flags = #{flags})"
     else
