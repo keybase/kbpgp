@@ -27,17 +27,24 @@ class PgpKeyRing extends KeyFetcher
 
   fetch : (key_ids, ops, cb) ->
     key_material = err = obj = null
-    key_ids = (hexkid(k) for k in key_ids)
+    hex_key_ids = (hexkid(k) for k in key_ids)
     km = null
-    for id,i in key_ids
+    for id,i in hex_key_ids
       k = @_keys[id]
       if k?.key?.can_perform ops
         ret_i = i
         km = @_kms[id]
         break
     unless km?
-      err = new Error "key not found: #{JSON.stringify key_ids}"
-    cb err, km, ret_i
+      err = new Error "key not found: #{JSON.stringify hex_key_ids}"
+
+    if km
+      # Let KeyManager do the fetching from here, the keys may be
+      # revoked or not functional in some other way, even if the key
+      # id matches.
+      km.fetch key_ids, ops, cb
+    else
+      cb err, km, ret_i
 
   #-------------
 
