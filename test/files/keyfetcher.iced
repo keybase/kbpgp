@@ -102,7 +102,7 @@ RDwSBZOCIiqrUdoX8FEBAMSoFWK+JFjurbSBFhJsU9IVoJRXok8Nx0ykF4tXeKEG
 
   await do_message { keyfetch : new KeyRing(), armored : message }, defer err, outmsg
   T.no_error err, "Message verified"
-  T.assert outmsg?.toString() == "Hi Alice!"
+  T.assert outmsg?.toString() is "Hi Alice!"
   cb()
 
 
