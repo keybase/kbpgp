@@ -48,6 +48,7 @@ mods =
   fermat2 : require '../files/fermat2.iced'
   miller_rabin : require '../files/miller_rabin.iced'
   rsa : require '../files/rsa.iced'
+  keyfetcher : require '../files/keyfetcher.iced'
 
 v = Object.keys(mods)
 v.sort()
