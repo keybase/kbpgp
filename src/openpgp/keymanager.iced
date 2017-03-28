@@ -4,6 +4,7 @@
 K = require('../const').kb
 C = require('../const').openpgp
 {make_esc} = require 'iced-error'
+{errors} = require '../errors'
 {format_pgp_fingerprint_2,athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require '../util'
 {ops_to_keyflags} = require './util'
 {Lifespan,Subkey,Primary} = require '../keywrapper'
@@ -369,6 +370,9 @@ class PgpEngine extends Engine
 
     if not key?
       err = new Error "No keys match the given key IDs"
+    else if @key(key).is_revoked()
+      err = new errors.RevokedKeyError
+      err.km = @
     else if not @key(key).fulfills_flags flags
       err = new Error "We don't have a key for the requested PGP ops (flags = #{flags})"
     else
