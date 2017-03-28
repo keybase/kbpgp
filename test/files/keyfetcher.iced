@@ -46,7 +46,7 @@ V1lAVqcNiyy7Srus5/UBALbH5jUIR2kZamWO0znZ7+ltz42cmZ+OESnfHxa4KUUB
 
   await do_message { keyfetch : new KeyRing(), armored : message }, defer err, outmsg
   T.assert err, "Failed to verify"
-  T.assert err.message.indexOf("Key is revoked") >= 0, "Proper error message"
+  T.assert err.name is "RevokedKeyError", "Proper error"
   cb()
 
 exports.verify_keyfetcher = (T, cb) ->
