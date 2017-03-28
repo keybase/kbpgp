@@ -1,3 +1,8 @@
+## 2.0.68 (2017-03-28)
+
+- Better errors for revoked key/subkeys
+- Also use KeyManager detection from KeyRing for revoked keys
+
 ## 2.0.67 (2017-03-25)
 
 Security Fix!
