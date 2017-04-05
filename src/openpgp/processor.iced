@@ -91,8 +91,22 @@ class KeyBlock
 
   #--------------------
 
-  _check_issuer : (i, packet, primary) ->
+  # Try to get issuer that matches ours, or return packet issuer.
+  _get_issuer : (i, packet, primary) ->
+    if (fp = packet.get_issuer_fingerprint())?
+      return [fp, bufeq_secure(fp, @primary.get_fingerprint())]
 
+    if (iid = packet.get_issuer_key_id())?
+      return [iid, bufeq_secure(iid, @primary.get_key_id())]
+
+    @warnings.push "Signature is missing an issuer (at packet=#{i})"
+    return [null, false]
+
+  #--------------------
+
+  # TODO: remove this one or the other when we figure out how to
+  # handle 3rd party signatures.
+  _check_issuer : (i, packet, primary) ->
     if (fp = packet.get_issuer_fingerprint())?
       if bufeq_secure(fp, (wanted = @primary.get_fingerprint()))
         return wanted
@@ -127,9 +141,15 @@ class KeyBlock
         continue
 
       n_sigs++
-      if (issuer_id = @_check_issuer(i, p, @primary))?
+      [issuer_id, matches_ours] = @_get_issuer i, p, @primary
+      if issuer_id?
+        unless matches_ours or p.type is C.sig_types.key_revocation
+          @warnings.push "Skipping signature by another issuer: #{issuer_id?.toString('hex')}"
+          continue
+
         p.key = @primary.key
         p.primary = @primary
+        @opts.skip_verify = not matches_ours
         await p.verify working_set, defer(tmp), @opts
         if tmp?
           msg = "Signature failure in packet #{i}: #{tmp.message} (#{issuer_id.toString('hex')})"

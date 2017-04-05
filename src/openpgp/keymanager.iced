@@ -329,6 +329,9 @@ class PgpEngine extends Engine
 
   # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
   find_best_key : (flags, need_priv = false) ->
+    if @key(@primary).is_revoked()
+      return null
+
     best = null
 
     check = (k) =>
