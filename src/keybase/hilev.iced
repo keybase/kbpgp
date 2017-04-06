@@ -159,18 +159,27 @@ class EncKeyManager extends KeyManager
 
 #=================================================================================
 
-unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
-  esc = make_esc cb, "unbox"
-
+unbox_check = ({armored,binary,rawobj}) ->
+  err = ret = null
   if not armored? and not rawobj? and not binary?
-    await athrow (new Error "need either 'armored' or 'binary' or 'rawobj'"), esc defer()
-
+    err = new Error "need either 'armored' or 'binary' or 'rawobj'"
+    return [ err, null ]
   if armored?
     binary = new Buffer armored, 'base64'
   if binary?
-    await akatch ( () -> encode.unseal binary), esc defer rawobj
+    try
+      rawobj = encode.unseal binary
+    catch e
+      return [e, null]
+  [err, ret] = alloc rawobj
+  return [err, ret]
 
-  await asyncify alloc(rawobj), esc defer packet
+#=================================================================================
+
+unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
+  esc = make_esc cb, "unbox"
+
+  await asyncify unbox_check({armored,binary,rawobj}), esc defer packet
   await packet.unbox {encrypt_for}, esc defer res
 
   if res.keypair?
@@ -261,4 +270,4 @@ class SignatureEngine extends SignatureEngineInterface
 
 #=================================================================
 
-module.exports = { box, unbox, KeyManager, EncKeyManager, decode_sig, get_sig_body }
+module.exports = { box, unbox, unbox_check, KeyManager, EncKeyManager, decode_sig, get_sig_body }
