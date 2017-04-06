@@ -159,7 +159,7 @@ class EncKeyManager extends KeyManager
 
 #=================================================================================
 
-unbox_check = ({armored,binary,rawobj}) ->
+unbox_decode = ({armored,binary,rawobj}) ->
   err = ret = null
   if not armored? and not rawobj? and not binary?
     err = new Error "need either 'armored' or 'binary' or 'rawobj'"
@@ -179,7 +179,7 @@ unbox_check = ({armored,binary,rawobj}) ->
 unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
   esc = make_esc cb, "unbox"
 
-  await asyncify unbox_check({armored,binary,rawobj}), esc defer packet
+  await asyncify unbox_decode({armored,binary,rawobj}), esc defer packet
   await packet.unbox {encrypt_for}, esc defer res
 
   if res.keypair?
@@ -270,4 +270,4 @@ class SignatureEngine extends SignatureEngineInterface
 
 #=================================================================
 
-module.exports = { box, unbox, unbox_check, KeyManager, EncKeyManager, decode_sig, get_sig_body }
+module.exports = { box, unbox, unbox_decode, KeyManager, EncKeyManager, decode_sig, get_sig_body }

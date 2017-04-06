@@ -20,7 +20,7 @@ exports.encrypt = (T,cb) ->
 
 exports.decrypt_1 = (T, cb) ->
   await kb.unbox { encrypt_for : km, armored : ctext}, T.esc(defer(tmp))
-  [err, packet] = kb.unbox_check { armored : ctext }
+  [err, packet] = kb.unbox_decode { armored : ctext }
   T.no_error err, "no error"
   T.assert packet?, "packet came back"
   T.equal tmp.plaintext.toString('utf8'), plaintext, "right plaintext"
