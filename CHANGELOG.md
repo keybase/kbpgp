@@ -1,4 +1,4 @@
-## 2.0.67 (2017-04-07)
+## 2.0.69 (2017-04-07)
 
 - break up unbox into two pieces so that we can sanity-check a box without being to decrypt it
 
