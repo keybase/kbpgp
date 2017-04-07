@@ -172,14 +172,14 @@ unbox_decode = ({armored,binary,rawobj}) ->
     catch e
       return [e, null]
   [err, ret] = alloc rawobj
-  return [err, ret]
+  return [err, ret, binary]
 
 #=================================================================================
 
 unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
   esc = make_esc cb, "unbox"
 
-  await asyncify unbox_decode({armored,binary,rawobj}), esc defer packet
+  await asyncify unbox_decode({armored,binary,rawobj}), esc defer packet, binary
   await packet.unbox {encrypt_for}, esc defer res
 
   if res.keypair?
