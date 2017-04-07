@@ -1,3 +1,7 @@
+## 2.0.67 (2017-04-07)
+
+- break up unbox into two pieces so that we can sanity-check a box without being to decrypt it
+
 ## 2.0.68 (2017-03-28)
 
 - Better errors for revoked key/subkeys
