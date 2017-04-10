@@ -34,7 +34,7 @@ exports.encode_length = encode_length = (l, five_byte= false) ->
     ret = new Buffer 5
     ret.writeUInt8 0xff, 0
     ret.writeUInt32BE l, 1
-  else if l < 192 
+  else if l < 192
     ret = new Buffer 1
     ret.writeUInt8 l, 0
   else if l >= 192 and l < 8384
@@ -63,6 +63,6 @@ exports.fit_to_size = fit_to_size = (size, buf) ->
   if l is 0
     buf
   else if l > 0
-    Buffer.concat [ buf, new Buffer(0x00 for i in [1..l])]
+    Buffer.concat [ buf, Buffer.from(0x00 for i in [1..l])]
   else if l < 0
     buf[-size..]

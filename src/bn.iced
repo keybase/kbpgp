@@ -28,7 +28,7 @@ toMPI = (bn) ->
   size = (ba.length - 1) * 8 + nbits(ba[0])
   hdr = new Buffer 2
   hdr.writeUInt16BE size, 0
-  Buffer.concat [ hdr, new Buffer(ba) ]
+  Buffer.concat [ hdr, Buffer.from(ba) ]
 
 #================================================================
 
@@ -37,7 +37,7 @@ mpi_from_buffer = (raw) ->
   if raw.length < 2
     err = new Error "need at least 2 bytes; got #{raw.length}"
   else
-    hdr = new Buffer raw[0...2]
+    hdr = Buffer.from raw[0...2]
     raw = raw[2...]
     n_bits = hdr.readUInt16BE 0
     n_bytes = Math.ceil n_bits/8
@@ -54,8 +54,8 @@ mpi_to_padded_octets = (bn, base) ->
   n = base.mpi_byte_length()
   ba = bn.toByteArray()
   diff = (n - ba.length)
-  pad = new Buffer(0 for i in [0...diff])
-  Buffer.concat [ pad, new Buffer(ba) ]
+  pad = Buffer.from(0 for i in [0...diff])
+  Buffer.concat [ pad, Buffer.from(ba) ]
 
 #================================================================
 

@@ -54,10 +54,10 @@ class Signature_v2_or_v3 extends Packet
   # For writing out these packets, which we'll likely never do.
   gen_prefix : () ->
     Buffer.concat [
-      new Buffer [ C.versions.signature.V3, @type ],
+      Buffer.from [ C.versions.signature.V3, @type ],
       uint_to_buffer(32, @time),
       @key_id,
-      new Buffer [ @key.type, @hasher.type ]
+      Buffer.from [ @key.type, @hasher.type ]
     ]
 
   #---------------------
@@ -65,7 +65,7 @@ class Signature_v2_or_v3 extends Packet
   prepare_payload : (data_packets) ->
     bufs = (dp.to_signature_payload() for dp in data_packets)
     bufs.push(
-      new Buffer([ @type ]),
+      Buffer.from([ @type ]),
       uint_to_buffer(32, @time)
     )
     Buffer.concat bufs
@@ -144,12 +144,12 @@ class Signature extends Packet
     flatsp = Buffer.concat( s.to_buffer() for s in @hashed_subpackets )
 
     prefix = Buffer.concat [
-      new Buffer([ C.versions.signature.V4, @type, @key.type, @hasher.type ]),
+      Buffer.from([ C.versions.signature.V4, @type, @key.type, @hasher.type ]),
       uint_to_buffer(16, flatsp.length),
       flatsp
     ]
     trailer = Buffer.concat [
-      new Buffer([ C.versions.signature.V4, 0xff ]),
+      Buffer.from([ C.versions.signature.V4, 0xff ]),
       uint_to_buffer(32, prefix.length)
     ]
 
@@ -170,7 +170,7 @@ class Signature extends Packet
     result2 = Buffer.concat [
       uint_to_buffer(16, uhsp.length),
       uhsp,
-      new Buffer([hvalue.readUInt8(0), hvalue.readUInt8(1) ]),
+      Buffer.from([hvalue.readUInt8(0), hvalue.readUInt8(1) ]),
       sig
     ]
     results = Buffer.concat [ prefix, result2 ]
@@ -445,7 +445,7 @@ class Preference extends SubPacket
   @parse : (slice, klass) ->
     v = (c for c in slice.consume_rest_to_buffer())
     new klass v
-  _v_to_buffer : () -> new Buffer (e for e in @v)
+  _v_to_buffer : () -> Buffer.from(e for e in @v)
 
 #------------
 
@@ -489,7 +489,7 @@ class RegularExpression extends SubPacket
   @parse : (slice) ->
     ret = new RegularExpression slice.consume_rest_to_buffer().toString 'utf8'
     ret
-  _v_to_buffer : () -> new Buffer @re, 'utf8'
+  _v_to_buffer : () -> Buffer.from(@re, 'utf8')
 
 #------------
 
@@ -527,7 +527,7 @@ class RevocationKey extends SubPacket
     Buffer.concat [
       uint_to_buffer(8, @key_class),
       uint_to_buffer(8, @alg),
-      new Buffer(@fingerprint)
+      Buffer.from(@fingerprint)
     ]
 
 #------------
@@ -536,7 +536,7 @@ class Issuer extends SubPacket
   constructor : (@id) ->
     super S.issuer
   @parse : (slice) -> new Issuer slice.read_buffer 8
-  _v_to_buffer : () -> new Buffer @id
+  _v_to_buffer : () -> Buffer.from(@id)
 
 #------------
 
@@ -555,8 +555,8 @@ class NotationData extends SubPacket
       uint_to_buffer(32, @flags),
       uint_to_buffer(16, @name.length),
       uint_to_buffer(16, @value.length),
-      new Buffer(@name),
-      new Buffer(@value)
+      Buffer.from(@name),
+      Buffer.from(@value)
     ]
 
 #------------

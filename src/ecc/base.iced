@@ -14,7 +14,7 @@ exports.BaseEccKey = class BaseEccKey
   serialize : () ->
     oid = @curve.oid
     Buffer.concat [
-      new Buffer([ oid.length ]),
+      Buffer.from([ oid.length ]),
       oid,
       @curve.point_to_mpi_buffer(@R)
     ]

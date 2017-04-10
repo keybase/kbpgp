@@ -14,7 +14,7 @@ triplesec = require 'triplesec'
 class UserAttribute extends Packet
 
   # @param {Buffer} data The data read from the packet
-  constructor : (@data) -> 
+  constructor : (@data) ->
     super()
 
   #--------------------------
@@ -23,7 +23,7 @@ class UserAttribute extends Packet
 
   #--------------------------
 
-  @parse : (slice) -> new UserAttribute slice.consume_rest_to_buffer() 
+  @parse : (slice) -> new UserAttribute slice.consume_rest_to_buffer()
 
   #--------------------------
 
@@ -36,11 +36,11 @@ class UserAttribute extends Packet
     # RFC 4880 5.12 We can treat the user attribute packet as a userID
     # packet, but with opaque data.
     Buffer.concat [
-      new Buffer([ C.signatures.user_attribute ]),
+      Buffer.from([ C.signatures.user_attribute ]),
       uint_to_buffer(32, @data.length),
       @data
     ]
-    
+
   #--------------------------
 
 #=================================================================================

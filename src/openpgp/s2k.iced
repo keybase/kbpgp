@@ -156,7 +156,7 @@ class S2K
         # This if accounts for RFC 4880 3.7.1.1 -- If hash size is greater than block size,
         # use leftmost bits.  If blocksize larger than hash size, we need to rehash isp and prepend with 0.
         if numBytes? and numBytes in [24,32]
-          prefix = new Buffer [0]
+          prefix = Buffer.from [0]
           key2 = iterated_s2k { alg : @hash.algname, seed, @count, prefix}
           Buffer.concat [ key, key2 ]
         else

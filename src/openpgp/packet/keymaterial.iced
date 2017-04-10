@@ -45,7 +45,7 @@ class KeyMaterial extends Packet
   #--------------------------
 
   _write_private_enc : (bufs, priv, pp) ->
-    bufs.push new Buffer [
+    bufs.push Buffer.from [
       C.s2k_convention.sha1,                  # Indicates s2k with SHA1 checksum
       C.symmetric_key_algorithms.AES256,      # Sym algo used to encrypt
       C.s2k.salt_iter,                        # s2k salt+iterative
@@ -55,7 +55,7 @@ class KeyMaterial extends Packet
     salt = native_rng 8                       # 8 bytes of salt
     bufs.push salt
     c = 96
-    bufs.push new Buffer [ c ]                # ??? translates to a count of 65336 ???
+    bufs.push Buffer.from [ c ]               # ??? translates to a count of 65336 ???
     ks = AES.keySize
     k = (new S2K).write pp, salt, c, ks       # expanded encryption key (via s2k)
     ivlen = AES.blockSize                     # ivsize = msgsize
@@ -74,7 +74,7 @@ class KeyMaterial extends Packet
 
   _write_private_clear : (bufs, priv) ->
     bufs.push(
-      new Buffer([C.s2k_convention.none]),
+      Buffer.from([C.s2k_convention.none]),
       priv,
       uint_to_buffer(16, calc_checksum(priv))
     )
@@ -84,9 +84,9 @@ class KeyMaterial extends Packet
   _write_public : (bufs) ->
     pub = @key.serialize()
     bufs.push(
-      new Buffer([ C.versions.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
+      Buffer.from([ C.versions.keymaterial.V4 ]),   # Since PGP 5.x, this is prefered version
       uint_to_buffer(32, @timestamp),
-      new Buffer([ @key.type ]),
+      Buffer.from([ @key.type ]),
       pub
     )
 
@@ -94,14 +94,14 @@ class KeyMaterial extends Packet
 
   _write_dummy : (bufs) ->
     bufs.push(
-      new Buffer([
+      Buffer.from([
         C.s2k_convention.sha1               # dummy, pro-forma
         C.symmetric_key_algorithms.AES256   # dummy, pro-forma
         C.s2k.gnu                           # The GNU s2k param
         0x2                                 # Not sure, maybe a version #?
       ]),
       new Buffer("GNU", "utf8"),            # The "GNU" ascii art goes next
-      new Buffer([ 0x1 ])                   # Finally, 0x1 means "dummy"
+      Buffer.from([ 0x1 ])                  # Finally, 0x1 means "dummy"
     )
 
   #--------------------------
@@ -143,7 +143,7 @@ class KeyMaterial extends Packet
   get_fingerprint : () ->
     data = @public_body()
     (new SHA1).bufhash Buffer.concat [
-      new Buffer([ C.signatures.key ]),
+      Buffer.from([ C.signatures.key ]),
       uint_to_buffer(16, data.length),
       data
     ]
@@ -178,7 +178,7 @@ class KeyMaterial extends Packet
 
     # RFC 4880 5.2.4 Computing Signatures Over a Key
     Buffer.concat [
-      new Buffer([ C.signatures.key ] ),
+      Buffer.from([ C.signatures.key ] ),
       uint_to_buffer(16, pk.length),
       pk
     ]

@@ -17,7 +17,7 @@
 #
 encrypt = ({block_cipher_class, key, cipher, plaintext, iv}) ->
   block_cipher_class or= AES
-  cipher or= new block_cipher_class WordArray.from_buffer key 
+  cipher or= new block_cipher_class WordArray.from_buffer key
   block_size = cipher.blockSize
   c = WordArray.from_buffer iv[0...block_size]
   pos = 0
@@ -47,7 +47,7 @@ decrypt = ({block_cipher_class, key, cipher, ciphertext, iv}) ->
   block_cipher_class or= AES
   cipher or= new block_cipher_class WordArray.from_buffer key
   block_size = cipher.blockSize
-  iv or= new Buffer (0 for i in [0...block_size])
+  iv or= Buffer.from (0 for i in [0...block_size])
   b = WordArray.from_buffer iv[0...block_size]
   pos = 0
   list = while ciphertext.length > pos

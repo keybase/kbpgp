@@ -83,7 +83,7 @@ class Pub extends BaseEccKey
     # is implied by x.
     X_compact = @curve.point_to_mpi_buffer_compact X
     buf = Buffer.concat [
-      (new Buffer [0,0,0,1]),
+      (Buffer.from [0,0,0,1]),
       X_compact,
       params
     ]

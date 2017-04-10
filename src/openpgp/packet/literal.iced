@@ -26,9 +26,9 @@ class Literal extends Packet
   to_signature_payload : () -> Buffer.concat [ @data ]
 
   write_unframed : (cb) ->
-    @filename or= new Buffer []
+    @filename or= Buffer.from []
     bufs = [
-      new Buffer([@format]),
+      Buffer.from([@format]),
       uint_to_buffer(8,@filename.length)
       @filename,
       uint_to_buffer(32, @date),

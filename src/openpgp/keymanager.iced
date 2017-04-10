@@ -603,7 +603,7 @@ class KeyManager extends KeyManagerInterface
     # The private key isn't locked, but it is stored in 's2k' notation
     # and needs to be decoded.  That happens with this call (w/ a NULL pw)
     unless err?
-      passphrase = new Buffer []
+      passphrase = Buffer.from []
       await @unlock_pgp { passphrase }, defer err
 
     cb err
