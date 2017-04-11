@@ -751,7 +751,7 @@ class KeyManager extends KeyManagerInterface
   pgp_full_hash : (opts, cb) ->
     esc = make_esc cb, "get_pgp_full_hash"
     await @export_pgp_public opts, esc defer armored
-    cb null, (new SHA256 new Buffer armored.trim()).toString("hex")
+    cb null, (new SHA256 Buffer.from(armored.trim(), 'utf8')).toString("hex")
 
   #-----
 

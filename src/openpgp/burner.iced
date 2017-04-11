@@ -197,7 +197,7 @@ exports.Burner = Burner
 
 exports.make_simple_literals = make_simple_literals = (msg) ->
   return [ new Literal {
-    data : new Buffer(msg)
+    data : Buffer.from(msg, 'utf8')
     format : C.literal_formats.utf8
     date : unix_time()
   }]

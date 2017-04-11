@@ -266,7 +266,7 @@ exports.Curve25519 = class Curve25519 extends Curve
 
   @reverse_buf : (buf) ->
     # TODO: Is there a function reversing a buffer?
-    X = new Buffer(buf.length)
+    X = Buffer.alloc(buf.length)
     for i in [0...buf.length]
       X[buf.length - 1 - i] = buf[i]
     X

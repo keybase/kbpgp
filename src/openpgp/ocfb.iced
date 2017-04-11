@@ -279,7 +279,7 @@ exports.Decryptor = Decryptor
 
 {rng} = require 'crypto'
 test = () ->
-  plaintext = new Buffer("a man a plan a canal panama. and you know the rest")
+  plaintext = Buffer.from("a man a plan a canal panama. and you know the rest", 'utf8')
   key = rng(32)
   prefixrandom = Buffer.from [0...16]
   block_cipher_class = AES

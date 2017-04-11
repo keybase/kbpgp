@@ -5,7 +5,7 @@ purepack = require 'purepack'
 
 #=================================================================================
 
-null_hash = new Buffer(0)
+null_hash = Buffer.alloc(0)
 
 pack   = (x) -> purepack.pack   x, { sort_keys : true }
 unpack = (x) -> purepack.unpack x, { strict : true }
@@ -30,7 +30,7 @@ seal = ({obj, dohash}) ->
 
 read_base64 = (raw) ->
   parts = (raw.split /\s+/).join('')
-  new Buffer parts, 'base64'
+  Buffer.from(parts, 'base64')
 
 #=================================================================================
 

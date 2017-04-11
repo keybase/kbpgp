@@ -26,7 +26,7 @@ toMPI = (bn) ->
   ba = bn.toByteArray()
   # The top byte isn't a full byte, so figure out how many bits it takes
   size = (ba.length - 1) * 8 + nbits(ba[0])
-  hdr = new Buffer 2
+  hdr = Buffer.alloc(2)
   hdr.writeUInt16BE size, 0
   Buffer.concat [ hdr, Buffer.from(ba) ]
 

@@ -100,7 +100,7 @@ class KeyMaterial extends Packet
         C.s2k.gnu                           # The GNU s2k param
         0x2                                 # Not sure, maybe a version #?
       ]),
-      new Buffer("GNU", "utf8"),            # The "GNU" ascii art goes next
+      Buffer.from("GNU", "utf8"),           # The "GNU" ascii art goes next
       Buffer.from([ 0x1 ])                  # Finally, 0x1 means "dummy"
     )
 

@@ -63,7 +63,7 @@ class Pub extends BaseEccKey
       @curve.oid,
       uint_to_buffer(8, @type),
       @serialize_params(),
-      (new Buffer "Anonymous Sender    ", "utf8"),
+      Buffer.from("Anonymous Sender    ", "utf8"),
       fingerprint
     ]
 
