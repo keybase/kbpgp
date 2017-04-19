@@ -1,3 +1,7 @@
+## 2.0.70 (2017-04-19)
+
+- allow us to pass a nonce through a box{}
+
 ## 2.0.69 (2017-04-07)
 
 - break up unbox into two pieces so that we can sanity-check a box without being to decrypt it

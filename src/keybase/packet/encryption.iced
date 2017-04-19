@@ -71,7 +71,7 @@ class Encryption extends Packet
     esc = make_esc cb, "encrypt"
     await @get_sender_keypair {encrypt : true }, esc defer sender
     recvr = @encrypt_for.get_keypair()
-    await recvr.encrypt_kb { @plaintext, sender }, esc defer { @ciphertext, @nonce }
+    await recvr.encrypt_kb { @plaintext, sender, @nonce }, esc defer { @ciphertext, @nonce }
     @sender_key = sender.ekid() unless @anonymous and not @ephemeral
     @receiver_key = recvr.ekid() unless @anonymous
     cb null
@@ -94,8 +94,8 @@ class Encryption extends Packet
 
   #------------------
 
-  @box : ({sign_with, encrypt_for, plaintext, anonymous}, cb) ->
-    packet = new Encryption { sign_with, encrypt_for, plaintext, anonymous } 
+  @box : ({sign_with, encrypt_for, plaintext, anonymous, nonce}, cb) ->
+    packet = new Encryption { sign_with, encrypt_for, plaintext, anonymous, nonce }
     await packet.encrypt {}, defer err
     packet = null if err?
     cb err, packet

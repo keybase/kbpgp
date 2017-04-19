@@ -47,10 +47,17 @@ class Pub
 
   #--------------------
 
-  encrypt : ({plaintext,sender}, cb) ->
-    await SRF().random_bytes box.nonceLength, defer nonce
-    res = box b2u(plaintext), b2u(nonce), b2u(@key), b2u(sender.priv.key)
-    cb null, {ciphertext : u2b(res), nonce }
+  encrypt : ({plaintext,sender,nonce}, cb) ->
+    err = ret = null
+    if not nonce?
+      await SRF().random_bytes box.nonceLength, defer nonce
+    else if nonce.length isnt box.nonceLength
+      err = new Error "bad nonce; wrong length (wanted #{box.nonceLength})"
+    unless err?
+      res = box b2u(plaintext), b2u(nonce), b2u(@key), b2u(sender.priv.key)
+      ciphertext = u2b(res)
+      ret = {ciphertext, nonce}
+    cb err, ret
 
 #=============================================
 
@@ -108,8 +115,8 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  encrypt_kb : ({plaintext, sender}, cb) ->
-    @pub.encrypt { plaintext, sender}, cb
+  encrypt_kb : ({plaintext, sender, nonce}, cb) ->
+    @pub.encrypt { plaintext, sender, nonce}, cb
 
   #----------------
 
