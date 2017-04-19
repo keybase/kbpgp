@@ -5,6 +5,7 @@ mods =
   brainpool512: require '../files/brainpool512.iced'
   eddsa : require '../files/eddsa.iced'
   box : require '../files/box.iced'
+  kbbox : require '../files/kbbox.iced'
   fp : require '../files/fp.iced'
   nacl1 : require '../files/nacl1.iced'
   nacl2 : require '../files/nacl2.iced'
