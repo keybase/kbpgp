@@ -193,11 +193,11 @@ unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
 
 #=================================================================================
 
-box = ({msg, sign_with, encrypt_for, anonymous}, cb) ->
+box = ({msg, sign_with, encrypt_for, anonymous, nonce}, cb) ->
   esc = make_esc cb, "box"
   msg = bufferify msg
   if encrypt_for?
-    await Encryption.box { sign_with, encrypt_for, plaintext : msg, anonymous }, esc defer packet
+    await Encryption.box { sign_with, encrypt_for, plaintext : msg, anonymous, nonce }, esc defer packet
   else
     await Signature.box { km : sign_with, payload : msg }, esc defer packet
   packed = packet.frame_packet()
