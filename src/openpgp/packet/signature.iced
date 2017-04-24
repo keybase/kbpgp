@@ -328,6 +328,10 @@ class Signature extends Packet
           else
             err = new Error "Got T.direct but there is no revocation_key subpacket."
 
+        when T.certificate_revocation
+          if (userid = @data_packets[1].to_userid())?
+            userid.mark_revoked sig
+
         else
           err = new Error "Got unknown signature type=#{@type}"
 

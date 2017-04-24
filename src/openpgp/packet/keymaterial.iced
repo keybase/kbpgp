@@ -543,13 +543,11 @@ class KeyMaterial extends Packet
 
   add_designee : (rev_key) ->
     (@desig_revokes or= []).push rev_key
-    console.log 'adding designee', rev_key.fingerprint
 
   #-------------------
 
   add_designated_revocation : (sig) ->
     (@unverified_revocations or= []).push sig
-    console.log 'adding designated revocation', sig.sig_data
 
 
 #=================================================================================

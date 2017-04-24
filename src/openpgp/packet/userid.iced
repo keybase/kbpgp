@@ -93,6 +93,11 @@ class UserID extends Packet
   get_framed_signature_output : () ->
     @get_psc()?.get_self_sig()?.sig?.get_framed_output()
 
+  #--------------------------
+
+  mark_revoked : (sig) -> @revocation = sig
+  is_revoked : () -> @revocation?
+
 #=================================================================================
 
 exports.UserID = UserID
