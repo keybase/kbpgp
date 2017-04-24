@@ -325,8 +325,6 @@ class Signature extends Packet
         when T.direct
           if fp = @subpacket_index.hashed[S.revocation_key]
             @primary.add_designee fp
-          else
-            err = new Error "Got T.direct but there is no revocation_key subpacket."
 
         when T.certificate_revocation
           if (userid = @data_packets[1].to_userid())?
@@ -335,6 +333,18 @@ class Signature extends Packet
         else
           err = new Error "Got unknown signature type=#{@type}"
 
+    cb err
+
+  #-----------------
+
+  _third_party_verify : (key, cb) ->
+    unless bufeq_secure issuer = @get_issuer_key_id(), keyid = key._pgp.get_key_id()
+      return cb new Error "Key id does not match: #{issuer.toString('hex')} != #{keyid.toString('hex')}"
+
+    buffers = (dp.to_signature_payload() for dp in @data_packets)
+    data = Buffer.concat buffers
+    { payload, hvalue } = @prepare_payload data
+    await key.key.verify_unpad_and_check_hash { @sig, hash : hvalue, @hasher }, defer err
     cb err
 
   #-----------------

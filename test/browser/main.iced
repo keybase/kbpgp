@@ -49,6 +49,7 @@ mods =
   miller_rabin : require '../files/miller_rabin.iced'
   rsa : require '../files/rsa.iced'
   keyfetcher : require '../files/keyfetcher.iced'
+  revokes : require '../files/revokes.iced'
 
 v = Object.keys(mods)
 v.sort()
