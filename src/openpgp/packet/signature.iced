@@ -341,6 +341,8 @@ class Signature extends Packet
     unless bufeq_secure issuer = @get_issuer_key_id(), keyid = key.get_key_id()
       return cb new Error "Key id does not match: #{issuer.toString('hex')} != #{keyid.toString('hex')}"
 
+    # @data_packets are left from _verify call that's done when
+    # processing this packet.
     buffers = (dp.to_signature_payload() for dp in @data_packets)
     data = Buffer.concat buffers
     { payload, hvalue } = @prepare_payload data

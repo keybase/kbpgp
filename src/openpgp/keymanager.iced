@@ -981,7 +981,7 @@ class KeyManager extends KeyManagerInterface
     for sig in sigs
       key_id = sig.get_issuer_key_id()
       await fetcher.fetch [ key_id ], konst.ops.verify, defer err, km, i
-      if err or not km? or not km.pgp
+      if err or not km? or not km.pgp?
         continue
 
       keymat = km.find_pgp_key_material key_id
