@@ -1,9 +1,27 @@
 {KeyManager,box,unbox} = require '../..'
+{PgpKeyRing} = require '../../lib/keyring'
+C = require '../../lib/const'
 
-exports.revoked_key = (T,cb) ->
+exports.fetch_subkey_from_revoked_bundle = (T,cb) ->
+  # Entire key bundle is revoked, trying to fetch subkey should not
+  # succeed.
   await KeyManager.import_from_armored_pgp { raw : revokedKey1stParty }, defer err, entity, warnings
   T.no_error err
-  console.log entity.primary._pgp.get_key_id().toString('hex')
+  await entity.fetch [ Buffer.from('f6ad54717fa42a6e', 'hex') ], C.ops.encrypt, defer err, km, i
+  T.assert err?.name is 'RevokedKeyError', 'Got revoked key error'
+  cb()
+
+exports.fetch_subkey_from_revoked_bundle_with_keyring = (T, cb) ->
+  class KeyRing extends PgpKeyRing
+    fetch: (key_ids, ops, cb) ->
+      await KeyManager.import_from_armored_pgp { raw: revokedKey1stParty }, defer err, km
+      @add_key_manager km
+      super key_ids, ops, cb
+
+  keyring = new KeyRing()
+  await keyring.fetch [ Buffer.from('f6ad54717fa42a6e', 'hex') ], C.ops.encrypt, defer err, km, i
+  T.assert err?.name is 'RevokedKeyError', 'Got revoked key error'
+  cb()
 
 exports.revoked_identity = (T,cb) ->
   await KeyManager.import_from_armored_pgp { raw : revokedIdentityKey }, defer err, entity, warnings
