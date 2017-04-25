@@ -15,29 +15,38 @@ exports.designated_revocation = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : designatedRevokedKey }, defer err, entity, warnings
   T.no_error err
   T.assert warnings?.warnings().length is 0, "didn't get any warnings"
-  desig_revokes = entity.primary._pgp.get_designated_revocations()
+  desig_revokes = entity.pgp.get_designated_revocations()
   T.assert desig_revokes.length is 1, "one designated revocation"
   T.assert desig_revokes[0].get_issuer_key_id().toString('hex') is '9ad4c1f7c4ee24fe', 'expected issued id'
 
   cb()
 
 exports.designated_revocation2 = (T, cb) ->
+  # Import key manager with key with 3rd party revocation signature
   await KeyManager.import_from_armored_pgp { raw : designatedRevokedKey2 }, defer err, entity, warnings
   T.no_error err
   T.assert (warnings?.warnings().length is 0), "no warnings"
-  desig_revokes = entity.primary._pgp.get_designated_revocations()
+  desig_revokes = entity.pgp.get_designated_revocations()
   T.assert desig_revokes.length is 1, "one designated revocation"
   T.assert desig_revokes[0].get_issuer_key_id().toString('hex') is '9086605e0b5c4673', 'expected issued id'
 
+  # Import key manager with designated revoker key
   await KeyManager.import_from_armored_pgp { raw : designatedRevoker1 }, defer err, entity2, warnings
   T.no_error err
   T.assert warnings?.warnings().length is 0, "no warnings"
 
+  # Test Signature::_third_party_verify
   sig = desig_revokes[0]
-  await sig._third_party_verify entity.primary, defer err
+  await sig._third_party_verify entity.primary._pgp, defer err
   T.assert err.toString().indexOf('Error: Key id does not match') is 0, "expected specific error"
-  await sig._third_party_verify entity2.primary, defer err
+  await sig._third_party_verify entity2.primary._pgp, defer err
   T.no_error err
+
+  # Test KeyManager::find_verified_designated_revoke
+  await entity.find_verified_designated_revoke entity, defer sig
+  T.assert not sig?
+  await entity.find_verified_designated_revoke entity2, defer sig
+  T.assert sig == desig_revokes[0]
 
   cb()
 
@@ -45,7 +54,7 @@ exports.test_designated_bad_sig = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : designatedRevokedKey2 }, defer err, entity, warnings
   T.no_error err
   T.assert warnings?.warnings().length is 0, "no warnings"
-  desig_revokes = entity.primary._pgp.get_designated_revocations()
+  desig_revokes = entity.pgp.get_designated_revocations()
   T.assert desig_revokes.length is 1, "one designated revocation"
   T.assert desig_revokes[0].get_issuer_key_id().toString('hex') is '9086605e0b5c4673', 'expected issued id'
 
@@ -55,8 +64,11 @@ exports.test_designated_bad_sig = (T, cb) ->
 
   sig = desig_revokes[0]
   sig.sig[0][0] = 0x00 # Break the signature, expect failure.
-  await sig._third_party_verify entity2.primary, defer err
+  await sig._third_party_verify entity2.primary._pgp, defer err
   T.assert err.toString().indexOf('Error: Signature failed to verify') is 0, 'expected specific error'
+
+  await entity.find_verified_designated_revoke entity2, defer sig
+  T.assert not sig?
 
   cb()
 
@@ -78,7 +90,9 @@ exports.key_without_unverified_revocations = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : designatedRevoker1 }, defer err, entity, warnings
   T.no_error err
   T.assert warnings?.warnings().length is 0, "no warnings"
-  T.assert entity.primary._pgp.get_designated_revocations().length is 0, "expected no designated revocation"
+  T.assert entity.pgp.get_designated_revocations().length is 0, "expected no designated revocation"
+  await entity.find_verified_designated_revoke entity, defer sig
+  T.assert not sig?
   cb()
 
 exports.test_misplaced_revocation = (T, cb) ->

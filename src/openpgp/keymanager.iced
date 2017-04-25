@@ -1,8 +1,9 @@
 {RSA} = require '../rsa'
 {ECDSA} = require '../ecc/ecdsa'
 {SHA256} = require '../hash'
-K = require('../const').kb
-C = require('../const').openpgp
+konst = require('../const')
+K = konst.kb
+C = konst.openpgp
 {make_esc} = require 'iced-error'
 {errors} = require '../errors'
 {format_pgp_fingerprint_2,athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require '../util'
@@ -315,6 +316,10 @@ class PgpEngine extends Engine
   #--------
 
   get_all_key_ids : () -> (@key(k).get_key_id() for k in @_all_keys())
+
+  #--------
+
+  get_designated_revocations : () -> @key(@primary).get_designated_revocations()
 
   #--------
 
@@ -962,6 +967,35 @@ class KeyManager extends KeyManagerInterface
   merge_everything : (km2) ->
     @merge_public_omitting_revokes(km2)
     @merge_userids(km2)
+
+  #----------
+
+  find_verified_designated_revoke : (fetcher, cb) ->
+    unless @pgp?
+      return cb()
+
+    sigs = @pgp.primary?._pgp?.get_designated_revocations()
+    if not sigs? or sigs.length is 0
+      return cb()
+
+    for sig in sigs
+      key_id = sig.get_issuer_key_id()
+      await fetcher.fetch [ key_id ], konst.ops.verify, defer err, km, i
+      if err or not km? or not km.pgp
+        continue
+
+      keymat = km.find_pgp_key_material key_id
+      unless keymat?
+        continue
+
+      await sig._third_party_verify keymat, defer err
+      unless err
+        # Success, we've found designated revocation signature that
+        # can be verified.
+        return cb(sig)
+
+    cb()
+
 
 #=================================================================
 
