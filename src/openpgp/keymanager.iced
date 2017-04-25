@@ -375,7 +375,7 @@ class PgpEngine extends Engine
 
     if not key?
       err = new Error "No keys match the given key IDs"
-    else if @key(key).is_revoked() or @key(@primary).is_revoked()
+    else if @key(key).is_revoked() or @is_revoked()
       # Key key_id is revoked or entire bundle is revoked.
       err = new errors.RevokedKeyError
       err.km = @
@@ -385,6 +385,11 @@ class PgpEngine extends Engine
       ret = @key(key)
 
     cb err, @key_manager, ret_i
+
+  #--------
+  # If primary is revoked, the entire bundle should be considered
+  # revoked.
+  is_revoked : () -> @key(@primary).is_revoked()
 
 #=================================================================
 
@@ -845,6 +850,9 @@ class KeyManager extends KeyManagerInterface
   can_sign : () -> @find_signing_pgp_key()?
   can_encrypt : () -> @find_crypt_pgp_key(false)?
   can_decrypt : () -> @find_crypt_pgp_key(true)?
+
+  is_pgp_revoked : () -> @pgp.is_revoked()
+  get_pgp_designated_revocations : () -> @pgp.get_designated_revocations()
 
   #--------
 

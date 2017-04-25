@@ -7,6 +7,8 @@ exports.fetch_subkey_from_revoked_bundle = (T,cb) ->
   # succeed.
   await KeyManager.import_from_armored_pgp { raw : revokedKey1stParty }, defer err, entity, warnings
   T.no_error err
+  T.assert warnings.warnings().length is 0, "didn't get any warnings"
+  T.assert entity.is_pgp_revoked(), 'bundle is revoked'
   await entity.fetch [ Buffer.from('f6ad54717fa42a6e', 'hex') ], C.ops.encrypt, defer err, km, i
   T.assert err?.name is 'RevokedKeyError', 'Got revoked key error'
   cb()
@@ -38,7 +40,7 @@ exports.designated_revocation = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : designatedRevokedKey }, defer err, entity, warnings
   T.no_error err
   T.assert warnings?.warnings().length is 0, "didn't get any warnings"
-  desig_revokes = entity.pgp.get_designated_revocations()
+  desig_revokes = entity.get_pgp_designated_revocations()
   T.assert desig_revokes.length is 1, "one designated revocation"
   T.assert desig_revokes[0].get_issuer_key_id().toString('hex') is '9ad4c1f7c4ee24fe', 'expected issued id'
 
@@ -49,7 +51,7 @@ exports.designated_revocation2 = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : designatedRevokedKey2 }, defer err, entity, warnings
   T.no_error err
   T.assert (warnings?.warnings().length is 0), "no warnings"
-  desig_revokes = entity.pgp.get_designated_revocations()
+  desig_revokes = entity.get_pgp_designated_revocations()
   T.assert desig_revokes.length is 1, "one designated revocation"
   T.assert desig_revokes[0].get_issuer_key_id().toString('hex') is '9086605e0b5c4673', 'expected issued id'
 
@@ -77,7 +79,7 @@ exports.test_designated_bad_sig = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : designatedRevokedKey2 }, defer err, entity, warnings
   T.no_error err
   T.assert warnings?.warnings().length is 0, "no warnings"
-  desig_revokes = entity.pgp.get_designated_revocations()
+  desig_revokes = entity.get_pgp_designated_revocations()
   T.assert desig_revokes.length is 1, "one designated revocation"
   T.assert desig_revokes[0].get_issuer_key_id().toString('hex') is '9086605e0b5c4673', 'expected issued id'
 
@@ -113,7 +115,7 @@ exports.key_without_unverified_revocations = (T, cb) ->
   await KeyManager.import_from_armored_pgp { raw : designatedRevoker1 }, defer err, entity, warnings
   T.no_error err
   T.assert warnings?.warnings().length is 0, "no warnings"
-  T.assert entity.pgp.get_designated_revocations().length is 0, "expected no designated revocation"
+  T.assert entity.get_pgp_designated_revocations().length is 0, "expected no designated revocation"
   await entity.find_verified_designated_revoke entity, defer sig
   T.assert not sig?
   cb()
