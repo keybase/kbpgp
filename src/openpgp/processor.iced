@@ -104,28 +104,6 @@ class KeyBlock
 
   #--------------------
 
-  # TODO: remove this one or the other when we figure out how to
-  # handle 3rd party signatures.
-  _check_issuer : (i, packet, primary) ->
-    if (fp = packet.get_issuer_fingerprint())?
-      if bufeq_secure(fp, (wanted = @primary.get_fingerprint()))
-        return wanted
-      else
-        @warnings.push "Skipping signature by another issuer: #{fp.toString('hex')} != #{wanted?.toString('hex')}"
-        return null
-
-    if (iid = packet.get_issuer_key_id())?
-      if bufeq_secure(iid, (pid = @primary.get_key_id()))
-        return pid
-      else
-        @warnings.push "Skipping signature by another issuer: #{iid?.toString('hex')} != #{pid?.toString('hex')}"
-        return null
-
-    @warnings.push "Signature is missing an issuer (at packet=#{i})"
-    return null
-
-  #--------------------
-
   _verify_sigs : (cb) ->
     err = null
     working_set = []

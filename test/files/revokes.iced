@@ -102,9 +102,12 @@ exports.test_designated_bad_revoker = (T, cb) ->
   T.no_error err
 
   pgp = entity.primary._pgp
-  # Change designated fingerprint, so get_designated_revocations()
-  # returns empty list.
-  pgp.desig_revokers[0].fingerprint[19] = 0x00
+  # Rewrite designated_revokers so there is one with different
+  # fingerprint than the one who issued revocation signature.
+  revoker = pgp.desig_revokers['9086605e0b5c4673']
+  revoker.fingerprint[19] = 0x00
+  pgp.desig_revokers =
+    '9086605e0b5c4600': revoker
 
   desig_revokes = pgp.get_designated_revocations()
   T.assert desig_revokes.length is 0, "expected 0 third party revocations"

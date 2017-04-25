@@ -980,7 +980,7 @@ class KeyManager extends KeyManagerInterface
     unless @pgp?
       return cb()
 
-    sigs = @pgp.primary?._pgp?.get_designated_revocations()
+    sigs = @get_pgp_designated_revocations()
     if not sigs? or sigs.length is 0
       return cb()
 

@@ -542,7 +542,8 @@ class KeyMaterial extends Packet
   #-------------------
 
   add_designee : (rev_key) ->
-    (@desig_revokers or= []).push rev_key
+    get_key_id = (fingerprint) -> fingerprint[12...20].toString('hex')
+    (@desig_revokers or= {})[get_key_id(rev_key.fingerprint)] = rev_key
 
   #-------------------
 
@@ -555,16 +556,12 @@ class KeyMaterial extends Packet
     unless @unverified_revocations? and @desig_revokers?
       return []
 
-    revocation_matches_designee = (revocation, designee) ->
-      get_key_id = (fingerprint) -> fingerprint[12...20]
-
+    return @unverified_revocations.filter (revocation) =>
       if (keyid = revocation.get_issuer_key_id())?
-        return bufeq_secure(keyid, get_key_id(designee.fingerprint))
+        return keyid.toString('hex') of @desig_revokers
       else
         return false
 
-    return @unverified_revocations.filter (sig) =>
-      @desig_revokers.find revocation_matches_designee.bind @, sig
 
 
 #=================================================================================
