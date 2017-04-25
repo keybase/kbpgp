@@ -334,9 +334,6 @@ class PgpEngine extends Engine
 
   # @returns {openpgp.KeyMaterial} An openpgp KeyMaterial wrapper.
   find_best_key : (flags, need_priv = false) ->
-    if @key(@primary).is_revoked()
-      return null
-
     best = null
 
     check = (k) =>
@@ -378,7 +375,8 @@ class PgpEngine extends Engine
 
     if not key?
       err = new Error "No keys match the given key IDs"
-    else if @key(key).is_revoked()
+    else if @key(key).is_revoked() or @key(@primary).is_revoked()
+      # Key key_id is revoked or entire bundle is revoked.
       err = new errors.RevokedKeyError
       err.km = @
     else if not @key(key).fulfills_flags flags

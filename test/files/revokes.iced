@@ -1,5 +1,10 @@
 {KeyManager,box,unbox} = require '../..'
 
+exports.revoked_key = (T,cb) ->
+  await KeyManager.import_from_armored_pgp { raw : revokedKey1stParty }, defer err, entity, warnings
+  T.no_error err
+  console.log entity.primary._pgp.get_key_id().toString('hex')
+
 exports.revoked_identity = (T,cb) ->
   await KeyManager.import_from_armored_pgp { raw : revokedIdentityKey }, defer err, entity, warnings
   T.no_error err
@@ -103,6 +108,31 @@ exports.test_misplaced_revocation = (T, cb) ->
   T.assert uid?, 'has userid'
   T.assert not uid?.is_revoked(), 'is not revoked'
   cb()
+
+# First-party revoked, regular key.
+revokedKey1stParty = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQFCBFj3GqwRAwC922rw75mP/WuF/wdZOcAPVfqukqGd5S5x7ajUGi77sXqqhAnr
+j+XsneekldcHqlJuti7IHxMcbOZQN0rYinpk6ODfB3J1ShcHTC2IpWsngzt+tL6V
+zSIXbR5rLUGg2RMAoPMi18hqBq8xQQDG2rEWCRybRvnvAv0axMy37OAeye6Ky8m2
+0l1vDFeNO7/OH9eO5oNEwNuVG/shjZkGTD/YuB8huPvcyMR3xxs6Qmjn0XRfUWxt
+xPvfctP9HS7MPeDqa/DsMZ5hh7B1eiwmk2cj5E6ZOFk2G8sC/jtcA3wVF7eHsJvA
+CL14MLeQ9g+04CT7VhvPt2f3X3GF7XQ/2pgBfnzDi26VU9ND75NBmwVulbJw8QG7
+JOpMi3FeHhsWtbQGcZg3Vcw8IamnqhEaFJ9Nb/hV4rKm0IXfgohJBCARAgAJBQJY
+9xqvAh0AAAoJEDl/NacbGDDEyDYAn3QKeWn52B9lHes3pNlRqFS4/VlvAJ9DP+Kf
+Ec8PxRr9qYH8KpacyYWua7QFQWxpY2WIYQQTEQIAIQUCWPcarAIbAwULCQgHAgYV
+CAkKCwIEFgIDAQIeAQIXgAAKCRA5fzWnGxgwxB00AJ4inWM/H4FuFxd8A2TmmN1J
+nb/W7ACgozlKd8s90o72ccJq4zxLLOC/ik25AQ0EWPcarBAEAMNfbgy0zfpDz6zi
+kU+9ysCnQPaAQjNrFCu3JnJ29TGTRjGq95NOYgaU3/guAf8d1QSBAPzC+c+o/TWQ
+2+y6qKJnZbsvFzVjBiJW6zpFDyWvupfATzKE3rsWYeyCwdPfwHTejWGXeoJKkSAy
+em+0wm2VI6CKRsrf88UCwD9wk7VrAAMFBAC1+2hcC1TcJuZwwhDd3xllXgrMHGyG
+I92RmaTjttJgOvlN5Pyz6q5HgB5EFkzbW3YCGm/YY+KTXKWUp9u2Eh9cc8R9Pm7c
+HzJlEINC+VMe/+Nzd15ceySNGNIUW6D9OTtzMmgrkXCvRnZ0DDsnexVOM4pI6Up4
+afCdmQfHhocmZ4hJBBgRAgAJBQJY9xqsAhsMAAoJEDl/NacbGDDEsCgAn2RJ+SJB
+i7W/Rh1FjTXpL+d7zPqzAJ0Vzhg3SkrLt8/VGRRSJRUMpb4bPw==
+=w/2P
+-----END PGP PUBLIC KEY BLOCK-----
+"""
 
 # Public key that has two identities, one of which is revoked.
 revokedIdentityKey = """-----BEGIN PGP PUBLIC KEY BLOCK-----
