@@ -127,7 +127,7 @@ class KeyBlock
 
         p.key = @primary.key
         p.primary = @primary
-        @opts.skip_verify = not matches_ours
+        p.is_third_party = not matches_ours
         await p.verify working_set, defer(tmp), @opts
         if tmp?
           msg = "Signature failure in packet #{i}: #{tmp.message} (#{issuer_id.toString('hex')})"
