@@ -1,6 +1,7 @@
 ## 2.0.70 (2017-04-19)
 
 - allow us to pass a nonce through a box{}
+- Support for designated revokers
 
 ## 2.0.69 (2017-04-07)
 
