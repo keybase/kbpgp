@@ -266,7 +266,7 @@ class Signature extends Packet
     # Now actually check that the signature worked.
     # We might want to skip verification of 3rd party signatures for
     # certain packet types, like key_revocation (pgp designated revoke).
-    unless err? or @is_third_party
+    unless err? or (@is_third_party and @type is T.key_revocation)
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload, hvalue } = @prepare_payload data
