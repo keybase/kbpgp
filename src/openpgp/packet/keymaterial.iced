@@ -539,6 +539,31 @@ class KeyMaterial extends Packet
 
     return winner
 
+  #-------------------
+
+  add_designee : (rev_key) ->
+    get_key_id = (fingerprint) -> fingerprint[12...20].toString('hex')
+    (@desig_revokers or= {})[get_key_id(rev_key.fingerprint)] = rev_key
+
+  #-------------------
+
+  add_designated_revocation : (sig) ->
+    (@unverified_revocations or= []).push sig
+
+  #-------------------
+
+  get_designated_revocations : () ->
+    unless @unverified_revocations? and @desig_revokers?
+      return []
+
+    return @unverified_revocations.filter (revocation) =>
+      if (keyid = revocation.get_issuer_key_id())?
+        return keyid.toString('hex') of @desig_revokers
+      else
+        return false
+
+
+
 #=================================================================================
 
 class Parser

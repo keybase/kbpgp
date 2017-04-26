@@ -257,14 +257,16 @@ class Signature extends Packet
         packets
 
       when T.direct
-        [ @primary].concat data_packets
+        [ @primary ].concat data_packets
 
       else
         err = new Error "cannot verify sigtype #{@type}"
         []
 
     # Now actually check that the signature worked.
-    unless err?
+    # We might want to skip verification of 3rd party signatures for
+    # certain packet types, like key_revocation (pgp designated revoke).
+    unless err? or (@is_third_party and @type is T.key_revocation)
       buffers = (dp.to_signature_payload() for dp in @data_packets)
       data = Buffer.concat buffers
       { payload, hvalue } = @prepare_payload data
@@ -318,8 +320,33 @@ class Signature extends Packet
           if @issuer_matches_key(@primary)
             @primary.mark_revoked sig
           else
-            iki = @get_issuer_key_id()
-            err = new Error "can't revoke key ID #{iki.toString('hex')} (!= #{@primary.get_key_id().toString('hex')})"
+            @primary.add_designated_revocation sig
+
+        when T.direct
+          if fp = @subpacket_index.hashed[S.revocation_key]
+            @primary.add_designee fp
+
+        when T.certificate_revocation
+          if (userid = @data_packets[1].to_userid())?
+            userid.mark_revoked sig
+
+        else
+          err = new Error "Got unknown signature type=#{@type}"
+
+    cb err
+
+  #-----------------
+
+  _third_party_verify : (key, cb) ->
+    unless bufeq_secure issuer = @get_issuer_key_id(), keyid = key.get_key_id()
+      return cb new Error "Key id does not match: #{issuer.toString('hex')} != #{keyid.toString('hex')}"
+
+    # @data_packets are left from _verify call that's done when
+    # processing this packet.
+    buffers = (dp.to_signature_payload() for dp in @data_packets)
+    data = Buffer.concat buffers
+    { payload, hvalue } = @prepare_payload data
+    await key.key.verify_unpad_and_check_hash { @sig, hash : hvalue, @hasher }, defer err
     cb err
 
   #-----------------

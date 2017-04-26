@@ -1,8 +1,9 @@
 {RSA} = require '../rsa'
 {ECDSA} = require '../ecc/ecdsa'
 {SHA256} = require '../hash'
-K = require('../const').kb
-C = require('../const').openpgp
+konst = require('../const')
+K = konst.kb
+C = konst.openpgp
 {make_esc} = require 'iced-error'
 {errors} = require '../errors'
 {format_pgp_fingerprint_2,athrow,assert_no_nulls,ASP,katch,bufeq_secure,unix_time,bufferify} = require '../util'
@@ -318,6 +319,10 @@ class PgpEngine extends Engine
 
   #--------
 
+  get_designated_revocations : () -> @key(@primary).get_designated_revocations()
+
+  #--------
+
   validity_check : (cb) ->
     err = null
     for k in @_all_keys()
@@ -370,7 +375,8 @@ class PgpEngine extends Engine
 
     if not key?
       err = new Error "No keys match the given key IDs"
-    else if @key(key).is_revoked()
+    else if @key(key).is_revoked() or @is_revoked()
+      # Key key_id is revoked or entire bundle is revoked.
       err = new errors.RevokedKeyError
       err.km = @
     else if not @key(key).fulfills_flags flags
@@ -379,6 +385,11 @@ class PgpEngine extends Engine
       ret = @key(key)
 
     cb err, @key_manager, ret_i
+
+  #--------
+  # If primary is revoked, the entire bundle should be considered
+  # revoked.
+  is_revoked : () -> @key(@primary).is_revoked()
 
 #=================================================================
 
@@ -840,6 +851,9 @@ class KeyManager extends KeyManagerInterface
   can_encrypt : () -> @find_crypt_pgp_key(false)?
   can_decrypt : () -> @find_crypt_pgp_key(true)?
 
+  is_pgp_revoked : () -> @pgp.is_revoked()
+  get_pgp_designated_revocations : () -> @pgp.get_designated_revocations()
+
   #--------
 
   # Returns the underlying crypto key that's the primary key.
@@ -959,6 +973,35 @@ class KeyManager extends KeyManagerInterface
   merge_everything : (km2) ->
     @merge_public_omitting_revokes(km2)
     @merge_userids(km2)
+
+  #----------
+
+  find_verified_designated_revoke : (fetcher, cb) ->
+    unless @pgp?
+      return cb()
+
+    sigs = @get_pgp_designated_revocations()
+    if not sigs? or sigs.length is 0
+      return cb()
+
+    for sig in sigs
+      key_id = sig.get_issuer_key_id()
+      await fetcher.fetch [ key_id ], konst.ops.verify, defer err, km, i
+      if err or not km? or not km.pgp?
+        continue
+
+      keymat = km.find_pgp_key_material key_id
+      unless keymat?
+        continue
+
+      await sig._third_party_verify keymat, defer err
+      unless err
+        # Success, we've found designated revocation signature that
+        # can be verified.
+        return cb(sig)
+
+    cb()
+
 
 #=================================================================
 
