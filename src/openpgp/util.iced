@@ -63,6 +63,6 @@ exports.fit_to_size = fit_to_size = (size, buf) ->
   if l is 0
     buf
   else if l > 0
-    Buffer.concat [ buf, new Buffer(0x00 for i in [1..l])]
+    Buffer.concat [ new Buffer(0x00 for i in [1..l]), buf ]
   else if l < 0
     buf[-size..]
