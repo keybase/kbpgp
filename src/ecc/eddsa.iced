@@ -86,7 +86,9 @@ class Pub extends BaseKey
     naclw = kbnacl.alloc { publicKey : @key }
     # Provided signature might be malformed, remember to fit it to
     # size expected by nacl so it does not throw.
-    sig = util.fit_to_size kbnacl.sign.signatureLength, Buffer.concat [r,s]
+    r = util.fit_to_size kbnacl.sign.signatureLength / 2, r
+    s = util.fit_to_size kbnacl.sign.signatureLength / 2, s
+    sig = Buffer.concat [r,s]
     [err, _] = naclw.verify { payload, sig, detached : true }
     cb err
 
