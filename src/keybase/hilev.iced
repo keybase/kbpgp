@@ -62,7 +62,11 @@ class KeyManager extends KeyManagerInterface
 
   @import_private : ({hex, raw}, cb) ->
     err = ret = null
-    raw = new Buffer hex, 'hex' if hex?
+    if hex?
+      try
+        raw = new Buffer hex, 'hex'
+      catch e
+        return cb e
     await EdDSA.import_private { raw }, defer err, key
     ret = new KeyManager { key } unless err?
     cb err, ret
@@ -72,7 +76,10 @@ class KeyManager extends KeyManagerInterface
   @import_public : ({hex, raw}, cb) ->
     err = ret = null
     if hex?
-      raw = new Buffer hex, 'hex'
+      try
+        raw = new Buffer hex, 'hex'
+      catch e
+        return cb e
     [err, key] = EdDSA.parse_kb raw
     if err?
       await EncKeyManager.import_public { raw }, defer err, ret
@@ -138,7 +145,11 @@ class EncKeyManager extends KeyManager
 
   @import_private : ({hex, raw}, cb) ->
     err = ret = null
-    raw = new Buffer hex, 'hex' if hex?
+    if hex?
+      try
+        raw = new Buffer hex, 'hex'
+      catch e
+        return cb e
     await EncKeyManager.generate { seed : raw  }, defer err, km
     cb err, km
 
@@ -151,7 +162,10 @@ class EncKeyManager extends KeyManager
   @import_public : ({hex, raw}, cb) ->
     err = ret = null
     if hex?
-      raw = new Buffer hex, 'hex'
+      try
+        raw = new Buffer hex, 'hex'
+      catch e
+        return cb e
     [err, key] = DH.parse_kb raw
     unless err?
       ret = new EncKeyManager { key }
