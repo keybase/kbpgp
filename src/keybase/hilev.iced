@@ -64,7 +64,7 @@ class KeyManager extends KeyManagerInterface
     err = ret = null
     if hex?
       try
-        raw = Buffer.from hex, 'hex'
+        raw = new Buffer hex, 'hex'
       catch e
         return cb e
     await EdDSA.import_private { raw }, defer err, key
@@ -77,7 +77,7 @@ class KeyManager extends KeyManagerInterface
     err = ret = null
     if hex?
       try
-        raw = Buffer.from hex, 'hex'
+        raw = new Buffer hex, 'hex'
       catch e
         return cb e
     [err, key] = EdDSA.parse_kb raw
@@ -147,7 +147,7 @@ class EncKeyManager extends KeyManager
     err = ret = null
     if hex?
       try
-        raw = Buffer.from hex, 'hex'
+        raw = new Buffer hex, 'hex'
       catch e
         return cb e
     await EncKeyManager.generate { seed : raw  }, defer err, km
@@ -163,7 +163,7 @@ class EncKeyManager extends KeyManager
     err = ret = null
     if hex?
       try
-        raw = Buffer.from hex, 'hex'
+        raw = new Buffer hex, 'hex'
       catch e
         return cb e
     [err, key] = DH.parse_kb raw
@@ -179,7 +179,7 @@ unbox_decode = ({armored,binary,rawobj}) ->
     err = new Error "need either 'armored' or 'binary' or 'rawobj'"
     return [ err, null ]
   if armored?
-    binary = Buffer.from armored, 'base64'
+    binary = new Buffer armored, 'base64'
   if binary?
     try
       rawobj = encode.unseal binary
@@ -229,7 +229,7 @@ get_sig_body = ({armored}) ->
 # different from pgp-utils.armor.decode(), where @type is a string.
 decode_sig = ({armored}) ->
   decoded = {
-    body: Buffer.from armored, 'base64'
+    body: new Buffer armored, 'base64'
     type: C.message_types.generic
     payload: armored
   }
