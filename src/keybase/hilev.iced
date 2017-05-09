@@ -62,7 +62,11 @@ class KeyManager extends KeyManagerInterface
 
   @import_private : ({hex, raw}, cb) ->
     err = ret = null
-    raw = new Buffer hex, 'hex' if hex?
+    if hex?
+      try
+        raw = Buffer.from hex, 'hex'
+      catch e
+        return cb e
     await EdDSA.import_private { raw }, defer err, key
     ret = new KeyManager { key } unless err?
     cb err, ret
@@ -72,7 +76,10 @@ class KeyManager extends KeyManagerInterface
   @import_public : ({hex, raw}, cb) ->
     err = ret = null
     if hex?
-      raw = new Buffer hex, 'hex'
+      try
+        raw = Buffer.from hex, 'hex'
+      catch e
+        return cb e
     [err, key] = EdDSA.parse_kb raw
     if err?
       await EncKeyManager.import_public { raw }, defer err, ret
@@ -138,7 +145,11 @@ class EncKeyManager extends KeyManager
 
   @import_private : ({hex, raw}, cb) ->
     err = ret = null
-    raw = new Buffer hex, 'hex' if hex?
+    if hex?
+      try
+        raw = Buffer.from hex, 'hex'
+      catch e
+        return cb e
     await EncKeyManager.generate { seed : raw  }, defer err, km
     cb err, km
 
@@ -151,7 +162,10 @@ class EncKeyManager extends KeyManager
   @import_public : ({hex, raw}, cb) ->
     err = ret = null
     if hex?
-      raw = new Buffer hex, 'hex'
+      try
+        raw = Buffer.from hex, 'hex'
+      catch e
+        return cb e
     [err, key] = DH.parse_kb raw
     unless err?
       ret = new EncKeyManager { key }
@@ -165,7 +179,7 @@ unbox_decode = ({armored,binary,rawobj}) ->
     err = new Error "need either 'armored' or 'binary' or 'rawobj'"
     return [ err, null ]
   if armored?
-    binary = new Buffer armored, 'base64'
+    binary = Buffer.from armored, 'base64'
   if binary?
     try
       rawobj = encode.unseal binary
@@ -215,7 +229,7 @@ get_sig_body = ({armored}) ->
 # different from pgp-utils.armor.decode(), where @type is a string.
 decode_sig = ({armored}) ->
   decoded = {
-    body: new Buffer armored, 'base64'
+    body: Buffer.from armored, 'base64'
     type: C.message_types.generic
     payload: armored
   }
