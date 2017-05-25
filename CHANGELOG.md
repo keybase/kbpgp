@@ -1,6 +1,7 @@
 ## 2.0.71 (2017-05-24)
 
 - Checking if `hex` argument is valid in high level import_private and import_public (calling back with an err instead of crashing).
+- EdDSA: Left-pad R and S separately if shorter than 32 bytes. Fixes validation of rare GPG-created signatures.
 
 ## 2.0.70 (2017-04-26)
 
