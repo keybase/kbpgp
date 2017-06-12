@@ -381,6 +381,10 @@ class PgpEngine extends Engine
       err.km = @
     else if not @key(key).fulfills_flags flags
       err = new Error "We don't have a key for the requested PGP ops (flags = #{flags})"
+    else if not @key(key)?.key?.can_perform op_mask
+      # We might get here if we tried to verify a decryption but didn't have
+      # the right secret decryption key
+      err = new Error "can't peform the operation -- maybe no secret key material (op_mask=#{op_mask})"
     else
       ret = @key(key)
 
