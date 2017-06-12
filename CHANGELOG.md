@@ -1,3 +1,7 @@
+## 2.0.72 (2017-06-12)
+
+- Don't crash if a signature unbox runs on an encrypted message
+
 ## 2.0.71 (2017-05-24)
 
 - Checking if `hex` argument is valid in high level import_private and import_public (calling back with an err instead of crashing).

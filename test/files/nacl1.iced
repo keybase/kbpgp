@@ -102,7 +102,6 @@ exports.exim1 = (T,cb) ->
 exports.bad_hex = (T, cb) ->
   await ukm.import_armored_public { armored: 'Hello' }, defer err, km2
   T.assert err?, 'expected error'
-  T.equal 'TypeError', err?.name
   cb()
 
 #---------------------------------
