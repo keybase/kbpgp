@@ -248,7 +248,7 @@ class Signature extends Packet
       when T.subkey_binding, T.primary_binding, T.subkey_revocation
         packets = []
         if data_packets.length isnt 1
-          err =  new Error "Wrong number of data packets; expected only 1"
+          err = new Error "Wrong number of data packets; expected only 1"
         else if not @primary?
           err = new Error "Need a primary key for subkey signature"
         else
