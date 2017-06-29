@@ -61,7 +61,7 @@ class KeyBlock
   _check_primary : () ->
     err = if not @primary.is_self_signed()
       new Error "no valid primary key self-signature or key(s) have expired"
-    else if @primary.get_signed_userids().length is 0
+    else if (@userids = @primary.get_signed_userids()).length is 0
       new Error "no valid Userid signed into key"
     else
       @user_attributes = @primary.get_signed_user_attributes()
@@ -86,8 +86,14 @@ class KeyBlock
   process : (cb) ->
     err = @_extract_keys()
     await @_verify_sigs defer err unless err?
-    err = @_check_keys() unless err? or @opts?.no_check_keys
-    @userids = @primary.get_signed_userids() unless err?
+
+    if @opts?.no_check_keys
+      @userids = @primary.get_signed_userids() unless err?
+    else
+      # _check_keys will populate @userids with userids with valid
+      # signatures.
+      err = @_check_keys() unless err?
+
     cb err
 
   #--------------------

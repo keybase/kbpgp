@@ -51,6 +51,8 @@ mods =
   rsa : require '../files/rsa.iced'
   keyfetcher : require '../files/keyfetcher.iced'
   revokes : require '../files/revokes.iced'
+  p3skb : require '../files/p3skb.iced'
+  p3skb_r : require '../files/p3skb_r.iced'
 
 v = Object.keys(mods)
 v.sort()
