@@ -1,3 +1,7 @@
+## 2.0.73 (2017-06-29)
+
+- Ability to import expired keys from p3skb by running import_from_p3skb with `no_key_check` and `time_travel`.
+
 ## 2.0.72 (2017-06-12)
 
 - Don't crash if a signature unbox runs on an encrypted message
