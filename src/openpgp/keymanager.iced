@@ -589,7 +589,7 @@ class KeyManager extends KeyManagerInterface
 
   # @param {string} armored A string that has the base64-encoded P3SKB format
   # @param {string} raw A synonym for 'armored' (DEPRECATED)
-  @import_from_p3skb : ({raw, armored, asp}, cb) ->
+  @import_from_p3skb : ({raw, armored, asp, no_check_keys, time_travel}, cb) ->
     armored or= raw
     asp = ASP.make asp
     km = null
@@ -597,20 +597,22 @@ class KeyManager extends KeyManagerInterface
     [err, p3skb] = katch () -> P3SKB.alloc unseal read_base64 armored
     unless err?
       msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
-      await KeyManager.import_from_pgp_message {msg, asp}, defer err, km, warnings
+      opts = { no_check_keys, time_travel }
+      await KeyManager.import_from_pgp_message { msg, asp, opts }, defer err, km, warnings
       km.p3skb = p3skb if km?
     cb err, km, warnings
 
   #--------------
 
-  unlock_p3skb : ({asp, tsenc, passphrase, passphrase_generation}, cb) ->
+  unlock_p3skb : ({asp, tsenc, passphrase, passphrase_generation, no_check_keys, time_travel}, cb) ->
     asp = ASP.make asp
     if not tsenc? and passphrase?
       tsenc = new Encryptor { key : bufferify(passphrase) }
     await @p3skb.unlock { tsenc, asp, passphrase_generation }, defer err
     unless err?
       msg = new Message { body : @p3skb.priv.data, type : C.message_types.private_key }
-      await KeyManager.import_from_pgp_message { msg, asp }, defer err, km
+      opts = { no_check_keys, time_travel }
+      await KeyManager.import_from_pgp_message { msg, asp, opts }, defer err, km
 
     unless err?
       err = @pgp.merge_private km.pgp

@@ -86,7 +86,14 @@ class KeyBlock
   process : (cb) ->
     err = @_extract_keys()
     await @_verify_sigs defer err unless err?
-    err = @_check_keys() unless err? or @opts?.no_check_keys
+
+    if @opts?.no_check_keys
+      @userids = @primary.get_signed_userids() unless err?
+    else
+      # _check_keys will populate @userids with userids with valid
+      # signatures.
+      err = @_check_keys() unless err?
+
     cb err
 
   #--------------------
