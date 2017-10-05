@@ -216,7 +216,6 @@ class Message
   #---------
 
   _decrypt : (cb) ->
-    err = null
     esc = make_esc cb, "Message::decrypt"
     await @_get_session_key esc defer is_enc, sesskey, pkcs5
     if is_enc
@@ -224,7 +223,7 @@ class Message
       await @_decrypt_with_session_key sesskey, edat, pkcs5, esc defer plaintext
       await @_parse plaintext, esc defer packets
       @packets = packets.concat @packets
-    cb err
+    cb null
 
   #---------
 
@@ -326,7 +325,7 @@ class Message
     if not clearsign?
       err = new Error "no clearsign data found"
     else
-      await verify_clearsign { packets, clearsign, @keyfetch }, defer err, literal
+      await verify_clearsign { packets, clearsign, @keyfetch, @now }, defer err, literal
     cb err, [ literal ]
 
   #---------
@@ -351,7 +350,7 @@ class Message
     if not(@data? or @data_fn?)
       err = new Error "Cannot verify detached signature without data input"
     else
-      await verify_detached { packets, @data, @data_fn, @keyfetch}, defer err, literals
+      await verify_detached { packets, @data, @data_fn, @keyfetch, @now}, defer err, literals
     cb err, literals
 
   #---------

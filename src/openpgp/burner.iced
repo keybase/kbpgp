@@ -69,7 +69,7 @@ class Burner extends BaseBurner
     sig = new Signature {
       type : C.sig_types.binary_doc
       key : @signing_key.key
-      hashed_subpackets : [ new CreationTime(unix_time()) ]
+      hashed_subpackets : [ new CreationTime(@opts?.now or unix_time()) ]
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
     }
     await @asp.progress { what : 'sign',  i : 0, total : 1 }, esc defer()

@@ -414,9 +414,12 @@ Jw8tgTE=
 #=================================================================
 
 exports.import_and_merge_zaher = (T, cb) ->
+  now = Math.floor(new Date(2015, 6, 24)/1000)
+  opts = { now }
+
   sponge = null
   for k in zaher_keys
-    await KeyManager.import_from_armored_pgp { armored : k }, T.esc(defer(km), cb)
+    await KeyManager.import_from_armored_pgp { armored : k, opts }, T.esc(defer(km), cb)
     if sponge?
       sponge.merge_all_subkeys_omitting_revokes km
     else

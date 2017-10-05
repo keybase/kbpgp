@@ -21,7 +21,7 @@ HuWJ6zfGw5ZgWU9BWqs=
 -----END PGP SIGNATURE-----
 ""","""
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA512 
+Hash: SHA512
 
 foo
 -----BEGIN PGP SIGNATURE-----
@@ -367,10 +367,13 @@ ring = new PgpKeyRing()
 
 #==========================================
 
+testing_unixtime = Math.floor(new Date(2014, 7, 10)/1000)
+
 exports.init = (T,cb) ->
+  opts = now : testing_unixtime
   ring = new PgpKeyRing()
   for key in keys
-    await KeyManager.import_from_armored_pgp { raw : key }, defer err, km
+    await KeyManager.import_from_armored_pgp { raw : key, opts }, defer err, km
     T.no_error err
     ring.add_key_manager km
   cb()
@@ -379,7 +382,7 @@ exports.init = (T,cb) ->
 
 exports.verify_good_sigs = (T,cb) ->
   for sig,i in good_sigs
-    await do_message { keyfetch : ring, armored : sig }, defer err, outmsg
+    await do_message { keyfetch : ring, armored : sig, now : testing_unixtime }, defer err, outmsg
     T.no_error err, "#{i}th sig worked'"
     T.waypoint "Sig #{i} checked out" unless err?
   cb()
@@ -388,9 +391,20 @@ exports.verify_good_sigs = (T,cb) ->
 
 exports.reject_bad_sigs = (T,cb) ->
   for sig,i in bad_sigs
-    await do_message { keyfetch : ring, armored : sig }, defer err, outmsg
-    T.assert err, "#{i}th sig failed"
+    await do_message { keyfetch : ring, armored : sig, now : testing_unixtime }, defer err, outmsg
+    T.assert err?, "#{i}th sig failed"
     T.waypoint "Sig #{i} failed" if err?
   cb()
 
 #==========================================
+
+exports.reject_expired_keys = (T, cb) ->
+  # Try to set `now` to very far ahead and see if clear-sign checking
+  # fails.
+  now = Math.floor(new Date(2099, 7, 10)/1000)
+  for sig,i in good_sigs
+    await do_message { keyfetch : ring, armored : sig, now }, defer err, outmsg
+    T.assert err?, "#{i}th sig failed"
+    T.assert err.message.indexOf('expired at') isnt -1, "expecting expired error message"
+    T.waypoint "Sig #{i} failed" unless err?
+  cb()

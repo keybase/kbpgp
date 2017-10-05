@@ -55,8 +55,11 @@ ZbLGiqgjXIjfEuNACFhveec=
 -----END PGP PRIVATE KEY BLOCK-----
 """
 
+testing_unixtime = Math.floor(new Date(2014, 9, 18)/1000)
+
 exports.run = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { armored : decryption_key }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { armored : decryption_key, opts }, defer err, km
   T.no_error err
   await km.unlock_pgp {passphrase : 'mmpp' }, defer err
   T.no_error err

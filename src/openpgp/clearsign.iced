@@ -98,7 +98,7 @@ class ClearSigner
 
   # @param {Buffer} msg the message to clear sign
   # @param {openpgp.packet.KeyMaterial} signing_key the key to find
-  constructor : ({@msg, @signing_key}) ->
+  constructor : ({@msg, @signing_key, @now}) ->
 
   #------------
 
@@ -112,7 +112,7 @@ class ClearSigner
     @sig = new Signature {
       sig_type : C.sig_types.canonical_text
       key : @signing_key.key
-      hashed_subpackets : [ new CreationTime(unix_time()) ]
+      hashed_subpackets : [ new CreationTime(@now or unix_time()) ]
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]
     }
     await @sig.write @_cleartext.sign, defer err, @_sig_output
@@ -153,7 +153,7 @@ class Verifier extends VerifierBase
   # @param {Object} clearsign the clearsign object that was embedded in the armor `Message`
   #    after parsing.
   #
-  constructor : ({packets, @clearsign, keyfetch}) ->
+  constructor : ({packets, @clearsign, keyfetch, @now}) ->
     super { packets, keyfetch }
 
   #-----------------------
@@ -163,7 +163,7 @@ class Verifier extends VerifierBase
     @_literal = new Literal {
       data : data,
       format : C.literal_formats.utf8,
-      date : unix_time()
+      date : @now or unix_time()
     }
     cb null
 
@@ -180,7 +180,8 @@ class Verifier extends VerifierBase
   #-----------------------
 
   _verify : (cb) ->
-    await @_sig.verify [ @_literal ], defer err
+    opts = {@now}
+    await @_sig.verify [ @_literal ], defer(err), opts
     cb err
 
   #-----------------------
@@ -211,16 +212,16 @@ class Verifier extends VerifierBase
 # @param {openpgp.packet.KeyMaterial} signing_key the key to find
 # @param {Callback<error,String,Buffer>} cb with the error (if there was one)
 #    the string of the PGP message, and finally the raw signature.
-exports.sign = ({msg, signing_key}, cb) ->
-  b = new ClearSigner { msg, signing_key }
+exports.sign = ({msg, signing_key, now}, cb) ->
+  b = new ClearSigner { msg, signing_key, now }
   await b.run defer err, encoded, signature
   b.scrub()
   cb err, encoded, signature
 
 #==========================================================================================
 
-exports.verify = ({packets, clearsign, keyfetch}, cb) ->
-  v = new Verifier { packets, clearsign, keyfetch }
+exports.verify = ({packets, clearsign, keyfetch, now}, cb) ->
+  v = new Verifier { packets, clearsign, keyfetch, now }
   await v.run defer err, literal
   cb err, literal
 

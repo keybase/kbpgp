@@ -115,8 +115,11 @@ km_priv = null
 
 #------------
 
+testing_unixtime = Math.floor(new Date(2015, 6, 24)/1000)
+
 exports.load_pub = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : pub }, defer err, tmp, warnings
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : pub, opts }, defer err, tmp, warnings
   km = tmp
   T.no_error err
   T.assert km?, "got a key manager back"
@@ -125,7 +128,8 @@ exports.load_pub = (T,cb) ->
 #------------
 
 exports.load_priv = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : priv }, defer err, tmp, warnings
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : priv, opts }, defer err, tmp, warnings
   km_priv = tmp
   T.no_error err
   throw err if err?
@@ -142,7 +146,8 @@ exports.unlock_priv = (T,cb) ->
 #------------
 
 exports.merge = (T,cb) ->
-  await km.merge_pgp_private { raw : priv }, defer err
+  opts = now : testing_unixtime
+  await km.merge_pgp_private { raw : priv, import_opts : opts }, defer err
   T.no_error err
   cb()
 
@@ -168,7 +173,7 @@ exports.sign = (T,cb) ->
 #------------
 
 exports.verify = (T,cb) ->
-  await do_message { armored : armored_sig, keyfetch : km }, defer err, literals
+  await do_message { armored : armored_sig, keyfetch : km, now : testing_unixtime }, defer err, literals
   T.no_error err
   T.equal literals[0].toString(), canto_I, "canto I of Don Juan came back"
   T.assert literals[0].get_data_signer()?, "was signed"
@@ -187,7 +192,7 @@ exports.encrypt_and_sign = (T,cb) ->
 #------------
 
 exports.decrypt_and_verify = (T,cb) ->
-  await do_message { armored : armored_ctext, keyfetch : km }, defer err, literals
+  await do_message { armored : armored_ctext, keyfetch : km, now : testing_unixtime }, defer err, literals
   T.no_error err
   T.equal literals[0].toString(), canto_I, "canto I of Don Juan came back"
   T.assert literals[0].get_data_signer()?, "was signed"
@@ -211,17 +216,17 @@ exports.encrypt_private_to_server = (T,cb) ->
 #------------
 
 exports.decrypt_private_from_sever = (T,cb) ->
-  await KeyManager.import_from_p3skb { raw : p3skb }, defer err, tmp
+  await KeyManager.import_from_p3skb { raw : p3skb, now : testing_unixtime }, defer err, tmp
   T.no_error err, "import from p3skb worked"
   km2 = tmp
   T.assert km2?, "km came back"
   T.assert km2.has_p3skb_private(), "has a private part"
   T.assert km2.is_p3skb_locked(), "is locked"
-  await km2.unlock_p3skb { tsenc }, defer err
+  await km2.unlock_p3skb { tsenc, now : testing_unixtime }, defer err
   T.waypoint "unlocked"
   T.no_error err
   T.assert not(km2.is_p3skb_locked()), "no longer locked"
-  await do_message { armored : armored_ctext, keyfetch : km2 }, defer err, literals
+  await do_message { armored : armored_ctext, keyfetch : km2, now : testing_unixtime }, defer err, literals
   T.no_error err
   T.equal literals[0].toString(), canto_I, "canto I of Don Juan came back"
   T.assert literals[0].get_data_signer()?, "was signed"

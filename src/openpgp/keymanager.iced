@@ -589,7 +589,7 @@ class KeyManager extends KeyManagerInterface
 
   # @param {string} armored A string that has the base64-encoded P3SKB format
   # @param {string} raw A synonym for 'armored' (DEPRECATED)
-  @import_from_p3skb : ({raw, armored, asp, no_check_keys, time_travel}, cb) ->
+  @import_from_p3skb : ({raw, armored, asp, no_check_keys, time_travel, now}, cb) ->
     armored or= raw
     asp = ASP.make asp
     km = null
@@ -597,21 +597,21 @@ class KeyManager extends KeyManagerInterface
     [err, p3skb] = katch () -> P3SKB.alloc unseal read_base64 armored
     unless err?
       msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
-      opts = { no_check_keys, time_travel }
+      opts = { no_check_keys, time_travel, now }
       await KeyManager.import_from_pgp_message { msg, asp, opts }, defer err, km, warnings
       km.p3skb = p3skb if km?
     cb err, km, warnings
 
   #--------------
 
-  unlock_p3skb : ({asp, tsenc, passphrase, passphrase_generation, no_check_keys, time_travel}, cb) ->
+  unlock_p3skb : ({asp, tsenc, passphrase, passphrase_generation, no_check_keys, time_travel, now}, cb) ->
     asp = ASP.make asp
     if not tsenc? and passphrase?
       tsenc = new Encryptor { key : bufferify(passphrase) }
     await @p3skb.unlock { tsenc, asp, passphrase_generation }, defer err
     unless err?
       msg = new Message { body : @p3skb.priv.data, type : C.message_types.private_key }
-      opts = { no_check_keys, time_travel }
+      opts = { no_check_keys, time_travel, now }
       await KeyManager.import_from_pgp_message { msg, asp, opts }, defer err, km
 
     unless err?
@@ -662,10 +662,10 @@ class KeyManager extends KeyManagerInterface
   # After importing the public portion of the key previously,
   # add the private portions with this call.  And again, verify
   # signatures.  And check that the public portions agree.
-  merge_pgp_private : ({armored, raw, asp}, cb) ->
+  merge_pgp_private : ({armored, raw, asp, import_opts}, cb) ->
     asp = ASP.make asp
     esc = make_esc cb, "merge_pgp_private"
-    await KeyManager.import_from_armored_pgp { armored, raw, asp }, esc defer b2
+    await KeyManager.import_from_armored_pgp { armored, raw, asp, opts : import_opts }, esc defer b2
     err = @pgp.merge_private b2.pgp
 
     if err? then # noop

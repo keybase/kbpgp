@@ -22,7 +22,8 @@ ctext = null
 #============================================================================
 
 exports.import_key = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : keys.tinfoil }, defer err, tmp
+  opts = now : Math.floor(new Date(2014, 3, 7)/1000)
+  await KeyManager.import_from_armored_pgp { raw : keys.tinfoil, opts }, defer err, tmp
   km = tmp
   ring = new PgpKeyRing()
   ring.add_key_manager km

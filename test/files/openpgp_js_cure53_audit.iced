@@ -10,6 +10,8 @@
 {KeyManager} = require '../../'
 {decode} = require('pgp-utils').armor
 
+testing_unixtime = Math.floor(new Date(2014, 4, 10)/1000)
+
 #===============================================================================
 
 key = """
@@ -50,7 +52,8 @@ ring = new PgpKeyRing()
 #================================================================================
 
 exports.init = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : key }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : key, opts }, defer err, km
   T.no_error err
   ring = new PgpKeyRing()
   ring.add_key_manager km
@@ -74,7 +77,7 @@ exports.op_01_019 = (T,cb) ->
     '-----END PGP SIGNATURE-----' ]
   msg = lines.join '\n'
 
-  await do_message { keyfetch : ring, armored : msg }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : msg, now : testing_unixtime }, defer err, outmsg
   T.assert err?, "Got an error on malformed header"
   cb()
 
@@ -104,8 +107,10 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 
   #----------
 
+  now = testing_unixtime
+
   x = get_msg "Hash: SHA512"
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.no_error err, "Simple clearsign verification worked"
   T.assert outmsg[0].to_literal()?.get_data_signer()?, "was a signed literal"
   T.waypoint "success 1"
@@ -113,7 +118,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
   #----------
 
   x = get_msg("Hash: SHA256")
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.assert err?, "Got a hash mismatch error"
   T.assert (err.message.indexOf("missing ASN header for SHA256") >= 0), "didn't try to run SHA256"
   T.waypoint "fail 1"
@@ -121,7 +126,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
   #----------
 
   x = get_msg()
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.assert err?, "Got a hash mismatch error"
   T.assert (err.message.indexOf("missing ASN header for MD5") >= 0), "didn't try to run MD5"
   T.waypoint "fail 2"
@@ -129,7 +134,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
   #----------
 
   x = get_msg("Hash: LAV750")
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.assert err?, "Got a failure"
   T.assert (err.message.indexOf("Unknown hash algorithm: LAV750") >= 0), "didn't find LAV750"
   T.waypoint "fail 3"
@@ -138,7 +143,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 
   # For now, don't support multiple hash values
   x = get_msg("Hash: SHA1, SHA512")
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.assert err?, "Got a failure"
   T.assert (err.message.indexOf("Unknown hash algorithm: SHA1, SHA512") >= 0), "didn't find SHA1,SHA512"
   T.waypoint "fail 4"
@@ -147,7 +152,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 
   # For now, don't support multiple hash values, just use the first
   x = get_msg(["Hash: SHA1", "Hash: SHA512"])
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.no_error err, "last hash wins"
   T.waypoint "success 2"
 
@@ -155,7 +160,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 
   # For now, don't support multiple hash values, just use the first
   x = get_msg(["Hash: SHA512", "Comment: No comments allowed!"])
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.assert err?, "no comments allowed"
   T.assert err.message.indexOf("Unallowed header: comment") >= 0, "found an header not allowed"
   T.waypoint "fail 5"
@@ -164,7 +169,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 
   # Wrong guy in last is a problem
   x = get_msg(["Hash: SHA512", "Hash: SHA1"])
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.assert err?, "Got a failure"
   T.assert (err.message.indexOf("missing ASN header for SHA1") >= 0), "multiple order matters"
   T.waypoint "fail 6"
@@ -189,7 +194,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 =jYzT
 -----END PGP SIGNATURE-----
 """
-  await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+  await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
   T.assert not err?, "control characters should be allowed in armor if the message is clearsigned"
   T.waypoint "success 3"
 
@@ -197,7 +202,7 @@ s3fYMkuJh5u2lQlvrr5EO1E7Nj4ab3PYh0DFZ8jjPteag+cj3WZ9iB4LtVPnV2Bq
 
   for h in [ 'Hash:SHA512', '<script>: SHA256', 'Hash SHA512' ]
     x = get_msg h
-    await do_message { keyfetch : ring, armored : x }, defer err, outmsg
+    await do_message { keyfetch : ring, armored : x, now }, defer err, outmsg
     T.assert err?, "Got a failure"
     T.assert (err.message.match /Bad line in clearsign header|Unallowed header/), "bad line"
     T.waypoint "fail #{h}"

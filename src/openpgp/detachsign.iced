@@ -2,7 +2,7 @@
 # Detachsign ---
 #
 #    Like burner.iced, but for detach-signing only.
-# 
+#
 #==========================================================================================
 
 
@@ -21,13 +21,13 @@ packetsigs = require './packet/packetsigs'
 
 #====================================================================
 
-hash_obj_to_fn = (obj) -> 
+hash_obj_to_fn = (obj) ->
   fn = (buf) -> obj.finalize(WordArray.from_buffer(buf)).to_buffer()
   fn.algname = buf.algname
 
 #====================================================================
 
-class Signer 
+class Signer
 
   #---------------------------------------------------
 
@@ -86,7 +86,7 @@ class Verifier extends VerifierBase
 
   #-----------------------
 
-  constructor : ({packets, @data, @data_fn, keyfetch}) ->
+  constructor : ({packets, @data, @data_fn, keyfetch, @now}) ->
     super { packets, keyfetch }
 
   #-----------------------
@@ -111,14 +111,15 @@ class Verifier extends VerifierBase
     data = if @data then [ new Literal  { @data } ]
     else []
     @literals = data
-    await @_sig.verify data, defer err
+    opts = {@now}
+    await @_sig.verify data, defer(err), opts
     cb err
 
   #-----------------------
 
   _make_literals : (cb) ->
     unless @literals.length
-      @literals.push new Literal { data : new Buffer [] } 
+      @literals.push new Literal { data : new Buffer [] }
     @literals[0].push_sig new packetsigs.Data { sig : @_sig }
     cb null
 
@@ -135,16 +136,16 @@ class Verifier extends VerifierBase
 
 #====================================================================
 
-exports.sign = ({data, hash_streamer, signing_key}, cb) ->
-  s = new Signer { data, hash_streamer, signing_key }
+exports.sign = ({data, hash_streamer, signing_key, now }, cb) ->
+  s = new Signer { data, hash_streamer, signing_key, now }
   await s.run defer err, encoded, signature
   s.scrub()
   cb err, encoded, signature
 
 #====================================================================
 
-exports.verify = ({data, data_fn, packets, keyfetch}, cb) ->
-  v = new Verifier { data, data_fn, packets, keyfetch }
+exports.verify = ({data, data_fn, packets, keyfetch, now }, cb) ->
+  v = new Verifier { data, data_fn, packets, keyfetch, now }
   await v.run defer err, literals
   cb err, literals
 
