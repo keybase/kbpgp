@@ -1,7 +1,7 @@
 {PgpKeyRing} = require '../../lib/keyring'
 {KeyManager} = require '../../'
 {do_message} = require '../../lib/openpgp/processor'
-{keys,data}  = require '../data/detached.iced'
+{keys,data,expiring_data}  = require '../data/detached.iced'
 {WordArray}  = require 'triplesec'
 {MRF}        = require '../../lib/rand'
 
@@ -129,3 +129,26 @@ exports.nix_bad_sigs_streaming = (T,cb) ->
   cb()
 
 #==========================================
+
+exports.verify_expired_detached = (T, cb) ->
+  now = Math.floor(new Date(2017, 10, 7)/1000)
+  await KeyManager.import_from_armored_pgp { raw : keys.public_expiring, opts: { now } }, defer err, tmpkm
+  T.no_error err
+  cleartext = new Buffer strip(expiring_data.data), 'base64'
+  await do_message { keyfetch : tmpkm, armored : expiring_data.sig, data, now }, defer err, literals
+  T.no_error err, "sig worked"
+  T.waypoint "Sig checked out"
+  T.assert literals[0].get_data_signer(), "a data signer came back"
+  km2 = literals[0].get_data_signer()?.get_key_manager()
+  T.assert km2?, "A key manager was there"
+  fp1 = tmpkm.get_pgp_fingerprint().toString('hex')
+  fp2 = literals[0].get_data_signer()?.get_key_manager()?.get_pgp_fingerprint()?.toString("hex")
+  T.equal fp1, fp2, "the right fingerprint signed"
+
+  now = Math.floor(new Date(2099, 7, 10)/1000)
+  await do_message { keyfetch : tmpkm, armored : expiring_data.sig, data, now }, defer err, literals
+  T.assert err?, "Errored out"
+  T.assert err.message.indexOf('expired at') isnt -1, "expecting expired error message"
+  T.waypoint "Right error message beamed back from 2099: #{err.message}"
+
+  cb null

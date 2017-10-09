@@ -120,7 +120,8 @@ test_unbox = ({km, sig, opts}, cb) ->
   cb err
 
 test = ({T,sig,key,opts},cb) ->
-  await KeyManager.import_from_armored_pgp { armored : key }, T.esc(defer(km, warnings), cb, "load key taco test")
+  import_opts = now : Math.floor(new Date(2016, 12, 11)/1000)
+  await KeyManager.import_from_armored_pgp { armored : key, opts: import_opts }, T.esc(defer(km, warnings), cb, "load key taco test")
   T.waypoint "loaded key"
   await test_unbox { km, sig, opts }, T.esc(defer(literals), cb, "verify")
   unless opts?.unbox_fail

@@ -111,7 +111,9 @@ exports.step6_export_p3skb_private = (T,cb) ->
   cb()
 
 exports.pgp_full_hash = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { armored : example_keys.portwood }, defer err, km
+  now = Math.floor(new Date(2015, 9, 10)/1000)
+  opts = { now }
+  await KeyManager.import_from_armored_pgp { armored : example_keys.portwood, opts }, defer err, km
   T.no_error err
   await km.pgp_full_hash {}, defer err, hash
   T.no_error err

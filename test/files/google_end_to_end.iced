@@ -123,14 +123,17 @@ ring = null
 
 #=============================================================================
 
+testing_unixtime = Math.floor(new Date(2014, 6, 4)/1000)
+
 exports.init = (T,cb) ->
   ring = new PgpKeyRing()
-  await KeyManager.import_from_armored_pgp { raw : receiver }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : receiver, opts }, defer err, km
   T.no_error err
   await km.unlock_pgp { passphrase }, defer err
   T.no_error
   ring.add_key_manager km
-  await KeyManager.import_from_armored_pgp { raw : sender }, defer err, km
+  await KeyManager.import_from_armored_pgp { raw : sender, opts }, defer err, km
   T.no_error err
   ring.add_key_manager km
   cb()
@@ -138,7 +141,7 @@ exports.init = (T,cb) ->
 #=============================================================================
 
 exports.test_decrypt = (T,cb) ->
-  await do_message { keyfetch : ring, armored : message }, defer err, literals
+  await do_message { keyfetch : ring, armored : message, now : testing_unixtime }, defer err, literals
   T.no_error err
   cb()
 

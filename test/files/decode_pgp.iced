@@ -1,3 +1,4 @@
+testing_unixtime = Math.floor(new Date(2013, 10, 17)/1000)
 
 {KeyBlock} = require '../../lib/openpgp/processor'
 {parse} = require '../../lib/openpgp/parser'
@@ -50,7 +51,8 @@ exports.decode_pgp_secret_key_1 = (T,cb) ->
   [err, packets] = parse (new Buffer skey, 'base64')
   T.no_error err
   T.waypoint "parsed"
-  processor = new KeyBlock packets
+  opts = now : Math.floor(new Date(2013, 10, 17)/1000)
+  processor = new KeyBlock packets, opts
   await processor.process defer err
   T.no_error err
   T.waypoint "signatures verified"
@@ -210,13 +212,14 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
 
   userid = "max@keybase.io"
   asp = new ASP {}
-  await KeyManager.import_from_armored_pgp { asp, raw, userid }, defer err, b1
+  opts = now: testing_unixtime
+  await KeyManager.import_from_armored_pgp { asp, raw, userid, opts }, defer err, b1
   T.no_error err
   await b1.sign {asp}, defer err
   T.no_error err
   await b1.export_pgp_public {asp, regen : true}, defer err, raw
   T.no_error err
-  await KeyManager.import_from_armored_pgp { asp, raw, userid }, defer err, b2
+  await KeyManager.import_from_armored_pgp { asp, raw, userid, opts }, defer err, b2
   T.no_error err
   T.equal b1.primary.ekid().toString('hex'), b2.primary.ekid().toString('hex'), "primary keys match"
   T.equal b1.subkeys[0].ekid().toString('hex'), b2.subkeys[0].ekid().toString('hex'), "subkeys match"
@@ -315,7 +318,8 @@ Dx7ro+5buf2cPmeiYlJdKQ==
 =58Xp
 -----END PGP PUBLIC KEY BLOCK-----
 """
-  await KeyManager.import_from_armored_pgp { raw},  defer err, kb, warnings
+  opts = now: testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw, opts },  defer err, kb, warnings
   T.no_error err
   T.assert kb, "kb came back ok"
   v = warnings.warnings()
@@ -329,7 +333,8 @@ Dx7ro+5buf2cPmeiYlJdKQ==
 #============================================================================
 
 exports.public_key_with_pic = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : keys.with_pic_1 } , defer err, km
+  opts = now : Math.floor(new Date(2013, 10, 17)/1000)
+  await KeyManager.import_from_armored_pgp { raw : keys.with_pic_1, opts } , defer err, km
   T.no_error err
   T.equal km.user_attributes?.length, 1, "We got a picture out, as expected"
   T.assert km.user_attributes?[0]?.data?, "..with actual picture data"
@@ -346,7 +351,8 @@ exports.public_key_expired_uid = (T,cb) ->
 #============================================================================
 
 exports.public_key_expired_subkey = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : keys.expired_subkey } , defer err, km, warnings
+  opts = now : Math.floor(new Date(2014, 2, 29)/1000)
+  await KeyManager.import_from_armored_pgp { raw : keys.expired_subkey, opts } , defer err, km, warnings
   T.no_error err # it's not an error to lack subkeys
   T.assert warnings.warnings()[0].match /^Signature failure in packet 3: Key expired (\d+)s ago \([a-f0-9]{16}\)$/, "packet 3 sig failure"
   T.equal warnings.warnings()[1], "Subkey 0 was invalid; discarding", "the right warning"

@@ -93,8 +93,11 @@ km_priv = null
 
 #------------
 
+testing_unixtime = Math.floor(new Date(2015, 6, 24)/1000)
+
 exports.load_pub = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : pub }, defer err, tmp, warnings
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : pub, opts }, defer err, tmp, warnings
   km = tmp
   T.no_error err
   T.assert km?, "got a key manager back"
@@ -103,7 +106,8 @@ exports.load_pub = (T,cb) ->
 #------------
 
 exports.load_priv = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : priv }, defer err, tmp, warnings
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : priv, opts }, defer err, tmp, warnings
   km_priv = tmp
   T.no_error err
   throw err if err?
@@ -120,7 +124,8 @@ exports.unlock_priv = (T,cb) ->
 #------------
 
 exports.merge = (T,cb) ->
-  await km.merge_pgp_private { raw : priv }, defer err
+  import_opts = now : testing_unixtime
+  await km.merge_pgp_private { raw : priv, import_opts }, defer err
   T.no_error err
   cb()
 

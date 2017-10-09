@@ -2,8 +2,11 @@
 {KeyManager} = require '../..'
 {keys} = require '../data/keys.iced'
 
+testing_unixtime = Math.floor(new Date(2015, 6, 24)/1000)
+
 exports.read_max_key = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { armored : keys.max }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { armored : keys.max, opts }, defer err, km
   T.no_error err
   ten_years = 10 * 365 * 24 * 60 * 60
   T.equal ten_years, km.primary.lifespan.expire_in, "Max's key expires in ten years"
@@ -16,13 +19,15 @@ exports.read_jack_key = (T,cb) ->
   cb()
 
 exports.read_rillian_key = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { armored : keys.rillian }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { armored : keys.rillian, opts }, defer err, km
   T.no_error err
   T.equal 210821778, km.primary.lifespan.expire_in, "rillian's key expires in 6y250d1h36m + epsilon"
   cb()
 
 exports.read_michel_slm_key = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { armored : keys.michel_slm }, defer err, km, warnings
+  opts = now : Math.floor(new Date(2015, 7, 24)/1000)
+  await KeyManager.import_from_armored_pgp { armored : keys.michel_slm, opts }, defer err, km, warnings
   T.assert err?, "key is expired"
   T.assert (err.toString().indexOf("no valid primary key self-signature or key(s) have expired") > 0), "the right error"
   w0 = warnings.warnings()[0]

@@ -2,6 +2,8 @@
 {do_message,Processor} = require '../../lib/openpgp/processor'
 {burn} = require '../../lib/openpgp/burner'
 
+testing_unixtime = Math.floor(new Date(2014, 2, 20)/1000)
+
 #=================================================================
 
 dlg =  {
@@ -43,14 +45,15 @@ q85awd3aY9dgbP7Q0Pnnxdvqf/wA
 #=================================================================
 
 exports.verify_sigs = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : dlg.key }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : dlg.key, opts }, defer err, km
   T.no_error err
   fp = km.get_pgp_fingerprint().toString('hex').toUpperCase()
   T.assert fp, "a fingerprint came back"
   fp2 = "91D6582E37E81A9A7F19D2F57184D2B91FF57997"
   T.equal fp, fp2, "the right fingerprint"
   for sig in dlg.sigs
-    await do_message { armored : sig, keyfetch : km }, defer err, literals
+    await do_message { armored : sig, keyfetch : km, now: testing_unixtime }, defer err, literals
     T.no_error err
     T.equal literals.length, 1, "only got 1 literal packet back"
     lit = literals[0]
@@ -95,15 +98,16 @@ in a shooting gallery."""
 }
 
 exports.dsa_round_trip = (T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : gbc.key }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : gbc.key, opts }, defer err, km
   T.no_error err
   T.equal km.get_primary_keypair().nbits(), 1024, "the right number of bits"
   await km.unlock_pgp { passphrase : 'abcd' }, defer err
   T.no_error err
   key = km.find_signing_pgp_key()
-  await burn { msg : gbc.msg, signing_key : key }, defer err, asc
+  await burn { msg : gbc.msg, signing_key : key, opts }, defer err, asc
   T.no_error err
-  await do_message { armored : asc, keyfetch : km }, defer esc
+  await do_message { armored : asc, keyfetch : km, now : testing_unixtime }, defer esc
   T.no_error err
   cb()
 

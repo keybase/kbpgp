@@ -1,3 +1,4 @@
+testing_unixtime = Math.floor(new Date(2013, 10, 24)/1000)
 
 {parse} = require '../../lib/openpgp/parser'
 armor = require '../../lib/openpgp/armor'
@@ -256,13 +257,14 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
 load_keyring = (T,cb) ->
   ring = new PgpKeyRing()
   asp = new ASP {}
-  await KeyManager.import_from_armored_pgp { raw : data.keys.decryption.key, asp }, defer err, dkm
+  opts = now: testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : data.keys.decryption.key, asp, opts }, defer err, dkm
   T.no_error err
   T.waypoint "imported decryption key"
   await dkm.unlock_pgp { passphrase : data.keys.decryption.passphrase }, defer err
   T.no_error err
   T.waypoint "unlocked decryption key"
-  await KeyManager.import_from_armored_pgp { raw : data.keys.verify.key, asp }, defer err, vkm
+  await KeyManager.import_from_armored_pgp { raw : data.keys.verify.key, asp, opts }, defer err, vkm
   T.no_error err
   T.waypoint "imported verification key"
   ring.add_key_manager vkm
@@ -321,7 +323,7 @@ exports.process_msg_0 = (T,cb) ->
   [err,msg] = armor.decode data.msgs[0]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
-  proc = new Message { keyfetch : ring }
+  proc = new Message { keyfetch : ring, now : testing_unixtime }
   await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf 'Buffer "cats1122", "utf8"'
@@ -335,7 +337,7 @@ exports.process_msg_1 = (T,cb) ->
   [err,msg] = armor.decode data.msgs[1]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
-  proc = new Message { keyfetch : ring }
+  proc = new Message { keyfetch : ring, now : testing_unixtime }
   await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
@@ -349,7 +351,7 @@ exports.process_msg_2 = (T,cb) ->
   [err,msg] = armor.decode data.msgs[2]
   T.no_error err
   T.equal msg.type, C.openpgp.message_types.generic, "Got a generic message type"
-  proc = new Message { keyfetch : ring }
+  proc = new Message { keyfetch : ring, now : testing_unixtime }
   await proc.parse_and_process msg, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
@@ -360,7 +362,7 @@ exports.process_msg_2 = (T,cb) ->
 #===============================================================
 
 exports.process_msg_3 = (T,cb) ->
-  await do_message { armored : data.msgs[2] , keyfetch : ring }, defer err, literals
+  await do_message { armored : data.msgs[2] , keyfetch : ring, now : testing_unixtime }, defer err, literals
   T.no_error err
   ind = literals[0].toString().indexOf '"devDependencies" : {'
   T.assert (ind > 0), "found some text we expected"
@@ -372,6 +374,7 @@ exports.process_msg_3 = (T,cb) ->
 exports.process_corrupted_armor = (T,cb) ->
   await do_message { armored : data.msgs[3] , keyfetch : ring }, defer err, literals
   T.assert err?, "got a bad armor error"
+  T.assert err.toString().indexOf('bad PGP armor'), "got the right error"
   cb()
 
 #===============================================================

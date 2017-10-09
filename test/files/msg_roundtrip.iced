@@ -18,6 +18,7 @@ hashmod = require '../../lib/hash'
 #===============================================================================
 
 data = {
+  now : Math.floor(new Date(2013, 11, 4)/1000)
   msg : """
 Season of mists and mellow fruitfulness
 Close bosom-friend of the maturing sun
@@ -138,7 +139,8 @@ load_keyring = (T,cb) ->
   ring = new PgpKeyRing()
   asp = new ASP {}
   for b in data.keys.blocks
-    await KeyManager.import_from_armored_pgp { raw : b, asp }, defer err, km
+    opts = now : data.now
+    await KeyManager.import_from_armored_pgp { raw : b, asp, opts }, defer err, km
     T.no_error err
     T.waypoint "imported decryption key"
     await km.unlock_pgp { passphrase : data.keys.passphrase }, defer err
@@ -182,7 +184,7 @@ clear_sign = (msg, T,cb) ->
   msg = new Buffer msg, 'utf8'
   await clearsign.sign { signing_key, msg }, defer err, outmsg
   T.no_error err
-  await do_message { keyfetch : ring, armored : outmsg }, defer err, _
+  await do_message { keyfetch : ring, armored : outmsg, now : data.now }, defer err, _
   T.no_error err
   cb()
 
@@ -197,7 +199,7 @@ exports.detached_sign_wholesale = (T, cb) ->
   await detachsign.sign { signing_key, data : msg }, defer err, outmsg
   throw err if err?
   T.no_error err
-  await do_message { data : msg, keyfetch : ring, armored : outmsg }, defer err
+  await do_message { data : msg, keyfetch : ring, armored : outmsg, now : data.now }, defer err
   throw err if err?
   T.no_error err
   cb()
@@ -215,7 +217,7 @@ exports.detached_sign_streaming = (T, cb) ->
   await detachsign.sign { hash_streamer, signing_key }, defer err, outmsg
   throw err if err?
   T.no_error err
-  await do_message { data : msg, keyfetch : ring, armored : outmsg }, defer err
+  await do_message { data : msg, keyfetch : ring, armored : outmsg, now : data.now }, defer err
   throw err if err?
   T.no_error err
   cb()
@@ -229,7 +231,7 @@ exports.encrypt = (T,cb) ->
   T.no_error err
   await burn { literals, encryption_key }, defer err, armored, ctext
   T.no_error err
-  proc = new Message { keyfetch : ring }
+  proc = new Message { keyfetch : ring, now : data.now }
   await proc.parse_and_process { body : ctext }, defer err, out
   T.no_error err
   T.assert (not out[0].get_data_signer()?), "wasn't signed"
@@ -245,8 +247,8 @@ exports.sign = (T,cb) ->
   T.no_error err
   await burn { literals, signing_key }, defer err, armored, ctext
   T.no_error err
-  proc = new Message { keyfetch : ring }
-  await proc.parse_and_process { body : ctext}, defer err, out
+  proc = new Message { keyfetch : ring, now : data.now }
+  await proc.parse_and_process { body : ctext }, defer err, out
   T.no_error err
   T.assert (out[0].get_data_signer()?), "was signed!"
   T.equal data.msg, out[0].toString(), "message came back right"
@@ -264,7 +266,7 @@ exports.encrypt_and_sign = (T,cb) ->
   T.no_error err
   await burn { literals, encryption_key, signing_key }, defer err, armored, ctext
   T.no_error err
-  proc = new Message { keyfetch : ring }
+  proc = new Message { keyfetch : ring, now : data.now }
   await proc.parse_and_process { body : ctext}, defer err, out
   T.no_error err
   T.assert (out[0].get_data_signer()?), "was signed!"
@@ -285,7 +287,7 @@ exports.encrypt_and_sign_armor = (T,cb) ->
   T.no_error err
   [err,msg] = armor.decode actext
   T.no_error err
-  proc = new Message { keyfetch : ring }
+  proc = new Message { keyfetch : ring, now : data.now }
   await proc.parse_and_process msg, defer err, out
   T.no_error err
   T.assert (out[0].get_data_signer()?), "was signed!"

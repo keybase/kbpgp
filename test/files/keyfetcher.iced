@@ -38,15 +38,18 @@ V1lAVqcNiyy7Srus5/UBALbH5jUIR2kZamWO0znZ7+ltz42cmZ+OESnfHxa4KUUB
 -----END PGP SIGNATURE-----
 """
 
+  now = Math.floor(new Date(2017, 4, 1)/1000)
+
   class KeyRing extends PgpKeyRing
     fetch: (key_ids, ops, cb) ->
-      await KeyManager.import_from_armored_pgp { raw: key }, defer err, km
+      opts = { now }
+      await KeyManager.import_from_armored_pgp { raw: key, opts }, defer err, km
       @add_key_manager km
       super key_ids, ops, cb
 
-  await do_message { keyfetch : new KeyRing(), armored : message }, defer err, outmsg
+  await do_message { keyfetch : new KeyRing(), armored : message, now }, defer err, outmsg
   T.assert err, "Failed to verify"
-  T.assert err.name is "RevokedKeyError", "Proper error"
+  T.equal err.name, "RevokedKeyError", "Proper error"
   cb()
 
 exports.verify_keyfetcher = (T, cb) ->

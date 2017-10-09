@@ -1,3 +1,5 @@
+testing_unixtime = Math.floor(new Date(2014, 2, 20)/1000)
+
 {KeyManager} = require '../../'
 {do_message,Processor} = require '../../lib/openpgp/processor'
 
@@ -146,9 +148,10 @@ fcXuzbCUbjY=
 #==================================================================
 
 verify = ({sig,key}, T,cb) ->
-  await KeyManager.import_from_armored_pgp { raw : key }, defer err, km
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : key, opts }, defer err, km
   T.no_error err
-  await do_message { armored : sig , keyfetch : km }, defer err
+  await do_message { armored : sig , keyfetch : km, now : testing_unixtime }, defer err
   T.no_error err
   cb()
 

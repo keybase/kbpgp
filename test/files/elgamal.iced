@@ -2,6 +2,8 @@
 {do_message,Processor} = require '../../lib/openpgp/processor'
 {burn} = require '../../lib/openpgp/burner'
 
+testing_unixtime = Math.floor(new Date(2014, 2, 21)/1000)
+
 #=================================================================
 
 planck = {
@@ -95,7 +97,8 @@ km = null
 
 exports.decrypt_msgs = (T, cb) ->
   o = planck
-  await KeyManager.import_from_armored_pgp { raw : o.key }, defer err, tmp
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : o.key, opts }, defer err, tmp
   km = tmp
   T.waypoint "key import"
   T.no_error err
@@ -105,7 +108,7 @@ exports.decrypt_msgs = (T, cb) ->
   key = km.find_crypt_pgp_key()
   T.assert key?, "found a key'"
   for msg,i in o.encrypted
-    await do_message { armored : msg.ciphertext, keyfetch : km }, defer err, out
+    await do_message { armored : msg.ciphertext, keyfetch : km, now : testing_unixtime }, defer err, out
     T.no_error err
     T.equal out.length, 1, "got 1 literal data packet"
     lit = out[0]
@@ -114,7 +117,7 @@ exports.decrypt_msgs = (T, cb) ->
     T.assert not(signer?), "we not were signed"
     T.waypoint "decrypted msg #{i}"
   for msg,i in o.signcrypted
-    await do_message { armored : msg.ciphertext, keyfetch : km }, defer err, out
+    await do_message { armored : msg.ciphertext, keyfetch : km, now : testing_unixtime }, defer err, out
     T.no_error err
     T.equal out.length, 1, "got 1 literal data packet"
     lit = out[0]
@@ -134,7 +137,7 @@ exports.elgamal_round_trip = (T,cb) ->
     encryption_key : km.find_crypt_pgp_key()
   await burn opts, defer err, asc
   T.no_error err
-  await do_message { armored : asc, keyfetch : km }, defer err, out
+  await do_message { armored : asc, keyfetch : km, now : testing_unixtime }, defer err, out
   T.no_error err
   lit = out[0]
   T.assert lit?, "got one out packet"
