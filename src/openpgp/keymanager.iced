@@ -10,7 +10,7 @@ C = konst.openpgp
 {ops_to_keyflags} = require './util'
 {Lifespan,Subkey,Primary} = require '../keywrapper'
 
-{Message,encode,decode} = require './armor'
+{Message,encode,decode,decode_strict} = require './armor'
 {parse} = require './parser'
 {KeyBlock} = require './processor'
 
@@ -558,7 +558,8 @@ class KeyManager extends KeyManagerInterface
       asp = ASP.make asp
       warnings = null
       ret = null
-      [err,msg] = decode raw
+      decode_func = if opts?.decode_strict then decode_strict else decode
+      [err,msg] = decode_func raw
       unless err?
         if not (msg.type in [C.message_types.public_key, C.message_types.private_key])
           err = new Error "Wanted a public or private key; got: #{msg.type}"
