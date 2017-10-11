@@ -48,6 +48,8 @@ exports.Message = armor.Message
 # @return {Array<{Error},{Buffer}>} And error or a buffer if success.
 #
 exports.decode = decode = (data) -> katch () -> (new Parser data).parse()
-exports.mdecode = decode = (data) -> katch () -> (new Parser data).mparse()
+exports.mdecode = mdecode = (data) -> katch () -> (new Parser data).mparse()
+
+exports.decode_strict = decode_strict = (data) -> katch () -> (new Parser data, {strict: true}).parse()
 
 #=========================================================================

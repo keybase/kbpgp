@@ -1,3 +1,13 @@
+## 2.0.75 (2017-10-10)
+
+- `decode_strict` parameter in `KeyManager.import_from_armored_pgp`
+  opts to make it accept only well-formed ASCII armors.
+
+## 2.0.74 (2017-09-25)
+
+- Only allow whitespace after the end of the --BEGIN PGP-- block, not
+  any characters.
+
 ## 2.0.73 (2017-06-29)
 
 - Ability to import expired keys from p3skb by running import_from_p3skb with `no_key_check` and `time_travel`.
