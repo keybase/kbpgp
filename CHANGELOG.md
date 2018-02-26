@@ -1,6 +1,7 @@
 ## 2.0.77 
 
-- Version bump only for new web build
+- Upgrade browserify to 15.0.0
+- fix tests
 
 ## 2.0.76
 
