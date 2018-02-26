@@ -120,7 +120,6 @@ release: $(BROWSER)
 	cp rel/kbpgp-$$V.js     rel/kbpgp/ ; \
 	cp rel/kbpgp-$$V-min.js rel/kbpgp/ ; \
 	pushd rel/ ; \
-	zip kbpgp-$$V-signed-release.zip kbpgp/*.js kbpgp/*.md ; \
 	popd ; \
 	rm -rf rel/kbpgp
 

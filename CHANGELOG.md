@@ -2,6 +2,7 @@
 
 - Upgrade browserify to 15.0.0
 - fix tests
+- drop `keybase dir sign` in the "release" process
 
 ## 2.0.76
 
