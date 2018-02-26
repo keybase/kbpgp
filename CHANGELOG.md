@@ -1,3 +1,11 @@
+## 2.0.77 
+
+- Version bump only for new web build
+
+## 2.0.76
+
+- Version bump only
+
 ## 2.0.75 (2017-10-10)
 
 - `decode_strict` parameter in `KeyManager.import_from_armored_pgp`
