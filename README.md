@@ -16,7 +16,7 @@ If you are aware of a security bug (or have a proposal/implemention of a "zero d
   - https://keybase.io/max
   - https://keybase.io/chris
   
-You can import our keys to GPG - and verify our Keybase.io admin status - with `keybase track max` and `keybase track chris`.
+You can import our keys to GPG - and verify our Keybase.io admin status - with `keybase follow max` and `keybase follow chris`.
 
 ### Other bugs, issues, comments, questions, and suggestions
 
