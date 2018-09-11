@@ -74,9 +74,12 @@ class Signature_v2_or_v3 extends Packet
 
   verify : (data_packets, cb) ->
     T = C.sig_types
-    SKB = packetsigs.SubkeyBinding
-    data_packets = [@primary].concat(data_packets) if (@type is T.subkey_binding)
-    payload = @prepare_payload data_packets
+    if @type is T.subkey_binding
+      @data_packets = [@primary].concat(data_packets)
+      @subkey = data_packets[0]
+    else
+      @data_packets = data_packets[..]
+    payload = @prepare_payload @data_packets
     hash = @hasher payload
     s = new SlicerBuffer hash
     v = s.read_uint16()
@@ -85,16 +88,20 @@ class Signature_v2_or_v3 extends Packet
       err = new Error "quick hash check failed: #{v} != #{b}"
     else
       await @key.verify_unpad_and_check_hash { hash, @hasher, @sig }, defer err
-      # If it's binary or text data, so that the packets have all be signed
-      if err? then # noop
-      else if @type in [ T.binary_doc, T.canonical_text ]
-        for d in data_packets
-          d.push_sig new packetsigs.Data { sig : @ }
-      else if @type in [ T.subkey_binding ]
-        for d in data_packets
-          d.push_sig new SKB { @primary, sig : @, direction : SKB.DOWN }
-
     cb err
+
+  #---------------------
+
+  mark_objects : () ->
+    T = C.sig_types
+    SKB = packetsigs.SubkeyBinding
+    # If it's binary or text data, so that the packets have all be signed
+    if @type in [ T.binary_doc, T.canonical_text ]
+      for d in @data_packets
+        d.push_sig new packetsigs.Data { sig : @ }
+    else if @type in [ T.subkey_binding ]
+      @subkey.push_sig new SKB { @primary, sig : @, direction : SKB.DOWN }
+    return null
 
   #---------------------
 
@@ -119,6 +126,7 @@ class Signature extends Packet
     @subpacket_index = @_make_subpacket_index()
 
     @_framed_output = null # sometimes we store the framed output here
+    @_embedded_signatures = []
 
   #---------------------
 
@@ -219,6 +227,8 @@ class Signature extends Packet
         s.primary = @primary
         s.key = subkey.key
         await s._verify [ subkey ], defer(err), opts
+        unless err?
+          @_embedded_signatures.push s
     cb err
 
   #-----------------
@@ -226,8 +236,6 @@ class Signature extends Packet
   _verify : (data_packets, cb, opts) ->
     err = null
     T = C.sig_types
-
-    subkey = null
 
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
@@ -252,8 +260,9 @@ class Signature extends Packet
         else if not @primary?
           err = new Error "Need a primary key for subkey signature"
         else
-          subkey = data_packets[0]
-          packets = [ @primary, subkey ]
+          @subkey = data_packets[0]
+          (@subkey.signatures or= []).push @
+          packets = [ @primary, @subkey ]
         packets
 
       when T.direct
@@ -284,56 +293,71 @@ class Signature extends Packet
     # If we're signing a key, check key expiration now
     unless err?
       opts or= {}
-      opts.subkey = subkey
-      [err, key_expiration, sig_expiration] = @_check_key_sig_expiration opts
+      opts.subkey = @subkey
+      [err, @_key_expiration, @_sig_expiration] = @_check_key_sig_expiration opts
       opts.subkey = null
 
-    # Now mark the object that was vouched for
-    sig = @
-    unless err?
-      SKB = packetsigs.SubkeyBinding
-      switch @type
-        when T.binary_doc, T.canonical_text
-          for d in @data_packets
-            d.push_sig new packetsigs.Data { sig }
-
-        when T.issuer, T.persona, T.casual, T.positive
-          ps = null
-          if (userid = @data_packets[1].to_userid())?
-            ps = new packetsigs.SelfSig { @type, userid, sig }
-            userid.push_sig ps
-          else if (user_attribute = @data_packets[1].to_user_attribute())?
-            ps = new packetsigs.SelfSig { @type, user_attribute, sig, key_expiration, sig_expiration }
-            user_attribute.push_sig ps
-          @primary.push_sig ps if ps
-
-        when T.subkey_binding
-          subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN, key_expiration, sig_expiration}
-
-        when T.primary_binding
-          subkey.push_sig new SKB { @primary, sig, direction : SKB.UP, key_expiration, sig_expiration}
-
-        when T.subkey_revocation
-          subkey.mark_revoked sig
-
-        when T.key_revocation
-          if @issuer_matches_key(@primary)
-            @primary.mark_revoked sig
-          else
-            @primary.add_designated_revocation sig
-
-        when T.direct
-          if fp = @subpacket_index.hashed[S.revocation_key]
-            @primary.add_designee fp
-
-        when T.certificate_revocation
-          if (userid = @data_packets[1].to_userid())?
-            userid.mark_revoked sig
-
-        else
-          err = new Error "Got unknown signature type=#{@type}"
+    if not err and not opts.just_verify_no_mark
+      err = @mark_objects()
 
     cb err
+
+  mark_objects : () ->
+    # Now mark the object that was vouched for
+    unless @data_packets?
+      return new Error "data_packets is null in mark_objects - verify was not called?"
+
+    err = null
+    sig = @
+    SKB = packetsigs.SubkeyBinding
+    T = C.sig_types
+    key_expiration = @_key_expiration
+    sig_expiration = @_sig_expiration
+    switch @type
+      when T.binary_doc, T.canonical_text
+        for d in @data_packets
+          d.push_sig new packetsigs.Data { sig }
+
+      when T.issuer, T.persona, T.casual, T.positive
+        ps = null
+        if (userid = @data_packets[1].to_userid())?
+          ps = new packetsigs.SelfSig { @type, userid, sig }
+          userid.push_sig ps
+        else if (user_attribute = @data_packets[1].to_user_attribute())?
+          ps = new packetsigs.SelfSig { @type, user_attribute, sig, key_expiration, sig_expiration }
+          user_attribute.push_sig ps
+        @primary.push_sig ps if ps
+
+      when T.subkey_binding
+        @subkey.push_sig new SKB { @primary, sig, direction : SKB.DOWN, key_expiration, sig_expiration}
+
+      when T.primary_binding
+        @subkey.push_sig new SKB { @primary, sig, direction : SKB.UP, key_expiration, sig_expiration}
+
+      when T.subkey_revocation
+        @subkey.mark_revoked sig
+
+      when T.key_revocation
+        if @issuer_matches_key(@primary)
+          @primary.mark_revoked sig
+        else
+          @primary.add_designated_revocation sig
+
+      when T.direct
+        if fp = @subpacket_index.hashed[S.revocation_key]
+          @primary.add_designee fp
+
+      when T.certificate_revocation
+        if (userid = @data_packets[1].to_userid())?
+          userid.mark_revoked sig
+
+      else
+        err = new Error "Got unknown signature type=#{@type}"
+
+    for embe in @_embedded_signatures when not err?
+      err = embe.mark_objects()
+        
+    return err
 
   #-----------------
 
@@ -367,6 +391,13 @@ class Signature extends Packet
   get_sig_expires : () -> @subpacket_index.hashed[S.expiration_time]?.time
 
   #-----------------
+
+  key_expiration_after_other : (other) ->
+    this_expire = @get_key_expires()
+    other_expire = other.get_key_expires()
+    if not this_expire then true
+    else if not other_expire then false
+    else this_expire > other_expire
 
   time_primary_pair : () ->
     T = C.sig_types
