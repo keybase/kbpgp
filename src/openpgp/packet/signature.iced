@@ -297,11 +297,14 @@ class Signature extends Packet
       [err, @_key_expiration, @_sig_expiration] = @_check_key_sig_expiration opts
       opts.subkey = null
 
+    if not err and not opts.just_verify_no_mark
+      err = @mark_objects()
+
     cb err
 
   mark_objects : () ->
     # Now mark the object that was vouched for
-    unless @data_packets?.length
+    unless @data_packets?
       return new Error "data_packets is null in mark_objects - verify was not called?"
 
     err = null

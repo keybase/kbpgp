@@ -115,6 +115,8 @@ class KeyBlock
     err = null
     working_set = []
     n_sigs = 0
+    jvnm = @opts.just_verify_no_mark # preserve this setting
+    @opts.just_verify_no_mark = true # we need this set to true for subkey marking
     # No sense in processing packet 1, since it's the primary key!
     for p,i in @packets[1...] when not err?
       if not p.is_signature()
@@ -153,6 +155,7 @@ class KeyBlock
     for subkey in @subkeys when not(err?)
       err = @_mark_sigs_in_subkey subkey
 
+    @opts.just_verify_no_mark = jvnm
     cb err
 
   #--------------------
@@ -317,8 +320,6 @@ class Message
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
       await sig.close.verify sig.payload, defer(err), { @now }
-      if not err
-        sig.close.mark_objects()
 
     else if not @strict
       @warnings.push "Problem fetching key #{a.toString('hex')}: #{err.toString()}"
