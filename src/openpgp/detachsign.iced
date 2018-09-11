@@ -113,6 +113,8 @@ class Verifier extends VerifierBase
     @literals = data
     opts = {@now}
     await @_sig.verify data, defer(err), opts
+    if not(err?)
+      err = @_sig.mark_objects()
     cb err
 
   #-----------------------
