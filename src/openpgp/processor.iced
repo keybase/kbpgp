@@ -117,7 +117,6 @@ class KeyBlock
     n_sigs = 0
     # No sense in processing packet 1, since it's the primary key!
     for p,i in @packets[1...] when not err?
-
       if not p.is_signature()
         if n_sigs > 0
           n_sigs = 0
@@ -136,15 +135,45 @@ class KeyBlock
         p.primary = @primary
         p.is_third_party = not matches_ours
         await p.verify working_set, defer(tmp), @opts
+        if not(tmp?)
+          if p.subkey?
+            # defer subkey marking for later.
+            (p.subkey.verified_signatures or= []).push p
+          else
+            # for everything else, mark right away.
+            tmp = p.mark_objects()
         if tmp?
           msg = "Signature failure in packet #{i}: #{tmp.message} (#{issuer_id.toString('hex')})"
           @warnings.push msg
           # discard the signature, see the above comment...
         else
           @verified_signatures.push p
+
+    # Now mark signatures for subkeys
+    for subkey in @subkeys when not(err?)
+      err = @_mark_sigs_in_subkey subkey
+
     cb err
 
   #--------------------
+
+  _mark_sigs_in_subkey : (subkey) ->
+    T = C.sig_types
+    unless (vs = subkey.verified_signatures)?.length
+      return null
+    binding_sig = null
+    for p in vs
+      if p.type is T.subkey_binding
+        # For subkey binding sigs, select one sig that extends subkey furthest.
+        if binding_sig is null or p.key_expiration_after_other(binding_sig)
+          binding_sig = p
+      else
+        # Everything else, mark right away.
+        err = p.mark_objects()
+        return err if err
+
+    err = binding_sig.mark_objects() if binding_sig?
+    return err
 
 #==========================================================================================
 
@@ -288,6 +317,8 @@ class Message
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
       await sig.close.verify sig.payload, defer(err), { @now }
+      if not err
+        sig.close.mark_objects()
 
     else if not @strict
       @warnings.push "Problem fetching key #{a.toString('hex')}: #{err.toString()}"
