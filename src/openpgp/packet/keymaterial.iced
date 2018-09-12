@@ -443,8 +443,35 @@ class KeyMaterial extends Packet
   #-------------------
 
   push_sig : (packetsig) ->
-    @add_flags packetsig.sig.get_key_flags()
-    super packetsig
+    if @is_primary()
+      @add_flags packetsig.sig.get_key_flags()
+      super packetsig
+    else
+      # If we are a subkey, we don't want our properties to be combination of 
+      # what's coming in different signatures. Every time a new binding sig
+      # comes in, we select the "winner" sig, and update ourself according 
+      # to it.
+      {sig} = packetsig
+      if sig.type is C.sig_types.subkey_binding
+        winner = @_winner_subkey_binding
+        if not(winner?) or sig.key_expiration_after_other(winner)
+          @_winner_subkey_binding = sig
+          # We still use packet sig collection, but we only ever push
+          # one sig at a time in there.
+          @get_psc().clear()
+          @flags = 0
+          @add_flags sig.get_key_flags()
+          super packetsig
+      else if sig.type is C.sig_types.primary_binding
+        # We are also called with primary_bindings, which are sub-packets
+        # of subkey_bindings. Only parse them if sub-packet belongs to
+        # current "winner" sig.
+        if (parent = sig.parent)? and parent is @_winner_subkey_binding
+          super packetsig
+      else
+        # We don't know what this is. But retain behavior of pushing everything
+        # that comes in. Maybe it's some data sig that came after binding sig.
+        super packetsig
 
   #-------------------
 
