@@ -64,6 +64,7 @@ exports.load_with_only_right_sig_then_verify = (T, cb) ->
   T.assert not(err?), "no error"
   T.assert (msg?[0]?.get_data_signer()?), "was signed!"
   T.equal msg?[0]?.data.toString(), "hello cross signed world", "right message cae back"
+
   cb null
   
 exports.do_not_merge_crosscertify = (T, cb) ->
