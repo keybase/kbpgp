@@ -1,3 +1,9 @@
+## 2.0.78
+
+- Fix handling of subkeys with multiple binding signatures. Mimic GPG and
+  go-crypto behavior: one binding signature is selected, and the key is
+  configured according to it.
+
 ## 2.0.77 
 
 - Upgrade browserify to 15.0.0

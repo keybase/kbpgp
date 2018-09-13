@@ -216,6 +216,7 @@ class Signature extends Packet
         err = new Error "Needed 1 data packet for a primary_binding signature"
       else
         subkey = data_packets[0]
+        s.parent = @ # s is a sub-signature of this signature
         s.primary = @primary
         s.key = subkey.key
         await s._verify [ subkey ], defer(err), opts
@@ -365,6 +366,15 @@ class Signature extends Packet
   when_generated   : () -> @subpacket_index.hashed[S.creation_time]?.time
   get_key_expires : () -> @subpacket_index.hashed[S.key_expiration_time]?.time
   get_sig_expires : () -> @subpacket_index.hashed[S.expiration_time]?.time
+
+  #-----------------
+
+  key_expiration_after_other : (other) ->
+    this_expire = @get_key_expires()
+    other_expire = other.get_key_expires()
+    if not this_expire then true
+    else if not other_expire then false
+    else this_expire > other_expire
 
   #-----------------
 
