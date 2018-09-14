@@ -473,6 +473,10 @@ class KeyMaterial extends Packet
         # that comes in. Maybe it's some data sig that came after binding sig.
         super packetsig
 
+  clear_psc : () ->
+    @_winner_subkey_binding = null if @_winner_subkey_binding?
+    super()
+
   #-------------------
 
   mark_revoked : (sig) -> @revocation = sig

@@ -1,3 +1,8 @@
+## 2.0.79
+
+- Fix bug introduced in version 2.0.78 related to re-signing already signed
+  KeyManager when loading / generating and modifying keys.
+
 ## 2.0.78
 
 - Fix handling of subkeys with multiple binding signatures. Mimic GPG and

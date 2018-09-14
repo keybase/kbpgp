@@ -6,6 +6,8 @@ util = require 'util'
 {Encryptor} = require 'triplesec'
 {base91} = require '../../lib/basex'
 example_keys = (require '../data/keys.iced').keys
+C = require '../../lib/const'
+ecc = require '../../lib/ecc/main'
 
 asp = new ASP {}
 bundle = null
@@ -126,3 +128,40 @@ exports.pgp_full_hash_nacl = (T,cb) ->
   await km.pgp_full_hash {}, T.esc(defer(res))
   T.assert not res?, "null value back"
   cb()
+
+exports.change_key_and_reexport = (T, cb) ->
+  esc = make_esc cb, "change_key_and_reexport"
+  km = null
+  F = C.openpgp.key_flags
+  expire_in = 100
+  args = {
+    userid: "<test@example.org>"
+    primary :
+      algo: ecc.EDDSA
+      flags : F.certify_keys | F.sign_data | F.auth
+      expire_in : expire_in
+    subkeys : [
+      {
+        flags : F.encrypt_storage | F.encrypt_comm
+        expire_in : 0
+        algo : ecc.ECDH
+        curve_name : 'Curve25519'
+      }
+    ]
+  }
+  await KeyManager.generate args, esc defer km
+  await km.sign {}, esc defer()
+  await km.export_public {}, T.esc defer armored
+  await KeyManager.import_from_armored_pgp { armored }, esc defer()
+
+  # Extend expiration, resign, re-export, and try to import again.
+  km.clear_pgp_internal_sigs()
+  km.pgp.primary.lifespan.expire_in = 200
+  km.pgp.subkeys[0].lifespan.expire_in = 100
+  await km.sign {}, esc defer()
+  await km.export_public { regen : true }, T.esc defer armored
+  await KeyManager.import_from_armored_pgp { armored }, esc defer km2
+  T.assert km2.primary._pgp.get_expire_time().expire_in is 200, "got correct expiration on primary"
+  T.assert km2.subkeys[0]._pgp.get_expire_time().expire_in is 100, "got correct expiration on subkey"
+
+  cb null
