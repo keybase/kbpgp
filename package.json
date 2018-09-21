@@ -31,7 +31,7 @@
     "minimist": "^1.2.0",
     "pgp-utils": ">=0.0.34",
     "purepack": ">=1.0.4",
-    "triplesec": ">=3.0.19",
+    "triplesec": ">=3.0.27",
     "tweetnacl": "^0.13.1"
   },
   "devDependencies": {

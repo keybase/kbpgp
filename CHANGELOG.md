@@ -1,3 +1,7 @@
+## 2.0.80 (2018-09-21)
+
+- Upgrade to Triplesec v3.0.27 to get rid of `use asm`, which no longer worked on FF
+
 ## 2.0.79
 
 - Fix bug introduced in version 2.0.78 related to re-signing already signed
