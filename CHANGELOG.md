@@ -1,3 +1,7 @@
+## 2.0.81-2.0.82 (2018-10-19)
+
+- Dependency upgrades
+
 ## 2.0.80 (2018-09-21)
 
 - Upgrade to Triplesec v3.0.27 to get rid of `use asm`, which no longer worked on FF
