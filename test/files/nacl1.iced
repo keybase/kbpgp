@@ -15,7 +15,7 @@ exports.gen_eddsa = (T,cb) ->
 
 #---------------------------------
 
-msg = new Buffer """To the Congress of the United States: Yesterday, Dec. 7, 1941 - a
+msg = Buffer.from """To the Congress of the United States: Yesterday, Dec. 7, 1941 - a
 date which will live in infamy - the United States of America was suddenly and
 deliberately attacked by naval and air forces of the Empire of Japan.""", "utf8"
 
@@ -35,12 +35,12 @@ exports.verify_attached_1 = (T, cb) ->
   # Verify and check that the right payload was inside
   await pair.verify_kb { sig : asig, detached : false, payload : msg }, T.esc(defer(out), cb)
 
-  msg2 = new Buffer msg
+  msg2 = Buffer.from msg
   msg2[0]++
   await pair.verify_kb { sig : asig, detached : false, payload : msg2 }, defer err, out
   T.assert err?, "get an error if the payload is wrong"
 
-  asig2 = new Buffer asig
+  asig2 = Buffer.from asig
   asig2[10]++
   await pair.verify_kb { sig : asig2, detached : false, payload : msg }, defer err, out
   T.assert err?, "get an error if the sig s wrong"
@@ -59,12 +59,12 @@ exports.sign_detached_1 = (T,cb) ->
 exports.verify_dettached_1 = (T, cb) ->
   await pair.verify_kb { sig : dsig, detached : true, payload : msg}, T.esc(defer(out), cb)
 
-  msg2 = new Buffer msg
+  msg2 = Buffer.from msg
   msg2[0]++
   await pair.verify_kb { sig : dsig, detached : true, payload : msg2 }, defer err, out
   T.assert err?, "get an error if the payload is wrong"
 
-  dsig2 = new Buffer dsig
+  dsig2 = Buffer.from dsig
   dsig2[10]++
   await pair.verify_kb { sig : dsig2, detached : true, payload : msg }, defer err, out
   T.assert err?, "get an error if the sig s wrong"
@@ -116,7 +116,7 @@ exports.sigeng1 = (T,cb) ->
 #---------------------------------
 
 reggen_eddsa_2 = (T,cb) ->
-  seed = hash.SHA256 new Buffer "this be the password; don't leak it!", "utf8"
+  seed = hash.SHA256 Buffer.from "this be the password; don't leak it!", "utf8"
   await nacl.eddsa.Pair.generate {seed}, T.esc(defer(tmp))
   cb tmp
 
@@ -139,12 +139,12 @@ exports.verify_attached_2 = (T, cb) ->
   # Verify and check that the right payload was inside
   await k.verify_kb { sig : asig, detached : false, payload : msg }, T.esc(defer(out), cb)
 
-  msg2 = new Buffer msg
+  msg2 = Buffer.from msg
   msg2[0]++
   await k.verify_kb { sig : asig, detached : false, payload : msg2 }, defer err, out
   T.assert err?, "get an error if the payload is wrong"
 
-  asig2 = new Buffer asig
+  asig2 = Buffer.from asig
   asig2[10]++
   await k.verify_kb { sig : asig2, detached : false, payload : msg }, defer err, out
   T.assert err?, "get an error if the sig s wrong"
@@ -156,7 +156,7 @@ exports.verify_attached_2 = (T, cb) ->
 server_half = null
 
 reggen_eddsa_3 = (T,cb) ->
-  seed = hash.SHA256 new Buffer "this be the password; don't leak it!", "utf8"
+  seed = hash.SHA256 Buffer.from "this be the password; don't leak it!", "utf8"
   await nacl.eddsa.Pair.generate {seed, split : true, server_half}, T.esc(defer(tmp, tmp2), cb)
   server_half = tmp2
   cb tmp
@@ -180,12 +180,12 @@ exports.verify_attached_3 = (T, cb) ->
   # Verify and check that the right payload was inside
   await k.verify_kb { sig : asig, detached : false, payload : msg }, T.esc(defer(out), cb)
 
-  msg2 = new Buffer msg
+  msg2 = Buffer.from msg
   msg2[0]++
   await k.verify_kb { sig : asig, detached : false, payload : msg2 }, defer err, out
   T.assert err?, "get an error if the payload is wrong"
 
-  asig2 = new Buffer asig
+  asig2 = Buffer.from asig
   asig2[10]++
   await k.verify_kb { sig : asig2, detached : false, payload : msg }, defer err, out
   T.assert err?, "get an error if the sig s wrong"

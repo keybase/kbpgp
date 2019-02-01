@@ -57,7 +57,7 @@ class Signer
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ],
       hasher : @hash_streamer
     }
-    emptybuf = new Buffer []
+    emptybuf = Buffer.from []
     await @sig.write emptybuf, defer err, @_sig_output
     cb err, @_sig_output
 
@@ -119,7 +119,7 @@ class Verifier extends VerifierBase
 
   _make_literals : (cb) ->
     unless @literals.length
-      @literals.push new Literal { data : new Buffer [] }
+      @literals.push new Literal { data : Buffer.from [] }
     @literals[0].push_sig new packetsigs.Data { sig : @_sig }
     cb null
 

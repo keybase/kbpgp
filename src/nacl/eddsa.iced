@@ -9,7 +9,7 @@ NaclDh = require('./dh').Pair
 
 TYPE = K.public_key_algorithms.NACL_EDDSA
 exports.b2u = b2u = (b) -> new Uint8Array(b)
-exports.u2b = u2b = (u) -> new Buffer u
+exports.u2b = u2b = (u) -> Buffer.from u
 
 #=============================================
 
@@ -18,8 +18,8 @@ class Pub
   #--------------------
 
 
-  @HEADER : new Buffer([K.kid.version, TYPE ])
-  @TRAILER : new Buffer([K.kid.trailer])
+  @HEADER : Buffer.from([K.kid.version, TYPE ])
+  @TRAILER : Buffer.from([K.kid.trailer])
   @LEN : Pub.HEADER.length + Pub.TRAILER.length + kbnacl.sign.publicKeyLength
 
   #--------------------

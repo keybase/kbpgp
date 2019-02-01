@@ -7,7 +7,7 @@
 exports.test_buffer_shift_right = (T,cb) ->
   byte_string = "70fa4a33c12271aa61863380a1b09704d6b15b12a268273d15f1b53fb18eebd7654b20540e394540"
   bufs = for i in [0...byte_string.length] by 8
-    new Buffer(byte_string[i...(i+8)], 'hex')
+    Buffer.from(byte_string[i...(i+8)], 'hex')
 
   # Make sure all number are less than 2^31 just so we don't have to deal with sign bits
   for buf in bufs
@@ -18,13 +18,13 @@ exports.test_buffer_shift_right = (T,cb) ->
   for buf,j in bufs
     for shift in [0...15]
       i = (buf.readUInt32BE(0) >> shift)
-      b2 = new Buffer [0,0,0,0]
+      b2 = Buffer.from [0,0,0,0]
       b2.writeUInt32BE(i,0)
-      b3 = buffer_shift_right(new Buffer(buf), shift)
+      b3 = buffer_shift_right(Buffer.from(buf), shift)
 
       # We need to add a leading '0' back so that we still have
       # 4 bytes of data, so compare works to a standard 32-bit integer
-      b3 = Buffer.concat [ new Buffer(0 for [0...(shift >> 3)] ), b3 ]
+      b3 = Buffer.concat [ Buffer.from(0 for [0...(shift >> 3)] ), b3 ]
       T.assert bufeq_fast(b3,b2), "Buffer #{j}, shift=#{shift}"
 
   cb()
@@ -47,7 +47,7 @@ exports.test_mpi_from_left_n_bits = (T,cb) ->
   nbits = raw_ints[0].length*4
   for ri,j in raw_ints
     for shift in [0...39]
-      buf = new Buffer ri, 'hex'
+      buf = Buffer.from ri, 'hex'
       i1 = nbi().fromBuffer buf
       i2 = i1.shiftRight shift
       i3 = bn_from_left_n_bits(buf, nbits - shift)

@@ -48,7 +48,7 @@ class UserID extends Packet
 
     # RFC 4880 5.2.4 Computing Signatures Over a Key
     Buffer.concat [
-      new Buffer([ C.signatures.userid ]),
+      Buffer.from([ C.signatures.userid ]),
       uint_to_buffer(32, @userid.length),
       @userid
     ]

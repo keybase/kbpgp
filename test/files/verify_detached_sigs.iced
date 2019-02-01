@@ -18,7 +18,7 @@ strip = (m) -> m.replace /[\n\t\r ]+/g, ''
 #==========================================
 
 corrupt = (inbuf, cb) ->
-  outbuf = new Buffer inbuf
+  outbuf = Buffer.from inbuf
   i = random inbuf.length
   c = (random 0xff) + 1
   outbuf.writeUInt8((inbuf.readUInt8(i) ^ c), i)
@@ -35,7 +35,7 @@ exports.init = (T,cb) ->
 
   # Base-64-decode the file data
   for key,val of data
-    val.data = new Buffer strip(val.data), 'base64'
+    val.data = Buffer.from strip(val.data), 'base64'
     await corrupt val.data, defer val.bad_data
 
   cb()
@@ -134,7 +134,7 @@ exports.verify_expired_detached = (T, cb) ->
   now = Math.floor(new Date(2017, 10, 7)/1000)
   await KeyManager.import_from_armored_pgp { raw : keys.public_expiring, opts: { now } }, defer err, tmpkm
   T.no_error err
-  cleartext = new Buffer strip(expiring_data.data), 'base64'
+  cleartext = Buffer.from strip(expiring_data.data), 'base64'
   await do_message { keyfetch : tmpkm, armored : expiring_data.sig, data, now }, defer err, literals
   T.no_error err, "sig worked"
   T.waypoint "Sig checked out"

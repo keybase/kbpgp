@@ -156,7 +156,7 @@ exports.init = (T,cb) ->
   await load_keyring T, defer tmp
   ring = tmp
   literals = [ new Literal {
-    data : new Buffer(data.msg)
+    data : Buffer.from(data.msg)
     format : C.openpgp.literal_formats.utf8
     date : unix_time()
   }]
@@ -177,11 +177,11 @@ exports.clear_sign_7 = (T,cb) -> clear_sign "- what\n- is\n- up?", T, cb
 exports.clear_sign_8 = (T,cb) -> clear_sign "-----------------word", T, cb
 
 clear_sign = (msg, T,cb) ->
-  key_id = new Buffer data.keys.ids[1], 'hex'
+  key_id = Buffer.from data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags }, defer err, signing_key
   T.no_error err
-  msg = new Buffer msg, 'utf8'
+  msg = Buffer.from msg, 'utf8'
   await clearsign.sign { signing_key, msg }, defer err, outmsg
   T.no_error err
   await do_message { keyfetch : ring, armored : outmsg, now : data.now }, defer err, _
@@ -191,11 +191,11 @@ clear_sign = (msg, T,cb) ->
 #===============================================================
 
 exports.detached_sign_wholesale = (T, cb) ->
-  key_id = new Buffer data.keys.ids[1], 'hex'
+  key_id = Buffer.from data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags }, defer err, signing_key
   T.no_error err
-  msg = new Buffer data.msg, 'utf8'
+  msg = Buffer.from data.msg, 'utf8'
   await detachsign.sign { signing_key, data : msg }, defer err, outmsg
   throw err if err?
   T.no_error err
@@ -207,11 +207,11 @@ exports.detached_sign_wholesale = (T, cb) ->
 #===============================================================
 
 exports.detached_sign_streaming = (T, cb) ->
-  key_id = new Buffer data.keys.ids[1], 'hex'
+  key_id = Buffer.from data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags }, defer err, signing_key
   T.no_error err
-  msg = new Buffer data.msg, 'utf8'
+  msg = Buffer.from data.msg, 'utf8'
   hash_streamer = hashmod.streamers.SHA384()
   hash_streamer.update(msg)
   await detachsign.sign { hash_streamer, signing_key }, defer err, outmsg
@@ -225,7 +225,7 @@ exports.detached_sign_streaming = (T, cb) ->
 #===============================================================
 
 exports.encrypt = (T,cb) ->
-  key_id = new Buffer data.keys.ids[0], 'hex'
+  key_id = Buffer.from data.keys.ids[0], 'hex'
   flags = C.openpgp.key_flags.encrypt_comm
   await ring.find_best_key { key_id, flags}, defer err, encryption_key
   T.no_error err
@@ -241,7 +241,7 @@ exports.encrypt = (T,cb) ->
 #===============================================================
 
 exports.sign = (T,cb) ->
-  key_id = new Buffer data.keys.ids[1], 'hex'
+  key_id = Buffer.from data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags}, defer err, signing_key
   T.no_error err
@@ -257,10 +257,10 @@ exports.sign = (T,cb) ->
 #===============================================================
 
 exports.encrypt_and_sign = (T,cb) ->
-  key_id = new Buffer data.keys.ids[0], 'hex'
+  key_id = Buffer.from data.keys.ids[0], 'hex'
   flags = C.openpgp.key_flags.encrypt_comm
   await ring.find_best_key { key_id, flags}, defer err, encryption_key
-  key_id = new Buffer data.keys.ids[1], 'hex'
+  key_id = Buffer.from data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags}, defer err, signing_key
   T.no_error err
@@ -276,10 +276,10 @@ exports.encrypt_and_sign = (T,cb) ->
 #===============================================================
 
 exports.encrypt_and_sign_armor = (T,cb) ->
-  key_id = new Buffer data.keys.ids[0], 'hex'
+  key_id = Buffer.from data.keys.ids[0], 'hex'
   flags = C.openpgp.key_flags.encrypt_comm
   await ring.find_best_key { key_id, flags}, defer err, encryption_key
-  key_id = new Buffer data.keys.ids[1], 'hex'
+  key_id = Buffer.from data.keys.ids[1], 'hex'
   flags = C.openpgp.key_flags.sign_data
   await ring.find_best_key { key_id, flags}, defer err, signing_key
   T.no_error err

@@ -103,10 +103,10 @@ exports.unzip = (T,cb) ->
   cb()
 
 #================================
-#  buf = Buffer.concat [ new Buffer([0x78,0x9c]), buf ]
+#  buf = Buffer.concat [ Buffer.from([0x78,0x9c]), buf ]
 #  try
 #    console.log "inflating..."
-#    ret = new Buffer pako.inflate buf
+#    ret = Buffer.from pako.inflate buf
 #  catch e
 #    err = e
 #

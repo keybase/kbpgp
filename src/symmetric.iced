@@ -49,7 +49,7 @@ exports.import_key_pgp = import_key_pgp = (msg, pkcs5_padding = false) ->
 exports.export_key_pgp = export_key_pgp = (algo_id, key) ->
   csum = checksum2 key
   Buffer.concat [
-    new Buffer([ algo_id ]),
+    Buffer.from([ algo_id ]),
     key,
     uint_to_buffer(16,csum)
   ]

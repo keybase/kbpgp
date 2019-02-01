@@ -30,10 +30,10 @@ exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (hashed_data, len, opts = {}) ->
   n = len - headers.length - 3 - hasher.output_length
 
   buf = Buffer.concat [ 
-    new Buffer([ 0x00, 0x01 ]),
-    new Buffer(0xff for i in [0...n]),
-    new Buffer([0x00]),
-    new Buffer(headers),
+    Buffer.from([ 0x00, 0x01 ]),
+    Buffer.from(0xff for i in [0...n]),
+    Buffer.from([0x00]),
+    Buffer.from(headers),
     hashed_data ]
 
   # We have to convert to a Uint8 array since the JSBN library internally
@@ -58,7 +58,7 @@ exports.emsa_pkcs1_decode = emsa_pkcs1_decode = (v, hasher) ->
       else
         i++
         header = hash_headers[hasher.algname]
-        if not bufeq_secure(new Buffer(header), v[i...(header.length+i)])
+        if not bufeq_secure(Buffer.from(header), v[i...(header.length+i)])
           err = new Error "Sig verify error: missing ASN header for #{hasher.algname}"
         else
           i += header.length
@@ -79,7 +79,7 @@ eme_random = (n, cb) ->
     for i in [0...diff]
       c = b.readUInt8(i)
       bytes.push c if c isnt 0
-  cb new Buffer bytes
+  cb Buffer.from bytes
 
 #--------------
 
@@ -93,9 +93,9 @@ exports.eme_pkcs1_encode = (v, len, cb) ->
     n_randos = len - 3 - v.length
     await eme_random n_randos, defer PS
     buf = Buffer.concat [ 
-      new Buffer( [0x00, 0x02] ),
+      Buffer.from( [0x00, 0x02] ),
       PS,
-      new Buffer( [0x00] ),
+      Buffer.from( [0x00] ),
       v
     ]
     ret = nbs(buffer_to_ui8a(buf), 256)
@@ -135,7 +135,7 @@ exports.ecc_pkcs5_pad_data = (d) ->
     err = new Error "Pad underrun"
   else
     v = (pad_len for [0...pad_len])
-    ret = Buffer.concat [ d, (new Buffer v) ]
+    ret = Buffer.concat [ d, (Buffer.from v) ]
   [err, ret]
 
 #--------------

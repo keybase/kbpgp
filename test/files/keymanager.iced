@@ -12,7 +12,7 @@ ecc = require '../../lib/ecc/main'
 asp = new ASP {}
 bundle = null
 userid = 'maxtaco@keybase.io'
-master_passphrase = new Buffer 'so long and thanks for all the fish', "utf8"
+master_passphrase = Buffer.from 'so long and thanks for all the fish', "utf8"
 tsenc = null
 openpgp_pass = null
 pgp_private = null
@@ -99,7 +99,7 @@ exports.step6_export_p3skb_private = (T,cb) ->
   b3 = tmp
   T.assert b3.has_p3skb_private(), "b3 has keybase private part"
   T.assert b3.is_p3skb_locked(), "b3 is still locked"
-  bad_pass = Buffer.concat [ master_passphrase, (new Buffer "yo")]
+  bad_pass = Buffer.concat [ master_passphrase, (Buffer.from "yo")]
   bad_tsenc = new Encryptor { key : bad_pass, version : 3 }
   await b3.unlock_p3skb { tsenc : bad_tsenc, asp }, defer err
   T.assert b3.is_p3skb_locked(), "b3 is still locked"

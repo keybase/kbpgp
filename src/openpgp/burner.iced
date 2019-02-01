@@ -28,7 +28,7 @@ detachsign = require './detachsign'
 
 #==========================================================================================
 
-dummy_key_id = new Buffer( 0 for [0...16] )
+dummy_key_id = Buffer.from( 0 for [0...16] )
 
 #==========================================================================================
 
@@ -197,7 +197,7 @@ exports.Burner = Burner
 
 exports.make_simple_literals = make_simple_literals = (msg) ->
   return [ new Literal {
-    data : new Buffer(msg)
+    data : Buffer.from(msg)
     format : C.literal_formats.utf8
     date : unix_time()
   }]

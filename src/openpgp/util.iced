@@ -11,7 +11,7 @@ C = require '../const'
 #
 exports.make_time_packet = (d) ->
   d or= Math.floor(Date.now()/1000)
-  b = new Buffer 4
+  b = Buffer.alloc 4
   b.writeUInt32BE d, 0
   b
 
@@ -31,14 +31,14 @@ exports.calc_checksum = calc_checksum = (text) ->
 exports.encode_length = encode_length = (l, five_byte= false) ->
   ret = null
   if l >= 8384 or five_byte
-    ret = new Buffer 5
+    ret = Buffer.alloc 5
     ret.writeUInt8 0xff, 0
     ret.writeUInt32BE l, 1
-  else if l < 192 
-    ret = new Buffer 1
+  else if l < 192
+    ret = Buffer.alloc 1
     ret.writeUInt8 l, 0
   else if l >= 192 and l < 8384
-    ret = new Buffer 2
+    ret = Buffer.alloc 2
     ret.writeUInt16BE( ((l - 192) + (192 << 8 )), 0)
   ret
 
@@ -63,6 +63,6 @@ exports.fit_to_size = fit_to_size = (size, buf) ->
   if l is 0
     buf
   else if l > 0
-    Buffer.concat [ new Buffer(0x00 for i in [1..l]), buf ]
+    Buffer.concat [ Buffer.alloc(l), buf ]
   else if l < 0
     buf[-size..]

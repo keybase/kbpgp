@@ -13,10 +13,10 @@ bzipDeflate = require 'bzip-deflate'
 #
 #fake_zip_inflate = (buf, cb) ->
 #  pako = require 'pako'
-#  buf = Buffer.concat [ new Buffer([0x78,0x9c]), buf ]
+#  buf = Buffer.concat [ Buffer.from([0x78,0x9c]), buf ]
 #  ret = null
 #  try
-#    ret = new Buffer pako.inflate buf
+#    ret = Buffer.from pako.inflate buf
 #  catch e
 #    err = e
 #  cb err, ret
@@ -31,7 +31,7 @@ bzipDeflate = require 'bzip-deflate'
 # in the node.js setting which will increase code bloat.
 #
 fake_zip_inflate = (buf, cb) ->
-  buf = Buffer.concat [ new Buffer([0x78,0x9c]), buf ]
+  buf = Buffer.concat [ Buffer.from([0x78,0x9c]), buf ]
   inflater = zlib.createInflate { flush : zlib.Z_FULL_FLUSH }
   bufs = []
 

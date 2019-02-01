@@ -21,9 +21,9 @@ class Pub extends BaseKey
 
   #----------------
 
-  @OID : new Buffer [ 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 ]
+  @OID : Buffer.from [ 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 ]
   OID : Pub.OID
-  @MPI_LENGTH_HEADERS : new Buffer [ 0x1, 0x7, 0x40 ]
+  @MPI_LENGTH_HEADERS : Buffer.from [ 0x1, 0x7, 0x40 ]
   MPI_LENGTH_HEADERS : Pub.MPI_LENGTH_HEADERS
 
   #----------------
@@ -47,7 +47,7 @@ class Pub extends BaseKey
 
   serialize : () ->
     ret = Buffer.concat [
-      (new Buffer [ @OID.length ]),
+      (Buffer.from [ @OID.length ]),
       @OID,
       @MPI_LENGTH_HEADERS,
       @key
@@ -120,7 +120,7 @@ class Priv extends BaseKey
 
     # Along with the secret key, the seed has to be saved, so Priv can
     # be serialized.
-    priv = new Priv { seed, key: new Buffer(secretKey), pub }
+    priv = new Priv { seed, key: Buffer.from(secretKey), pub }
 
     len = pre - sb.rem()
     return [ priv, len ]
@@ -145,7 +145,7 @@ class Priv extends BaseKey
     # buffer as one "signature buffer" instead of two, so we might as
     # well split/detach ourselves.
     len = kbnacl.sign.signatureLength/2
-    cb [new Buffer(ret[0...len]), new Buffer(ret[len...len*2])]
+    cb [Buffer.from(ret[0...len]), Buffer.from(ret[len...len*2])]
 
   #-------------------    
 
@@ -282,8 +282,8 @@ class Pair extends BaseKeyPair
   @generate : ({nbits, asp}, cb) ->
     await SRF().random_bytes kbnacl.sign.seedLength, defer seed
     { publicKey, secretKey } = kbnacl.alloc({}).genFromSeed { seed }
-    pub = new Pub { key: new Buffer(publicKey) }
-    priv = new Priv { seed, key: new Buffer(secretKey), pub }
+    pub = new Pub { key: Buffer.from(publicKey) }
+    priv = new Priv { seed, key: Buffer.from(secretKey), pub }
     ret = new Pair { pub, priv }
     cb null, ret
 

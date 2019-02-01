@@ -15,7 +15,7 @@ class Packet
 
   frame_packet : (tag, body) ->
     bufs = [
-      new Buffer([ (0xc0 | tag) ]),
+      Buffer.from([ (0xc0 | tag) ]),
       util.encode_length(body.length),
       body
     ]
