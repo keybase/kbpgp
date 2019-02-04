@@ -11,5 +11,5 @@ for i in pk[0].privateKeyPacket.secMPIs
   console.log i.toString()
 
 #packet = new KeyMaterial()
-#packet.IV = (new Buffer "b61522b832d04bfd", "hex").toString 'binary'
+#packet.IV = (Buffer.from "b61522b832d04bfd", "hex").toString 'binary'
 #packet.IVLength = packet.IV.length

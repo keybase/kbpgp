@@ -29,12 +29,12 @@ argv = require('optimist')
 class Runner
 
   #----------
-  
+
   constructor : (@argv) ->
     @ring = new PgpKeyRing
 
   #----------
-  
+
   _read_file : (fn, cb) ->
     esc = make_esc cb, "read_file #{fn}"
     await fs.readFile fn, esc defer data
@@ -43,7 +43,7 @@ class Runner
     cb null, msgs
 
   #----------
-  
+
   read_keys : (cb) ->
     esc = make_esc cb, "read_keys"
     await @_read_file @argv.keyfile, esc defer msgs
@@ -57,7 +57,7 @@ class Runner
     cb null
 
   #----------
-  
+
   read_msg : (cb) ->
     esc = make_esc cb, "read_msg"
     await @_read_file @argv.msg, esc defer msgs
@@ -65,7 +65,7 @@ class Runner
     cb null
 
   #----------
-  
+
   from_pgp : (cb) ->
     esc = make_esc cb, "process"
     await @read_msg esc defer()
@@ -83,23 +83,23 @@ class Runner
     cb err, msg
 
   #----------
-  
+
   to_pgp : (cb) ->
     esc = make_esc cb, "to_pgp/burn"
     await @read_input esc defer msg
     encyption_key = signing_key = null
-    if @argv.e? 
+    if @argv.e?
       await @ring.find_best_key {
-        key_id : (new Buffer(@argv.e, 'hex')), 
+        key_id : (Buffer.from(@argv.e, 'hex')),
         flags : C.openpgp.key_flags.encrypt_comm
         }, esc defer encryption_key
     if @argv.s?
       await @ring.find_best_key {
-        key_id : (new Buffer(@argv.s, 'hex')), 
+        key_id : (Buffer.from(@argv.s, 'hex')),
         flags : C.openpgp.key_flags.sign_data
       }, esc defer signing_key
-    literals = [ 
-      new Literal { data : msg, format : C.openpgp.literal_formats.utf8, date : unix_time() } 
+    literals = [
+      new Literal { data : msg, format : C.openpgp.literal_formats.utf8, date : unix_time() }
     ]
     await burn { literals, signing_key, encryption_key }, esc defer raw
     out = armor.encode C.openpgp.message_types.generic, raw
@@ -107,12 +107,12 @@ class Runner
     cb null
 
   #----------
-  
+
   need_private_keys : () -> (not @do_to_pgp()) or @argv.s?
   do_to_pgp : () -> @argv.s? or @argv.e?
 
   #----------
-  
+
   parse_args : (cb) ->
     ok = false
     err = if not @argv.msg?
@@ -139,7 +139,7 @@ class Runner
 
 #=================================================================
 
-runner = new Runner argv 
+runner = new Runner argv
 await runner.run defer err
 throw err if err?
 process.exit 0

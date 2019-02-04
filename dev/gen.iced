@@ -4,7 +4,7 @@
 util = require 'util'
 {box} = require '../src/keybase/encode'
 {Encryptor} = require 'triplesec'
- 
+
 progress_hook = (obj) ->
   if obj.p?
     s = obj.p.toString()
@@ -19,7 +19,7 @@ main = (cb) ->
   tsenc = new Encryptor { key : bufferify("shitty"), version : 2 }
   asp = new ASP { progress_hook }
   userids = [ 'maxtaco@keybase.io', 'you@yahoo.com' ]
-  passphrase = new Buffer "cats1122", "utf8"
+  passphrase = Buffer.from "cats1122", "utf8"
   await KeyManager.generate { asp, nbits : 1024, nsubs : 1, userids }, esc defer bundle
   await bundle.sign {asp}, esc defer()
   await bundle.export_pgp_public {}, esc defer msg
@@ -27,7 +27,7 @@ main = (cb) ->
   # await bundle.export_private_to_server {tsenc,asp}, esc defer pair
   # await KeyManager.import_from_packed_keybase { raw : pair.keybase, asp }, defer b2
   # console.log b2
- 
+
   #await bundle.export_pgp_private_to_client { passphrase, asp }, esc defer msg
   #console.log util.inspect(pair, { depth : null })
   #console.log box(pair.keybase).toString('base64')
