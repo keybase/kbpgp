@@ -5,7 +5,7 @@
 
 exports.bufxor = bufxor = (b1, b2) ->
   arr = (c^b2[i] for c,i in b1)
-  return new Buffer arr
+  return Buffer.from arr
 
 #======================================================
 

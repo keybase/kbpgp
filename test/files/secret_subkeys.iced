@@ -204,7 +204,7 @@ tsenc = null
 p3skb = null
 
 exports.encrypt_private_to_server = (T,cb) ->
-  tsenc = new Encryptor { key : (new Buffer 'A heart whose love is innocent', 'utf8')}
+  tsenc = new Encryptor { key : (Buffer.from 'A heart whose love is innocent', 'utf8')}
   await km.sign {}, defer err
   T.no_error err, "signing worked"
   await km.export_private_to_server { tsenc }, defer err, tmp

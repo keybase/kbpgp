@@ -2,8 +2,8 @@
 {encrypt,decrypt} = require '../../lib/openpgp/cfb'
 
 exports.nist_sp800_38a__f_3_17 = (T,cb) ->
-  key = new Buffer "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4", 'hex'
-  iv = new Buffer "000102030405060708090a0b0c0d0e0f", "hex"
+  key = Buffer.from "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4", 'hex'
+  iv = Buffer.from "000102030405060708090a0b0c0d0e0f", "hex"
   pt_raw = [ "6bc1bee22e409f96e93d7e117393172a",
              "ae2d8a571e03ac9c9eb76fac45af8e51",
              "30c81c46a35ce411e5fbc1191a0a52ef",
@@ -15,10 +15,10 @@ exports.nist_sp800_38a__f_3_17 = (T,cb) ->
   ]
 
   test = (T, n, pt, ct) ->
-    plaintext = Buffer.concat(new Buffer(p, 'hex') for p in pt)
+    plaintext = Buffer.concat(Buffer.from(p, 'hex') for p in pt)
     len = plaintext.length - n
     plaintext = plaintext[0...len]
-    ciphertext = Buffer.concat(new Buffer(c, 'hex') for c in ct)
+    ciphertext = Buffer.concat(Buffer.from(c, 'hex') for c in ct)
     ciphertext = ciphertext[0...len]
 
     ct_ours = encrypt {key, plaintext, iv}

@@ -9,6 +9,6 @@ strip = (x) ->
 
 await fs.readFile process.argv[2], defer err, res
 res = strip res.toString()
-b = new Buffer res, 'hex'
+b = Buffer.from res, 'hex'
 [err, obj] = purepack.unpack b, 'buffer'
 console.log util.inspect obj, null, { depth : null}

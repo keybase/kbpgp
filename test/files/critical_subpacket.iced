@@ -462,7 +462,7 @@ km = null
 exports.decode = (T,cb) ->
   await KeyManager.import_from_armored_pgp { raw : key }, defer err, km, warnings
   T.no_error err
-  T.assert km.find_pgp_key(new Buffer '2E041D48C582FA58', 'hex'),"found PGP subkey"
+  T.assert km.find_pgp_key(Buffer.from '2E041D48C582FA58', 'hex'),"found PGP subkey"
   cb()
 
 #-------------------------

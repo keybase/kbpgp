@@ -5,8 +5,8 @@
 {AES} = require('triplesec').ciphers
 
 test_vector = (T,n,{key, plaintext, ciphertext}) ->
-  key = new Buffer key, 'hex'
-  plaintext = new Buffer plaintext, 'hex'
+  key = Buffer.from key, 'hex'
+  plaintext = Buffer.from plaintext, 'hex'
   cipher = { klass : AES, key_size : key.length }
   ct2 = wrap { key, plaintext, cipher }
   T.equal ct2.toString('hex'), ciphertext.toLowerCase(), "#{n} worked encrypt"

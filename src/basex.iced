@@ -34,13 +34,13 @@ class BaseX
     for c,i in str
       break unless c is @alphabet[0]
     start = i
-    pad = new Buffer (0 for i in [0...start])
+    pad = Buffer.from (0 for i in [0...start])
     for c,i in str[start...] by -1
       unless (char_index = @lookup[c])?
         throw new Error('Value passed is not a valid BaseX string.')
       num = num.add base.multiply nbv char_index
       base = base.multiply @basebn
-    Buffer.concat [pad, new Buffer(num.toByteArray()) ]
+    Buffer.concat [pad, Buffer.from(num.toByteArray()) ]
 
 #=====================================================================
 

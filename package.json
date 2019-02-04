@@ -7,7 +7,7 @@
     "keybase"
   ],
   "author": "Maxwell Krohn",
-  "version": "2.0.82",
+  "version": "2.0.83",
   "license": "BSD-3-Clause",
   "main": "./lib/main.js",
   "directories": {
@@ -31,7 +31,7 @@
     "minimist": "^1.2.0",
     "pgp-utils": ">=0.0.34",
     "purepack": ">=1.0.4",
-    "triplesec": ">=3.0.27",
+    "triplesec": "^4.0.3",
     "tweetnacl": "^0.13.1"
   },
   "devDependencies": {

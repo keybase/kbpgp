@@ -42,7 +42,7 @@ function openpgp_symenc_cast5() {
 		 }
 		 return true;
 	};
-	
+
 	this.reset = function() {
 		 for (var i = 0; i < 16; i++)
 		 {
@@ -96,7 +96,7 @@ function openpgp_symenc_cast5() {
 
 		 return dst;
 	};
-	
+
 	this.decrypt = function(src) {
 		console.log(src);
 		 var dst = new Array(src.length);
@@ -549,6 +549,6 @@ function openpgp_symenc_cast5() {
 var c5 = new openpgp_symenc_cast5();
 c5.setKey([ 0x01, 0x23, 0x45, 0x67, 0x12, 0x34, 0x56, 0x78, 0x23, 0x45, 0x67, 0x89, 0x34, 0x56, 0x78, 0x9A]);
 var ct = c5.encrypt([ 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF]);
-var buf = new Buffer(ct);
+var buf = Buffer.from(ct);
 console.log(buf);
 

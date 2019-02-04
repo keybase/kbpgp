@@ -621,7 +621,7 @@ class KeyManager extends KeyManagerInterface
     # The private key isn't locked, but it is stored in 's2k' notation
     # and needs to be decoded.  That happens with this call (w/ a NULL pw)
     unless err?
-      passphrase = new Buffer []
+      passphrase = Buffer.from []
       await @unlock_pgp { passphrase }, defer err
 
     cb err
@@ -769,7 +769,7 @@ class KeyManager extends KeyManagerInterface
   pgp_full_hash : (opts, cb) ->
     esc = make_esc cb, "get_pgp_full_hash"
     await @export_pgp_public opts, esc defer armored
-    cb null, (new SHA256 new Buffer armored.trim()).toString("hex")
+    cb null, (new SHA256 Buffer.from armored.trim()).toString("hex")
 
   #-----
 

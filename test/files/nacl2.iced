@@ -18,7 +18,7 @@ exports.gen_eddsa = (T,cb) ->
 
 #---------------------------------
 
-msg = new Buffer """To the Congress of the United States: Yesterday, Dec. 7, 1941 - a
+msg = Buffer.from """To the Congress of the United States: Yesterday, Dec. 7, 1941 - a
 date which will live in infamy - the United States of America was suddenly and
 deliberately attacked by naval and air forces of the Empire of Japan.""", "utf8"
 
@@ -103,7 +103,7 @@ exports.unbox_3 = (T,cb) ->
 #---------------------------------
 
 exports.unbox_split_seed_1 = (T,cb) ->
-  seed = hash.SHA256 new Buffer "this be the password; don't leak it!", "utf8"
+  seed = hash.SHA256 Buffer.from "this be the password; don't leak it!", "utf8"
   await kb.EncKeyManager.generate { split : true, seed }, T.esc(defer(km3), cb)
   await kb.box { msg, encrypt_for : km3 }, T.esc(defer(a), cb)
   await kb.unbox { armored : a, encrypt_for : km3 }, T.esc(defer(p), cb)

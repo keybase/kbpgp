@@ -119,7 +119,7 @@ exports.test_subkey_without_cross_sig = (T,cb) ->
   T.assert warnings.warnings().length is 1
   T.equal warnings.warnings()[0], "Subkey 1 was invalid; discarding"
   k = km.find_verifying_pgp_key()
-  wanted = new Buffer ("36A9 F360 387A 32F8 4D78  C18D 15D6 C614 51B2 0E13".split(/\s+/).join('')), 'hex'
+  wanted = Buffer.from ("36A9 F360 387A 32F8 4D78  C18D 15D6 C614 51B2 0E13".split(/\s+/).join('')), 'hex'
   T.assert bufeq_secure wanted, k.get_fingerprint()
   cb()
 
@@ -129,7 +129,7 @@ exports.test_subkey_with_cross_sig = (T,cb) ->
   T.assert count_subkeys(km) is 2
   T.assert warnings.warnings().length is 0
   k = km.find_verifying_pgp_key()
-  wanted = new Buffer ("FCFF 7A50 95B7 29EF F05D  846C E243 596D 5865 D60F".split(/\s+/).join('')), 'hex'
+  wanted = Buffer.from ("FCFF 7A50 95B7 29EF F05D  846C E243 596D 5865 D60F".split(/\s+/).join('')), 'hex'
   T.assert bufeq_secure wanted, k.get_fingerprint()
   cb()
 

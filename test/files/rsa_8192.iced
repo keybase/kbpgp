@@ -49,7 +49,7 @@ exports.encrypt = (T, cb) ->
   encryption_key = km.find_best_pgp_key flags
   T.assert encryption_key?, "got an encryption key"
   literals = [ new Literal {
-    data : new Buffer(msg)
+    data : Buffer.from(msg)
     format : C.openpgp.literal_formats.utf8
     date : unix_time()
   }]

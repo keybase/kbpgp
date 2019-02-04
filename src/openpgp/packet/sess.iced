@@ -104,7 +104,7 @@ class SEIPD extends Packet
 
 # 5.14.  Modification Detection Code Packet (Tag 19)
 class MDC extends Packet
-  @header : new Buffer [ (0xc0 | C.packet_tags.MDC ), SHA1.output_length ]
+  @header : Buffer.from [ (0xc0 | C.packet_tags.MDC ), SHA1.output_length ]
   header  : MDC.header
   constructor : ({@digest}) ->
   @parse : (buf) -> (new MDC_Parser buf).parse()

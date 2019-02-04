@@ -93,7 +93,7 @@ class Encryptor extends Base
 
   _emit_sb : (sb) ->
     buf = if (deficit = @block_size - sb.rem()) > 0
-      pad = new Buffer( 0 for i in [0...deficit])
+      pad = Buffer.from( 0 for i in [0...deficit])
       Buffer.concat [ sb.consume_rest_to_buffer(), pad ]
     else sb.read_buffer @block_size
     @_emit_buf buf
@@ -105,14 +105,14 @@ class Encryptor extends Base
     wa.xor @FRE, {n_words : (Math.min wa.words.length, @FRE.words.length) }
     buf = wa.to_buffer()
     @out_bufs.push buf
-    @FR = new Buffer buf
+    @FR = Buffer.from buf
 
   #-------------
 
   _init : (prefixrandom) ->
 
     # 1. The feedback register (FR) is set to the IV, which is all zeros.
-    @FR = new Buffer(0 for i in [0...@block_size])
+    @FR = Buffer.from(0 for i in [0...@block_size])
     prefixrandom = repeat prefixrandom, 2
 
     # 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the
@@ -134,7 +134,7 @@ class Encryptor extends Base
     #     data that were prefixed to the plaintext.  This produces C[BS+1]
     #     and C[BS+2], the next two octets of ciphertext.
     b = @FRE.to_buffer()
-    canary = new Buffer((b.readUInt8(i) ^ prefixrandom.readUInt8(@block_size+i)) for i in [0...2])
+    canary = Buffer.from((b.readUInt8(i) ^ prefixrandom.readUInt8(@block_size+i)) for i in [0...2])
     @out_bufs.push canary
 
     # 7.  (The resync step) FR is loaded with C3-C10.
@@ -157,7 +157,7 @@ class Encryptor extends Base
       # 9. FRE is xored with the first 8 octets of the given plaintext, now
       #    That we have finished encrypting the 10 octets of prefixed data.
       #    This produces C11-C18, the next 8 octets of ciphertext.
-      buf = Buffer.concat [ new Buffer([0,0]), sb.read_buffer(@block_size-2) ]
+      buf = Buffer.concat [ Buffer.from([0,0]), sb.read_buffer(@block_size-2) ]
       wa = WordArray.from_buffer buf
       wa.xor @FRE, {}
       buf = wa.to_buffer()[2...]
@@ -279,9 +279,9 @@ exports.Decryptor = Decryptor
 
 {rng} = require 'crypto'
 test = () ->
-  plaintext = new Buffer("a man a plan a canal panama. and you know the rest")
+  plaintext = Buffer.from("a man a plan a canal panama. and you know the rest")
   key = rng(32)
-  prefixrandom = new Buffer [0...16]
+  prefixrandom = Buffer.from [0...16]
   block_cipher_class = AES
   ct = encrypt { block_cipher_class, key, prefixrandom, plaintext }
   console.log ct.toString('hex')

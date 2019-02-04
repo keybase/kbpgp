@@ -1,3 +1,7 @@
+## 2.0.83 (2019-02-01)
+
+- Deprecate (new Buffer) and use Buffer.from or Buffer.allow
+
 ## 2.0.81-2.0.82 (2018-10-19)
 
 - Dependency upgrades
