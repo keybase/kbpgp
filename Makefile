@@ -97,10 +97,10 @@ test-browser: $(TEST_STAMP) $(BUILD_STAMP)
 	@echo "Please visit in your favorite browser --> file://$(WD)/test/browser/index.html"
 
 test/browser/test.js: test/browser/main.iced $(BUILD_STAMP)
-	$(BROWSERIFY) -t icsify $< > $@
+	$(BROWSERIFY) -i sodium -t icsify $< > $@
 
 test/benchmark/keybase.js: bench/main.js $(BUILD_STAMP)
-	$(BROWSERIFY) -s keybase $< > $@
+	$(BROWSERIFY) -i sodium -s keybase $< > $@
 
 $(TEST_STAMP): test/browser/test.js
 	date > $@
@@ -108,7 +108,7 @@ $(TEST_STAMP): test/browser/test.js
 test: test-server test-browser
 
 $(BROWSER): lib/main.js $(BUILD_STAMP)
-	$(BROWSERIFY) -s kbpgp $< > $@
+	$(BROWSERIFY) -i sodium -s kbpgp $< > $@
 
 release: $(BROWSER)
 	V=`jq -r .version package.json` ; \

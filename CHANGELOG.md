@@ -1,3 +1,9 @@
+## 2.1.0 (2019-02-18)
+
+- Change the browserify strategy for excluding native sodium, we'll now pass `browserify -i sodium` in all downstream modules
+- This is to unbreak webpack, which didn't like our hack to trick browserify
+- Hence the minor version update, since this is a breaking change
+
 ## 2.0.83 (2019-02-01)
 
 - Deprecate (new Buffer) and use Buffer.from or Buffer.allow
