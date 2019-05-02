@@ -106,7 +106,7 @@ strings = [
 test_base = (T, klass, what) ->
   for padlen in [0...29] by 7
     pad = Buffer.from (0 for i in [0...padlen])
-    for s,i in strings 
+    for s,i in strings
       buf = Buffer.concat [ pad, Buffer.from s, 'base64' ]
       s = buf.toString 'base64'
       e = klass.encode buf
@@ -120,4 +120,8 @@ exports.test_base58 = (T, cb) ->
 
 exports.test_base32 = (T, cb) ->
   test_base T, basex.base32, 'base32'
+  cb()
+
+exports.test_bech32 = (T, cb) ->
+  test_base T, basex.bech32, 'bech32'
   cb()

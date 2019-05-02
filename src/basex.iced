@@ -46,6 +46,7 @@ class BaseX
 
 exports.base58 = base58 = new BaseX '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 exports.base32 = base32 = new BaseX 'abcdefghijkmnpqrstuvwxyz23456789'
+exports.bech32 = bech32 = new BaseX 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
 exports.base91 = new BaseX("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()-_=+{}[]|;:,<>./?")
 
 #=====================================================================
