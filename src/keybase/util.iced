@@ -31,7 +31,7 @@ exports.genseed = genseed = ({seed, split, len, server_half}, cb ) ->
 
 exports.prefix_signature_payload = (prefix, payload) ->
   v = []
-  if prefix
+  if prefix?.length
     v.push prefix
     v.push Buffer.from([0])
   if payload?
