@@ -15,7 +15,7 @@ exports.genseed = genseed = ({seed, split, len, server_half}, cb ) ->
 
   if not seed? or (split and not server_half?)
     await SRF().random_bytes len, defer rseed
-  if seed? and seed.length isnt len 
+  if seed? and seed.length isnt len
     err = new Error "Wrong seed length; need #{len} bytes; got #{seed.length}"
   else if seed? and rseed?
     server_half = rseed
@@ -24,6 +24,17 @@ exports.genseed = genseed = ({seed, split, len, server_half}, cb ) ->
     seed = bufxor seed, server_half
   else if not seed?
     seed = rseed
-    
+
   cb err, { seed, server_half }
 
+#======================================================
+
+exports.prefix_signature_payload = (prefix, payload) ->
+  v = []
+  if prefix
+    v.push prefix
+    v.push Buffer.from([0])
+  if payload?
+    v.push payload
+  if v.length then Buffer.concat v
+  else null

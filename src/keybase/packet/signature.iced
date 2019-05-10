@@ -20,7 +20,8 @@ class Signature extends Packet
 
   #------------------
 
-  constructor : ({@key, @payload, @sig, @detached}) ->
+  constructor : ({@key, @payload, @sig, @detached, prefix}) ->
+    @prefix = prefix if prefix?
     super()
 
   #------------------
@@ -28,7 +29,9 @@ class Signature extends Packet
   get_packet_body : () ->
     sig_type = Signature.SIG_TYPE
     hash_type = Signature.HASH_TYPE
-    { @key, @payload, @sig, @detached, sig_type, hash_type }
+    ret = { @key, @payload, @sig, @detached, sig_type, hash_type }
+    ret.prefix = @prefix if @prefix?
+    ret
 
   #------------------
 
@@ -51,28 +54,28 @@ class Signature extends Packet
 
   #------------------
 
-  verify : (cb) ->
+  verify : (cb, {prefix} = {}) ->
     esc = make_esc cb, "verify"
     err = km = null
     [err, pair] = eddsa.Pair.parse_kb @key
     if not err?
-      await pair.verify_kb @, esc defer()
+      await pair.verify_kb @, esc(defer())
     cb err, { keypair : pair, @payload }
 
   #------------------
 
   unbox : (params, cb) ->
-    await @verify defer err, res
+    await @verify defer(err, res)
     cb err, res
 
   #------------------
 
-  @box : ({km, payload}, cb) ->
+  @box : ({km, prefix, payload}, cb) ->
     esc = make_esc cb, "@sign"
     pair = km.get_keypair()
     detached = true
-    await pair.sign_kb { payload, detached }, esc defer sig
-    packet = new Signature { key : pair.ekid(), payload, sig, detached }
+    await pair.sign_kb { payload, prefix, detached }, esc defer sig
+    packet = new Signature { key : pair.ekid(), payload, sig, detached, prefix }
     cb null, packet
 
 #=================================================================================

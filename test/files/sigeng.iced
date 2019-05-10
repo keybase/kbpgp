@@ -1,7 +1,9 @@
 
-{armor,KeyManager,kb} = require '../../'
+{armor,KeyManager,kb,util} = require '../../'
 {keys} = require('../data/keys.iced')
 {make_esc} = require 'iced-error'
+{asyncify} = util
+{unbox_decode,encode} = kb
 
 km = null
 
@@ -24,6 +26,9 @@ exports.box = (T,cb) ->
   se = km.make_sig_eng()
   await se.box msg, T.esc(defer(tmp), cb)
   sig = tmp
+  await se.box msg, defer(err), { prefix : "foo" }
+  T.assert err?, "an error when using prefixes with PGP"
+  T.equal err.message, "prefixes cannot be used with PGP", "right error message"
   cb()
 
 exports.unbox = (T,cb) ->
@@ -149,4 +154,42 @@ Kn2YXxcsF30=
   await sig_eng.unbox msg, defer err
   T.assert err?, "should fail"
   T.assert err.toString().indexOf("can't peform the operation -- maybe no secret key material (op_mask=2)") >= 0, "find right msg"
+  cb()
+
+exports.kb_generate_with_prefix = (T,cb) ->
+  esc = make_esc cb
+  await kb.KeyManager.generate {}, esc defer pkm
+  psig_eng = pkm.make_sig_eng()
+  pmsg = Buffer.from("Of Man's First Disobedience, and the Fruit Of that Forbidden Tree, whose mortal taste", "utf8")
+  prefix = Buffer.from("milton-x-1", "utf8")
+  await psig_eng.box(pmsg, esc(defer(psig)), { prefix })
+  await psig_eng.unbox(psig.kb, esc(defer()))
+  await psig_eng.unbox(psig.kb, defer(err), { prefix : Buffer.from("should-fail") })
+  T.assert err?, "should get an error that we failed to verify with the wrong prefix"
+  T.equal err.message, "Signature failed to verify", "right error"
+  await asyncify unbox_decode({armored : psig.kb}), esc defer packet
+
+  delete packet.prefix
+  packed = packet.frame_packet()
+  sealed = encode.seal { obj : packed, dohash : false }
+  armored = sealed.toString('base64')
+  await psig_eng.unbox(armored, defer(err))
+  T.assert err?, "should fail since wrong prefix"
+  T.equal err.message, "Signature failed to verify", "right error"
+
+  packet.prefix = prefix
+  packed = packet.frame_packet()
+  sealed = encode.seal { obj : packed, dohash : false }
+  armored = sealed.toString('base64')
+  # should work
+  await psig_eng.unbox(armored, esc(defer()))
+
+  packet.prefix = Buffer.from("sidney-for-life-1")
+  packed = packet.frame_packet()
+  sealed = encode.seal { obj : packed, dohash : false }
+  armored = sealed.toString('base64')
+  await psig_eng.unbox(armored, defer(err))
+  T.assert err?, "should fail since wrong prefix"
+  T.equal err.message, "Signature failed to verify", "right error"
+
   cb()

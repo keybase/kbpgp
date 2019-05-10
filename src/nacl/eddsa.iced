@@ -2,7 +2,7 @@ kbnacl = require 'keybase-nacl'
 {SRF} = require '../rand'
 konst = require '../const'
 K = konst.kb
-{genseed,bufeq_secure,bufeq_fast} = require '../util'
+{prefix_signature_payload,genseed,bufeq_secure,bufeq_fast} = require '../util'
 {BaseKey} = require '../basekeypair'
 {BaseKeyPair} = require './base'
 NaclDh = require('./dh').Pair
@@ -47,8 +47,9 @@ class Pub
   #--------------------
 
   # Verify a signature with the given payload.
-  verify : ({payload,sig,detached}, cb) ->
+  verify : ({payload,sig,detached, prefix}, cb) ->
     naclw = kbnacl.alloc { publicKey : @key }
+    payload = prefix_signature_payload prefix, payload
     [err, payload] = naclw.verify { payload, sig, detached }
     cb err, payload
 
@@ -103,9 +104,10 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  sign_kb : ({payload, detached}, cb) ->
+  sign_kb : ({payload, detached, prefix}, cb) ->
     err = sig = null
     if @priv?
+      payload = prefix_signature_payload prefix, payload
       await @priv.sign { payload, detached}, defer sig
     else
       err = new Error "no secret key available"
@@ -113,8 +115,8 @@ class Pair extends BaseKeyPair
 
   #----------------
 
-  verify_kb : ({payload, sig, detached}, cb) ->
-    @pub.verify {payload, sig, detached}, cb
+  verify_kb : ({payload, sig, detached, prefix}, cb) ->
+    @pub.verify {payload, sig, detached, prefix}, cb
 
   #----------------
 

@@ -1,3 +1,7 @@
+## 2.1.1 (2019-05-10)
+
+- Add a prefix option for signatures, considered separately from the payload
+
 ## 2.1.0 (2019-02-18)
 
 - Change the browserify strategy for excluding native sodium, we'll now pass `browserify -i sodium` in all downstream modules
