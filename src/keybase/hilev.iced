@@ -190,10 +190,11 @@ unbox_decode = ({armored,binary,rawobj}) ->
 
 #=================================================================================
 
-unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
+unbox = ({armored,binary,rawobj,encrypt_for,prefix}, cb) ->
   esc = make_esc cb, "unbox"
 
   await asyncify unbox_decode({armored,binary,rawobj}), esc defer packet, binary
+  packet.prefix = prefix if prefix? # can specify the prefix out-of-band (it'll stomp over us)
   await packet.unbox {encrypt_for}, esc defer res
 
   if res.keypair?
@@ -207,17 +208,17 @@ unbox = ({armored,binary,rawobj,encrypt_for}, cb) ->
 
 #=================================================================================
 
-box = ({msg, sign_with, encrypt_for, anonymous, nonce}, cb) ->
+box = ({msg, sign_with, encrypt_for, anonymous, nonce, prefix}, cb) ->
   esc = make_esc cb, "box"
   msg = bufferify msg
   if encrypt_for?
     await Encryption.box { sign_with, encrypt_for, plaintext : msg, anonymous, nonce }, esc defer packet
   else
-    await Signature.box { km : sign_with, payload : msg }, esc defer packet
+    await Signature.box { km : sign_with, payload : msg, prefix }, esc defer packet
   packed = packet.frame_packet()
   sealed = encode.seal { obj : packed, dohash : false }
   armored = sealed.toString('base64')
-  cb null, armored, sealed
+  cb null, armored, sealed, packet.sig
 
 #=================================================================================
 
@@ -260,10 +261,10 @@ class SignatureEngine extends SignatureEngineInterface
 
   #-----
 
-  box : (msg, cb) ->
+  box : (msg, cb, {prefix} = {}) ->
     esc = make_esc cb, "SignatureEngine::box"
-    await box { msg, sign_with : @km }, esc defer armored, raw
-    out = { type : "kb", armored, kb : armored, raw }
+    await box { msg, prefix, sign_with : @km }, esc defer armored, raw, sig
+    out = { type : "kb", armored, kb : armored, raw, sig }
     cb null, out
 
   #-----
@@ -273,6 +274,7 @@ class SignatureEngine extends SignatureEngineInterface
     err = payload = null
     arg = if Buffer.isBuffer(msg) then { binary : msg }
     else { armored : msg }
+    arg.prefix = opts.prefix
     await unbox arg, esc defer res, binary
     if not res.km.eq @km
       a = res.km.get_ekid().toString('hex')
@@ -284,4 +286,4 @@ class SignatureEngine extends SignatureEngineInterface
 
 #=================================================================
 
-module.exports = { box, unbox, unbox_decode, KeyManager, EncKeyManager, decode_sig, get_sig_body }
+module.exports = { box, unbox, unbox_decode, KeyManager, EncKeyManager, decode_sig, get_sig_body, encode }
