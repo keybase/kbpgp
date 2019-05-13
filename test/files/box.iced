@@ -27,7 +27,7 @@ exports.box_unbox_2 = (T,cb) ->
   }]
   userid = "joe"
   await KeyManager.generate { userid, primary, subkeys }, T.esc(defer(km), cb, "box_unbox_2")
-  await km.sign {}, T.esc defer err
+  await km.sign {}, T.esc(defer())
   msg = "g'day mate 2"
   await box { msg, encrypt_for : km }, T.esc(defer(armored, raw), cb, "box")
   await unbox { keyfetch : km, raw }, T.esc(defer(literals), cb, "unbox")
