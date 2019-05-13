@@ -54,7 +54,7 @@ class Signature extends Packet
 
   #------------------
 
-  verify : (cb, {prefix} = {}) ->
+  verify : (cb) ->
     esc = make_esc cb, "verify"
     err = km = null
     [err, pair] = eddsa.Pair.parse_kb @key

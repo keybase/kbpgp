@@ -122,6 +122,11 @@ class KeyManager extends KeyManagerInterface
 
   make_sig_eng : () -> new SignatureEngine { km : @ }
 
+  #----------------------------------
+
+  verify_raw : ({sig, payload, prefix}, cb) ->
+    (new Signature { key : @key?.ekid(), payload, prefix, sig, detached : true }).verify cb
+
 #=================================================================================
 
 class EncKeyManager extends KeyManager

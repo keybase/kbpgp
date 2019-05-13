@@ -1,3 +1,7 @@
+## 2.1.2 (2019-05-13)
+
+- Add a KeyManager::verify_raw function, for simple signature verifications
+
 ## 2.1.1 (2019-05-10)
 
 - Add a prefix option for signatures, considered separately from the payload
