@@ -30,7 +30,7 @@ class Pub
 
   @alloc_kb : (kid) ->
     err = key = null
-    err = if kid.length isnt Pub.LEN then new Error "bad key length #{kid.length}"
+    err = if kid.length isnt Pub.LEN then new Error "bad key length"
     else if not bufeq_fast(kid[-1...], Pub.TRAILER) then new Error "bad trailing byte"
     else if not bufeq_fast(kid[0...2], Pub.HEADER) then new Error "bad header"
     else
