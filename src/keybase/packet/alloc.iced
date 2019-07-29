@@ -5,12 +5,8 @@ K = require('../../const').kb
 {Encryption} = require './encryption'
 
 katch = (f) ->
-  ret = null
-  try
-    ret = f()
-    return [ null, ret]
-  catch e
-    return [e, null]
+  try return [null, f()]
+  catch e then return [e, null]
 
 exports.alloc = ({tag, body}) ->
   [err, ret] = switch tag
