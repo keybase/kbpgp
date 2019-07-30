@@ -1,3 +1,7 @@
+## 2.1.3 (2019-07-29)
+
+- catch uncaught errors in keybase/packet#alloc
+
 ## 2.1.2 (2019-05-13)
 
 - Add a KeyManager::verify_raw function, for simple signature verifications
