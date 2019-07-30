@@ -19,6 +19,5 @@ exports.alloc = ({tag, body}) ->
     else
       err = new Error "unknown packet tag: #{tag}"
       [err, null]
-      null
   [err, ret]
 
