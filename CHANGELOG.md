@@ -1,3 +1,7 @@
+## 2.1.4 (2019-09-24)
+
+- update keybase-ecurve dep
+
 ## 2.1.3 (2019-07-29)
 
 - catch uncaught errors in keybase/packet#alloc
