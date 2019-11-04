@@ -20,17 +20,17 @@
     "url": "git://github.com/keybase/kbpgp.git"
   },
   "dependencies": {
-    "bn": "^1.0.0",
+    "bn": "^1.0.5",
     "bzip-deflate": "^1.0.0",
-    "deep-equal": ">=0.2.1",
-    "iced-error": ">=0.0.10",
+    "deep-equal": "^1.1.0",
+    "iced-error": "0.0.13",
     "iced-lock": "^1.0.2",
-    "iced-runtime": "^1.0.3",
+    "iced-runtime": "^1.0.4",
     "keybase-ecurve": "^1.0.1",
-    "keybase-nacl": "^1.1.0",
+    "keybase-nacl": "^1.1.2",
     "minimist": "^1.2.0",
-    "pgp-utils": ">=0.0.34",
-    "purepack": ">=1.0.4",
+    "pgp-utils": "0.0.35",
+    "purepack": "^1.0.5",
     "triplesec": "^4.0.3",
     "tweetnacl": "^0.13.1"
   },
@@ -38,9 +38,9 @@
     "browserify": "^15.0.0",
     "colors": "0.6.2",
     "iced-coffee-script": "108.0.11",
-    "iced-test": ">=0.0.21",
+    "iced-test": "0.0.30",
     "icsify": "^0.8.0",
-    "uglify-js": "^2.4.13"
+    "uglify-js": "^2.8.29"
   },
   "scripts": {
     "test": "make test"

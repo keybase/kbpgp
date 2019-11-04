@@ -1,3 +1,7 @@
+## 2.1.5 (2019-11-04)
+
+- keybase-nacl dep
+
 ## 2.1.4 (2019-09-24)
 
 - update keybase-ecurve dep
