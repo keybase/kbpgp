@@ -9,7 +9,7 @@ dsig = asig = pair = null
 #---------------------------------
 
 exports.gen_eddsa = (T,cb) ->
-  await nacl.eddsa.Pair.generate {}, T.esc(defer(tmp))
+  await nacl.eddsa.Pair.generate {}, T.esc(defer(tmp), cb)
   pair = tmp
   cb()
 
@@ -117,7 +117,7 @@ exports.sigeng1 = (T,cb) ->
 
 reggen_eddsa_2 = (T,cb) ->
   seed = hash.SHA256 Buffer.from "this be the password; don't leak it!", "utf8"
-  await nacl.eddsa.Pair.generate {seed}, T.esc(defer(tmp))
+  await nacl.eddsa.Pair.generate {seed}, T.esc(defer(tmp), cb)
   cb tmp
 
 #---------------------------------

@@ -34,7 +34,7 @@ exports.test_multiple_encryption_subkeys = (T,cb) ->
   }]
   userid = "Tester 1 <tester@gmail.com>"
   await KeyManager.generate { userid, primary, subkeys }, T.esc(defer(km), cb)
-  await km.sign {}, T.esc(defer())
+  await km.sign {}, T.esc(defer(), cb)
 
   msg = "Huffy Henry hid the day, unappeasable Henry sulked."
   await box { encrypt_for : km, msg  }, T.esc(defer(ciphertext), cb)
@@ -85,7 +85,7 @@ exports.test_multiple_encryption_subkeys_winner_did_not_expire = (T,cb) ->
   }]
   userid = "Tester 1 <tester@gmail.com>"
   await KeyManager.generate { userid, primary, subkeys }, T.esc(defer(km), cb)
-  await km.sign {}, T.esc(defer())
+  await km.sign {}, T.esc(defer(), cb)
 
   msg = "Huffy Henry hid the day, unappeasable Henry sulked."
   await box { encrypt_for : km, msg  }, T.esc(defer(ciphertext), cb)
@@ -147,7 +147,7 @@ exports.test_multiple_encryption_subkeys_winner_latest = (T,cb) ->
   }]
   userid = "Tester 1 <tester@gmail.com>"
   await KeyManager.generate { userid, primary, subkeys }, T.esc(defer(km), cb)
-  await km.sign {}, T.esc(defer())
+  await km.sign {}, T.esc(defer(), cb)
 
   msg = "Huffy Henry hid the day, unappeasable Henry sulked."
   await box { encrypt_for : km, msg  }, T.esc(defer(ciphertext), cb)

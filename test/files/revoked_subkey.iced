@@ -22,7 +22,7 @@ exports.import_private = (T,cb) ->
   seckm = tmp
   T.waypoint "about to s2k with very big parameters..."
   T.assert seckm.has_pgp_private(), "has a private key"
-  await seckm.unlock_pgp { passphrase }, T.esc(defer())
+  await seckm.unlock_pgp { passphrase }, T.esc(defer(), cb)
   cb()
 
 #=================================================================================

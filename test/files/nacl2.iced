@@ -12,7 +12,7 @@ skm = rkm = null
 exports.gen_eddsa = (T,cb) ->
   tmp = []
   for i in [0...3]
-    await nacl.dh.Pair.generate {}, T.esc(defer(tmp[i]))
+    await nacl.dh.Pair.generate {}, T.esc(defer(tmp[i]), cb)
   [ sender, recvr, charlie ] = tmp
   cb()
 
@@ -32,7 +32,7 @@ exports.encrypt_1 = (T, cb) ->
 #---------------------------------
 
 exports.verify_attached_1 = (T, cb) ->
-  args = 
+  args =
     ciphertext : ctext.ciphertext
     nonce : ctext.nonce
     sender : sender

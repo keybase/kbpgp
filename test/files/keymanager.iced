@@ -125,7 +125,7 @@ exports.pgp_full_hash = (T,cb) ->
 exports.pgp_full_hash_nacl = (T,cb) ->
   km = null
   await kb.KeyManager.generate {}, T.esc(defer(km), cb)
-  await km.pgp_full_hash {}, T.esc(defer(res))
+  await km.pgp_full_hash {}, T.esc(defer(res), cb)
   T.assert not res?, "null value back"
   cb()
 
@@ -151,7 +151,7 @@ exports.change_key_and_reexport = (T, cb) ->
   }
   await KeyManager.generate args, esc defer km
   await km.sign {}, esc defer()
-  await km.export_public {}, T.esc defer armored
+  await km.export_public {}, T.esc(defer(armored), cb)
   await KeyManager.import_from_armored_pgp { armored }, esc defer()
 
   # Extend expiration, resign, re-export, and try to import again.
@@ -159,7 +159,7 @@ exports.change_key_and_reexport = (T, cb) ->
   km.pgp.primary.lifespan.expire_in = 200
   km.pgp.subkeys[0].lifespan.expire_in = 100
   await km.sign {}, esc defer()
-  await km.export_public { regen : true }, T.esc defer armored
+  await km.export_public { regen : true }, T.esc(defer(armored), cb)
   await KeyManager.import_from_armored_pgp { armored }, esc defer km2
   T.assert km2.primary._pgp.get_expire_time().expire_in is 200, "got correct expiration on primary"
   T.assert km2.subkeys[0]._pgp.get_expire_time().expire_in is 100, "got correct expiration on subkey"

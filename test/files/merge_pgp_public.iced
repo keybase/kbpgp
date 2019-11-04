@@ -1,4 +1,5 @@
 {unbox,KeyManager} = require '../..'
+{make_esc} = require 'iced-error'
 
 zaher_keys = [
   """-----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -416,10 +417,11 @@ Jw8tgTE=
 exports.import_and_merge_zaher = (T, cb) ->
   now = Math.floor(new Date(2015, 6, 24)/1000)
   opts = { now }
+  esc = make_esc cb
 
   sponge = null
   for k in zaher_keys
-    await KeyManager.import_from_armored_pgp { armored : k, opts }, T.esc(defer(km), cb)
+    await KeyManager.import_from_armored_pgp { armored : k, opts }, esc defer km
     if sponge?
       sponge.merge_all_subkeys_omitting_revokes km
     else
@@ -1042,8 +1044,9 @@ sYrYsAo=
 exports.import_and_merge_max = (T, cb) ->
   sponge = null
   check = (cb) ->
+    esc = make_esc cb
     for k in max_keys
-      await KeyManager.import_from_armored_pgp { armored : k, opts : { time_travel : true } }, T.esc(defer(km), cb)
+      await KeyManager.import_from_armored_pgp { armored : k, opts : { time_travel : true } }, esc defer(km)
       if sponge?
         sponge.merge_all_subkeys_omitting_revokes km
       else
@@ -1272,11 +1275,11 @@ exports.check_merge_omits_revokes = (T, cb) ->
   await KeyManager.import_from_armored_pgp {
     armored: example_key_with_valid_subkey
     opts: { time_travel: true }
-  }, T.esc defer valid_km
+  }, T.esc(defer(valid_km), cb)
   await KeyManager.import_from_armored_pgp {
     armored: example_key_with_revoked_subkey
     opts: { time_travel: true }
-  }, T.esc defer invalid_km
+  }, T.esc(defer(invalid_km), cb)
   valid_km.merge_public_omitting_revokes invalid_km
   # Make sure none of the resulting subkeys are revoked.
   for subkey in valid_km.subkeys
@@ -1290,11 +1293,11 @@ exports.check_merge_omits_revokes_in_reverse = (T, cb) ->
   await KeyManager.import_from_armored_pgp {
     armored: example_key_with_valid_subkey
     opts: { time_travel: true }
-  }, T.esc defer valid_km
+  }, T.esc(defer(valid_km), cb)
   await KeyManager.import_from_armored_pgp {
     armored: example_key_with_revoked_subkey
     opts: { time_travel: true }
-  }, T.esc defer invalid_km
+  }, T.esc(defer(invalid_km), cb)
   invalid_km.merge_public_omitting_revokes valid_km
   # Make sure none of the resulting subkeys are revoked.
   for subkey in invalid_km.subkeys
@@ -1364,7 +1367,7 @@ exports.check_merge_everything_includes_userids = (T, cb) ->
   await KeyManager.import_from_armored_pgp {
     armored: example_key_with_no_keybase_userid
     opts: { time_travel: true }
-  }, T.esc defer nonkeybase_km
+  }, T.esc(defer(nonkeybase_km), cb)
   T.assert(
     nonkeybase_km.get_userids_mark_primary().length == 1,
     "The first key should have one userid.")
@@ -1372,7 +1375,7 @@ exports.check_merge_everything_includes_userids = (T, cb) ->
   await KeyManager.import_from_armored_pgp {
     armored: example_key_with_keybase_userid_added
     opts: { time_travel: true }
-  }, T.esc defer with_keybase_km
+  }, T.esc(defer(with_keybase_km), cb)
   T.assert(
     with_keybase_km.get_userids_mark_primary().length == 2,
     "The second key should have two userids.")
