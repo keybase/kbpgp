@@ -1,9 +1,10 @@
-
-{armor,KeyManager,kb,util} = require '../../'
+kbpgp = require '../../'
+{armor,KeyManager,kb,util} = kbpgp
 {keys} = require('../data/keys.iced')
 {make_esc} = require 'iced-error'
 {asyncify} = util
 {unbox_decode,encode} = kb
+hash = kbpgp.hash
 
 km = null
 
@@ -193,3 +194,50 @@ exports.kb_generate_with_prefix = (T,cb) ->
   T.equal err.message, "Signature failed to verify", "right error"
 
   cb()
+
+exports.assert_pgp_hash = (T, cb) ->
+  esc = make_esc cb
+  ###
+  Keys and signature created using GnuPG with the following config:
+
+personal-digest-preferences SHA1
+cert-digest-algo SHA1
+default-preference-list SHA1 AES256 AES192 AES ZLIB BZIP2 Uncompressed
+  ###
+  armored = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEXhzOfhYJKwYBBAHaRw8BAQdALvMNWLpZDyObyMZ3NhDU9xtJWaiN7CceDYZu
+s3GckS20C3Rlc3QgMzQxNzkziIsEExYIADMCGwMCHgECF4AWIQQh1dGN6/OQKfEe
+ZRVVstYtBnUBsAUCXhzPQwQLCQgHAhUCBBYCAwAACgkQVbLWLQZ1AbBo1QD/avI6
+pLxP7MAlIKCIaxkfIfEfk6zpXMZIthTtI7nq40AA/2hOX1zpVECY1QjleFV5/LH9
+RRouH+iAF7zFlXwhcAgKuDgEXhzOfhIKKwYBBAGXVQEFAQEHQEsigQS7wsbom9W3
+Ejf7DpFRWRuX7XaKVGOmWS0FihkjAwEIB4h4BBgWCAAgFiEEIdXRjevzkCnxHmUV
+VbLWLQZ1AbAFAl4czn4CGwwACgkQVbLWLQZ1AbCKVAD8CFGlE6hdBxByaysXRPQI
+SXq9Tr+SFYXSESyuk1JXbSoBAILGzw56uJL2kXHGJDCJPXLnPHvTjqHvD8Uhe0l2
+5uEI
+=v83o
+-----END PGP PUBLIC KEY BLOCK-----
+  """
+  msg = """-----BEGIN PGP MESSAGE-----
+
+owGbwMvMwCQWuumaLlsp4wbG00JJDHEy52szUnNy8hXK84tyUrg6SlkYxJgYZMUU
+WRSvXux9/XmC5ke5VFGYHlYmkAYGLk4BmMhGc4Y/3LLGnwSytTN6tUzzZ3P1/blw
+XmvNgZ5DfMo97yesefTiEiPDrMuu5fxvromt00zea3bahC2S46bLbOW9CYpMZVrl
+n6ZzAAA=
+=+xbq
+-----END PGP MESSAGE-----
+  """
+  await KeyManager.import_from_armored_pgp { armored }, esc defer km
+  sig_eng = km.make_sig_eng()
+  await sig_eng.unbox msg, defer err, payload
+  T.no_error err, "should not fail without `assert_pgp_hash` callback"
+  T.equal payload.toString(), "hello world\n"
+  assert_pgp_hash = (hasher) ->
+    if hasher.algname is 'SHA1'
+      T.assert hasher.klass is hash.SHA1.klass
+      T.equal hasher.type, 2
+      new Error("signatures using SHA1 are not allowed")
+  await sig_eng.unbox msg, defer(err, payload), { assert_pgp_hash }
+  T.equal err?.message, "signatures using SHA1 are not allowed"
+  T.assert not payload?
+  cb null

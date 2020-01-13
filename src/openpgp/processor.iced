@@ -152,7 +152,7 @@ class Message
 
   #---------
 
-  constructor : ({@keyfetch, @data_fn, @data, @strict, @now}) ->
+  constructor : ({@keyfetch, @data_fn, @data, @strict, @now, @assert_pgp_hash}) ->
     @literals = []
     @enc_data_packet = null
     @warnings = new Warnings()
@@ -287,7 +287,7 @@ class Message
 
       # If this succeeds, then we'll go through and mark each
       # packet in sig.payload with the successful sig.close.
-      await sig.close.verify sig.payload, defer(err), { @now }
+      await sig.close.verify sig.payload, defer(err), { @now, @assert_pgp_hash }
 
     else if not @strict
       @warnings.push "Problem fetching key #{a.toString('hex')}: #{err.toString()}"
@@ -325,7 +325,7 @@ class Message
     if not clearsign?
       err = new Error "no clearsign data found"
     else
-      await verify_clearsign { packets, clearsign, @keyfetch, @now }, defer err, literal
+      await verify_clearsign { packets, clearsign, @keyfetch, @now, @assert_pgp_hash }, defer err, literal
     cb err, [ literal ]
 
   #---------
@@ -350,7 +350,7 @@ class Message
     if not(@data? or @data_fn?)
       err = new Error "Cannot verify detached signature without data input"
     else
-      await verify_detached { packets, @data, @data_fn, @keyfetch, @now}, defer err, literals
+      await verify_detached { packets, @data, @data_fn, @keyfetch, @now, @assert_pgp_hash }, defer err, literals
     cb err, literals
 
   #---------

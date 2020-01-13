@@ -1,5 +1,5 @@
 {KeyManager} = require '../../'
-{do_message,Processor} = require '../../lib/openpgp/processor'
+{do_message} = require '../../lib/openpgp/processor'
 {burn} = require '../../lib/openpgp/burner'
 
 testing_unixtime = Math.floor(new Date(2014, 2, 21)/1000)
@@ -146,4 +146,3 @@ exports.elgamal_round_trip = (T,cb) ->
   cb()
 
 #=================================================================
-

@@ -208,6 +208,9 @@ class Signature extends Packet
   #-----------------
 
   verify : (data_packets, cb, opts) ->
+    if err = opts?.assert_pgp_hash?(@hasher, @)
+      # Caller disallows use of this hash algo.
+      return cb err
     await @_verify data_packets, defer(err), opts
     for p in @unhashed_subpackets when (not err? and (s = p.to_sig())?)
       if s.type isnt C.sig_types.primary_binding
@@ -827,5 +830,3 @@ exports.EmbeddedSignature = EmbeddedSignature
 exports.PrimaryUserId = PrimaryUserId
 
 #===========================================================
-
-

@@ -98,7 +98,7 @@ class ClearSigner
 
   # @param {Buffer} msg the message to clear sign
   # @param {openpgp.packet.KeyMaterial} signing_key the key to find
-  constructor : ({@msg, @signing_key, @now}) ->
+  constructor : ({@msg, @signing_key, @now, @hasher}) ->
 
   #------------
 
@@ -110,6 +110,7 @@ class ClearSigner
 
   _sign_msg : (cb) ->
     @sig = new Signature {
+      @hasher
       sig_type : C.sig_types.canonical_text
       key : @signing_key.key
       hashed_subpackets : [ new CreationTime(@now or unix_time()) ]
@@ -153,7 +154,7 @@ class Verifier extends VerifierBase
   # @param {Object} clearsign the clearsign object that was embedded in the armor `Message`
   #    after parsing.
   #
-  constructor : ({packets, @clearsign, keyfetch, @now}) ->
+  constructor : ({packets, @clearsign, keyfetch, @now, @assert_pgp_hash}) ->
     super { packets, keyfetch }
 
   #-----------------------
@@ -180,7 +181,7 @@ class Verifier extends VerifierBase
   #-----------------------
 
   _verify : (cb) ->
-    opts = {@now}
+    opts = {@now, @assert_pgp_hash}
     await @_sig.verify [ @_literal ], defer(err), opts
     cb err
 
@@ -212,16 +213,16 @@ class Verifier extends VerifierBase
 # @param {openpgp.packet.KeyMaterial} signing_key the key to find
 # @param {Callback<error,String,Buffer>} cb with the error (if there was one)
 #    the string of the PGP message, and finally the raw signature.
-exports.sign = ({msg, signing_key, now}, cb) ->
-  b = new ClearSigner { msg, signing_key, now }
+exports.sign = ({msg, signing_key, now, hasher}, cb) ->
+  b = new ClearSigner { msg, signing_key, now, hasher }
   await b.run defer err, encoded, signature
   b.scrub()
   cb err, encoded, signature
 
 #==========================================================================================
 
-exports.verify = ({packets, clearsign, keyfetch, now}, cb) ->
-  v = new Verifier { packets, clearsign, keyfetch, now }
+exports.verify = ({packets, clearsign, keyfetch, now, assert_pgp_hash}, cb) ->
+  v = new Verifier { packets, clearsign, keyfetch, now, assert_pgp_hash }
   await v.run defer err, literal
   cb err, literal
 
