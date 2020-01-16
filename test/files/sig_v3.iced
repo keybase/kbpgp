@@ -1,7 +1,7 @@
 testing_unixtime = Math.floor(new Date(2014, 2, 20)/1000)
 
 {KeyManager} = require '../../'
-{do_message,Processor} = require '../../lib/openpgp/processor'
+{do_message} = require '../../lib/openpgp/processor'
 
 #==================================================================
 
@@ -163,4 +163,3 @@ exports.verify = (T,cb) ->
   cb()
 
 #==================================================================
-

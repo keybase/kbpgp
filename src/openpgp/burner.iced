@@ -57,10 +57,11 @@ class Burner extends BaseBurner
   #------------
 
   _sign : (cb) ->
-    esc = make_esc cb, "Burner::_sign'"
+    esc = make_esc cb, "Burner::_sign"
+    hasher = @opts?.hasher ? SHA512
     ops = new OnePassSignature {
       sig_type : C.sig_types.binary_doc,
-      hasher : SHA512
+      hasher
       sig_klass : @signing_key.get_klass()
       key_id : @signing_key.get_key_id()
       is_final : 1
@@ -68,6 +69,7 @@ class Burner extends BaseBurner
     await ops.write esc defer ops_framed
     sig = new Signature {
       type : C.sig_types.binary_doc
+      hasher
       key : @signing_key.key
       hashed_subpackets : [ new CreationTime(@opts?.now or unix_time()) ]
       unhashed_subpackets : [ new Issuer @signing_key.get_key_id() ]

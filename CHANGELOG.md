@@ -1,3 +1,9 @@
+## 2.1.7 (2020-01-16)
+
+- Add `assert_pgp_hash` arguments so API consumers can reject hash algorithms.
+- Add `hasher` when boxing / signing so default hash algorithm (SHA512) can be
+  overridden if needed.
+
 ## 2.1.6 (2019-11-04)
 
 - fix tests

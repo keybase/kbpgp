@@ -49,7 +49,6 @@ class Signer
   #---------------------------------------------------
 
   _sign : (cb) ->
-
     @sig = new Signature {
       sig_type : C.sig_types.canonical_text,
       key : @signing_key.key,
@@ -86,7 +85,7 @@ class Verifier extends VerifierBase
 
   #-----------------------
 
-  constructor : ({packets, @data, @data_fn, keyfetch, @now}) ->
+  constructor : ({packets, @data, @data_fn, keyfetch, @now, @assert_pgp_hash}) ->
     super { packets, keyfetch }
 
   #-----------------------
@@ -111,7 +110,7 @@ class Verifier extends VerifierBase
     data = if @data then [ new Literal  { @data } ]
     else []
     @literals = data
-    opts = {@now}
+    opts = {@now, @assert_pgp_hash}
     await @_sig.verify data, defer(err), opts
     cb err
 
@@ -144,10 +143,9 @@ exports.sign = ({data, hash_streamer, signing_key, now }, cb) ->
 
 #====================================================================
 
-exports.verify = ({data, data_fn, packets, keyfetch, now }, cb) ->
-  v = new Verifier { data, data_fn, packets, keyfetch, now }
+exports.verify = ({data, data_fn, packets, keyfetch, now, assert_pgp_hash }, cb) ->
+  v = new Verifier { data, data_fn, packets, keyfetch, now, assert_pgp_hash }
   await v.run defer err, literals
   cb err, literals
 
 #====================================================================
-

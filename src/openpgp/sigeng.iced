@@ -32,11 +32,11 @@ exports.SignatureEngine = class SignatureEngine extends SignatureEngineInterface
 
   #-----
 
-  box         : (msg, cb, {prefix} = {}) ->
+  box         : (msg, cb, opts = {}) ->
     out = { type : "pgp" }
-    if prefix? then err = new Error "prefixes cannot be used with PGP"
+    if opts.prefix? then err = new Error "prefixes cannot be used with PGP"
     else if (signing_key = @km.find_signing_pgp_key())?
-      await burn { msg, signing_key }, defer err, out.pgp, out.raw
+      await burn { msg, signing_key, opts }, defer err, out.pgp, out.raw
       out.armored = out.pgp unless err?
     else err = new Error "No signing key found"
     cb err, out
