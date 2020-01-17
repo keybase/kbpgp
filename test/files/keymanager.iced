@@ -1,4 +1,5 @@
-{kb,KeyManager} = require '../../'
+kbpgp = require '../../'
+{kb,KeyManager} = kbpgp
 {bufferify,ASP} = require '../../lib/util'
 {make_esc} = require 'iced-error'
 util = require 'util'
@@ -8,6 +9,7 @@ util = require 'util'
 example_keys = (require '../data/keys.iced').keys
 C = require '../../lib/const'
 ecc = require '../../lib/ecc/main'
+{Message} = kbpgp.processor
 
 asp = new ASP {}
 bundle = null
@@ -151,7 +153,7 @@ exports.change_key_and_reexport = (T, cb) ->
   }
   await KeyManager.generate args, esc defer km
   await km.sign {}, esc defer()
-  await km.export_public {}, T.esc(defer(armored), cb)
+  await km.export_public {}, esc defer armored
   await KeyManager.import_from_armored_pgp { armored }, esc defer()
 
   # Extend expiration, resign, re-export, and try to import again.
@@ -163,5 +165,102 @@ exports.change_key_and_reexport = (T, cb) ->
   await KeyManager.import_from_armored_pgp { armored }, esc defer km2
   T.assert km2.primary._pgp.get_expire_time().expire_in is 200, "got correct expiration on primary"
   T.assert km2.subkeys[0]._pgp.get_expire_time().expire_in is 100, "got correct expiration on subkey"
+
+  cb null
+
+{Signature, EmbeddedSignature} = require '../../lib/openpgp/packet/signature'
+
+exports.generate_key_default_hash = (T, cb) ->
+  esc = make_esc cb
+  F = C.openpgp.key_flags
+  args = {
+    userid: 'keymanager.iced test'
+    primary: { flags: F.sign_data | F.certify_keys, algo : ecc.EDDSA }
+    subkeys: [
+      { flags: F.sign_data, algo : ecc.ECDSA }
+      { flags: F.encrypt_storage | F.encrypt_conn, algo : ecc.ECDH, curve_name: 'NIST P-384' }
+    ]
+  }
+
+  await KeyManager.generate args, esc defer km
+  await km.sign {}, esc defer()
+  await km.export_public {}, esc defer armored
+
+  # Expect default hash to be SHA512
+  hasher = kbpgp.hash.SHA512
+
+  # Decode armored key, make sure the hasher is correct in
+  # all signatures and embedded signatures.
+  [err,msg] = kbpgp.armor.decode armored
+  T.no_error err
+  processor = new Message {}
+  await processor.parse_and_inflate msg.body, esc defer()
+  for pkt in processor.packets when pkt instanceof Signature
+    T.equal pkt.hasher.klass, hasher.klass
+    T.equal pkt.hasher.algname, hasher.algname
+    T.equal pkt.hasher.type, hasher.type
+    for subpkt in (pkt.unhashed_subpackets ? []) when subpkt instanceof EmbeddedSignature
+      {sig} = subpkt
+      T.equal sig.hasher.klass, hasher.klass
+      T.equal sig.hasher.algname, hasher.algname
+      T.equal sig.hasher.type, hasher.type
+
+  cb null
+
+exports.sign_key_with_hasher = (T, cb) ->
+  esc = make_esc cb
+  F = C.openpgp.key_flags
+  args = {
+    userid: 'keymanager.iced test'
+    primary: { flags: F.sign_data | F.certify_keys, algo : ecc.EDDSA }
+    subkeys: [
+      { flags: F.sign_data, algo : ecc.ECDSA }
+      { flags: F.encrypt_storage | F.encrypt_conn, algo : ecc.ECDH, curve_name: 'NIST P-384' }
+    ]
+  }
+
+  hasher = kbpgp.hash.SHA1
+
+  await KeyManager.generate args, esc defer km
+  # Set hasher to SHA1 in primary key and subkeys.
+  for key in [km.primary].concat(km.subkeys)
+    key = km.pgp.key(key)
+    T.assert key.hasher is null
+    key.hasher = hasher
+  # Signing should use SHA1 for self signature and subkey
+  # signatures (as well as primary sigs from subkeys).
+  await km.sign {}, esc defer()
+  await km.export_public {}, esc defer armored
+
+  # Decode armored key, make sure the hasher is correct in
+  # all signatures and embedded signatures.
+  [err,msg] = kbpgp.armor.decode armored
+  T.no_error err
+  processor = new Message {}
+  await processor.parse_and_inflate msg.body, esc defer()
+  for pkt in processor.packets when pkt instanceof Signature
+    T.equal pkt.hasher.klass, hasher.klass
+    T.equal pkt.hasher.algname, hasher.algname
+    T.equal pkt.hasher.type, hasher.type
+    for subpkt in (pkt.unhashed_subpackets ? []) when subpkt instanceof EmbeddedSignature
+      {sig} = subpkt
+      T.equal sig.hasher.klass, hasher.klass
+      T.equal sig.hasher.algname, hasher.algname
+      T.equal sig.hasher.type, hasher.type
+
+  assert_pgp_hash = (hasher) ->
+    if hasher.algname is 'SHA1'
+      T.assert hasher.klass is kbpgp.hash.SHA1.klass
+      T.equal hasher.type, 2
+      new Error("signatures using SHA1 are not allowed")
+  await KeyManager.import_from_armored_pgp { armored, opts: { assert_pgp_hash } }, defer err, km, warnings
+  T.assert err?.message.indexOf("no valid primary key") >= 0
+  T.assert not km?
+  warns = warnings?.warnings() ? []
+  T.equal warns.length, 3
+  for v,i in [1,3,5]
+    T.assert warns[i].match(new RegExp("^Signature failure in packet #{v}"))
+    T.assert warns[i].indexOf("signatures using SHA1 are not allowed") >= 0
+
 
   cb null

@@ -1,3 +1,8 @@
+## 2.1.8 (2020-01-22)
+
+- Add ability to override `@hasher` when signing keys (self-signing and
+  subkeys, as well as primary key signing with a subkey).
+
 ## 2.1.7 (2020-01-16)
 
 - Add `assert_pgp_hash` arguments so API consumers can reject hash algorithms.
