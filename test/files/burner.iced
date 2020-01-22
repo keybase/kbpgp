@@ -4,7 +4,7 @@ kbpgp = require '../../'
 
 {OnePassSignature} = require '../../lib/openpgp/packet/one_pass_sig'
 {Literal} = require '../../lib/openpgp/packet/literal'
-{Signature, CreationTime, Issuer} = require '../../lib/openpgp/packet/signature'
+{Signature} = require '../../lib/openpgp/packet/signature'
 
 C = kbpgp.const.openpgp
 {ecc, hash, armor} = kbpgp

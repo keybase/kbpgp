@@ -40,6 +40,9 @@ class KeyMaterial extends Packet
     @opts or= {}
     @flags or= 0
     @_is_duplicate_primary = false
+    # Allow modifying the hasher to produce self sigs or subkey signatures
+    # with specific hash algorithm.
+    @hasher = null
     super()
 
   #--------------------------
@@ -225,6 +228,7 @@ class KeyMaterial extends Packet
     sig = new Signature {
       type : type,
       key : @key,
+      hasher : @hasher,
       hashed_subpackets : hsp,
       unhashed_subpackets : [ new S.Issuer(@get_key_id()) ]
     }
@@ -275,7 +279,8 @@ class KeyMaterial extends Packet
     payload = Buffer.concat [ primary.to_signature_payload(), @to_signature_payload() ]
     sig = new Signature {
       type : C.sig_types.primary_binding
-      key : @key
+      @key
+      @hasher
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
       ],
@@ -301,7 +306,8 @@ class KeyMaterial extends Packet
 
     sig = new Signature {
       type : C.sig_types.subkey_binding,
-      @key,
+      @key
+      @hasher
       hashed_subpackets : [
         new S.CreationTime(lifespan.generated)
         new S.KeyExpirationTime(lifespan.expire_in)
@@ -447,9 +453,9 @@ class KeyMaterial extends Packet
       @add_flags packetsig.sig.get_key_flags()
       super packetsig
     else
-      # If we are a subkey, we don't want our properties to be combination of 
+      # If we are a subkey, we don't want our properties to be combination of
       # what's coming in different signatures. Every time a new binding sig
-      # comes in, we select the "winner" sig, and update ourself according 
+      # comes in, we select the "winner" sig, and update ourself according
       # to it.
       {sig} = packetsig
       if sig.type is C.sig_types.subkey_binding
@@ -691,4 +697,3 @@ class Parser
 exports.KeyMaterial = KeyMaterial
 
 #=================================================================================
-
