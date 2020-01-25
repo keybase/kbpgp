@@ -129,6 +129,7 @@ class KeyManager extends KeyManagerInterface
 
 #=================================================================================
 
+
 class EncKeyManager extends KeyManager
 
   #----------------------------------
@@ -227,6 +228,17 @@ box = ({msg, sign_with, encrypt_for, anonymous, nonce, prefix}, cb) ->
 
 #=================================================================================
 
+verify = ({armored, binary, kid}, cb) ->
+  esc = make_esc cb
+  err = null
+  await KeyManager.import_public { hex : kid }, esc defer km
+  await unbox { armored, binary }, esc defer res
+  unless res.km.check_public_eq(km)
+    err = new errors.WrongSigningKeyError "Got wrong signing key"
+  cb err, res.payload
+
+#=================================================================================
+
 get_sig_body = ({armored}) ->
   [ err, decoded ] = decode_sig {armored}
   return [ err, decoded?.body ]
@@ -288,7 +300,7 @@ class SignatureEngine extends SignatureEngineInterface
     else
       payload = res.payload
     cb err, payload, binary
-
+  
 #=================================================================
 
-module.exports = { box, unbox, unbox_decode, KeyManager, EncKeyManager, decode_sig, get_sig_body, encode }
+module.exports = { box, unbox, unbox_decode, KeyManager, EncKeyManager, decode_sig, get_sig_body, encode, verify}
