@@ -12,7 +12,7 @@ declare module "kbpgp" {
       ) => void
     ): void;
     function verify(
-      arg: { armored?: string; binary?: Buffer; kid: string },
+      arg: { armored: string; kid : string } | { binary: Buffer; kid: string },
       cb: (err: Error | null, paload: Buffer | null) => void
     ): void;
   }

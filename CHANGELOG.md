@@ -1,3 +1,7 @@
+## 2.1.9 (2020-01-27)
+
+- Add some preliminary typing
+
 ## 2.1.8 (2020-01-22)
 
 - Add ability to override `@hasher` when signing keys (self-signing and
