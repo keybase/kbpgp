@@ -1,6 +1,18 @@
 declare module "kbpgp" {
+
   interface KeyManager {
     get_ekid: () => Buffer;
+  }
+
+  namespace verify {
+    type Kid = string;
+    interface GenericKey {
+      kid: () => Kid;
+      isPGP: () => boolean;
+      verify: (s: string) => Promise<Buffer>;
+    }
+
+    function importKey(s: string): Promise<GenericKey>;
   }
 
   namespace kb {
@@ -12,7 +24,7 @@ declare module "kbpgp" {
       ) => void
     ): void;
     function verify(
-      arg: { armored: string; kid : string } | { binary: Buffer; kid: string },
+      arg: { armored: string; kid: string } | { binary: Buffer; kid: string },
       cb: (err: Error | null, paload: Buffer | null) => void
     ): void;
   }

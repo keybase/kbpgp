@@ -1,3 +1,7 @@
+## 2.1.10 (2020-02-10)
+
+- Add a simple verifier system that works either for PGP or keybase keys and sigs
+
 ## 2.1.9 (2020-01-27)
 
 - Add some preliminary typing

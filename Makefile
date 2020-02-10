@@ -85,7 +85,8 @@ $(BUILD_STAMP): \
 	lib/rsa.js \
 	lib/symmetric.js \
 	lib/ukm.js \
-	lib/util.js
+	lib/util.js \
+	lib/verify.js
 	date > $@
 
 build: $(BUILD_STAMP)

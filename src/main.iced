@@ -33,6 +33,6 @@ exports.kb        = require './keybase/hilev'
 exports.ukm       = require './ukm'
 exports.asym      = require './asymmetric'
 exports.bn        = require './bn'
+exports.verify    = require './verify'
 
 #---------------------------------------
-
