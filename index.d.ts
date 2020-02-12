@@ -1,4 +1,7 @@
 declare module "kbpgp" {
+  namespace util {
+    function json_stringify_sorted(o: any): string;
+  }
 
   interface KeyManager {
     get_ekid: () => Buffer;
@@ -9,10 +12,16 @@ declare module "kbpgp" {
     interface GenericKey {
       kid: () => Kid;
       isPGP: () => boolean;
-      verify: (s: string) => Promise<Buffer>;
+      verify: (s: string, opts?: Opts) => Promise<[Buffer, Buffer]>;
     }
 
-    function importKey(s: string): Promise<GenericKey>;
+    type Opts = {
+      time_travel?: boolean;
+      now?: number;
+      no_check_keys?: boolean;
+    };
+
+    function importKey(s: string, opts?: Opts): Promise<GenericKey>;
   }
 
   namespace kb {
