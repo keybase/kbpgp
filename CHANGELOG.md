@@ -1,3 +1,7 @@
+## 2.1.11 (2020-02-13)
+
+- types for ukm.get_sig_body
+
 ## 2.1.10 (2020-02-10)
 
 - Add a simple verifier system that works either for PGP or keybase keys and sigs
