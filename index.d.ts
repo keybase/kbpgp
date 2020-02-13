@@ -7,6 +7,10 @@ declare module "kbpgp" {
     get_ekid: () => Buffer;
   }
 
+  namespace ukm {
+    function get_sig_body(arg: { armored: string }): Buffer;
+  }
+
   namespace verify {
     type Kid = string;
     interface GenericKey {
