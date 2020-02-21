@@ -1,3 +1,8 @@
+## 2.1.12 (2020-02-21)
+
+- fixed types for ukm.get_sig_body
+- dohash flag passed into .box
+
 ## 2.1.11 (2020-02-13)
 
 - types for ukm.get_sig_body

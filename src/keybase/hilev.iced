@@ -214,7 +214,7 @@ unbox = ({armored,binary,rawobj,encrypt_for,prefix}, cb) ->
 
 #=================================================================================
 
-box = ({msg, sign_with, encrypt_for, anonymous, nonce, prefix}, cb) ->
+box = ({msg, sign_with, encrypt_for, anonymous, nonce, prefix, dohash}, cb) ->
   esc = make_esc cb, "box"
   msg = bufferify msg
   if encrypt_for?
@@ -222,7 +222,8 @@ box = ({msg, sign_with, encrypt_for, anonymous, nonce, prefix}, cb) ->
   else
     await Signature.box { km : sign_with, payload : msg, prefix }, esc defer packet
   packed = packet.frame_packet()
-  sealed = encode.seal { obj : packed, dohash : false }
+  dohash or= false
+  sealed = encode.seal { obj : packed, dohash }
   armored = sealed.toString('base64')
   cb null, armored, sealed, packet.sig
 
@@ -278,9 +279,9 @@ class SignatureEngine extends SignatureEngineInterface
 
   #-----
 
-  box : (msg, cb, {prefix} = {}) ->
+  box : (msg, cb, {prefix, dohash} = {}) ->
     esc = make_esc cb, "SignatureEngine::box"
-    await box { msg, prefix, sign_with : @km }, esc defer armored, raw, sig
+    await box { msg, prefix, sign_with : @km, dohash }, esc defer armored, raw, sig
     out = { type : "kb", armored, kb : armored, raw, sig }
     cb null, out
 
@@ -300,7 +301,7 @@ class SignatureEngine extends SignatureEngineInterface
     else
       payload = res.payload
     cb err, payload, binary
-  
+
 #=================================================================
 
 module.exports = { box, unbox, unbox_decode, KeyManager, EncKeyManager, decode_sig, get_sig_body, encode, verify}

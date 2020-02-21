@@ -8,7 +8,7 @@ declare module "kbpgp" {
   }
 
   namespace ukm {
-    function get_sig_body(arg: { armored: string }): Buffer;
+    function get_sig_body(arg: { armored: string }): [Error|null,Buffer];
   }
 
   namespace verify {
