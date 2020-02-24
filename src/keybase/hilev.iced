@@ -188,7 +188,7 @@ unbox_decode = ({armored,binary,rawobj,require_packet_hash}) ->
     binary = Buffer.from armored, 'base64'
   if binary?
     try
-      rawobj = encode.unseal {buf : binary, strict : require_packet_hash }
+      rawobj = encode.unseal binary, { strict : require_packet_hash }
     catch e
       return [e, null]
   [err, ret] = alloc rawobj
@@ -267,7 +267,7 @@ class SignatureEngine extends SignatureEngineInterface
 
   get_unverified_payload_from_raw_sig_body : ({body, require_packet_hash}, cb) ->
     esc = make_esc cb, "get_payload_from_raw_sig_body"
-    await akatch ( () -> encode.unseal {buf : body, strict : require_packet_hash}), esc defer rawobj
+    await akatch ( () -> encode.unseal body, { strict : require_packet_hash} ), esc defer rawobj
     await asyncify alloc(rawobj), esc defer packet
     cb null, packet.payload
 

@@ -595,7 +595,7 @@ class KeyManager extends KeyManagerInterface
     asp = ASP.make asp
     km = null
     warnings = null
-    [err, p3skb] = katch () -> P3SKB.alloc(unseal({buf : read_base64(armored)}))
+    [err, p3skb] = katch () -> P3SKB.alloc(unseal(read_base64(armored)))
     unless err?
       msg = new Message { body : p3skb.pub, type : C.message_types.public_key }
       opts = { no_check_keys, time_travel, now }

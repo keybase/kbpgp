@@ -35,7 +35,7 @@ read_base64 = (raw) ->
 
 #=================================================================================
 
-unseal = ({buf, strict}) ->
+unseal = (buf, {strict} = {}) ->
   oo = unpack buf # throws an error if there's a problem
   if (hv = oo?.hash?.value)?
     oo.hash.value = null_hash
