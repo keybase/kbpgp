@@ -2,6 +2,7 @@ K = require('../const').kb
 {alloc,SHA256} = require '../hash'
 purepack = require 'purepack'
 {katch,obj_extract,bufeq_secure} = require '../util'
+{UnsealError} = require('../errors').errors
 
 #=================================================================================
 
@@ -34,15 +35,17 @@ read_base64 = (raw) ->
 
 #=================================================================================
 
-unseal = (buf) ->
+unseal = (buf, {strict} = {}) ->
   oo = unpack buf # throws an error if there's a problem
   if (hv = oo?.hash?.value)?
     oo.hash.value = null_hash
     hasher = alloc (t = oo.hash.type)
-    throw new Error "unknown hash algo: #{t}" unless hasher?
+    throw new UnsealError "unknown hash algo: #{t}" unless hasher?
     h = hasher pack oo
-    throw new Error "hash mismatch" unless bufeq_secure(h, hv)
-    throw new Error "unknown version" unless oo.version is K.versions.V1
+    throw new UnsealError "hash mismatch" unless bufeq_secure(h, hv)
+    throw new UnsealError "unknown version" unless oo.version is K.versions.V1
+  else if strict
+    throw new UnsealError "need a hash in strict mode"
   obj_extract oo, [ 'tag', 'body' ]
 
 #=================================================================================

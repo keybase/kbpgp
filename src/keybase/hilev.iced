@@ -179,7 +179,7 @@ class EncKeyManager extends KeyManager
 
 #=================================================================================
 
-unbox_decode = ({armored,binary,rawobj}) ->
+unbox_decode = ({armored,binary,rawobj,require_packet_hash}) ->
   err = ret = null
   if not armored? and not rawobj? and not binary?
     err = new Error "need either 'armored' or 'binary' or 'rawobj'"
@@ -188,7 +188,7 @@ unbox_decode = ({armored,binary,rawobj}) ->
     binary = Buffer.from armored, 'base64'
   if binary?
     try
-      rawobj = encode.unseal binary
+      rawobj = encode.unseal binary, { strict : require_packet_hash }
     catch e
       return [e, null]
   [err, ret] = alloc rawobj
@@ -196,10 +196,10 @@ unbox_decode = ({armored,binary,rawobj}) ->
 
 #=================================================================================
 
-unbox = ({armored,binary,rawobj,encrypt_for,prefix}, cb) ->
+unbox = ({armored,binary,rawobj,encrypt_for,prefix,require_packet_hash}, cb) ->
   esc = make_esc cb, "unbox"
 
-  await asyncify unbox_decode({armored,binary,rawobj}), esc defer packet, binary
+  await asyncify unbox_decode({armored,binary,rawobj,require_packet_hash}), esc defer packet, binary
   packet.prefix = prefix if prefix? # can specify the prefix out-of-band (it'll stomp over us)
   await packet.unbox {encrypt_for}, esc defer res
 
@@ -229,11 +229,11 @@ box = ({msg, sign_with, encrypt_for, anonymous, nonce, prefix, dohash}, cb) ->
 
 #=================================================================================
 
-verify = ({armored, binary, kid}, cb) ->
+verify = ({armored, binary, kid, require_packet_hash }, cb) ->
   esc = make_esc cb
   err = null
   await KeyManager.import_public { hex : kid }, esc defer km
-  await unbox { armored, binary }, esc defer res
+  await unbox { armored, binary, require_packet_hash }, esc defer res
   unless res.km.check_public_eq(km)
     err = new errors.WrongSigningKeyError "Got wrong signing key"
   cb err, res.payload
@@ -265,9 +265,9 @@ class SignatureEngine extends SignatureEngineInterface
 
   #-----
 
-  get_unverified_payload_from_raw_sig_body : ({body}, cb) ->
+  get_unverified_payload_from_raw_sig_body : ({body, require_packet_hash}, cb) ->
     esc = make_esc cb, "get_payload_from_raw_sig_body"
-    await akatch ( () -> encode.unseal body), esc defer rawobj
+    await akatch ( () -> encode.unseal body, { strict : require_packet_hash} ), esc defer rawobj
     await asyncify alloc(rawobj), esc defer packet
     cb null, packet.payload
 
@@ -293,6 +293,7 @@ class SignatureEngine extends SignatureEngineInterface
     arg = if Buffer.isBuffer(msg) then { binary : msg }
     else { armored : msg }
     arg.prefix = opts.prefix
+    arg.require_packet_hash = opts.require_packet_hash
     await unbox arg, esc defer res, binary
     if not res.km.eq @km
       a = res.km.get_ekid().toString('hex')
