@@ -1,3 +1,8 @@
+## 2.1.13 (2020-02-24)
+
+- require_packet_hash flag
+- unbreak browser version due to browserify
+
 ## 2.1.12 (2020-02-21)
 
 - fixed types for ukm.get_sig_body
