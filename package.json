@@ -36,7 +36,7 @@
     "tweetnacl": "^0.13.1"
   },
   "devDependencies": {
-    "browserify": "^15.0.0",
+    "browserify": "^16.5.0",
     "colors": "0.6.2",
     "iced-coffee-script": "108.0.11",
     "iced-test": "0.0.30",
