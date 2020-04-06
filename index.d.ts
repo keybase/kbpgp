@@ -1,4 +1,14 @@
 declare module "kbpgp" {
+  class BaseX {
+    public base: number
+    constructor(alphabet: string)
+    encode(input: Buffer): string
+    decode(input: string): Buffer
+  }
+  export const base58: BaseX
+  export const base32: BaseX
+  export const base91: BaseX
+
   namespace util {
     function json_stringify_sorted(o: any): string;
   }
