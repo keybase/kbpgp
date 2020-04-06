@@ -1,3 +1,7 @@
+## 2.1.14 (2020-04-06)
+
+- expose BaseX to typescript
+
 ## 2.1.13 (2020-02-24)
 
 - require_packet_hash flag
