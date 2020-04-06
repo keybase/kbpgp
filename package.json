@@ -7,7 +7,7 @@
     "keybase"
   ],
   "author": "Maxwell Krohn",
-  "version": "2.1.13",
+  "version": "2.1.14",
   "license": "BSD-3-Clause",
   "types": "./index.d.ts",
   "main": "./lib/main.js",
