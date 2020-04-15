@@ -1,6 +1,10 @@
+## 2.1.15 (2020-04-15)
+
+- exported the BaseX class
+
 ## 2.1.14 (2020-04-06)
 
-- expose BaseX to typescript
+- exposed BaseX encoders to typescript
 
 ## 2.1.13 (2020-02-24)
 
