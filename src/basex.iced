@@ -4,7 +4,7 @@
 
 #=====================================================================
 
-class BaseX
+exports.BaseX = class BaseX
 
   constructor: (@alphabet) ->
     @base = @alphabet.length
@@ -44,9 +44,9 @@ class BaseX
 
 #=====================================================================
 
-exports.base58 = base58 = new BaseX '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-exports.base32 = base32 = new BaseX 'abcdefghijkmnpqrstuvwxyz23456789'
-exports.base91 = new BaseX("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()-_=+{}[]|;:,<>./?")
+exports.base58 = new BaseX '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+exports.base32 = new BaseX 'abcdefghijkmnpqrstuvwxyz23456789'
+exports.base91 = new BaseX 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()-_=+{}[]|;:,<>./?'
 
 #=====================================================================
 
