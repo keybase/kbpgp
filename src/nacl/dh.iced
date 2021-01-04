@@ -5,7 +5,6 @@ K = konst.kb
 {genseed,bufeq_fast} = require '../util'
 {BaseKey} = require '../basekeypair'
 {BaseKeyPair} = require './base'
-{b2u,u2b} = require './eddsa'
 NaclEddsa = require('./eddsa').Pair
 
 TYPE = K.public_key_algorithms.NACL_DH
