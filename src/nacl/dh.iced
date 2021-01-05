@@ -5,7 +5,7 @@ K = konst.kb
 {genseed,bufeq_fast} = require '../util'
 {BaseKey} = require '../basekeypair'
 {BaseKeyPair} = require './base'
-NaclEddsa = require('./eddsa').Pair
+NaclEddsa = require('./eddsa')
 
 TYPE = K.public_key_algorithms.NACL_DH
 b2u = (b) -> new Uint8Array(b)
@@ -131,7 +131,7 @@ class Pair extends BaseKeyPair
 
   @subkey_algo : (flags) ->
     if (flags & (C.key_flags.encrypt_comm | C.key_flags.encrypt_storage)) then Pair
-    else NaclEddsa
+    else NaclEddsa.Pair
 
   #----------------
 
