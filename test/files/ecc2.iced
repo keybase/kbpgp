@@ -153,6 +153,8 @@ exports.generate_export_import = (T,cb) ->
 exports.generate_default_subkeys = (T, cb) ->
   esc = make_esc cb
   F = C.openpgp.key_flags
+
+  # Test generating EDDSA primary key with ECDH subkeys.
   await KeyManager.generate {
     userid: 'kbpgp@example.com'
     ecc : true
@@ -163,6 +165,22 @@ exports.generate_default_subkeys = (T, cb) ->
   # See if we got the right keys
   T.equal kb.primary.key.get_type(), C.openpgp.public_key_algorithms.EDDSA
   T.equal kb.primary.key.constructor, ecc.EDDSA
+
+  T.equal kb.subkeys.length, 1
+  T.equal kb.subkeys[0].key.get_type(), C.openpgp.public_key_algorithms.ECDH
+  T.equal kb.subkeys[0].key.constructor, ecc.ECDH
+
+  # Test generating ECDSA primary key with ECDH subkeys.
+  await KeyManager.generate {
+    userid: 'kbpgp@example.com'
+    ecc : true
+    primary: { algo: ecc.ECDSA }
+    sub_flags : [ F.encrypt_comm | F.encrypt_storage ]
+  }, esc defer kb, warnings
+
+  # See if we got the right keys
+  T.equal kb.primary.key.get_type(), C.openpgp.public_key_algorithms.ECDSA
+  T.equal kb.primary.key.constructor, ecc.ECDSA
 
   T.equal kb.subkeys.length, 1
   T.equal kb.subkeys[0].key.get_type(), C.openpgp.public_key_algorithms.ECDH
