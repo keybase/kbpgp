@@ -1,6 +1,5 @@
 
 {nbv,nbi,BigInteger,nbits} = require 'bn'
-{buffer_to_ui8a} = require './util'
 
 #=================================================================
 

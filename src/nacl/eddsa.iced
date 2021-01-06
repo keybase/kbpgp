@@ -5,7 +5,7 @@ K = konst.kb
 {prefix_signature_payload,genseed,bufeq_secure,bufeq_fast} = require '../util'
 {BaseKey} = require '../basekeypair'
 {BaseKeyPair} = require './base'
-NaclDh = require('./dh').Pair
+NaclDh = require('./dh')
 
 TYPE = K.public_key_algorithms.NACL_EDDSA
 exports.b2u = b2u = (b) -> new Uint8Array(b)
@@ -122,7 +122,7 @@ class Pair extends BaseKeyPair
 
   @subkey_algo : (flags) ->
     if (flags & (C.key_flags.certify_keys | C.key_flags.sign_data)) then Pair
-    else NaclDh
+    else NaclDh.Pair
 
   #----------------
 
