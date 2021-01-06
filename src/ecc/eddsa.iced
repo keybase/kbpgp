@@ -3,6 +3,7 @@ kbnacl = require 'keybase-nacl'
 {uint_to_buffer} = require '../util'
 {BaseKeyPair,BaseKey} = require '../basekeypair'
 {SRF} = require '../rand'
+{ECDH} = require './ecdh'
 util = require '../util'
 konst = require '../const'
 C = konst.openpgp
