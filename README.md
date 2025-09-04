@@ -1,7 +1,7 @@
 
 ## kbpgp - Keybase's PGP for JavaScript
 
-[![Build Status](https://travis-ci.org/keybase/kbpgp.svg?branch=master)](https://travis-ci.org/keybase/kbpgp)
+[![CI](https://github.com/keybase/kbpgp/actions/workflows/ci.yml/badge.svg)](https://github.com/keybase/kbpgp/actions/workflows/ci.yml)
 
 ### Tutorial
 
@@ -14,6 +14,5 @@ We have a bunch of examples here:
 If the bug is kbpgp related, and has nothing to do with Keybase, you can post the issue here. If it has anything to do with Keybase -- the command line client, website, etc. -- please post it in our general [keybase issues](https://github.com/keybase/keybase-issues/issues) repo:
 
   - https://github.com/keybase/keybase-issues/issues
-
+ 
 We appreciate comments, questions, feature requests, etc.
-
