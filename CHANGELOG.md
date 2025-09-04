@@ -1,6 +1,7 @@
 ## 2.1.17 (2025-09-04)
 
 - parse PreferredAEADAlgorithms subpacket
+- update dependencies
 
 ## 2.1.16 (2021-01-06)
 
