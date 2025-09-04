@@ -2,7 +2,7 @@
 
 - parse PreferredAEADAlgorithms subpacket
 
-## 2.1.16 (2025-09-04)
+## 2.1.16 (2021-01-06)
 
 - fix circular dependencies
 
