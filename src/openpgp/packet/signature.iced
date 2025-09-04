@@ -726,6 +726,13 @@ class IssuerFingerprint extends SubPacket
       @fingerprint
     ]
 
+#------------
+
+class PreferredAEADAlgorithms extends Preference
+  constructor : (v) ->
+    super S.preferred_aead_algos, v
+  @parse : (slice) -> Preference.parse slice, PreferredAEADAlgorithms
+
 #===========================================================
 
 exports.Signature = Signature
@@ -786,7 +793,7 @@ class Parser
       when S.revocation_key then RevocationKey
       when S.issuer then Issuer
       when S.notation_data then NotationData
-      when S.preferred_hash_algorithms  then PreferredHashAlgorithms
+      when S.preferred_hash_algorithms then PreferredHashAlgorithms
       when S.preferred_compression_algorithms then PreferredCompressionAlgorithms
       when S.key_server_preferences then KeyServerPreferences
       when S.preferred_key_server then PreferredKeyServer
@@ -799,6 +806,7 @@ class Parser
       when S.signature_target then SignatureTarget
       when S.embedded_signature then EmbeddedSignature
       when S.issuer_fingerprint then IssuerFingerprint
+      when S.preferred_aead_algos then PreferredAEADAlgorithms
       else
         if type >= S.experimental_low and type <= S.experimental_high then Experimental
         else throw new Error "Unknown signature subpacket: #{type}"
@@ -828,5 +836,7 @@ exports.KeyServerPreferences = KeyServerPreferences
 exports.Issuer = Issuer
 exports.EmbeddedSignature = EmbeddedSignature
 exports.PrimaryUserId = PrimaryUserId
+exports.IssuerFingerprint = IssuerFingerprint
+exports.PreferredAEADAlgorithms = PreferredAEADAlgorithms
 
 #===========================================================

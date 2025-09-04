@@ -1,3 +1,11 @@
+## 2.1.17 (2025-09-04)
+
+- parse PreferredAEADAlgorithms subpacket
+
+## 2.1.16 (2021-01-06)
+
+- fix circular dependencies
+
 ## 2.1.15 (2020-04-15)
 
 - exported the BaseX class

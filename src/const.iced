@@ -48,6 +48,7 @@ exports.openpgp = openpgp =
     signature_target : 31
     embedded_signature : 32
     issuer_fingerprint : 33
+    preferred_aead_algos : 34
     experimental_low : 101
     experimental_high : 110
   sig_types :  # See RFC 4880 5.2.1. Signature Types
