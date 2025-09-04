@@ -25,7 +25,7 @@ encryptSigPacket = 'c2610418130a001305025b6f14260910433b1545547b718c021b0c000013
 encryptXSignPacket = 'c2c01b0418130a001905025b6f14260910433b1545547b718c021b0c05090784ce00007473200419010a000605025b6f14260000863803006e73fb2763cb717761b4c8cda9306037c58715454f92d4c39004cf7adffdfc25ea79b85d65840a13bb8eb1d8db455a2f72207195aeed8f6a37e6dfcd35ef5985de539f3bf17358841ad7581fc2cb5844dbb0b2d206e6ae6e99447fcb7f930651f00200ff785d955a6c2a10bded5f7033ba6fa9b38b58dcbf17039bf593fd060a4735e3ef00fd12376c99eb14665d8620c90debc5993be492dbb163e9bc364d52b2b8acc11c68'
 
 # Signature with Flags=Sign, not cross-certified. Provides no-expiration for the,
-# so it would win against encryptXSignPacket. 
+# so it would win against encryptXSignPacket.
 signSigNoXSignPacket = 'c2610418130a001305025b6f14260910433b1545547b718c021b020000ca2f00ff7c5d366c584ca03ea27cd0dad841f8adda24fc7efa212550ec773effc418136300fe32160c17b36a3a13be3ca6058d35dc7da89bfbb857753e6db45994183e58ed6d'
 
 armoredMessage = """
@@ -40,10 +40,13 @@ xC/ywM5zfa/WOMD1zrOjoCpUktnyMZN8H4P4bF8Az4aj
 
 """
 
+testing_unixtime = 1534006310
+
 make_key_from_parts = (parts, cb) ->
   keyBuf = Buffer.from(parts.join(''), 'hex')
   msg = new Message { body : keyBuf, type : C.message_types.public_key }
-  KeyManager.import_from_pgp_message { msg }, cb
+  opts = { now : testing_unixtime }
+  KeyManager.import_from_pgp_message { msg, opts }, cb
 
 exports.load_multi_binding_key_and_verify = (T, cb) ->
   esc = make_esc cb, "load_multi_binding_key_and_verify"
@@ -55,35 +58,33 @@ exports.load_multi_binding_key_and_verify = (T, cb) ->
   cb null
 
 exports.load_with_only_right_sig_then_verify = (T, cb) ->
-  cb null
-  # FIXME
-  # esc = make_esc cb, "load_with_only_right_sig_then_verify"
-  # # Only concat flagSignSig - if we don't add encryptSig, it won't
-  # # "win over" signSig, so this key will actually function as a 
-  # # signing subkey.
-  # await make_key_from_parts [keyAndIdsPackets, subkeyPacket, signSigPacket], esc defer km
-  # await do_message { armored : armoredMessage, keyfetch : km  }, defer err, msg
-  # T.assert not(err?), "no error #{err}"
-  # T.assert (msg?[0]?.get_data_signer()?), "was signed!"
-  # T.equal msg?[0]?.data.toString(), "hello cross signed world", "right message came back"
+  esc = make_esc cb, "load_with_only_right_sig_then_verify"
+  # Only concat flagSignSig - if we don't add encryptSig, it won't
+  # "win over" signSig, so this key will actually function as a
+  # signing subkey.
+  await make_key_from_parts [keyAndIdsPackets, subkeyPacket, signSigPacket], esc defer km
+  now = testing_unixtime
+  await do_message { armored : armoredMessage, keyfetch : km, now  }, defer err, msg
+  T.assert not(err?), "no error #{err}"
+  T.assert (msg?[0]?.get_data_signer()?), "was signed!"
+  T.equal msg?[0]?.data.toString(), "hello cross signed world", "right message came back"
 
-  # cb null
-  
-exports.do_not_merge_crosscertify = (T, cb) ->
   cb null
-  # FIXME
-  # esc = make_esc cb, "do_not_merge_crosscertify"
-  # # Pass two bindings: one x-certified with flags=encrypt, and another one
-  # # *not x-certified* with flags=sign. Subkey should become cross-certified
-  # # signing subkey.
-  # await make_key_from_parts [keyAndIdsPackets, subkeyPacket, encryptXSignPacket, signSigNoXSignPacket], esc defer km, w
-  # # Right now, KBPGP will throw that subkey completely. This happens because
-  # # the second binding "wins" (because it provides indefinite key lifetime),
-  # # but then in _check_subkeys it is found out that the binding provides no
-  # # cross cerfitication, so subkey is deemed invalid.
-  # T.assert w.warnings().length is 1, "expecting a warning"
-  # T.assert w.warnings()[0]?.indexOf("Subkey 0 was invalid") isnt -1, "found the right warning"
-  # await do_message { armored : armoredMessage, keyfetch : km  }, defer err, msg
-  # T.assert err?, "expecting an error"
-  # T.assert not(msg?), "do not return message"
-  # cb null
+
+exports.do_not_merge_crosscertify = (T, cb) ->
+  esc = make_esc cb, "do_not_merge_crosscertify"
+  # Pass two bindings: one x-certified with flags=encrypt, and another one
+  # *not x-certified* with flags=sign. Subkey should become cross-certified
+  # signing subkey.
+  await make_key_from_parts [keyAndIdsPackets, subkeyPacket, encryptXSignPacket, signSigNoXSignPacket], esc defer km, w
+  # Right now, KBPGP will throw that subkey completely. This happens because
+  # the second binding "wins" (because it provides indefinite key lifetime),
+  # but then in _check_subkeys it is found out that the binding provides no
+  # cross cerfitication, so subkey is deemed invalid.
+  T.assert w.warnings().length is 1, "expecting a warning"
+  T.assert w.warnings()[0]?.indexOf("Subkey 0 was invalid") isnt -1, "found the right warning"
+  now = testing_unixtime
+  await do_message { armored : armoredMessage, keyfetch : km, now }, defer err, msg
+  T.assert err?, "expecting an error"
+  T.assert not(msg?), "do not return message"
+  cb null
