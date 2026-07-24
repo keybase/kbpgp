@@ -120,11 +120,12 @@ class Pair extends BaseKeyPair
 
   decrypt_and_unpad : (ciphertext, params, cb) ->
     err = ret = null
+    valid = false
     await @priv.decrypt ciphertext.c(), defer err, m
     unless err?
       b = m.to_padded_octets @pub.p
-      [err, ret] = eme_pkcs1_decode b
-    cb err, ret
+      [err, valid, ret] = eme_pkcs1_decode b
+    cb err, { valid, ret }
 
   #----------------
 

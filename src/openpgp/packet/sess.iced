@@ -3,7 +3,7 @@
 C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 {SHA1,streamers} = require '../../hash'
-{uint_to_buffer,bufeq_secure,bufeq_fast} = require '../../util'
+{uint_to_buffer,bufeq_secure} = require '../../util'
 {encrypt,Decryptor} = require '../ocfb'
 {ASP} = require('pgp-utils').util
 {make_esc} = require 'iced-error'
@@ -61,15 +61,21 @@ class SEIPD extends Packet
     esc = make_esc cb, "SEIPD::decrypt"
     asp = ASP.make asp
 
-    await eng.check esc defer()
+    await eng.check defer err
     await eng.dec esc defer pt
 
-    [ mdc, plaintext ] = MDC.parse pt
+    [ valid_mdc, mdc, plaintext ] = MDC.parse pt
     prefix = eng.get_prefix()
 
     # check that the hash matches what we fetched out of the message
     await mdc.compute { prefix, plaintext, asp }, esc defer()
-    err = if mdc.check() then null else new Error "MDC mismatch"
+    valid_hash = mdc.check()
+
+    # If we got an error or if the MDC is invalid, collapse that into
+    # one non-descript error. Make sure we don't return plaintext.
+    if err or not (valid_mdc and valid_hash)
+      plaintext = null
+      err = new Error "Unable to decrypt"
 
     cb err, plaintext
 
@@ -146,9 +152,9 @@ class MDC_Parser
     len = SHA1.output_length + hl
     rem = @buf[0...(-len)]
     chunk = @buf[(-len)...]
-    throw new Error 'Missing MDC header' unless bufeq_fast chunk[0...hl], MDC.header
+    valid = bufeq_secure chunk[0...hl], MDC.header
     digest = chunk[hl...]
-    [ new MDC({ digest }), rem ]
+    [ valid, new MDC({ digest }), rem ]
 
 #=================================================================================
 

@@ -5,7 +5,8 @@ konst = require '../const'
 C = konst.openpgp
 {katch,unix_time,athrow,Warnings,bufeq_secure} = require '../util'
 {parse} = require './parser'
-{import_key_pgp} = require '../symmetric'
+{import_key_pgp_ct} = require '../symmetric'
+{SRF} = require '../rand'
 util = require 'util'
 armor = require './armor'
 hashmod = require '../hash'
@@ -164,6 +165,7 @@ class Message
     esk_packets = []
     err = null
     pkcs5 = false
+    valid = false
 
     # Handle the case that the Session Key is encrypted N times, and we
     # only have the key decrypt one of them.  This is the case when you send
@@ -182,13 +184,14 @@ class Message
         key_material = km.find_pgp_key_material(key_ids[index])
         fingerprint = key_material.get_fingerprint()
         privk = key_material.key
-        await privk.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, sesskey, pkcs5
+        await privk.decrypt_and_unpad packet.ekey, {fingerprint}, defer err, unpad
         unless err?
           @encryption_subkey = key_material
+          { ret : sesskey, valid, pkcs5 } = unpad
     else
       enc = false
 
-    cb err, enc, sesskey, pkcs5
+    cb err, enc, valid, sesskey, pkcs5
 
   #---------
 
@@ -201,10 +204,12 @@ class Message
 
   #---------
 
-  _decrypt_with_session_key : (sesskey, edat, pkcs5, cb) ->
-    [err,cipher] = katch () -> import_key_pgp sesskey, pkcs5
-    unless err?
-      await edat.decrypt {cipher}, defer err, ret
+  _decrypt_with_session_key : (valid_key, sesskey, fallback_key, edat, pkcs5, cb) ->
+    [valid,cipher] = import_key_pgp_ct valid_key, sesskey, fallback_key, pkcs5
+    await edat.decrypt {cipher}, defer err, ret
+    unless valid
+      ret = null
+      err = new Error "Unable to decrypt"
     cb err, ret
 
   #---------
@@ -217,10 +222,13 @@ class Message
 
   _decrypt : (cb) ->
     esc = make_esc cb, "Message::decrypt"
-    await @_get_session_key esc defer is_enc, sesskey, pkcs5
+    await @_get_session_key esc defer is_enc, valid_key, sesskey, pkcs5
     if is_enc
       await @_find_encrypted_data esc defer edat
-      await @_decrypt_with_session_key sesskey, edat, pkcs5, esc defer plaintext
+      # Generate random fallback key to be used when session key can't be
+      # decrypted. This is used to prevent padding oracle attacks.
+      await SRF().random_bytes 32, defer fallback_key
+      await @_decrypt_with_session_key valid_key, sesskey, fallback_key, edat, pkcs5, esc defer plaintext
       await @_parse plaintext, esc defer packets
       @packets = packets.concat @packets
     cb null

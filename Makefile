@@ -19,6 +19,7 @@ $(BUILD_STAMP): \
 	lib/basex.js \
 	lib/bn.js \
 	lib/const.js \
+	lib/consttime.js \
 	lib/dsa.js \
 	lib/ecc/base.js \
 	lib/ecc/curves.js \

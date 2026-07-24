@@ -291,8 +291,11 @@ exports.run_test_msg_0 = (T, cb) ->
   await load_keyring T, defer ring
   dkey = ring.lookup packets[0].key_id
   T.assert dkey?, "found the right decryption key"
-  await dkey.key.decrypt_and_unpad packets[0].ekey, {}, defer err, sesskey
+  await dkey.key.decrypt_and_unpad packets[0].ekey, {}, defer err, unpad
   T.no_error err
+  { ret : sesskey, valid, pkcs5 } = unpad
+  T.assert valid
+  T.assert not pkcs5
   T.waypoint "decrypted the session key"
   cipher = import_key_pgp sesskey
   await decrypt { cipher, ciphertext : packets[1].ciphertext }, defer err, pt
