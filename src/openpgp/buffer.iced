@@ -16,34 +16,36 @@ class SlicerBuffer
     @start = @i
     @_end = e
 
-  len : () -> @buf.length - @start
-  rem : () -> @buf.length - @i
+  len : () -> @limit() - @start
+  rem : () -> @limit() - @i
   offset : () -> @i - @start
-  check : () -> 
-    if (@_end and @i > @_end) or (@i > @buf.length)
+  limit : () -> if @_end? then Math.min(@_end, @buf.length) else @buf.length
+  check_available : (n) ->
+    if n < 0 or @i + n > @limit()
       throw new Error "read off the end of the packet @#{@i}/#{@buf.length}/#{@_end}"
   read_uint8 : () -> 
-    ret = @buf.readUInt8 @i++
-    @check()
+    @check_available 1
+    ret = @buf.readUInt8 @i
+    @i++
     ret
   read_uint16 : () -> 
+    @check_available 2
     ret = @buf.readUInt16BE @i
     @i += 2
-    @check()
     ret
   read_uint32 : () ->
+    @check_available 4
     ret = @buf.readUInt32BE @i
     @i += 4
-    @check()
     ret
   read_buffer_at_most : (l) ->
     @read_buffer (Math.min(l, @rem()))
   read_buffer : (l) ->
+    @check_available l
     ret = @buf[@i...(@i+l)]
     @i += l
-    @check()
     ret
-  end : () -> @_end or @buf.length
+  end : () -> @limit()
   peek_rest_to_buffer : () -> @buf[@i...@end()]
   consume_rest_to_buffer : () ->
     ret = @peek_rest_to_buffer()
@@ -52,8 +54,12 @@ class SlicerBuffer
   advance : (i = 1) -> @i += i
   peek_to_buffer : (len) -> @buf[@i...(@i + len)]
 
-  peek_uint8 : () -> @buf.readUInt8 @i
-  peek_uint16 : () -> @buf.readUInt16BE @i
+  peek_uint8 : () ->
+    @check_available 1
+    @buf.readUInt8 @i
+  peek_uint16 : () ->
+    @check_available 2
+    @buf.readUInt16BE @i
 
   read_string : () -> @read_buffer @read_uint8()
 
@@ -71,4 +77,3 @@ class SlicerBuffer
 exports.SlicerBuffer = SlicerBuffer
 
 #================================================================================================
-
