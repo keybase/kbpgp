@@ -207,9 +207,14 @@ class Message
   _decrypt_with_session_key : (valid_key, sesskey, fallback_key, edat, pkcs5, cb) ->
     [valid,cipher] = import_key_pgp_ct valid_key, sesskey, fallback_key, pkcs5
     await edat.decrypt {cipher}, defer err, ret
+    # Decrypt may succeed, but if there were any failures beforehand,
+    # return an error. This ensures constant time operation - we.let
+    # the decryption run all the way even on invalid session key,
+    # padding, etc.
     unless valid
-      ret = null
       err = new Error "Unable to decrypt"
+    # make sure no invalid decryption leak into the caller
+    if err then ret = null
     cb err, ret
 
   #---------

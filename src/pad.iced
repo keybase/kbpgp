@@ -126,7 +126,7 @@ exports.eme_pkcs1_decode = (v) ->
 
   # The PS padding must be at least 8 bytes long, and it starts two
   # bytes into em.
-  valid_ps = if (2+8) <= index then 1 else 0
+  valid_ps = ct.normalize (2+8) <= index
 
   valid = header_lo & header_hi & (~looking_for_index & 1) & valid_ps
   index = ct.select_int valid, index+1, 0
