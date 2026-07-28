@@ -1,5 +1,6 @@
 
 mods =
+  bn : require '../files/bn.iced'
   brainpool256 : require '../files/brainpool256.iced'
   brainpool384: require '../files/brainpool384.iced'
   brainpool512: require '../files/brainpool512.iced'
