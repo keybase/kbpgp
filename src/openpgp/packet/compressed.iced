@@ -59,8 +59,8 @@ fake_zip_inflate = (buf, cb) ->
 
 #-----------------
 
-fix_zip_deflate = (buf, cb) ->
-  await zlib.deflate buf, defer err, ret
+fake_zip_deflate = (buf, cb) ->
+  await zlib.deflateRaw buf, defer err, ret
   cb err, ret
 
 #-----------------
