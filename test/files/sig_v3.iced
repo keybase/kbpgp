@@ -2,6 +2,10 @@ testing_unixtime = Math.floor(new Date(2014, 2, 20)/1000)
 
 {KeyManager} = require '../../'
 {do_message} = require '../../lib/openpgp/processor'
+{decode,encode} = require '../../lib/openpgp/armor'
+{parse} = require '../../lib/openpgp/parser'
+C = require('../../lib/const').openpgp
+zlib = require 'zlib'
 
 #==================================================================
 
@@ -160,6 +164,46 @@ verify = ({sig,key}, T,cb) ->
 exports.verify = (T,cb) ->
   for sig in sigs
     await verify sig, T, defer()
+  cb()
+
+#==================================================================
+
+exports.malformed_v3_signature_one_octet_length = (T,cb) ->
+  fixture = sigs[0]
+  opts = now : testing_unixtime
+  await KeyManager.import_from_armored_pgp { raw : fixture.key, opts }, T.esc(defer(km), cb)
+
+  [err, msg] = decode fixture.sig
+  T.no_error err
+  [err, outer] = parse msg.body
+  T.no_error err
+  T.equal outer[0].tag, C.packet_tags.compressed, "outer packet is compressed"
+
+  await outer[0].inflate defer err, inflated
+  T.no_error err
+  [err, inner] = parse inflated
+  T.no_error err
+
+  found = false
+  for p in inner when p.is_signature()
+    T.equal p.raw[0], C.versions.signature.V3, "found v3 signature"
+    T.equal p.raw[1], 5, "v3 one-octet length starts valid"
+    p.raw = Buffer.from p.raw
+    p.raw[1] = 4
+    found = true
+  T.assert found, "mutated v3 signature"
+
+  rebuilt = Buffer.concat (p.replay() for p in inner)
+  compressed_body = Buffer.concat [
+    Buffer.from [ C.compression.zip ]
+    zlib.deflateRawSync rebuilt
+  ]
+  corrupted = encode C.message_types.generic, outer[0].frame_packet(C.packet_tags.compressed, compressed_body)
+
+  await do_message { armored : corrupted, keyfetch : km, now : testing_unixtime }, defer err
+  T.assert err?, "got malformed signature error"
+  T.equal err?.name, "Error"
+  T.equal err?.message, "Bad one-octet length"
   cb()
 
 #==================================================================
