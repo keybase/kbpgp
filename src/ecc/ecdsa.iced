@@ -8,6 +8,7 @@ K = konst.kb
 {BaseKeyPair,BaseKey} = require '../basekeypair'
 {generate,BaseEccKey} = require './base'
 {ECDH} = require './ecdh'
+{SHA512} = require '../hash'
 
 #=================================================================
 

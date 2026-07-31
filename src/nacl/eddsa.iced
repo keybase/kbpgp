@@ -1,6 +1,7 @@
 kbnacl = require 'keybase-nacl'
 {SRF} = require '../rand'
 konst = require '../const'
+C = konst.openpgp
 K = konst.kb
 {prefix_signature_payload,genseed,bufeq_secure,bufeq_fast} = require '../util'
 {BaseKey} = require '../basekeypair'
@@ -65,7 +66,7 @@ class Priv
 
   alloc : (raw) ->
     err = key = null
-    if raw.length isnt sign.secretKeyLength
+    if raw.length isnt kbnacl.sign.secretKeyLength
       err = new Error "Bad secret key length"
     else
       key = new Priv raw
@@ -205,4 +206,3 @@ class Pair extends BaseKeyPair
 exports.EdDSA = exports.Pair = Pair
 
 #=============================================
-

@@ -7,6 +7,7 @@ kbnacl = require 'keybase-nacl'
 {ECDH} = require './ecdh'
 util = require '../util'
 konst = require '../const'
+{SHA512} = require '../hash'
 C = konst.openpgp
 
 #=================================================================

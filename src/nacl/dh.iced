@@ -1,6 +1,7 @@
 {box} = require 'tweetnacl'
 {SRF} = require '../rand'
 konst = require '../const'
+C = konst.openpgp
 K = konst.kb
 {genseed,bufeq_fast} = require '../util'
 {BaseKey} = require '../basekeypair'
@@ -203,4 +204,3 @@ class Pair extends BaseKeyPair
 exports.DH = exports.Pair = Pair
 
 #=============================================
-
