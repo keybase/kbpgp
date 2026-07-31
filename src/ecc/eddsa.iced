@@ -1,3 +1,4 @@
+bn = require '../bn'
 kbnacl = require 'keybase-nacl'
 {SlicerBuffer} = require '../openpgp/buffer'
 {uint_to_buffer} = require '../util'
@@ -9,7 +10,7 @@ konst = require '../const'
 C = konst.openpgp
 
 #=================================================================
-# 
+#
 # A PGP wrapper class around EdDSA so that we can use EdDSA PGP
 # keys.
 #
@@ -57,7 +58,7 @@ class Pub extends BaseKey
 
   #----------------
 
-  @_alloc : (raw) -> 
+  @_alloc : (raw) ->
     sb = new SlicerBuffer raw
     pre = sb.rem()
     l = sb.read_uint8()
@@ -75,7 +76,7 @@ class Pub extends BaseKey
 
   #----------------
 
-  @alloc : (raw) -> 
+  @alloc : (raw) ->
     pub = len = err = null
     try [ pub, len] = Pub._alloc raw
     catch e then err = e
@@ -148,12 +149,12 @@ class Priv extends BaseKey
     len = kbnacl.sign.signatureLength/2
     cb [Buffer.from(ret[0...len]), Buffer.from(ret[len...len*2])]
 
-  #-------------------    
+  #-------------------
 
   serialize : () ->
     # We can't use base class method, because again, our keys are
     # buffers, not bigints.
-    Buffer.concat [ 
+    Buffer.concat [
       uint_to_buffer(16, kbnacl.sign.seedLength*8),
       @seed
     ]
