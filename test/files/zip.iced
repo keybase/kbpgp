@@ -1,5 +1,8 @@
 
 {KeyManager,unbox} = require '../..'
+{Compressed} = require '../../lib/openpgp/packet/compressed'
+{SlicerBuffer} = require '../../lib/openpgp/buffer'
+C = require('../../lib/const').openpgp
 
 msg = """
 -----BEGIN PGP MESSAGE-----
@@ -100,6 +103,29 @@ exports.unzip = (T,cb) ->
   await unbox { armored : msg, keyfetch : km }, defer err, dat
   T.no_error err
   T.assert (dat[0]?.toString()?.indexOf('Crowds of men and women') is 0)
+  cb()
+
+#================================
+
+exports.zip_deflate = (T,cb) ->
+  err = raw = null
+  inflated = Buffer.from "hello zip deflate\n"
+  pkt = new Compressed {
+    algo : C.compression.zip
+    inflated
+  }
+  try
+    await pkt.write_unframed defer err, raw
+  catch e
+    err = e
+  T.no_error err
+  T.assert raw?, "got zip deflate output"
+  T.equal raw[0], C.compression.zip if raw?
+  if raw?
+    roundtrip = Compressed.parse new SlicerBuffer raw
+    await roundtrip.inflate defer err, out
+    T.no_error err
+    T.equal out?.toString('utf8'), inflated.toString('utf8')
   cb()
 
 #================================

@@ -93,7 +93,8 @@ class Burner extends BaseBurner
   _compress : (cb) ->
     esc = make_esc cb, "Burner::_compress"
     inflated = @collect_packets()
-    pkt = new Compressed { algo : C.compression.zlib, inflated }
+    algo = @opts.compression ? C.compression.zlib
+    pkt = new Compressed { algo, inflated }
     await @asp.progress { what : 'compress', i : 0, total : 1 }, esc defer()
     await pkt.write esc defer opkt
     await @asp.progress { what : 'compress', i : 1, total : 1 }, esc defer()
@@ -185,7 +186,8 @@ class Burner extends BaseBurner
     await @_frame_literals esc defer()
     if @signing_key?
       await @_sign esc defer()
-    await @_compress esc defer()
+    if not @opts.compression? or @opts.compression isnt C.compression.none
+      await @_compress esc defer()
     if @encryption_keys?
       await @_encrypt esc defer()
     output = Buffer.concat @packets

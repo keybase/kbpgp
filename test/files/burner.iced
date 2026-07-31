@@ -5,6 +5,8 @@ kbpgp = require '../../'
 {OnePassSignature} = require '../../lib/openpgp/packet/one_pass_sig'
 {Literal} = require '../../lib/openpgp/packet/literal'
 {Signature} = require '../../lib/openpgp/packet/signature'
+{Compressed} = require '../../lib/openpgp/packet/compressed'
+{parse} = require '../../lib/openpgp/parser'
 
 C = kbpgp.const.openpgp
 {ecc, hash, armor} = kbpgp
@@ -152,3 +154,71 @@ exports.assert_pgp_hash = (T, cb) ->
   T.equal err?.message, "found insecure SHA1 hash"
 
   cb null
+
+assert_burn_compression = ({T, compression, expected_err, expected_algo, expect_compressed}, cb) ->
+  esc = make_esc cb
+  msg_plain = "compression option test\n"
+  opts = {}
+  opts.compression = compression if compression?
+
+  await kbpgp.burn { msg : msg_plain, sign_with : km, opts }, defer err, armored, raw
+  if expected_err
+    T.assert err?
+    T.equal err?.toString(), expected_err
+    return cb()
+  else if err
+    return cb err
+  [err, packets] = parse raw
+  T.no_error err
+
+  if expect_compressed
+    T.equal packets.length, 1
+    T.assert packets[0] instanceof Compressed
+    T.equal packets[0].algo, expected_algo
+  else
+    T.equal packets.length, 3
+    for typ, index in [OnePassSignature, Literal, Signature]
+      T.assert packets[index] instanceof typ
+
+  await unpack_pgp_message { raw }, esc defer msg
+  T.equal msg.packets.length, 3
+
+  sig_eng = km.make_sig_eng()
+  await sig_eng.unbox armored, esc defer out
+  T.equal out.toString(), msg_plain
+  cb null
+
+exports.burn_compression_default_zlib = (T, cb) ->
+  await assert_burn_compression {
+    T
+    compression : undefined # zlib by default
+    expected_algo : C.compression.zlib
+    expect_compressed : true
+  }, defer err
+  cb err
+
+exports.burn_compression_zip = (T, cb) ->
+  await assert_burn_compression {
+    T
+    compression : C.compression.zip
+    expected_algo : C.compression.zip
+    expect_compressed : true
+  }, defer err
+  cb err
+
+exports.burn_compression_none = (T, cb) ->
+  await assert_burn_compression {
+    T
+    compression : C.compression.none
+    expected_algo : undefined
+    expect_compressed : false
+  }, defer err
+  cb err
+
+exports.burn_compression_invalid = (T, cb) ->
+  await assert_burn_compression {
+    T
+    compression : 123
+    expected_err : 'Error: no known deflation -- algo: 123'
+  }, defer err
+  cb err
