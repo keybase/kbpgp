@@ -70,7 +70,7 @@ bzip_inflate = (buf, cb) ->
   try
     ret = bzipDeflate buf
   catch e
-    err = e
+    err = new Error "failed to inflate bzip"
   cb err, ret
 
 #=================================================================================
