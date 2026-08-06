@@ -1,3 +1,7 @@
+## 2.1.18 (2026-08-06)
+
+- Fix error path in bzip2 causing uncaught exceptions during Compressed packet processing.
+
 ## 2.1.17 (2025-09-04)
 
 - parse PreferredAEADAlgorithms subpacket
