@@ -8,6 +8,7 @@ C = konst.openpgp
 K = konst.kb
 {BaseKey,BaseKeyPair} = require './basekeypair'
 {SRF,MRF} = require './rand'
+{SHA512} = require './hash'
 
 #=================================================================
 
@@ -168,4 +169,3 @@ class Pair extends BaseKeyPair
 exports.DSA = exports.Pair = Pair
 
 #=================================================================
-

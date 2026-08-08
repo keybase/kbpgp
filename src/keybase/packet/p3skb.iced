@@ -49,7 +49,7 @@ class P3SKB extends Packet
           err = new Error "Decryption failed, likely due to old passphrase (wanted v#{a} but got v#{b}) [#{err.toString()}]"
       when K.key_encryption.none then # noop
       else
-        err = new Error "Unknown key encryption type: #{k.encryption}"
+        err = new Error "Unknown key encryption type: #{@priv.encryption}"
     cb err
 
   @alloc : ({tag,body}) ->

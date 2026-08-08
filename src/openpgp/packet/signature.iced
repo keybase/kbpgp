@@ -744,7 +744,7 @@ class Parser
   constructor : (@slice) ->
 
   parse_v2_or_v3 : (v, klass) ->
-    throw new error "Bad one-octet length" unless @slice.read_uint8() is 5
+    throw new Error "Bad one-octet length" unless @slice.read_uint8() is 5
     o = {}
     o.type = @slice.read_uint8()
     o.time = @slice.read_uint32()

@@ -113,7 +113,7 @@ class S2K
         else
           throw new Error "unknown s2k gnu protection mode: #{gnu_ext_type}"
     else
-      throw new Error "Malformed GNU-extension: #{ext}"
+      throw new Error "Malformed GNU-extension: #{id}"
 
   #----------------------
 
@@ -208,4 +208,3 @@ exports.S2K = S2K
 exports.SecretKeyMaterial = SecretKeyMaterial
 
 #======================================================================
-

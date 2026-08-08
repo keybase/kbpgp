@@ -87,12 +87,6 @@ exports.BaseKeyPair = class BaseKeyPair
 
   #----------------
 
-  add_priv : (priv_raw) ->
-    [err, @priv, len] = Priv.alloc priv_raw
-    [err, len]
-
-  #----------------
-
   @alloc : (klass, {pub, priv}) ->
     [err, pub  ] = klass.Pub.alloc  pub
     [err, priv ] = klass.Priv.alloc priv, pub if not err? and priv?

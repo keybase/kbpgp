@@ -21,12 +21,6 @@ packetsigs = require './packet/packetsigs'
 
 #====================================================================
 
-hash_obj_to_fn = (obj) ->
-  fn = (buf) -> obj.finalize(WordArray.from_buffer(buf)).to_buffer()
-  fn.algname = buf.algname
-
-#====================================================================
-
 class Signer
 
   #---------------------------------------------------
