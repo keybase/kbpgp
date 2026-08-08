@@ -6,9 +6,11 @@ C = require '../src/const'
 {KeyBlock} = require '../src/openpgp/processor'
 util = require 'util'
 {ASP} = require '../src/util'
-{KeyManager} = require '../src/keymanager'
+{KeyManager} = require '../src/openpgp/keymanager'
 {import_key_pgp} = require '../src/symmetric'
 {decrypt} = require '../src/openpgp/ocfb'
+
+test_time = Math.floor(new Date(2014, 2, 21)/1000)
 
 msg = """-----BEGIN PGP MESSAGE-----
 Version: GnuPG/MacGPG2 v2.0.20 (Darwin)
@@ -194,19 +196,23 @@ nMd8vYZjDx7ro+5buf2cPmeiYlJdKQ==
 passphrase = "catsdogs"
 
 asp = new ASP {}
-await KeyManager.import_from_armored_pgp { raw : armored_key, asp }, defer err, km
+opts = now : test_time
+await KeyManager.import_from_armored_pgp { raw : armored_key, asp, opts }, defer err, km
 throw err if err?
 await km.unlock_pgp { passphrase }, defer err
 throw err if err?
-await KeyManager.import_from_armored_pgp { raw : armored_verify_key, asp }, defer err, vkm
+await KeyManager.import_from_armored_pgp { raw : armored_verify_key, asp, opts }, defer err, vkm
 throw err if err?
 km = km.find_pgp_key packets[0].key_id
 console.log km
-console.log packets[0].ekey.y.toString(16)
-await km.key.decrypt_and_unpad packets[0].ekey.y, defer err, key
+console.log packets[0].ekey.y().toString(16)
+await km.key.decrypt_and_unpad packets[0].ekey, {}, defer err, unpad
 throw err if err?
+throw new Error "Unable to decrypt" unless unpad.valid
+key = unpad.ret
 cipher = import_key_pgp key
-pt = decrypt { cipher, ciphertext : packets[1].ciphertext }
+await decrypt { cipher, ciphertext : packets[1].ciphertext }, defer err, pt
+throw err if err
 console.log util.inspect pt, { depth : null }
 console.log pt.length
 [err, packets] = parse pt

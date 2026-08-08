@@ -1,20 +1,23 @@
 
 mods =
+  aead : require '../files/aead.iced'
   brainpool256 : require '../files/brainpool256.iced'
   brainpool384: require '../files/brainpool384.iced'
   brainpool512: require '../files/brainpool512.iced'
   burner: require '../files/burner.iced'
+  cv25519: require '../files/cv25519.iced'
   eddsa : require '../files/eddsa.iced'
   box : require '../files/box.iced'
   kbbox : require '../files/kbbox.iced'
   fp : require '../files/fp.iced'
   nacl1 : require '../files/nacl1.iced'
   nacl2 : require '../files/nacl2.iced'
+  nacl_export : require '../files/nacl_export.iced'
   ecc3 : require '../files/ecc3.iced'
+  errors : require '../files/errors.iced'
   verify_sigs : require '../files/verify_sigs.iced'
   sigeng : require '../files/sigeng.iced'
   revoked_subkeys : require '../files/revoked_subkey.iced'
-  sigs : require "../files/verify_sigs.iced"
   multiples : require "../files/multiples.iced"
   unbox_cant_verify : require '../files/unbox_cant_verify.iced'
   zip : require '../files/zip.iced'
@@ -35,6 +38,7 @@ mods =
   sig_v3 : require '../files/sig_v3.iced'
   sig_gocli : require '../files/sig_gocli.iced'
   elgamal : require '../files/elgamal.iced'
+  elgamal_v3 : require '../files/elgamal_v3.iced'
   dsa : require '../files/dsa.iced'
   rsa_8192 : require '../files/rsa_8192.iced'
   buffer_shfit_right : require '../files/buffer_shift_right.iced'
@@ -54,6 +58,18 @@ mods =
   revokes : require '../files/revokes.iced'
   p3skb : require '../files/p3skb.iced'
   p3skb_r : require '../files/p3skb_r.iced'
+  p521 : require '../files/p521.iced'
+  padding_oracle : require '../files/padding_oracle.iced'
+  problem_sigs : require '../files/problem_sigs.iced'
+  gh_issue_73 : require '../files/gh_issue_73.iced'
+  key_expirations : require '../files/key_expirations.iced'
+  subkey_expiration : require '../files/subkey_expiration.iced'
+  subkey_multiple_sigs : require '../files/subkey_multiple_sigs.iced'
+  subkey_no_cross_sig : require '../files/subkey_no_cross_sig.iced'
+  subkey_preference : require '../files/subkey_preference.iced'
+  subpacket33 : require '../files/subpacket33.iced'
+  ukm : require '../files/ukm.iced'
+  merge_pgp_public : require '../files/merge_pgp_public.iced'
 
 v = Object.keys(mods)
 v.sort()

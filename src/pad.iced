@@ -3,6 +3,7 @@ C = require('./const').openpgp
 {nbs} = require './bn'
 {buffer_to_ui8a,bufeq_secure} = require './util'
 {SRF} = require './rand'
+ct = require './consttime'
 
 #====================================================================
 
@@ -37,7 +38,7 @@ exports.emsa_pkcs1_encode = emsa_pkcs1_encode = (hashed_data, len, opts = {}) ->
     hashed_data ]
 
   # We have to convert to a Uint8 array since the JSBN library internally
-  # uses A[.] rather than A.readUint8(.)...
+  # uses A[.] rather than A.readUInt8(.)...
   nbs(buffer_to_ui8a(buf), 256)
 
 #====================================================================
@@ -105,19 +106,33 @@ exports.eme_pkcs1_encode = (v, len, cb) ->
 
 exports.eme_pkcs1_decode = (v) ->
   err = ret = null
+  valid = false
   if v.length < 12
     err = new Error "Ciphertext too short, needs to be >= 12 bytes"
-  else if v.readUInt16BE(0) isnt 0x0002
-    err = new Error "Failed to find expected header: 0x00 0x02"
-  else
-    i = 2
-    (i++ while i < v.length and (v.readUInt8(i) isnt 0x0))
-    if i >= v.length
-      err = new Error "didn't get 0x00 seperator octet"
-    else
-      i++
-      ret = v[i...]
-  [err, ret]
+    return [err, valid, ret]
+  
+  header_lo = ct.eq_byte v.readUInt8(0), 0x00
+  header_hi = ct.eq_byte v.readUInt8(1), 0x02
+
+  # The remainder of the plaintext must be a string of non-zero random
+  # octets, followed by a 0, followed by the message.
+  #   looking_for_index: 1 iff we are still looking for the zero.
+  #   index: the offset of the first zero byte.
+  looking_for_index = 1
+  for i in [2...v.length]
+    eq0 = ct.eq_byte v.readUInt8(i), 0
+    index = ct.select_int looking_for_index & eq0, i, index
+    looking_for_index = ct.select_byte eq0, 0, looking_for_index
+
+  # The PS padding must be at least 8 bytes long, and it starts two
+  # bytes into em.
+  valid_ps = ct.normalize (2+8) <= index
+
+  valid = header_lo & header_hi & (~looking_for_index & 1) & valid_ps
+  index = ct.select_int valid, index+1, 0
+  ret = v[index...]
+
+  [err, !!valid, ret]
 
 #====================================================================
 

@@ -205,8 +205,9 @@ class Pair extends BaseKeyPair
 
   decrypt_and_unpad : (ciphertext, {fingerprint}, cb) ->
     err = ret = null
-    await @priv.decrypt ciphertext, { fingerprint }, defer err, m
-    cb err, m, true
+    await @priv.decrypt ciphertext, { fingerprint }, defer err, ret
+    if err then cb err
+    else cb null, { ret, valid : true, pkcs5 : true }
 
   #----------------
 

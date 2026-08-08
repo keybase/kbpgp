@@ -6,7 +6,6 @@ C = konst.openpgp
 K = konst.kb
 {BaseKeyPair,BaseKey} = require './basekeypair'
 {SRF,MRF} = require './rand'
-{eme_pkcs1_encode,eme_pkcs1_decode} = require './pad'
 
 #=================================================================
 
