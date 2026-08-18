@@ -47,7 +47,6 @@ class Pub extends BaseKey
     else if ((s.signum() <= 0) or (s.compareTo(@q) >= 0))
       err = new Error "bad s"
     else
-      err = null
       hi = @trunc_hash(h)
       w = s.modInverse @q
       u1 = hi.multiply(w).mod(@q)
