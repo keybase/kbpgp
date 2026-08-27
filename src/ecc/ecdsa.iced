@@ -39,20 +39,21 @@ class Pub extends BaseEccKey
     err = null
     hi = @trunc_hash(h)
 
-    if ((r.signum() <= 0) or (r.compareTo(@curve.p) > 0))
+    if ((r.signum() <= 0) or (r.compareTo(@curve.n) >= 0))
       err = new Error "bad r"
-    else if ((r.signum() <= 0) or (s.compareTo(@curve.p) > 0))
+    else if ((s.signum() <= 0) or (s.compareTo(@curve.n) >= 0))
       err = new Error "bad s"
     else
-
       n = @curve.n
       w = s.modInverse n
       u1 = hi.multiply(w).mod(n)
       u2 = r.multiply(w).mod(n)
       p = @curve.G.multiplyTwo(u1,@R,u2)
-
-      v = p.affineX.mod(n)
-      err = new Error "verification failed" unless v.equals(r)
+      if @curve.isInfinity(p)
+        err = new Error "verification failed"
+      else
+        v = p.affineX.mod(n)
+        err = new Error "verification failed" unless v.equals(r)
     cb err
 
 #=================================================================

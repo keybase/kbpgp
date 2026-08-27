@@ -42,12 +42,17 @@ class Pub extends BaseKey
 
   verify : ([r, s], h, cb) ->
     err = null
-    hi = @trunc_hash(h)
-    w = s.modInverse @q
-    u1 = hi.multiply(w).mod(@q)
-    u2 = r.multiply(w).mod(@q)
-    v = @g.modPow(u1, @p).multiply(@y.modPow(u2, @p)).mod(@p).mod(@q)
-    err = new Error "verification failed" unless v.equals(r)
+    if ((r.signum() <= 0) or (r.compareTo(@q) >= 0))
+      err = new Error "bad r"
+    else if ((s.signum() <= 0) or (s.compareTo(@q) >= 0))
+      err = new Error "bad s"
+    else
+      hi = @trunc_hash(h)
+      w = s.modInverse @q
+      u1 = hi.multiply(w).mod(@q)
+      u2 = r.multiply(w).mod(@q)
+      v = @g.modPow(u1, @p).multiply(@y.modPow(u2, @p)).mod(@p).mod(@q)
+      err = new Error "verification failed" unless v.equals(r)
     cb err
 
 #=================================================================

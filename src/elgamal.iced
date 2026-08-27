@@ -63,9 +63,14 @@ class Priv extends BaseKey
   #----------------
 
   decrypt : (c, cb) ->
+    err = null
     p = @pub.p
-    ret = c[0].modPow(@x,p).modInverse(p).multiply(c[1]).mod(p)
-    cb null, ret
+    if ((c[0].signum() <= 0) or (c[0].compareTo(p) >= 0)) or
+        ((c[1].signum() <= 0) or (c[1].compareTo(p) >= 0))
+      err = new Error "invalid message"
+    else
+      ret = c[0].modPow(@x,p).modInverse(p).multiply(c[1]).mod(p)
+    cb err, ret
 
 #=================================================================
 
