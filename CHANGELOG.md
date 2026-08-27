@@ -1,3 +1,7 @@
+## 2.1.19 (2026-08-27)
+
+- Fix processing DSA/ECDSA signatures and ElGamal ciphertext.
+
 ## 2.1.18 (2026-08-06)
 
 - Fix error path in bzip2 causing uncaught exceptions during Compressed packet processing.
