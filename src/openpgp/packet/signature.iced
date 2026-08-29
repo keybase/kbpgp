@@ -466,6 +466,15 @@ class Experimental extends SubPacket
 
 #------------
 
+# Ignore unless critical.
+class Unknown extends SubPacket
+  constructor : (@buf, @type) ->
+  @parse : (slice, type) ->
+    new Unknown slice.consume_rest_to_buffer(), type
+  _v_to_buffer : () -> @buf
+
+#------------
+
 class Time extends SubPacket
   constructor : (type, @time) ->
     @never_expires = (@time is 0)
@@ -809,6 +818,7 @@ class Parser
       when S.preferred_aead_algos then PreferredAEADAlgorithms
       else
         if type >= S.experimental_low and type <= S.experimental_high then Experimental
+        else if not critical then Unknown
         else throw new Error "Unknown signature subpacket: #{type}"
     ret = klass.parse @slice, type
     ret.set_opts { critical, five_byte_len }
