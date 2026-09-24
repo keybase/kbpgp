@@ -1,0 +1,24 @@
+contrib/bzip_deflate.js
+  s_f03d7a046dda5a::t_facc4d77b0e136 176,209,242-250,274-275,284-287,308-310,316-318,326-345,361-366,380-382
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "beecb3ea5425472ac07d24cca65b371181ccb458",
+  "prompts": {},
+  "humans": {
+    "h_f21e4bfbe3ac62": {
+      "author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  },
+  "sessions": {
+    "s_f03d7a046dda5a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4f083691-9f8e-4352-9d5d-2e66a32a9e2b",
+        "model": "auto-smart"
+      },
+      "human_author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}

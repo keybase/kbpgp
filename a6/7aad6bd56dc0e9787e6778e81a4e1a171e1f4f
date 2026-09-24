@@ -1,0 +1,29 @@
+test/files/compression_limits.iced
+  s_f03d7a046dda5a::t_d54488ed2e42d5 1-188
+test/browser/main.iced
+  s_f03d7a046dda5a::t_d54488ed2e42d5 8-9
+test/data/fail-issue5747.bz2.base64
+  s_f03d7a046dda5a::t_d54488ed2e42d5 1-127
+test/util.js
+  s_f03d7a046dda5a::t_d54488ed2e42d5 1-3
+test/files/bzip2_max_length.iced
+  s_f03d7a046dda5a::t_d54488ed2e42d5 1-109
+test/files/bzip2_buffer_overrun.iced
+  s_f03d7a046dda5a::t_d54488ed2e42d5 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "a67aad6bd56dc0e9787e6778e81a4e1a171e1f4f",
+  "prompts": {},
+  "sessions": {
+    "s_f03d7a046dda5a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4f083691-9f8e-4352-9d5d-2e66a32a9e2b",
+        "model": "auto-smart"
+      },
+      "human_author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}

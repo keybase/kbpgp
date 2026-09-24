@@ -1,0 +1,23 @@
+lib/openpgp/packet/compressed.js
+  s_f03d7a046dda5a::t_eade6ce60e3ee6 20
+contrib/bzip_deflate.js
+  s_f03d7a046dda5a::t_a58d1e32cc6213 1-340
+src/openpgp/packet/compressed.iced
+  s_f03d7a046dda5a::t_a58d1e32cc6213 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3abd4557297d23a45f94b2152065acf694662d96",
+  "prompts": {},
+  "sessions": {
+    "s_f03d7a046dda5a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4f083691-9f8e-4352-9d5d-2e66a32a9e2b",
+        "model": "auto-smart"
+      },
+      "human_author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
