@@ -4,7 +4,7 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 zlib = require 'zlib'
 {uint_to_buffer} = require '../../util'
-bzipDeflate = require 'bzip-deflate'
+bzipDeflate = require '../../../contrib/bzip_deflate'
 
 #=================================================================================
 
