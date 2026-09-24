@@ -5,6 +5,8 @@ mods =
   brainpool384: require '../files/brainpool384.iced'
   brainpool512: require '../files/brainpool512.iced'
   burner: require '../files/burner.iced'
+  bzip2_max_length: require '../files/bzip2_max_length.iced'
+  compression_limits : require '../files/compression_limits.iced'
   eddsa : require '../files/eddsa.iced'
   box : require '../files/box.iced'
   kbbox : require '../files/kbbox.iced'
