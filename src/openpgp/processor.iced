@@ -152,7 +152,7 @@ class Message
 
   #---------
 
-  constructor : ({@keyfetch, @data_fn, @data, @strict, @now, @assert_pgp_hash}) ->
+  constructor : ({@keyfetch, @data_fn, @data, @strict, @now, @assert_pgp_hash, @pgp_max_length}) ->
     @literals = []
     @enc_data_packet = null
     @warnings = new Warnings()
@@ -230,12 +230,18 @@ class Message
   _inflate : (cb) ->
     packets = []
     esc = make_esc cb, "Message::_inflate"
+    max_length = @pgp_max_length # length budget
     for p in @packets
-      await p.inflate esc defer inflated
+      await p.inflate { max_length }, esc defer inflated
       if inflated?
         await @_parse inflated, esc defer p
         packets.push p...
-      else packets.push p
+        if max_length? then max_length -= inflated.length
+      else
+        packets.push p
+        if max_length? then max_length -= p.length()
+      if max_length? and max_length < 0
+        return cb new Error "max length exceeded"
     @packets = packets
     cb null
 
@@ -398,7 +404,7 @@ exports.Message = Message
 #    the past.
 # @param {callback} cb Callback with an `err, Array<Literals>, Warnings` triples. On success,
 #    we will get a series of PGP literal packets, some of which might be signed.
-exports.do_message = do_message = ({armored, raw, msg_type, keyfetch, data_fn, data, strict, now}, cb) ->
+exports.do_message = do_message = ({armored, raw, msg_type, keyfetch, data_fn, data, strict, now, pgp_max_length}, cb) ->
   literals = null
   err = msg = warnings = esk = null
   if armored?
@@ -410,7 +416,7 @@ exports.do_message = do_message = ({armored, raw, msg_type, keyfetch, data_fn, d
     err = new Error "No input to do_message; need either 'armored' or 'raw' input"
   unless err?
     if not strict? then strict = true
-    proc = new Message { keyfetch, data_fn, data, strict, now }
+    proc = new Message { keyfetch, data_fn, data, strict, now, pgp_max_length }
     await proc.parse_and_process msg, defer err, literals
     warnings = proc.warnings
     esk = proc.encryption_subkey

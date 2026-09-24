@@ -4,9 +4,11 @@ C = require('../../const').openpgp
 asymmetric = require '../../asymmetric'
 zlib = require 'zlib'
 {uint_to_buffer} = require '../../util'
-bzipDeflate = require 'bzip-deflate'
+bzipDeflate = require '../../../contrib/bzip_deflate'
 
 #=================================================================================
+
+make_too_large_err = () -> new Error "max length exceeded"
 
 #
 # Workaround browserify bug, not in use, see note right below.
@@ -30,22 +32,38 @@ bzipDeflate = require 'bzip-deflate'
 # as shown above.  Calling into pako directly has problems, though, since it will be included
 # in the node.js setting which will increase code bloat.
 #
-fake_zip_inflate = (buf, cb) ->
+fake_zip_inflate = (buf, max_length, cb) ->
   buf = Buffer.concat [ Buffer.from([0x78,0x9c]), buf ]
-  inflater = zlib.createInflate { flush : zlib.Z_FULL_FLUSH }
+  # maxOutputLength only works with zlib.inflate, when using Inflate class
+  # manually as a stream we will have to handle max_length ourselves here.
+  zlib_opts = {
+    flush : zlib.Z_FULL_FLUSH
+  }
+  inflater = zlib.createInflate zlib_opts
+
+  cur_length = 0
+  too_large = false
   bufs = []
 
   call_end = (err) ->
     if (tmp = cb)?
       # This actually isn't an error, so we're OK to ignore it... I think....
       if err? and err.code is "Z_BUF_ERROR" then err = null
+      if too_large then err = make_too_large_err()
       cb = null
       if err? then ret = null else ret = Buffer.concat(bufs)
       tmp err, ret
 
   inflater.on 'readable', () ->
-    read_buf = inflater.read()
-    bufs.push read_buf if read_buf?
+    return unless cb? # already exited, don't take more work
+    while (read_buf = inflater.read())?
+      cur_length += read_buf.length
+      if max_length? and cur_length > max_length
+        too_large = true
+        inflater.close()
+        call_end()
+        break
+      bufs.push read_buf
   inflater.on 'end', () ->
     call_end null
   inflater.on 'error', (e) ->
@@ -65,12 +83,18 @@ fix_zip_deflate = (buf, cb) ->
 
 #-----------------
 
-bzip_inflate = (buf, cb) ->
+bzip_inflate = (buf, max_length, cb) ->
   err = null
   try
-    ret = bzipDeflate buf
+    ret = bzipDeflate buf, max_length
   catch e
-    err = new Error "failed to inflate bzip"
+    if e is "Max length exceeded"
+      err = make_too_large_err()
+    else if typeof e is 'string'
+      # bzipDeflate code does `throw "foo"` instead of throwing Error objects
+      err = new Error(e)
+    else
+      err = e
   cb err, ret
 
 #=================================================================================
@@ -88,18 +112,26 @@ class Compressed extends Packet
 
   #--------
 
-  inflate : (cb) ->
+  inflate : (opts, cb) ->
     err = ret = null
+    max_length = opts?.max_length
+    # Do not attempt to decompress data that already
+    # exceeds max_length when compressed.
+    if max_length? and @compressed.length > max_length
+      return cb make_too_large_err()
     switch @algo
       when C.compression.none then ret = @compressed
       when C.compression.zlib
-        await zlib.inflate @compressed, defer err, ret
+        zlib_opts = { maxOutputLength : max_length }
+        await zlib.inflate @compressed, zlib_opts, defer err, ret
       when C.compression.zip
-        await fake_zip_inflate @compressed, defer err, ret
+        await fake_zip_inflate @compressed, max_length, defer err, ret
       when C.compression.bzip
-        await bzip_inflate @compressed, defer err, ret
+        await bzip_inflate @compressed, max_length, defer err, ret
       else
         err = new Error "no known inflation -- algo: #{@algo}"
+    if err?.code is 'ERR_BUFFER_TOO_LARGE'
+      err = make_too_large_err()
     cb err, ret
 
   #--------
