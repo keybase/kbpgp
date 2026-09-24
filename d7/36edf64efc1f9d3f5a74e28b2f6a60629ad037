@@ -1,0 +1,14 @@
+src/openpgp/packet/compressed.iced
+  h_f21e4bfbe3ac62 86,89,91-97,130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d736edf64efc1f9d3f5a74e28b2f6a60629ad037",
+  "prompts": {},
+  "humans": {
+    "h_f21e4bfbe3ac62": {
+      "author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
