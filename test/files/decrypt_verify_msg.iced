@@ -301,7 +301,7 @@ exports.run_test_msg_0 = (T, cb) ->
   [err, packets] = parse pt
   T.no_error err
   T.waypoint "parsed the decrypted message body"
-  await packets[0].inflate defer err, res
+  await packets[0].inflate {}, defer err, res
   T.no_error err
   T.waypoint "inflated the compressed message body"
   [err, packets] = parse res
