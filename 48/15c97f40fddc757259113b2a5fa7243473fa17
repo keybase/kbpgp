@@ -1,0 +1,38 @@
+lib/openpgp/packet/compressed.js
+  s_f03d7a046dda5a::t_ca0fb6ad136983 3,22-27,31,33-36,44-46,57-70,72,92,137,148,152,155-161,177-178,182-185,192-194,201,208,220,227,239,246,257-259,289,308,343,377
+src/openpgp/packet/compressed.iced
+  h_f21e4bfbe3ac62 86,89,91-93,95-97,130
+  s_f03d7a046dda5a::t_5491a7f7962af0 11-12,35,37-45,52,58-66,115,117-121,125-126,128,133-134
+src/openpgp/processor.iced
+  s_f03d7a046dda5a::t_ca0fb6ad136983 155,233,235,239-244,407,419
+lib/openpgp/packet/base.js
+  s_f03d7a046dda5a::t_ca0fb6ad136983 68,72-73
+  s_f03d7a046dda5a::t_3a81b69e26c05f 74-75
+src/openpgp/packet/base.iced
+  s_f03d7a046dda5a::t_ca0fb6ad136983 55-59
+test/files/decrypt_verify_msg.iced
+  s_f03d7a046dda5a::t_ca0fb6ad136983 304
+lib/openpgp/processor.js
+  s_f03d7a046dda5a::t_ca0fb6ad136983 121,232,273,304,328,387,429,451,467,483,511,516,540,543-545,551,560,569,573-574,577-578,580-585,642,653,674,683,729,733,772,776,785,789,796,800,824,840,862,871,880,884,903,912,921,933,956,973,999,1011,1020,1033,1042,1054,1079,1082,1107-1108,1113,1122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4815c97f40fddc757259113b2a5fa7243473fa17",
+  "prompts": {},
+  "humans": {
+    "h_f21e4bfbe3ac62": {
+      "author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  },
+  "sessions": {
+    "s_f03d7a046dda5a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4f083691-9f8e-4352-9d5d-2e66a32a9e2b",
+        "model": "auto-smart"
+      },
+      "human_author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
