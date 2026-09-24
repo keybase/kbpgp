@@ -173,7 +173,7 @@ var ArchUtils = (function(){
 		}
 	}
 
-	return ({ bz2: { decode: function(input) { //eliminated unused unpackSize, Gonzalo
+	return ({ bz2: { decode: function(input, maxLength) { //eliminated unused unpackSize, Gonzalo
 		var b = new RBitfield();
 		b.init(input);
 		b.readbits(16);
@@ -206,6 +206,7 @@ var ArchUtils = (function(){
 		}
 
 		var out = [];
+		var curLength = 0;
 
 		function main_loop() { while (true) {
 			var blocktype = b.readbits2(48);
@@ -238,9 +239,15 @@ var ArchUtils = (function(){
 					var length = b.readbits(5);
 					var lengths = [];
 					for (var i = 0; i < symbols_in_use; i++) {
-						if (length < 0 || length > 20)
-							throw RangeError("Bzip2 Huffman length code outside range 0..20");
-						while (b.readbits(1)) length -= (b.readbits(1) * 2) - 1;
+						if (length < 1 || length > 20) {
+							throw RangeError("Bzip2 Huffman length code outside range 1..20");
+						}
+						while (b.readbits(1)) {
+							length -= (b.readbits(1) * 2) - 1;
+							if (length < 1 || length > 20) {
+								throw RangeError("Bzip2 Huffman length code outside range 1..20");
+							}
+						}
 						lengths.push(length);
 					}
 					groups_lengths.push(lengths);
@@ -264,12 +271,18 @@ var ArchUtils = (function(){
 				var repeat = 0;
 				var repeat_power = 0;
 				var buffer = [], r;
+				// Bzip2 block size is stored as 1..9, meaning 100k..900k bytes.
+				var block_limit = blocksize * 100000;
 
 				while (true) {
 					if (--decoded <= 0) {
 						decoded = 50;
 						if (selector_pointer <= selectors_list.length)
 							t = tables[selectors_list[selector_pointer++]];
+					}
+
+					if (t === undefined) {
+						throw "Invalid selector"
 					}
 
 					// INLINED: find_next_symbol
@@ -292,11 +305,17 @@ var ArchUtils = (function(){
 						continue;
 					} else {
 						var v = favourites[0];
+						if (buffer.length + repeat > block_limit) {
+							throw "Block limit exceeded";
+						}
 						for ( ; repeat > 0; repeat--) buffer.push(v);
 					}
 					if (r == symbols_in_use - 1) { // eof symbol
 						break;
 					} else {
+						if (buffer.length + 1 > block_limit) {
+							throw "Block limit exceeded";
+						}
 						move_to_front_and_store(favourites,r-1,buffer); //Uninlined, size efficiency, Gonzalo
 					}
 				}
@@ -304,6 +323,26 @@ var ArchUtils = (function(){
 				var done = [];
 				var i = 0;
 				var len = nt.length;
+				if (maxLength != null) {
+					var out_len = 0;
+					for (var j = 0; j < len;) {
+						var c = nt.charCodeAt(j);
+						if ((j < len - 4)
+							&& nt.charCodeAt(j+1) == c
+							&& nt.charCodeAt(j+2) == c
+							&& nt.charCodeAt(j+3) == c) {
+								var rep = nt.charCodeAt(j+4);
+								out_len += rep + 4;
+								j += 5;
+							} else {
+								out_len++;
+								j++;
+							}
+						}
+						if (!(curLength + out_len <= maxLength)) {
+							throw "Max length exceeded";
+						}
+				}
 				// RLE decoding
 				while (i < len) {
 					var c = nt.charCodeAt(i);
@@ -319,7 +358,12 @@ var ArchUtils = (function(){
 						done.push(nt[i++]);
 					}
 				}
-				out.push(done.join(''));
+				var done_str = done.join('');
+				curLength += done_str.length;
+				if (maxLength != null && curLength > maxLength) {
+					throw "Max length exceeded";
+				}
+				out.push(done_str);
 			} else if (blocktype == 0x177245385090) { // sqrt(pi)
 				b.readbits(b.bits & 0x7);  //align
 				break;
@@ -333,8 +377,8 @@ var ArchUtils = (function(){
 })();
 
 // This wrapper for node-style buffers
-module.exports = function(buf) {
-   s = buf.toString('binary');
-   r = ArchUtils.bz2.decode(s);
+module.exports = function(buf, maxLength) {
+   var s = buf.toString('binary');
+   var r = ArchUtils.bz2.decode(s, maxLength);
    return new Buffer(r, "binary");
 };
