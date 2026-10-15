@@ -54,6 +54,10 @@ bzip_out_of_range_selector = "QlpoOTFBWSZTWU7s6DYAAAJRgAAQQAAGRJCAIAAxBkxBAaeppY
 bzip_bad_blocksize = "QlpoMTFBWSZTWTbcVTMAY__AAGAAIAAgpAgwAIsACLi7kinChIG24qmY" # similar to bzip_overrun_block_content
 bzip_bad_huffman_delta = "QlpoNjFBWSZTWbH3QEsAAABAAEAAIAAhfRhGgu5IpwoSFj7oCWA"
 
+# Group 0 gives every symbol length 8, so only codes 0, 1 and 2 exist. The bits
+# that follow (`00001011...`) match none of them.
+bzip_unmatched_huffman = "425a6831314159265359000000000000004000400020004900460bb9229c28480000000000"
+
 exports.length_errors = (T, cb) ->
   for payload_str in [bzip_single_stream, bzip_multi_stream, bzip_rle1_focused, bzip_single_block_degen]
     payload = Buffer.from(payload_str, 'base64')
@@ -107,3 +111,8 @@ exports.bzip_errors = (T, cb) ->
 
   cb null
 
+exports.unmatched_huffman = (T, cb) ->
+  await bzip_inflate Buffer.from(bzip_unmatched_huffman, 'hex'), undefined, defer err, ret
+  T.assert err?
+  T.equal err?.message, "Invalid Huffman code"
+  cb null

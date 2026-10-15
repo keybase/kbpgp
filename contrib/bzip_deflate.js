@@ -286,6 +286,7 @@ var ArchUtils = (function(){
 					}
 
 					// INLINED: find_next_symbol
+					var found = false;
 					for (var bb in t.faht) {
 						if (b.bits < bb) {
 							b.bitfield = (b.bitfield << 8) + b.f.charCodeAt(b.count++);
@@ -294,8 +295,12 @@ var ArchUtils = (function(){
 						if (r = t.faht[bb][ b.bitfield >> (b.bits - bb) ]) {
 							b.bitfield &= b.masks[b.bits -= bb];
 							r = r.code;
+							found = true;
 							break;
 						}
+					}
+					if (!found) {
+						throw "Invalid Huffman code";
 					}
 
 					if (0 <= r && r <= 1) {
