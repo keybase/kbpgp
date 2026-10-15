@@ -1,0 +1,25 @@
+contrib/bzip_deflate.js
+  s_32279b5d761a68::t_9ae52457137a8a 289,298,302-303
+  s_32279b5d761a68::t_ab55f88c29c795 304
+test/files/bzip2_max_length.iced
+  s_32279b5d761a68::t_0ddc492d4d5549 58
+  s_32279b5d761a68::t_7b73f0f19b0299 57,59-60
+  s_32279b5d761a68::t_3e4b8d51f37fc6 116-117
+  s_32279b5d761a68::t_67346eb8911ba0 114-115,118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f47ed96661a12210c7533e80f7714eb9307291f0",
+  "prompts": {},
+  "sessions": {
+    "s_32279b5d761a68": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8b2b5702-cd13-4d1b-a6d9-7783d28002be",
+        "model": "grok-4.7"
+      },
+      "human_author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
