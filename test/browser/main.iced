@@ -65,6 +65,17 @@ for k in v
 
 {BrowserRunner} = require('iced-test')
 
+uncaught_error = ->
+  if document.getElementById('rc-err') then return
+  anchor = document.getElementById 'rc'
+  note = document.createElement 'div'
+  note.id = 'rc-err'
+  note.style.color = "#c00"
+  note.textContent = "Uncaught exception occurred, check the console"
+  anchor.insertAdjacentElement 'afterend', note
+
 window.onload = () ->
   br = new BrowserRunner { log : "log", rc : "rc" }
+  window.addEventListener "unhandledrejection", uncaught_error
+  window.addEventListener "error", uncaught_error
   await br.run mods, defer rc

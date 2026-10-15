@@ -32,18 +32,34 @@ make_too_large_err = () -> new Error "max length exceeded"
 # as shown above.  Calling into pako directly has problems, though, since it will be included
 # in the node.js setting which will increase code bloat.
 #
-fake_zip_inflate = (buf, max_length, cb) ->
+# zlib_impl is optional so tests can pass browserify-zlib. Node's zlib is the default.
+fake_zip_inflate = (buf, max_length, cb, zlib_impl) ->
+  zlib_impl ?= zlib
   buf = Buffer.concat [ Buffer.from([0x78,0x9c]), buf ]
   # maxOutputLength only works with zlib.inflate, when using Inflate class
   # manually as a stream we will have to handle max_length ourselves here.
   zlib_opts = {
-    flush : zlib.Z_FULL_FLUSH
+    flush : zlib_impl.Z_FULL_FLUSH
   }
-  inflater = zlib.createInflate zlib_opts
+  inflater = zlib_impl.createInflate zlib_opts
 
   cur_length = 0
   too_large = false
   bufs = []
+
+  close_inflater = () ->
+    if inflater._handle?.write_in_progress?
+      # 'pako' library inflater used in browserify-zlib.
+      #
+      # In that library, closing an inflater in a 'readable' callback causes a
+      # TypeError.
+
+      # patch "write" methods with a no-op to stop processing data chunks.
+      inflater._handle.write = () -> {}
+      # call `close` in another tick.
+      setTimeout (() -> inflater.close()), 0
+    else
+      inflater.close()
 
   call_end = (err) ->
     if (tmp = cb)?
@@ -60,7 +76,7 @@ fake_zip_inflate = (buf, max_length, cb) ->
       cur_length += read_buf.length
       if max_length? and cur_length > max_length
         too_large = true
-        inflater.close()
+        close_inflater()
         call_end()
         break
       bufs.push read_buf
@@ -187,5 +203,6 @@ class CompressionParser
 #=================================================================================
 
 exports.Compressed = Compressed
+exports.fake_zip_inflate = fake_zip_inflate
 
 #=================================================================================
