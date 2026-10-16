@@ -186,3 +186,18 @@ exports.do_message_max_len_bzip = (T, cb) ->
   T.equal err?.toString(), "Error: max length exceeded"
 
   cb()
+
+exports.do_message_zero_budget_zlib = (T, cb) ->
+  # A tag 16 packet uses up the whole budget, leaving exactly 0 for the next
+  # packet: a zlib compressed packet with an empty body. Inflating it has to
+  # fail through the callback.
+  budget = 1024
+  pkt = new Compressed { }
+  filler = pkt.frame_packet 16, Buffer.alloc(budget)
+  empty_zlib = pkt.frame_packet C.packet_tags.compressed, uint_to_buffer(8, C.compression.zlib)
+  raw = Buffer.concat [ filler, empty_zlib ]
+
+  await do_message { raw, keyfetch : g_km, pgp_max_length : budget }, defer err
+  T.assert err?, "expected an error for the empty zlib packet"
+  T.equal err?.toString(), "Error: max length exceeded"
+  cb()

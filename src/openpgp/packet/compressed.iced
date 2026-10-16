@@ -131,9 +131,9 @@ class Compressed extends Packet
   inflate : (opts, cb) ->
     err = ret = null
     max_length = opts?.max_length
-    # Do not attempt to decompress data that already
-    # exceeds max_length when compressed.
-    if max_length? and @compressed.length > max_length
+    # Do not attempt to decompress data that already exceeds max_length when
+    # compressed, or if max_length is 0.
+    if max_length? and (@compressed.length > max_length or max_length == 0)
       return cb make_too_large_err()
     switch @algo
       when C.compression.none then ret = @compressed
