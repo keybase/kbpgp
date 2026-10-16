@@ -92,7 +92,10 @@ var ArchUtils = (function(){
 		this.readbits = function readbits(n) {
 			//if (n > this.bits) this.needbits(n);
 			// INLINED: needbits, readByte
+			// A missing byte is NaN, and NaN >> k is 0. Reject it instead of
+			// inventing an endless stream of zero bits.
 			while (this.bits < n) {
+				if (this.count >= this.f.length) throw "Unexpected end of bzip2 data";
 				this.bitfield = (this.bitfield << 8) + this.f.charCodeAt(this.count++);
 				this.bits += 8;
 			}
@@ -289,6 +292,7 @@ var ArchUtils = (function(){
 					var found = false;
 					for (var bb in t.faht) {
 						if (b.bits < bb) {
+							if (b.count >= b.f.length) throw "Unexpected end of bzip2 data";
 							b.bitfield = (b.bitfield << 8) + b.f.charCodeAt(b.count++);
 							b.bits += 8;
 						}

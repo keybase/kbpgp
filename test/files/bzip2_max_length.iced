@@ -54,6 +54,10 @@ bzip_out_of_range_selector = "QlpoOTFBWSZTWU7s6DYAAAJRgAAQQAAGRJCAIAAxBkxBAaeppY
 bzip_bad_blocksize = "QlpoMTFBWSZTWTbcVTMAY__AAGAAIAAgpAgwAIsACLi7kinChIG24qmY" # similar to bzip_overrun_block_content
 bzip_bad_huffman_delta = "QlpoNjFBWSZTWbH3QEsAAABAAEAAIAAhfRhGgu5IpwoSFj7oCWA"
 
+# Two Huffman groups, one selector whose unary index is 2 (bits 110).
+# That is one past the last group, so the first symbol group has no table.
+bzip_invalid_selector = "QlpoMTFBWSZTWQAAAAAAAAAAACAAOCBA"
+
 # Group 0 gives every symbol length 8, so only codes 0, 1 and 2 exist. The bits
 # that follow (`00001011...`) match none of them.
 bzip_unmatched_huffman = "425a6831314159265359000000000000004000400020004900460bb9229c28480000000000"
@@ -99,7 +103,7 @@ exports.format_errors = (T, cb) ->
 exports.bzip_errors = (T, cb) ->
   await bzip_inflate Buffer.from(bzip_out_of_range_selector, 'base64'), undefined, defer err, ret
   T.assert err?
-  T.equal err?.message, "Invalid selector"
+  T.equal err?.message, "Unexpected end of bzip2 data"
 
   await bzip_inflate Buffer.from(bzip_bad_blocksize, 'base64'), undefined, defer err, ret
   T.assert err?
@@ -115,4 +119,10 @@ exports.unmatched_huffman = (T, cb) ->
   await bzip_inflate Buffer.from(bzip_unmatched_huffman, 'hex'), undefined, defer err, ret
   T.assert err?
   T.equal err?.message, "Invalid Huffman code"
+  cb null
+
+exports.invalid_selector = (T, cb) ->
+  await bzip_inflate Buffer.from(bzip_invalid_selector, 'base64'), undefined, defer err, ret
+  T.assert err?
+  T.equal err?.message, "Invalid selector"
   cb null
