@@ -1,0 +1,28 @@
+src/openpgp/packet/compressed.iced
+  h_f21e4bfbe3ac62 136
+test/files/compression_limits.iced
+  h_f21e4bfbe3ac62 202
+  s_a2a4a9445802dd::t_aabede7d5abd18 192-193,200
+  s_a2a4a9445802dd::t_db8dfcac987df9 189-191,194-199,201,203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "00a935d1f907f97cdffe06218e812f70b2d56924",
+  "prompts": {},
+  "humans": {
+    "h_f21e4bfbe3ac62": {
+      "author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  },
+  "sessions": {
+    "s_a2a4a9445802dd": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d63b4a40-d836-4588-9102-0a564d97eefb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
