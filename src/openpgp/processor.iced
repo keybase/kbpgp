@@ -234,9 +234,15 @@ class Message
     for p in @packets
       await p.inflate { max_length }, esc defer inflated
       if inflated?
+        compressed_length = p.length()
         await @_parse inflated, esc defer p
         packets.push p...
-        if max_length? then max_length -= inflated.length
+        # Take compressed or inflated length, whichever's bigger. This prevents
+        # an attack where we process large compressed messages that decompress
+        # into small messages and waste time this way. It's like an "reverse
+        # zip bomb".
+        if max_length?
+          max_length -= Math.max compressed_length, inflated.length
       else
         packets.push p
         if max_length? then max_length -= p.length()

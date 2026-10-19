@@ -69,6 +69,25 @@ create_bzip_compressed_packet = (cb) ->
   pkt = new Compressed { }
   cb null, pkt.frame_packet C.packet_tags.compressed, buf
 
+# Raw deflate made only of empty stored blocks: 5 bytes in, 0 bytes out.
+# A non-final block is 00 00 00 ff ff; the final block is 01 00 00 ff ff.
+empty_stored_deflate = (num_blocks) ->
+  buf = Buffer.alloc num_blocks * 5
+  for i in [0...num_blocks - 1]
+    o = i * 5
+    buf[o + 3] = 0xff
+    buf[o + 4] = 0xff
+  last = (num_blocks - 1) * 5
+  buf[last] = 0x01
+  buf[last + 3] = 0xff
+  buf[last + 4] = 0xff
+  buf
+
+frame_compressed_payload = (algo, payload) ->
+  pkt = new Compressed { }
+  body = Buffer.concat [ uint_to_buffer(8, algo), payload ]
+  pkt.frame_packet C.packet_tags.compressed, body
+
 inject_bad_compressed_packets = ({num_packets, packet_size, zip, armored}, cb) ->
   esc = make_esc cb
   [err, msg] = armor.decode armored
@@ -200,4 +219,39 @@ exports.do_message_zero_budget_zlib = (T, cb) ->
   await do_message { raw, keyfetch : g_km, pgp_max_length : budget }, defer err
   T.assert err?, "expected an error for the empty zlib packet"
   T.equal err?.toString(), "Error: max length exceeded"
+  cb()
+
+exports.do_message_reverse_zip_bomb = (T, cb) ->
+  # Each packet is a large deflate stream of empty stored blocks, so inflate
+  # yields no bytes. One packet fits in the budget. The second must be
+  # rejected from its compressed size: the inflated length would not move
+  # the budget.
+  budget = 8000
+  raw_deflate = empty_stored_deflate 1000 # 5000 bytes
+  zlib_payload = Buffer.concat [
+    # Header:
+    Buffer.from [0x78, 0x9c]
+    raw_deflate
+    # Adler32 checksum of the empty output is 0x01:
+    Buffer.from [0x00, 0x00, 0x00, 0x01]
+  ]
+  cases = [
+    { algo : C.compression.zlib, payload : zlib_payload }
+    { algo : C.compression.zip, payload : raw_deflate }
+  ]
+
+  for {algo, payload} in cases
+    framed = frame_compressed_payload algo, payload
+    body_len = payload.length + 1
+    T.waypoint "reverse bomb algo #{algo}, compressed body #{body_len}"
+    T.assert body_len < budget, "one packet has to fit in the budget"
+    T.assert body_len * 2 > budget, "two packets have to exceed the budget"
+
+    await do_message { raw : framed, keyfetch : g_km, pgp_max_length : budget }, defer err
+    T.assert not err?, "one empty-output packet within the budget should pass, got #{err}"
+
+    await do_message { raw : Buffer.concat([framed, framed]), keyfetch : g_km, pgp_max_length : budget }, defer err
+    T.assert err?, "a second empty-output packet should exceed the budget"
+    T.equal err?.toString(), "Error: max length exceeded"
+
   cb()
