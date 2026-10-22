@@ -5,6 +5,8 @@ mods =
   brainpool384: require '../files/brainpool384.iced'
   brainpool512: require '../files/brainpool512.iced'
   burner: require '../files/burner.iced'
+  bzip2_max_length: require '../files/bzip2_max_length.iced'
+  compression_limits : require '../files/compression_limits.iced'
   eddsa : require '../files/eddsa.iced'
   box : require '../files/box.iced'
   kbbox : require '../files/kbbox.iced'
@@ -63,6 +65,17 @@ for k in v
 
 {BrowserRunner} = require('iced-test')
 
+uncaught_error = ->
+  if document.getElementById('rc-err') then return
+  anchor = document.getElementById 'rc'
+  note = document.createElement 'div'
+  note.id = 'rc-err'
+  note.style.color = "#c00"
+  note.textContent = "Uncaught exception occurred, check the console"
+  anchor.insertAdjacentElement 'afterend', note
+
 window.onload = () ->
   br = new BrowserRunner { log : "log", rc : "rc" }
+  window.addEventListener "unhandledrejection", uncaught_error
+  window.addEventListener "error", uncaught_error
   await br.run mods, defer rc

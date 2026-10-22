@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "bn": "^1.0.5",
-    "bzip-deflate": "^1.0.0",
     "deep-equal": "^1.1.0",
     "iced-error": "0.0.13",
     "iced-lock": "^1.0.2",

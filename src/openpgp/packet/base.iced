@@ -52,7 +52,11 @@ class Packet
 
   #----------------------
 
-  inflate : (cb) -> cb null, null
+  inflate : (opts, cb) -> cb null, null
+
+  #----------------------
+
+  length : () -> @raw.length
 
   #----------------------
 
