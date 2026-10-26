@@ -1,0 +1,16 @@
+package.json
+  h_f21e4bfbe3ac62 10
+CHANGELOG.md
+  h_f21e4bfbe3ac62 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "fd17c3dc38f062cac90991d4069f5d0866d90838",
+  "prompts": {},
+  "humans": {
+    "h_f21e4bfbe3ac62": {
+      "author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
