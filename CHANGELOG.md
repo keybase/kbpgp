@@ -1,3 +1,8 @@
+## 2.1.20 (2026-10-26)
+
+- Add optional `pgp_max_length` limits to `do_message` and `Message`, rejecting oversized messages.
+- Fix bzip2 decompression failures on malformed or truncated input.
+
 ## 2.1.19 (2026-08-27)
 
 - Fix processing DSA/ECDSA signatures and ElGamal ciphertext.
