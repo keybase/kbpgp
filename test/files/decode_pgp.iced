@@ -380,6 +380,39 @@ exports.public_key_expired_uid_bypass = (T,cb) ->
   cb()
 
 #============================================================================
+
+exports.first_packet_non_key_material = (T, cb) ->
+  armored = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+zQ51c2VyQGxvY2FsaG9zdMKWBBMTCgAeBQJq9xRzAhsBAwsJBwMVCggCHgECF4AD
+FgIBAhkBAAoJEMuHJJJ8ei/0MNkBf1K5Quhm6nOnGWDkhNgNx6rU8oPFbDb319C2
+V8snZfUJUuMbrbUdb9FBuuSxrYEUTAGAjjrXqF0ZroP/NAgqVfL3nXJXzpySC6Gc
++r0zDq6psJCcLPaEz1HAtmYhrXZB9/IbzlYEavcUcxIIKoZIzj0DAQcCAwRX0Vap
+wYGezhFp7XckQKxOyWhGW+wFBylZti4bRdcEUbMlq7uQrE8UzpvbFCnWYsctM/eP
+NtUp/xWXmJoQqLVpAwEKCcKHBBgTCgAPBQJq9xRzBQkPCZwAAhsMAAoJEMuHJJJ8
+ei/0aScBf2viubdTlMIZYsOeKCNFaJWpduEShuPvqzu+oB5s7/ztoopRmbB7iqTR
+FMAJEJ4UEQGAvkT9bFcEaS7IDRBSDw/HiYkGbpawmC2c3rvYcw6vHd7ah9KeAENF
+8Iueb6NsJI8yzlIEavcUcxMIKoZIzj0DAQcCAwQS6TrbfGuz7UqNFgAOjknf6IfZ
+oXKXZRJCR0+Wk2wJEuUql1+Wtb35bl8LVRoZTtLPo6fJBj11z8xCLxqYLQZBwsAn
+BBgTCgAPBQJq9xRzBQkPCZwAAhsiAGoJEMuHJJJ8ei/0XyAEGRMKAAYFAmr3FHMA
+CgkQlAQ0OQiJW0ezkQD/c6kd/So7yRkv+V+ODVQvMpVDUZLnuGZ4nVmKrFLd4mgB
+AP+P+wz+H8YaLHrOdibR9KBrQzPo/LvcOPV7rVOyxzu30/8BgNfWI8aFRjN8E20y
+0HcJjhSE2kME7Sr5zmgLB1ojJY2++Z3m57wL5CTosEUVPW+JTwF/U4OyoSwYBBXK
+0l5nkTickj/0soT6V4SHNLUUi9V/kv6O5dk2r8Xaddw16vwiLM/b
+=HLTQ
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+  await KeyManager.import_from_armored_pgp { armored }, defer err, km
+  T.assert err?, "import failed"
+  T.equal err?.message, "First packet must be the primary key"
+  cb()
+
+#============================================================================
+
 do_ukm_decode_sig_test = ({armored, expected_payload, expected_body, T}, cb) ->
   [ err, decoded ] = ukm.decode_sig {armored}
   T.no_error err
