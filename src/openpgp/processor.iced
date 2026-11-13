@@ -40,7 +40,7 @@ class KeyBlock
     #  console.log p.get_fingerprint().toString('hex')
     if not @packets.length
       err = new Error "No packets; cannot extract a key"
-    else if not (@primary = @packets[0]).is_primary()
+    else if not ((@primary = @packets[0]).is_key_material() and @primary.is_primary())
       err = new Error "First packet must be the primary key"
     else
       for p,i in @packets[1...] when (p.is_key_material() and not err?)
