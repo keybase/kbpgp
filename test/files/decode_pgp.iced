@@ -444,6 +444,128 @@ ftHlHjFvIF9ItMc=
 
 #============================================================================
 
+exports.self_sig_no_userid = (T, cb) ->
+  # Have a armored public key with primary public key and a self signature, with
+  # no user ID in between. So the signature has nothing to verify and processing
+  # should fail.
+
+  armored = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+xm8EavhhnBMFK4EEACIDAwTMavPPhkOgwt2SF2M53riIkdedpuWsdrpJlRjLMxe2
+r+kzlui4KaMur7anexoG2iS1yDekGuZWdnaPbbTV49uTv4r0wBh7+Qs28Ac4qRcm
+xQMKHlta61tMGY31YxXxp8/CfgQTEwoABgUCavhhnAAKCRA34r5F7RWzDM3MAX45
+dQS6QbtE+Wjt2c2lPw6lzzbHfNZcT56gwGxscKEODjsB4yIRCFxQV9oV7q5oogYB
+gOstRFQk0z601aVB1Njc+WncR5PD0HYztN0wvCZT7jQqI38z/YHEHzdQNN5/hifC
+zw==
+=G6s4
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+  await KeyManager.import_from_armored_pgp { armored }, defer err, km, warnings
+  T.assert err?, "import failed"
+  T.equal err?.message, "no valid primary key self-signature or key(s) have expired"
+  T.equal warnings?.warnings().length, 1
+  T.equal warnings.warnings()[0], "Signature failure in packet 0: expecting exactly one UserID-style packet(s) in a self-sig (got 0) (37e2be45ed15b30c)"
+  cb()
+
+#============================================================================
+
+exports.binding_sig_over_literal = (T, cb) ->
+  # Binding signature is expected to be over a key. Have an armored public key
+  # with a binding signature over a literal.
+
+  armored = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+xm8EavhvNBMFK4EEACIDAwRdmxfoC/agLFRM93wEKEOipzny8XVo+vcXQ76A8Pr4
+F6XX+ZISmP9/ez16Nl9B3qZzE1ye3EhOyXvJqcCnp11rzBEjVEPASax9AiFiW/WO
+gOeUf/aIwjf/4HcbSj62AuzLE3UBeAAAAABub3QgYSBzdWJrZXnCwD4EGBMKAAYF
+Amr4bzQAigkQtxPW8PfwfJt/IAQZEwoABgUCavhvNAAKCRC3E9bw9/B8m2OoAX9I
+T1QPTjgJN+BYhyrAPRd8a017TWiGUYJY1zNuX5BCN4follARTmu0wxwylySi6JMB
+gKEhy2ohGx2mIbc28TCHITZscsN6iP3MopgcAbYNtBFSOAG77yOC6EBMR20P177n
+h76JAXsHYlRvKFkwnZG8wOQCF589IerXoOHjjJgQXtbtkEd1JuPYoKobxXzaVfh4
+SDlXVQABfi6JUfHiT2Pmmkqh1OJ8ckwDXPuF8wh2ty2n8HvlWTTYOW/3reFSFFBa
+T3WF+qui6w==
+=nb3p
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+  await KeyManager.import_from_armored_pgp { armored }, defer err, km, warnings
+  T.assert err?, "import failed"
+  T.equal err?.message, "no valid primary key self-signature or key(s) have expired"
+  T.equal warnings?.warnings().length, 1
+  T.equal warnings.warnings()[0], "Signature failure in packet 1: Data packet must be a key (b713d6f0f7f07c9b)"
+  cb()
+
+#============================================================================
+
+exports.subkey_revocation_over_literal = (T, cb) ->
+  # Similarly a subkey revocation over literal:
+  armored = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+xm8Eavh+7hMFK4EEACIDAwT0W9TzTzGtFG46MSLy9oEGQx64ar0nMK3EJI8f/SVj
+ieDPiQdlPSreXzYCvnsy+LvusM8TQt5ZoZ2dQP6BmWPyYhJzvKHNiVqk8cezlADe
+lgVJxFcfee+kSt5M9w2pyjzLE3UBeAAAAABub3QgYSBzdWJrZXnCfgQoEwoABgUC
+avh+7gAKCRBOcbm0F3fTIze9AYCLxZq0PMqugD+joYA8UjvpjB5FvTJ3wlBeL3An
+mcfTI8K7ZV0jbKmtBncvMFkVTVsBf02Hg9hVZv/g1jc1yxd0HdHh+WDYP4606Afz
+L0IwJAt1l7IpYKdzPi604VdzE4Xkww==
+=xB/n
+-----END PGP PUBLIC KEY BLOCK-----
+  """
+
+  await KeyManager.import_from_armored_pgp { armored }, defer err, km, warnings
+  T.assert err?, "import failed"
+  T.equal err?.message, "no valid primary key self-signature or key(s) have expired"
+  T.equal warnings?.warnings().length, 1
+  T.equal warnings.warnings()[0], "Signature failure in packet 1: Data packet must be a key (4e71b9b41777d323)"
+  cb()
+
+#============================================================================
+
+exports.direct_sig_designated_revoker = (T, cb) ->
+  # Block:
+  #   1. primary public key
+  #   2. User ID
+  #   3. positive self-sig over (primary, User ID)
+  #   4. direct-key sig over (primary, User ID), issuer = primary,
+  #      hashed Revocation Key fingerprint 00112233445566778899aabbccddeeff00112233
+  # The direct sig shares the User ID working set, so that is the payload
+  # _verify hashes. A verified direct sig records the revoker on the primary.
+
+  armored = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+xm8Eavr33hMFK4EEACIDAwSfoZrxuf9kK4IU9IuXMTQsW+i3z5DaoHPt0T85prhC
+iNG7xpB+0kc7pwATjb2LrhUE6rN9ok207IUFBjBr0WqIARYO7BQx/JGxJEKdXXKb
+4w2vNSAZPWzKXjVRb/+XsG7NDnVzZXJAbG9jYWxob3N0wpYEExMKAB4FAmr6994C
+GwEDCwkHAxUKCAIeAQIXgAMWAgECGQEACgkQWjd8bTKX5BLtIgF+PCEnn10JzNzw
+scIHbbtO5U1HIckmyadJMteMppD+TTZgh9sHab1sEpxKIY86fIYqAX9Z2Qu2Atb3
+B9AS4ctiFFX+wAw1kHLKdbLPgis3mt0fiO+ETxGmSYgt80advzqAGDXClgQfEwoA
+HgUCavr33hcMgBMAESIzRFVmd4iZqrvM3e7/ABEiMwAKCRBaN3xtMpfkEjnfAYCQ
+LTePpv6INesTZDPri3jUOH+0AvsTX4wVQIb9JEOCpDpc5BGCmqJuqfKfFmgY6roB
+f2pLufy4dzknklUBqAKAXzHpHaUW1iFMBFHBQGv+V3bCFaK4gHW5mtI9gYsbvoVn
+Pw==
+=WeD6
+-----END PGP PUBLIC KEY BLOCK-----
+  """
+
+  await KeyManager.import_from_armored_pgp { armored }, defer err, km, warnings
+  T.no_error err
+  T.equal warnings?.warnings().length, 0, "direct sig verified"
+  revoker = km?.primary._pgp.desig_revokers?["ccddeeff00112233"]
+  T.equal revoker?.fingerprint.toString("hex"), "00112233445566778899aabbccddeeff00112233", "designated revoker"
+  cb()
+
+#============================================================================
+
 do_ukm_decode_sig_test = ({armored, expected_payload, expected_body, T}, cb) ->
   [ err, decoded ] = ukm.decode_sig {armored}
   T.no_error err
