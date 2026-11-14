@@ -382,6 +382,8 @@ exports.public_key_expired_uid_bypass = (T,cb) ->
 #============================================================================
 
 exports.first_packet_non_key_material = (T, cb) ->
+  # Generated an armored public key, then drop the primary key packet. The
+  # block that remains starts with the User ID packet.
   armored = """
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: Keybase OpenPGP v2.1.20
@@ -409,6 +411,35 @@ AP+P+wz+H8YaLHrOdibR9KBrQzPo/LvcOPV7rVOyxzu30/8BgNfWI8aFRjN8E20y
   await KeyManager.import_from_armored_pgp { armored }, defer err, km
   T.assert err?, "import failed"
   T.equal err?.message, "First packet must be the primary key"
+  cb()
+
+#============================================================================
+
+exports.sig_over_unknown_packet = (T, cb) ->
+  # Try to trick the processor into running signature verification
+  # over generic packet. Should fail (but not crash etc.)
+
+  # emitted primary + unknown tag 61 + positive sig (issuer = primary)
+  armored = """
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+xm8EavhfzRMFK4EEACIDAwRjO/l6kzoTuT10INxMxTSCTS0k6T2J/Xdij7OSYiXU
+kWdTHeJsOMCWtGpxZLLr6PO9sdEynWP4HLoXA78HP9+Ml8KbY4RjXVaOFQ+5xPKG
+xZI9/LhTkbVzGRcqsctsSZn9CW5vdCBhIGtlecJ9BBMTCgAGBQJq+F/NAAoJEKZ5
+D30y2zKjS4gBcgI5Ja3LBOZgc0f24WAsgED7cMG2iDAE1Ai+ZZiqEwlakSqDVidR
+HAx93FsNiI5EAYCaESsn+ormzJ86b8Ip/QoDhcDWjYWX7riT5XFFgZdOWQBTcfui
+ftHlHjFvIF9ItMc=
+=8R6j
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+  await KeyManager.import_from_armored_pgp { armored }, defer err, km, warnings
+  T.assert err?, "import failed"
+  T.equal err?.message, "no valid primary key self-signature or key(s) have expired"
+  T.equal warnings?.warnings().length, 1
+  T.equal warnings.warnings()[0], "Signature failure in packet 1: expecting exactly one UserID-style packet(s) in a self-sig (got 1) (a6790f7d32db32a3)"
   cb()
 
 #============================================================================
