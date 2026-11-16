@@ -375,8 +375,15 @@ class Signature extends Packet
             @primary.add_designee fp
 
         when T.certificate_revocation
-          if (userid = @data_packets[1]?.to_userid())?
+          if not @data_packets[1]?
+            # This is a valid revocation of earlier direct-key signatures.
+            # Applying it requires retaining those signatures and undoing
+            # their effects (for example, designated revokers).
+            err = new Error "direct-key signature revocation is not implemented"
+          else if (userid = @data_packets[1].to_userid())?
             userid.mark_revoked sig
+          else if (user_attribute = @data_packets[1].to_user_attribute())?
+            user_attribute.mark_revoked sig
 
         else
           err = new Error "Got unknown signature type=#{@type}"

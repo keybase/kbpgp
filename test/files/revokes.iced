@@ -132,6 +132,33 @@ exports.test_misplaced_revocation = (T, cb) ->
   T.assert not uid?.is_revoked(), 'is not revoked'
   cb()
 
+exports.test_revoke_user_attr = (T, cb) ->
+  await KeyManager.import_from_armored_pgp { raw : keyRevokedUserAttribute }, defer err, entity, warnings
+  T.no_error err
+  T.equal warnings?.warnings().length, 0
+  T.equal entity.userids.length, 1
+  uid = entity.userids[0]
+  T.assert uid?, 'has userid'
+  T.assert not uid?.is_revoked(), 'is not revoked'
+  T.equal entity.user_attributes.length, 1
+  uattr = entity.user_attributes?[0]
+  T.assert uattr.data?.length > 0, "attribute has data"
+  T.assert uattr.is_revoked(), "attribute is revoked"
+  cb()
+
+exports.test_direct_key_revocation_rejected = (T, cb) ->
+  await KeyManager.import_from_armored_pgp { raw : directKeyRevocation1 }, defer err, entity, warnings
+  T.no_error err
+  T.equal warnings?.warnings().length, 1
+  T.equal warnings.warnings()[0], "Signature failure in packet 1: direct-key signature revocation is not implemented (2a7edd6df79c2b3a)"
+  T.equal entity.userids.length, 1
+
+  # The direct-key signature was verified before its unsupported revocation,
+  # so its designated-revoker effect remains.
+  revoker = entity.primary._pgp.desig_revokers?["ccddeeff00112233"]
+  T.equal revoker?.fingerprint.toString("hex"), "00112233445566778899aabbccddeeff00112233"
+  cb()
+
 # First-party revoked, regular key.
 revokedKey1stParty = """-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -254,5 +281,47 @@ HzJlEINC+VMe/+Nzd15ceySNGNIUW6D9OTtzMmgrkXCvRnZ0DDsnexVOM4pI6Up4
 afCdmQfHhocmZ8JJBBgRAgAJBQJY9xqsAhsMAAoJEDl/NacbGDDEsCgAn2RJ+SJB
 i7W/Rh1FjTXpL+d7zPqzAJ0Vzhg3SkrLt8/VGRRSJRUMpb4bPw==
 =riYc
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+# Public key block with a certified User Attribute followed
+# by a Certificate Revocation.
+keyRevokedUserAttribute = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+xm8EavsJChMFK4EEACIDAwSh0zlLwtzZk7PTosC77ylPCVX+RbxpILSksq26twHS
+QG31eNctYGs8xa9Lx5b2biaYqHO3u/Wycs4gPnlIppUS/nfCgJ1jdzA5sTXBSqhS
+4qtU4g6EbQ7IROLJLr3/wHHNDnVzZXJAbG9jYWxob3N0wpYEExMKAB4FAmr7CQoC
+GwEDCwkHAxUKCAIeAQIXgAMWAgECGQEACgkQ0j7y96PzkW3oOgGAphRAkOKBblm5
+cNtE9I/eDIBdc0VfGQdb04QGXHJnPLzUTP6bFRAenBONnUuELrkrAX4yt0jaFuTL
+2L7+OjRoykqdyU87WumG2F1bhbeccUwRwb2W0M+aXiaI876cSGXYbGPRFhUBEAAB
+AQAAAAAAAAAAAAAAAP/Y/9nCfgQTEwoABgUCavsJCwAKCRDSPvL3o/ORbW5oAYDV
+4guMdCkQ0PPwOViP5j5myG3wFwIqu9OHHuZ4c3x32aRpaWu2ZKVV4YqdaDLPseIB
+fAwdi4mFZYF1PEsS3Je1a0WCfElygjSV1k5B+5/fQvvrZFR4POxN5+dEI7weptdc
+gMJ+BDATCgAGBQJq+wkMAAoJENI+8vej85FthUwBfjDEVsMn04LIcf9ZylmZX23r
+xc/rnssJFzShdaau/69pY03MuwdtvVInH3cKAtHu/gGA6tJvmzN2rs7086SxU+MZ
+J0QoVDs/2SQ3WwnMmpyWhC+P3x509J4QmGOHjWojEgSH
+=98CG
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+directKeyRevocation1 = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP v2.1.20
+Comment: https://keybase.io/crypto
+
+xm8EavsOWRMFK4EEACIDAwRJqo6n9N7AUyL5OeoxiMFSJNDSjwr6n5H3anALqrJp
+sjUe51BgDTJDGz3aaYZ63/Y9bFZsUrPmIgnGdJpUHy/vcAabCK8D/WFezL4wRrzG
+Pndi85vhnXbT8G1KOj69TIHClgQfEwoAHgUCavsOWhcMgBMAESIzRFVmd4iZqrvM
+3e7/ABEiMwAKCRAqft1t95wrOigmAXsFiDg0Wup1XBSkxKZrG6JH+yMwrDx+8w+o
+9RKqKIMXgAq8r/21KeI9+fPV2Z9oH9UBgKlmrtG2HoVI4mq0JAaC/oS+6FQOTqBU
+Zg/3CYMJ+3FC3J/16TCRhnuseGKvmpl9esJ+BDATCgAGBQJq+w5bAAoJECp+3W33
+nCs6zvoBf134/ROwMy5nGTjvASOAAuZfqqbouppEYWI9oVHKob/k2AtOPt1mYi6P
+SCGHT1PKHAF/YKk7DfmvPlbXB5vyqf9rw9dDNHKB2fD4ihubpuLqXFmC8DGs1RNo
+OHcj7w3NuKYkzQ51c2VyQGxvY2FsaG9zdMKWBBMTCgAeBQJq+w5ZAhsBAwsJBwMV
+CggCHgECF4ADFgIBAhkBAAoJECp+3W33nCs6sz8BgJBZJCh3DGtyLdrxd5q7m5I2
+P8FVcuC0dlJfCkJp25zC2n7chjhHqCzEQaJonforfgGAvbYLwZv4B9E8TdI+tKk3
+UNAkJJNO6U6LU7AVNLHXwS1ZP7barBlZgy4csqh0O+oK
+=BNJn
 -----END PGP PUBLIC KEY BLOCK-----
 """
