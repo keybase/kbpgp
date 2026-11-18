@@ -252,36 +252,43 @@ class Signature extends Packet
           data_packets
 
       when T.issuer, T.persona, T.casual, T.positive
+        packets = []
         if (n = data_packets.length) isnt 1 or not (data_packets[0].to_userid() or data_packets[0].to_user_attribute())
           err = new Error "expecting exactly one UserID-style packet(s) in a self-sig (got #{n})"
-          []
+        else if not @primary?
+          err = new Error "Need a primary key for issuer signature"
         else
-          # We need to use the primary key maybe several times,
-          # so we unshift it onto the front of all sequences of data
-          # packets.
-          [ @primary ].concat data_packets
+          # We need to use the primary key maybe several times, so we unshift it
+          # onto the front of all sequences of data packets.
+          packets = [ @primary ].concat data_packets
+        packets
 
       when T.key_revocation
         # A revocation directly after the key has no data packet. One that
         # follows a certification still sees that certification's packet,
         # because consecutive signatures share a working set.
+        packets = []
         if (n = data_packets.length) > 1
           err = new Error "key revocation expects at most one data packet (got #{n})"
-          []
         else if n is 1 and not @_key_sig_data_packet data_packets[0]
           err = new Error "key revocation data packet must be a user id, user attribute, or key"
-          []
+        else if not @primary?
+          err = new Error "Need a primary key for key revocation signature"
         else
-          [ @primary ].concat data_packets
+          packets = [ @primary ].concat data_packets
+        packets
 
       when T.certificate_revocation
         # Zero packets revokes a direct-key signature. One user id or user
         # attribute revokes a certification of that packet.
+        packets = []
         if (n = data_packets.length) > 1 or (n is 1 and not (data_packets[0].to_userid() or data_packets[0].to_user_attribute()))
           err = new Error "certification revocation expects no data packet, or one user id or user attribute (got #{n})"
-          []
+        else if not @primary?
+          err = new Error "Need a primary key for certificate revocation signature"
         else
-          [ @primary ].concat data_packets
+          packets = [ @primary ].concat data_packets
+        packets
 
       when T.subkey_binding, T.primary_binding, T.subkey_revocation
         packets = []
@@ -297,11 +304,14 @@ class Signature extends Packet
         packets
 
       when T.direct
+        packets = []
         if (data_packets.find (dp) => not @_key_sig_data_packet dp)
           err = new Error "direct-key signature data packet must be a user id, user attribute, or key"
-          []
+        else if not @primary?
+          err = new Error "Need a primary key for direct signature"
         else
-          [ @primary ].concat data_packets
+          packets = [ @primary ].concat data_packets
+        packets
 
       else
         err = new Error "cannot verify sigtype #{@type}"
