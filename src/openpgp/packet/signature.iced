@@ -75,7 +75,10 @@ class Signature_v2_or_v3 extends Packet
   verify : (data_packets, cb) ->
     T = C.sig_types
     SKB = packetsigs.SubkeyBinding
-    data_packets = [@primary].concat(data_packets) if (@type is T.subkey_binding)
+    if @type is T.subkey_binding
+      if not @primary?
+        return cb new Error "Primary key is required to verify subkey signature"
+      data_packets = [@primary].concat(data_packets)
     if (data_packets.find (dp) -> not dp.to_signature_payload)
       return cb new Error "Unexpected data packets"
     payload = @prepare_payload data_packets
