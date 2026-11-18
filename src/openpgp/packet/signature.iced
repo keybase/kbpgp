@@ -222,6 +222,8 @@ class Signature extends Packet
         err = new Error "unknown subpacket signature type: #{s.type}"
       else if data_packets.length isnt 1
         err = new Error "Needed 1 data packet for a primary_binding signature"
+      else if not data_packets[0].is_key_material()
+        err = new Error "Need a subkey for primary_binding signature"
       else
         subkey = data_packets[0]
         s.parent = @ # s is a sub-signature of this signature
