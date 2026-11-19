@@ -1,3 +1,9 @@
+## 2.1.21 (2026-11-19)
+
+- Add missing OpenPGP grammar checks to signature verification in keys and messages.
+- During key processing, a third-party key revocation is no longer added to `verified_signatures`.
+- Explicitly reject unsupported direct-key signature revocation instead of a no-op.
+
 ## 2.1.20 (2026-10-26)
 
 - Add optional `pgp_max_length` limits to `do_message` and `Message`, rejecting oversized messages.
