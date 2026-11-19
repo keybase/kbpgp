@@ -43,6 +43,11 @@ class UserAttribute extends Packet
     
   #--------------------------
 
+  mark_revoked : (sig) -> @revocation = sig
+  is_revoked : () -> @revocation?
+
+  #--------------------------
+
 #=================================================================================
 
 exports.UserAttribute = UserAttribute

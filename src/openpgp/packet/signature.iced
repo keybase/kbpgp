@@ -75,7 +75,12 @@ class Signature_v2_or_v3 extends Packet
   verify : (data_packets, cb) ->
     T = C.sig_types
     SKB = packetsigs.SubkeyBinding
-    data_packets = [@primary].concat(data_packets) if (@type is T.subkey_binding)
+    if @type is T.subkey_binding
+      if not @primary?
+        return cb new Error "Primary key is required to verify subkey signature"
+      data_packets = [@primary].concat(data_packets)
+    if (data_packets.find (dp) -> not dp.to_signature_payload)
+      return cb new Error "Unexpected data packets"
     payload = @prepare_payload data_packets
     hash = @hasher payload
     s = new SlicerBuffer hash
@@ -217,6 +222,8 @@ class Signature extends Packet
         err = new Error "unknown subpacket signature type: #{s.type}"
       else if data_packets.length isnt 1
         err = new Error "Needed 1 data packet for a primary_binding signature"
+      else if not data_packets[0].is_key_material()
+        err = new Error "Need a subkey for primary_binding signature"
       else
         subkey = data_packets[0]
         s.parent = @ # s is a sub-signature of this signature
@@ -224,6 +231,12 @@ class Signature extends Packet
         s.key = subkey.key
         await s._verify [ subkey ], defer(err), opts
     cb err
+
+  #-----------------
+
+  # Packets a key signature may still see because consecutive signatures
+  # share one working set. The signature type decides which of these are legal.
+  _key_sig_data_packet : (p) -> p.to_userid() or p.to_user_attribute() or p.is_key_material()
 
   #-----------------
 
@@ -236,18 +249,51 @@ class Signature extends Packet
     # It's worth it to be careful here and check that we're getting the
     # right expected number of packets.
     @data_packets = switch @type
-      when T.binary_doc, T.canonical_text then data_packets
-
-      when T.issuer, T.persona, T.casual, T.positive, T.certificate_revocation, T.key_revocation
-
-        if (n = data_packets.length) > 1
-          err = new Error "Only expecting one (or no) UserID-style packet(s) in a self-sig (got #{n})"
+      when T.binary_doc, T.canonical_text
+        if (data_packets.find (dp) -> not dp.to_literal())
+          err = new Error "packets must be literals"
           []
         else
-          # We need to use the primary key maybe several times,
-          # so we unshift it onto the front of all sequences of data
-          # packets.
-          [ @primary ].concat data_packets
+          data_packets
+
+      when T.issuer, T.persona, T.casual, T.positive
+        packets = []
+        if (n = data_packets.length) isnt 1 or not (data_packets[0].to_userid() or data_packets[0].to_user_attribute())
+          err = new Error "expecting exactly one UserID-style packet(s) in a self-sig (got #{n})"
+        else if not @primary?
+          err = new Error "Need a primary key for issuer signature"
+        else
+          # We need to use the primary key maybe several times, so we unshift it
+          # onto the front of all sequences of data packets.
+          packets = [ @primary ].concat data_packets
+        packets
+
+      when T.key_revocation
+        # A revocation directly after the key has no data packet. One that
+        # follows a certification still sees that certification's packet,
+        # because consecutive signatures share a working set.
+        packets = []
+        if (n = data_packets.length) > 1
+          err = new Error "key revocation expects at most one data packet (got #{n})"
+        else if n is 1 and not @_key_sig_data_packet data_packets[0]
+          err = new Error "key revocation data packet must be a user id, user attribute, or key"
+        else if not @primary?
+          err = new Error "Need a primary key for key revocation signature"
+        else
+          packets = [ @primary ].concat data_packets
+        packets
+
+      when T.certificate_revocation
+        # Zero packets revokes a direct-key signature. One user id or user
+        # attribute revokes a certification of that packet.
+        packets = []
+        if (n = data_packets.length) > 1 or (n is 1 and not (data_packets[0].to_userid() or data_packets[0].to_user_attribute()))
+          err = new Error "certification revocation expects no data packet, or one user id or user attribute (got #{n})"
+        else if not @primary?
+          err = new Error "Need a primary key for certificate revocation signature"
+        else
+          packets = [ @primary ].concat data_packets
+        packets
 
       when T.subkey_binding, T.primary_binding, T.subkey_revocation
         packets = []
@@ -255,13 +301,22 @@ class Signature extends Packet
           err = new Error "Wrong number of data packets; expected only 1"
         else if not @primary?
           err = new Error "Need a primary key for subkey signature"
+        else if not data_packets[0].is_key_material()
+          err = new Error "Data packet must be a key"
         else
           subkey = data_packets[0]
           packets = [ @primary, subkey ]
         packets
 
       when T.direct
-        [ @primary ].concat data_packets
+        packets = []
+        if (data_packets.find (dp) => not @_key_sig_data_packet dp)
+          err = new Error "direct-key signature data packet must be a user id, user attribute, or key"
+        else if not @primary?
+          err = new Error "Need a primary key for direct signature"
+        else
+          packets = [ @primary ].concat data_packets
+        packets
 
       else
         err = new Error "cannot verify sigtype #{@type}"
@@ -271,7 +326,11 @@ class Signature extends Packet
     # We might want to skip verification of 3rd party signatures for
     # certain packet types, like key_revocation (pgp designated revoke).
     unless err? or (@is_third_party and @type is T.key_revocation)
-      buffers = (dp.to_signature_payload() for dp in @data_packets)
+      buffers = []
+      for dp in @data_packets
+        unless dp.to_signature_payload?
+          return cb new Error "invalid packet to verify"
+        buffers.push dp.to_signature_payload()
       data = Buffer.concat buffers
       { payload, hvalue } = @prepare_payload data
       await @key.verify_unpad_and_check_hash { @sig, hash : hvalue, @hasher }, defer err
@@ -331,8 +390,15 @@ class Signature extends Packet
             @primary.add_designee fp
 
         when T.certificate_revocation
-          if (userid = @data_packets[1].to_userid())?
+          if not @data_packets[1]?
+            # This is a valid revocation of earlier direct-key signatures.
+            # Applying it requires retaining those signatures and undoing
+            # their effects (for example, designated revokers).
+            err = new Error "direct-key signature revocation is not implemented"
+          else if (userid = @data_packets[1].to_userid())?
             userid.mark_revoked sig
+          else if (user_attribute = @data_packets[1].to_user_attribute())?
+            user_attribute.mark_revoked sig
 
         else
           err = new Error "Got unknown signature type=#{@type}"
@@ -344,9 +410,10 @@ class Signature extends Packet
   _third_party_verify : (key, cb) ->
     unless bufeq_secure issuer = @get_issuer_key_id(), keyid = key.get_key_id()
       return cb new Error "Key id does not match: #{issuer.toString('hex')} != #{keyid.toString('hex')}"
-
     # @data_packets are left from _verify call that's done when
     # processing this packet.
+    if (@data_packets.find (dp) -> not dp.to_signature_payload)
+      return cb new Error "Unexpected data packets"
     buffers = (dp.to_signature_payload() for dp in @data_packets)
     data = Buffer.concat buffers
     { payload, hvalue } = @prepare_payload data
@@ -834,6 +901,7 @@ exports.PreferredCompressionAlgorithms = PreferredCompressionAlgorithms
 exports.Features = Features
 exports.KeyServerPreferences = KeyServerPreferences
 exports.Issuer = Issuer
+exports.RevocationKey = RevocationKey
 exports.EmbeddedSignature = EmbeddedSignature
 exports.PrimaryUserId = PrimaryUserId
 exports.IssuerFingerprint = IssuerFingerprint

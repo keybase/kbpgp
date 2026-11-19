@@ -40,7 +40,7 @@ class KeyBlock
     #  console.log p.get_fingerprint().toString('hex')
     if not @packets.length
       err = new Error "No packets; cannot extract a key"
-    else if not (@primary = @packets[0]).is_primary()
+    else if not ((@primary = @packets[0]).is_key_material() and @primary.is_primary())
       err = new Error "First packet must be the primary key"
     else
       for p,i in @packets[1...] when (p.is_key_material() and not err?)
@@ -140,7 +140,10 @@ class KeyBlock
           msg = "Signature failure in packet #{i}: #{tmp.message} (#{issuer_id.toString('hex')})"
           @warnings.push msg
           # discard the signature, see the above comment...
-        else
+        else if not p.is_third_party
+          # do not push 3rd party signatures (issuer does not match the primary,
+          # designated revocations). We did not verify them, this is not an
+          # error, but do not mix them with actually verified signatures.
           @verified_signatures.push p
     cb err
 
